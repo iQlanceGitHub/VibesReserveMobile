@@ -1,0 +1,168 @@
+# React Native specific
+.gradle/
+**/build/
+**/.gradle/
+**/.idea/
+**/.xcode.env/
+**/.xcode.env.local/
+**/local.properties
+**/DerivedData/
+**/Pods/
+**/Podfile.lock
+ios/build/
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/.settings/
+android/.cxx/
+*.iml
+.expo/
+.expo-shared/
+dist/
+.expo-dev/
+.expo-packager-cache/
+.expo-notifications/
+.expo-web/
+.expo-electron/
+web-build/
+package-lock.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build artifacts
+build/
+build-android/
+build-ios/
+*.apk
+*.aab
+*.ipa
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xcuserstate
+ios/Pods/
+ios/.xcode.env.local
+
+# CocoaPods
+ios/Podfile.lock
+ios/Pods/
+ios/Podfile.local
+
+# Android/IntelliJ
+android/.classpath
+android/.project
+android/.settings/
+android/.idea/
+android/local.properties
+android/*.iml
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md
+
+# dotenv
+.env
+.env.*.local
+
+
+# Node/npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# JavaScript
+*.js.map
+*.js.bundle
+*.js.bundle.map
+
+# BUCK
+buck-out/
+\.buckd/
+*.keystore
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Misc
+.DS_Store
+*.swp
+*.swo
+*.log
+*.tmp
+*.ipa
+*.apk
+*.aab
+*.keystore
+
+# Android
+android/app/build/
+android/.idea
+android/.idea/.idea/
+android/app/.cxx/
+android/build/
+*.apk
+*.aar
+*.iml
+.gradle/
+local.properties
+/android/app/debug
+/android/app/release
+ 
+ 
+# iOS
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata/
+DerivedData/
+ 
+# Watchman
+.watchmanconfig
+# Environment
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+
