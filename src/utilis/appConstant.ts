@@ -84,18 +84,10 @@ export const AWSOptions = {
   // keyPrefix: 'uploads/',
   bucket: 'shw-doc-app',
   region: 'eu-central-1',
-  accessKey: 'AKIA5FTZFOARMQTIJXOS',
-  secretKey: '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',
+  accessKey: '',
+  secretKey: '',
   // successActionStatus: 201,
 };
-// export const AWSOptions = {
-//   // keyPrefix: 'uploads/',
-//   bucket: 'guardian-temp',
-//   region: 'us-east-2',
-//   accessKey: 'AKIAQ64R4AJ3AQCHTFOF',
-//   secretKey: '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',
-//   // successActionStatus: 201,
-// };
 
 export const screenName = {
   Welcomme: 'WelcomeScreen',
