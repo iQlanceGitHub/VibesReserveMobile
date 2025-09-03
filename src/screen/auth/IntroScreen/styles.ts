@@ -36,7 +36,9 @@ export default StyleSheet.create({
         fontFamily: fonts.BlackerBold,
         alignSelf: 'center',
         textAlign: 'center',
-        marginTop:  appConstant.verticalScale(50),
+        marginTop:  appConstant.verticalScale(120),
+        fontWeight: 500,
+        lineHeight: appConstant.fontScale(24),
       },
       discriptionText: {
         fontSize: appConstant.fontScale(16),
@@ -47,7 +49,8 @@ export default StyleSheet.create({
         alignItems: 'center',
         textAlignVertical: 'center',
         color: colors.fontgary,
-        fontWeight: 700,
+        fontWeight: 400,
+        lineHeight: appConstant.fontScale(24),
     
       },
       buttonsContainer: {
