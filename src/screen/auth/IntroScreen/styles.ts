@@ -32,17 +32,19 @@ export default StyleSheet.create({
       
       titleText: {
         fontSize: appConstant.fontScale(26),
-        marginBottom: appConstant.verticalScale(16),
+      //  marginBottom: appConstant.verticalScale(9),
         fontFamily: fonts.BlackerBold,
         alignSelf: 'center',
         textAlign: 'center',
-        marginTop:  appConstant.verticalScale(120),
+        marginTop:  appConstant.verticalScale(100),
         fontWeight: 500,
         lineHeight: appConstant.fontScale(24),
+        width: appConstant.fontScale(335),
+        height: appConstant.fontScale(68),
       },
       discriptionText: {
         fontSize: appConstant.fontScale(16),
-        marginBottom: appConstant.verticalScale(28),
+        //marginBottom: appConstant.verticalScale(28),
         fontFamily: fonts.Bold,
         alignContent: 'center',
         textAlign: 'center',
@@ -51,6 +53,8 @@ export default StyleSheet.create({
         color: colors.fontgary,
         fontWeight: 400,
         lineHeight: appConstant.fontScale(24),
+        width: appConstant.fontScale(281),
+       // height: appConstant.fontScale(72),
     
       },
       buttonsContainer: {
