@@ -2,19 +2,19 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "src/assets/font/Blacker-Display-Bold-trial.ttf",
+      "path": "src/assets/font/BlackerDisplayTrial-Bold.ttf",
       "sha1": "063c6f92e83c10585e6b6356dd321f311279537a"
     },
     {
-      "path": "src/assets/font/Blacker-Display-Light-trial.ttf",
+      "path": "src/assets/font/BlackerDisplayTrial-Light.ttf",
       "sha1": "d35aaf7ce4b85e95562f55b593932c9a17f81bca"
     },
     {
-      "path": "src/assets/font/Blacker-Display-Medium-trial.ttf",
+      "path": "src/assets/font/BlackerDisplayTrial-Medium.ttf",
       "sha1": "67c1cc17d52a34e9c4dc69ace2d7306f394a8943"
     },
     {
-      "path": "src/assets/font/Blacker-Display-Regular-trial.ttf",
+      "path": "src/assets/font/BlackerDisplayTrial-Regular.ttf",
       "sha1": "fd9ca15b12b88d6387e79a93dd7a87ed69a419e0"
     },
     {

@@ -14,4 +14,5 @@ export const colors = {
     photo: '#381946',
     darkGray: '#424148',
     primary_pinkLight: "#fa84c5ff",
+    
 };
