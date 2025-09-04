@@ -7,7 +7,9 @@ import {
     TouchableOpacity,
     Animated,
   } from 'react-native';
-  import { getHeight, getWidth, colors, fonts, useTheme } from '../utils/appConstant';
+  import { getHeight, getWidth, useTheme } from '../utilis/appConstant';
+  import { colors } from '../utilis/colors';
+  import { fonts } from '../utilis/fonts';
   import { Buttons } from './buttons';
   import React, { useState, useRef } from 'react';
   import Icon from 'react-native-vector-icons/MaterialIcons';
