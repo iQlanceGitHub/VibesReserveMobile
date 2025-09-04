@@ -2,11 +2,13 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { useColorScheme } from "react-native";
 
-import IntroScreen from '../screen/auth/IntroScreen/IntroScreen';
+import IntroScreen from "../screen/auth/IntroScreen/IntroScreen";
 
 // import { BackButton } from "../components/BackButton";
 import LinearGradient from "react-native-linear-gradient";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import signupScreen from "../screen/signUpScreen/signUpScreen";
+import signInScreen from "../screen/signInScreen/signInScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -14,7 +16,7 @@ export type RootStackParamList = {
   Splash: undefined;
   Welcome: undefined;
   IntroScreen: undefined;
-  SignUpScreen: undefined;
+  signupScreen: undefined;
   SignInScreen: undefined;
   EmailVerificationScreen: undefined;
   VerificationCodeScreen: undefined;
@@ -42,10 +44,6 @@ export type RootStackParamList = {
   HomeTabs: undefined;
 };
 
-
-
-
-
 const NavigationStack: React.FC = () => {
   const theme = useColorScheme();
   return (
@@ -62,7 +60,16 @@ const NavigationStack: React.FC = () => {
             name="IntroScreen"
             component={IntroScreen}
           />
-          
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="signupScreen"
+            component={signupScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="SignInScreen"
+            component={signInScreen}
+          />
         </Stack.Navigator>
       </LinearGradient>
     </NavigationContainer>
