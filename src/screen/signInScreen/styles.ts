@@ -347,9 +347,10 @@ export default StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: colors.primary_blue,
   },
   signUpButton: {
-    marginBottom: verticalScale(20),
+    marginBottom: verticalScale(60),
   },
   loginLink: {
     alignItems: "center",
@@ -427,5 +428,34 @@ export default StyleSheet.create({
     letterSpacing: 0,
     textAlign: "center",
     color: colors.violate,
+  },
+  disabledButton: {
+    opacity: 0.6,
+    backgroundColor: colors.disableGray, // Make sure this color exists in your colors file
+  },
+  
+  passwordRequirements: {
+    marginTop: verticalScale(8),
+    padding: horizontalScale(12),
+   // backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: verticalScale(8),
+  },
+  
+  requirementsTitle: {
+    color: colors.white,
+    fontSize: fontScale(12),
+    fontFamily: fonts.Medium,
+    marginBottom: verticalScale(4),
+  },
+  
+  requirement: {
+    color: colors.red,
+    fontSize: fontScale(11),
+    fontFamily: fonts.Regular,
+    lineHeight: verticalScale(16),
+  },
+  
+  requirementMet: {
+    color: colors.green, // Make sure this color exists in your colors file
   },
 });
