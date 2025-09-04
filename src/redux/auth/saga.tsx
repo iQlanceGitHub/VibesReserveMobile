@@ -81,17 +81,18 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
+      "currentRole":"user",
       "email": payload?.email,
       "password": payload?.password,
-      "deviceToken": payload?.deviceToken,
-      "deviceType": payload?.deviceType,
+      "deviceToken": 'abcd',
+      "deviceType": "ios",
       "timeZone": payload?.timeZone,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'signin'}`,
+      url: `${baseurl}${'user/signIn'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'signin'}`)
+    console.log(`==>> ${baseurl}${'user/signIn'}`)
 
     // console.log('response:->', response);
     if (response?.status == 1 || response?.status == true || response?.status == "1" || response?.status == "true") {
@@ -366,10 +367,10 @@ function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'social-login'}`,
+      url: `${baseurl}${'user/checkSocialid'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'social-login'}`)
+    console.log(`==>> ${baseurl}${'user/checkSocialid'}`)
 
     // console.log('response:->', response);
     if (response?.status == 1 || response?.status == true || response?.status == "1" || response?.status == "true") {
