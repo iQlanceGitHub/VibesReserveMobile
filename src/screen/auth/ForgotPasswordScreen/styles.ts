@@ -428,4 +428,8 @@ export default StyleSheet.create({
     textAlign: "center",
     color: colors.violate,
   },
+  disabledButton: {
+    opacity: 0.6,
+    backgroundColor: colors.disableGray, // Make sure this color exists in your colors file
+  },
 });
