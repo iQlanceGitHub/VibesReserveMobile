@@ -16,4 +16,6 @@ export const colors = {
   textColor: "#868C98",
   gradient_dark_purple: "#090014",
   gradient_light_purple: "#14002C",
+  whiteTransparentLight: "rgba(255, 255, 255, 0.1)",
+  whiteTransparentMedium: "rgba(255, 255, 255, 0.3)",
 };

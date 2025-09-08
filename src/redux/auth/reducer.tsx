@@ -26,6 +26,9 @@ import {
   verifyOtpData,
   verifyOtpError,
 
+  forgotPasswordData,
+  forgotPasswordError,
+
   resetPasswordData,
   resetPasswordError,
 
@@ -62,6 +65,10 @@ export const initialState = {
   sendOtpErr: '',
   verifyOtp: '',
   verifyOtpErr: '',
+
+  forgotPassword: '',
+  forgotPasswordErr: '',
+
   resetPassword: '',
   resetPasswordErr: '',
   socialLogin: '',
@@ -161,6 +168,16 @@ const authReducer = handleActions(
       draft.verifyOtpErr = action.payload;
     }),
 
+     // payload ForgotPasswordData
+     [forgotPasswordData().type]: produce((draft, action) => {
+      console.log('payload forgot Password', action.payload);
+      draft.forgotPassword = action.payload;
+    }),
+    [forgotPasswordError().type]: produce((draft, action) => {
+      console.log('payload forgot Password Err', action.payload);
+      draft.forgotPasswordErr = action.payload;
+    }),
+
 
     // payload resetPasswordData
     [resetPasswordData().type]: produce((draft, action) => {
@@ -207,9 +224,7 @@ const authReducer = handleActions(
       console.log('payload logout Err', action.payload);
       draft.logoutErr = action.payload;
     }),
-
-
-
+    
     [getDynamicContentData().type]: produce((draft, action) => {
       console.log('payload getDynamicContent ', action.payload);
       draft.getDynamicContent = action.payload;
@@ -218,42 +233,6 @@ const authReducer = handleActions(
       console.log('payload get Dynamic Content Err ', action.payload);
       draft.getDynamicContentErr = action.payload;
     }),
-
-    // [clearReduxStore().type]: produce((draft, action) => {
-    //   draft.loader = false;
-    //   draft.signin = '';
-    //   draft.signinErr = '';
-    //   draft.signup = '';
-    //   draft.signupErr = '';
-    //   draft.resendverifyemail = '';
-    //   draft.resendverifyemailErr = '';
-    //   draft.forgotpassword = '';
-    //   draft.forgotpasswordErr = '';
-    //   draft.resetpassword = '';
-    //   draft.resetpasswordErr = '';
-    //   draft.verifyotp = '';
-    //   draft.verifyotpErr = '';
-    //   draft.resendotp = '';
-    //   draft.resendotpErr = '';
-    //   draft.signupprofile = '';
-    //   draft.signupprofileErr = '';
-
-    //   draft.giftCardList= [];
-    // draft.giftCardErr= '';
-
-    // draft.myGiftCardList: [];
-    // draft.myGiftCardErr= '';
-
-    // draft.buyGiftCardRes= '';
-    // draft.buyGiftCardErr= '';
-
-    // draft.promoCodeRes= '';
-    // draft.promoCodeErr= '';
-    //   draft.validPromo= '',
-    // draft.promoErr= '',
-    // draft.inviteText= '',
-    // paypalAccessToken
-    // }),
   },
   initialState,
 );

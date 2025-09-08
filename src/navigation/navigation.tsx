@@ -113,7 +113,7 @@ const NavigationStack: React.FC = () => {
             name="ForgotPasswordScreen"
             component={ForgotPasswordScreen}
           />
-               <Stack.Screen
+           <Stack.Screen
             options={{ headerShown: false }}
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}

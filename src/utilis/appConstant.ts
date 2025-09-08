@@ -84,7 +84,7 @@ export const AWSOptions = {
   region: "eu-central-1",
   accessKey: "",
   secretKey: "",
-  // successActionStatus: 201,
+  successActionStatus: 201,
 };
 
 export const screenName = {

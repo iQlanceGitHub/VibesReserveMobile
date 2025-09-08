@@ -428,4 +428,34 @@ export default StyleSheet.create({
     textAlign: "center",
     color: colors.violate,
   },
+  passwordRequirements: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: colors.primary_blue, // Add appropriate color
+    borderRadius: 8,
+  },
+  requirementsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+    color: colors.primary_pinkLight, // Add appropriate color
+  },
+  requirement: {
+    fontSize: 12,
+    color: colors.red, // Red for unmet requirements
+    marginBottom: 2,
+  },
+  requirementMet: {
+    color: colors.green, // Green for met requirements
+  },
+  disabledButton: {
+    opacity: 0.6,
+    backgroundColor: colors.disableGray, // Make sure this color exists
+  },
+  passwordMismatchError: {
+    color: colors.red, // Make sure you have error color defined
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
 });

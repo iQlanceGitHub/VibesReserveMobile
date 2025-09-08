@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +12,7 @@ import {
   SafeAreaView,
   Platform,
   KeyboardAvoidingView,
+  Alert
 } from "react-native";
 import { colors } from "../../../utilis/colors";
 
@@ -22,16 +24,27 @@ import {
 import { BackButton } from "../../../components/BackButton";
 import EmailIcon from "../../../assets/svg/emailIcon";
 
+
+//API
+import {
+  onForgotPassword,
+  forgotPasswordData,
+  forgotPasswordError,
+} from '../../../redux/auth/actions';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch, useSelector } from 'react-redux';
+import { CustomAlertSingleBtn } from '../../../components/CustomeAlertDialog';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 interface ForgotPasswordScreenProps {
   navigation?: any;
 }
 import styles from "./styles";
-import OTPVerificationScreen from "../OTPVerificationScreen/OTPVerificationScreen";
 
-const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps > = ({ navigation }) => {
+const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
   });
   const [errors, setErrors] = useState({
     email: false,
@@ -39,21 +52,87 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps > = ({ navigation
   const [errorMessages, setErrorMessages] = useState({
     email: "",
   });
-  const [rememberMe, setRememberMe] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [uid, setUid] = useState('');
+
+  // Validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = () => {
+    const emailValid = validateEmail(formData.email);
+    setIsFormValid(emailValid);
+    return emailValid;
+  };
+
+  const dispatch = useDispatch();
+  const forgotPassword = useSelector((state: any) => state.auth.forgotPassword);
+  const forgotPasswordErr = useSelector((state: any) => state.auth.forgotPasswordErr);
+  const [msg, setMsg] = useState('');
+  
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // Validate field in real-time
+    if (field === "email") {
+      const isValid = validateEmail(value);
+      setErrors((prev) => ({ ...prev, email: !isValid }));
+      setErrorMessages((prev) => ({
+        ...prev,
+        email: value && !isValid ? "Please enter a valid email address" : ""
+      }));
+    }
+
+    // Validate entire form
+    validateForm();
   };
+
+  useEffect(() => {
+
+    if (
+      forgotPassword?.status === true ||
+      forgotPassword?.status === 'true' ||
+      forgotPassword?.status === 1 ||
+      forgotPassword?.status === "1"
+    ) {
+      console.log("forgotPassword:+>", forgotPassword);
+      setMsg(forgotPassword?.message?.toString());
+      setUid(forgotPassword?.data?._id);
+      
+      dispatch(forgotPasswordData(''));
+    }
+
+    if (forgotPasswordErr) {
+      console.log("forgotPasswordErr:+>", forgotPasswordErr);
+      setMsg(forgotPasswordErr?.message.toString())
+      dispatch(forgotPasswordError(''));
+    }
+  }, [forgotPassword, forgotPasswordErr]);
+
+
 
   const handleContinue = () => {
-    // Handle sign in logic
-    console.log("Sign in data:", formData);
-    navigation?.navigate('OTPVerificationScreen');
-  };
+    // Final validation before submission
+    if (!validateForm()) {
+      // Set errors for empty fields
+      if (!formData.email) {
+        setErrors((prev) => ({ ...prev, email: true }));
+        setErrorMessages((prev) => ({ ...prev, email: "Email is required" }));
+      }
+      return;
+    }
 
-
-  const handleRememberMe = () => {
-    setRememberMe(!rememberMe);
+    setIsLoading(true);
+    // Simulate API call to send reset password email
+    setTimeout(() => {
+      setIsLoading(false);
+      dispatch(onForgotPassword(formData))
+    }, 1500);
   };
 
   return (
@@ -87,18 +166,15 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps > = ({ navigation
                   navigation={navigation}
                   onBackPress={() => navigation?.goBack()}
                 />
-               
               </View>
             </View>
 
             <View style={styles.titleSection}>
               <Text style={styles.title}>Forgot Password</Text>
               <Text style={styles.subtitle}>
-              Enter your email to reset your password.
+                Enter your email to reset your password.
               </Text>
             </View>
-
-            
 
             <View style={styles.formSection}>
               <View style={styles.inputContainer}>
@@ -110,23 +186,18 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps > = ({ navigation
                   error={errors.email}
                   message={errorMessages.email}
                   leftImage={<EmailIcon />}
-                  kType="email-address"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                   style={styles.customInput}
                 />
               </View>
 
               <View style={styles.optionsSection}>
                 <View style={styles.rememberMeContainer}>
-                  <TouchableOpacity
-                    style={styles.checkboxContainer}
-                    onPress={handleRememberMe}
-                  >
-                   
-                    <Text style={styles.rememberMeText}>We'll  text you to confirm your email. Standard message
-                    and data rates apply</Text>
-                  </TouchableOpacity>
+                  <Text style={styles.rememberMeText}>
+                    We'll text you to confirm your email. Standard message and data rates apply.
+                  </Text>
                 </View>
-              
               </View>
             </View>
 
@@ -135,12 +206,31 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps > = ({ navigation
                 title="Continue"
                 isCap={false}
                 onPress={handleContinue}
-                style={styles.signUpButton}
+                style={[
+                  styles.signUpButton,
+                  !isFormValid && styles.disabledButton
+                ]}
+                disabled={!isFormValid || isLoading}
+                loading={isLoading}
               />
             </View>
-          </ScrollView>
+            <CustomAlertSingleBtn
+              btn1Style={{ backgroundColor: colors.violate }}
+              isVisible={msg != ''}
+              message={msg}
+              button2Text={'Ok'}
+              onButton2Press={() => {
+                setMsg('');
+                if (msg == 'OTP request limit reached for today. Try again tomorrow.') {
 
-          
+                } else {
+                  navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'forgot_password', id: uid })
+
+                }
+              }}
+              title={'Vibes'}
+            />
+          </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </View>

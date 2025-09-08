@@ -26,6 +26,10 @@ export const {
   verifyEmailData,
   verifyEmailError,
 
+  onForgotPassword,
+  forgotPasswordData,
+  forgotPasswordError,
+
   onSendOtp,
   sendOtpData,
   sendOtpError,
@@ -87,6 +91,10 @@ export const {
   'ON_VERIFY_EMAIL',
   'VERIFY_EMAIL_DATA',
   'VERIFY_EMAIL_ERROR',
+
+  'ON_FORGOT_PASSWORD',
+  'FORGOT_PASSWORD_DATA',
+  'FORGOT_PASSWORD_ERROR',
 
   'ON_SEND_OTP',
   'SEND_OTP_DATA',
