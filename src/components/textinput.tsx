@@ -36,6 +36,7 @@ import {
   parsePhoneNumberFromString,
 } from "libphonenumber-js";
 import examples from "libphonenumber-js/examples.mobile.json";
+import CloseIcon from "../assets/svg/closeIcon";
 
 const getCountryISOFromDialCode = (dialCode: string): string => {
   const match = countryCodes.find((c) => c.dial_code === dialCode);
@@ -487,6 +488,180 @@ export const CustomePasswordTextInput: React.FC<
             {message != "" ? `${message}` : `${label} field is required`}
           </HelperText>
         </View>
+      ) : null}
+    </View>
+  );
+};
+interface CustomeSearchTextInputProps {
+  value: string;
+  kType?: KeyboardTypeOptions;
+  maxLength?: number;
+  multiline?: boolean;
+  error: boolean;
+  label: string;
+  placeholder: string;
+  onChangeText: (text: string) => void;
+  style: object;
+  message: string;
+  leftImage?: string | React.ReactNode;
+  rightIcon?: React.ReactNode; // Added rightIcon prop
+  secureTextEntry?: boolean; // Added secureTextEntry prop
+}
+
+export const CustomeSearchTextInput: React.FC<CustomeSearchTextInputProps> = ({
+  error,
+  label,
+  maxLength,
+  message,
+  multiline,
+  onChangeText,
+  placeholder,
+  style,
+  value,
+  kType = "default",
+  leftImage,
+  rightIcon,
+  secureTextEntry = false, // Default to false
+}) => {
+  const [secure, setSecure] = useState(secureTextEntry);
+
+  const onEyePress = () => {
+    setSecure(!secure);
+  };
+
+  const handleClearText = () => {
+    onChangeText(""); // Clear the text
+  };
+
+  return (
+    <View>
+      <Text
+        style={{
+          color: colors.white,
+          fontSize: 14,
+          fontFamily: fonts.medium,
+          marginBottom: 8,
+        }}
+      >
+        {label.includes("(Optional)") ? (
+          <>
+            {label.replace(" (Optional)", "")}
+            <Text style={{ color: "#868C98" }}> (Optional)</Text>
+          </>
+        ) : label.includes("*") ? (
+          <>
+            {label.replace(" *", "")}
+            <Text style={{ color: "#868C98" }}> *</Text>
+          </>
+        ) : (
+          label
+        )}
+      </Text>
+      <View style={{ position: "relative" }}>
+        {leftImage && typeof leftImage !== "string" && (
+          <View
+            style={{
+              position: "absolute",
+              left: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {leftImage}
+          </View>
+        )}
+        
+        {/* Clear button - only show when there's text and no custom rightIcon */}
+        {value && value.length > 0 && !rightIcon && (
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              right: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={handleClearText} // Use the clear function
+          >
+            <CloseIcon />
+          </TouchableOpacity>
+        )}
+        
+        {/* Custom right icon */}
+        {rightIcon && (
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              right: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={handleClearText} // Use the clear function
+          >
+            {rightIcon}
+          </TouchableOpacity>
+        )}
+        
+        <TextInput
+          theme={{ colors: { text: colors.darkGray } }}
+          value={value}
+          mode="outlined"
+          maxLength={maxLength}
+          multiline={multiline}
+          keyboardType={kType}
+          placeholder={placeholder}
+          onChangeText={onChangeText}
+          outlineColor={error ? colors.red : "#FFFFFF33"}
+          activeOutlineColor={error ? colors.red : "#E2E4E9"}
+          cursorColor={colors.white}
+          secureTextEntry={secure} // Use the secure state
+          style={[
+            {
+              backgroundColor: "transparent",
+              fontFamily: fonts.reguler,
+              color: colors.white,
+              fontSize: 15,
+              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
+              paddingRight: (value && value.length > 0) || rightIcon ? 30 : 15, // Add right padding for icons
+            },
+            style,
+          ]}
+          placeholderTextColor={colors.textColor}
+          outlineStyle={{
+            borderRadius: 90,
+            borderWidth: error ? 1 : 1,
+          }}
+          contentStyle={{
+            color: colors.white,
+            fontFamily: fonts.reguler,
+            fontSize: 15,
+          }}
+          left={
+            leftImage && typeof leftImage === "string" ? (
+              <TextInput.Icon
+                icon={leftImage}
+                onPress={() => console.log("")}
+                color={colors.white}
+              />
+            ) : undefined
+          }
+        />
+      </View>
+      {error ? (
+        <HelperText style={{ color: colors.red }} type="error" visible={error}>
+          {message !== "" ? `${message}` : `${label} field is required`}
+        </HelperText>
       ) : null}
     </View>
   );

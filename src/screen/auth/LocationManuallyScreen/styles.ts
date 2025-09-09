@@ -124,4 +124,43 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    color: colors.white,
+    marginTop: 10,
+  },
+  noResultsContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    color: colors.white,
+  },
+  resultTextContainer: {
+    marginLeft: 10,
+  },
+  buttonContainer: {
+    padding: 20,
+  },
+  nextButton: {
+    backgroundColor: colors.primary,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  nextButtonDisabled: {
+    backgroundColor: colors.gray,
+  },
+  nextButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  getStartedButton: {
+    width: '100%',
+    marginBottom: appConstant.verticalScale(20),
+  },
 });
