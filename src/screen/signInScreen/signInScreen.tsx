@@ -535,7 +535,7 @@ const handleAppleSignIn = async () => {
                 Don't have an account?{" "}
                 <Text
                   style={styles.loginLinkText}
-                  onPress={() => navigation?.navigate("signupScreen")}
+                  onPress={() => navigation?.navigate("SignupScreen")}
                 >
                   Register
                 </Text>
