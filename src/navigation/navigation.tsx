@@ -9,6 +9,14 @@ import LinearGradient from "react-native-linear-gradient";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import signupScreen from "../screen/signUpScreen/signUpScreen";
 import signInScreen from "../screen/signInScreen/signInScreen";
+import WelcomeScreen from "../screen/welcomeScreen/welcomeScreen";
+// import OTPVerificationScreen from "../screen/auth/OTPVerificationScreen/OTPVerificationScreen";
+// import VerificationSucessScreen from "../screen/auth/VerificationSucessScreen/VerificationSucessScreen";
+// import LocationScreen from "../screen/auth/LocationScreen/LocationScreen";
+// import LocationManuallyScreen from "../screen/auth/LocationManuallyScreen/LocationManuallyScreen";
+// import PasswordChangedSucessScreen from "../screen/auth/PasswordChangedSucessScreen/PasswordChangedSucessScreen";
+// import ForgotPasswordScreen from '../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen';
+// import ResetPasswordScreen from '../screen/auth/ResetPasswordScreen/ResetPasswordScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -62,6 +70,11 @@ const NavigationStack: React.FC = () => {
           />
           <Stack.Screen
             options={{ headerShown: false }}
+            name="WelcomeScreen"
+            component={WelcomeScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
             name="signupScreen"
             component={signupScreen}
           />
@@ -70,6 +83,41 @@ const NavigationStack: React.FC = () => {
             name="SignInScreen"
             component={signInScreen}
           />
+          {/* <Stack.Screen
+            options={{ headerShown: false }}
+            name="OTPVerificationScreen"
+            component={OTPVerificationScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="VerificationSucessScreen"
+            component={VerificationSucessScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="LocationScreen"
+            component={LocationScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="LocationManuallyScreen"
+            component={LocationManuallyScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="PasswordChangedSucessScreen"
+            component={PasswordChangedSucessScreen}
+          />
+           <Stack.Screen
+            options={{ headerShown: false }}
+            name="ForgotPasswordScreen"
+            component={ForgotPasswordScreen}
+          />
+               <Stack.Screen
+            options={{ headerShown: false }}
+            name="ResetPasswordScreen"
+            component={ResetPasswordScreen}
+          />     */}
         </Stack.Navigator>
       </LinearGradient>
     </NavigationContainer>
