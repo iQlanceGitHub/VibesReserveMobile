@@ -1,11 +1,12 @@
 import { StyleSheet } from "react-native";
-import { colors } from "../../utilis/colors";
-import { fonts } from "../../utilis/fonts";
+import * as appConstant from "../../../utilis/appConstant";
+import { colors } from "../../../utilis/colors";
+import { fonts } from "../../../utilis/fonts";
 import {
   fontScale,
   horizontalScale,
   verticalScale,
-} from "../../utilis/appConstant";
+} from "../../../utilis/appConstant";
 
 export default StyleSheet.create({
   container: {
@@ -19,7 +20,6 @@ export default StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: verticalScale(20),
   },
   header: {
     paddingTop: verticalScale(50),
@@ -30,6 +30,13 @@ export default StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: verticalScale(10),
+  },
+  timeText: {
+    color: colors.white,
+    fontSize: fontScale(16),
+    fontFamily: fonts.Medium,
+    fontWeight: 500,
+    lineHeight: appConstant.fontScale(24),
   },
   statusIcons: {
     flexDirection: "row",
@@ -42,8 +49,17 @@ export default StyleSheet.create({
     lineHeight: fontScale(24),
     fontFamily: fonts.semiBold,
   },
+  backButton: {
+    marginBottom: verticalScale(20),
+  },
+  backArrow: {
+    color: colors.white,
+    fontSize: fontScale(24),
+    fontFamily: fonts.Medium,
+  },
   titleSection: {
     paddingHorizontal: horizontalScale(20),
+    marginTop: verticalScale(20),
     marginBottom: verticalScale(30),
   },
   title: {
@@ -51,7 +67,7 @@ export default StyleSheet.create({
     fontFamily: fonts.SemiBold,
     fontWeight: "600",
     color: colors.white,
-    lineHeight: fontScale(35),
+    lineHeight: fontScale(24) * 1.6,
     letterSpacing: 0,
     marginBottom: verticalScale(8),
   },
@@ -60,8 +76,9 @@ export default StyleSheet.create({
     fontFamily: fonts.Regular,
     fontWeight: "400",
     color: colors.white,
-    lineHeight: fontScale(20),
+    lineHeight: 20,
     letterSpacing: 0,
+    opacity: 0.8,
   },
   socialSection: {
     paddingHorizontal: horizontalScale(20),
@@ -86,6 +103,11 @@ export default StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  googleIcons: {
+    fontSize: fontScale(20),
+    marginRight: horizontalScale(10),
+    color: colors.fontgary,
+  },
   appleIcons: {
     fontSize: fontScale(20),
     marginRight: horizontalScale(10),
@@ -105,7 +127,7 @@ export default StyleSheet.create({
   },
   dividerLine: {
     flex: 1,
-    height: verticalScale(1),
+    height: 1,
     backgroundColor: colors.disableGray,
     opacity: 0.3,
   },
@@ -125,7 +147,7 @@ export default StyleSheet.create({
     fontWeight: "400",
     fontFamily: fonts.Regular,
     color: colors.white,
-    marginBottom: verticalScale(10),
+    marginBottom: verticalScale(5),
   },
   roleOptions: {
     flexDirection: "row",
@@ -139,7 +161,9 @@ export default StyleSheet.create({
     backgroundColor: "transparent",
     padding: verticalScale(10),
   },
-  selectedRole: {},
+  selectedRole: {
+    // No additional styling needed for selected role
+  },
   roleContent: {
     alignItems: "center",
   },
@@ -149,9 +173,9 @@ export default StyleSheet.create({
     gap: horizontalScale(12),
   },
   roleIconContainer: {
-    width: horizontalScale(42),
-    height: verticalScale(42),
-    borderRadius: horizontalScale(21),
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1,
     borderColor: colors.violate,
     alignItems: "center",
@@ -163,9 +187,9 @@ export default StyleSheet.create({
     backgroundColor: colors.violate,
   },
   radioButton: {
-    width: horizontalScale(16),
-    height: verticalScale(16),
-    borderRadius: horizontalScale(8),
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.disableGray,
     alignItems: "center",
@@ -175,22 +199,23 @@ export default StyleSheet.create({
     borderColor: colors.violate,
   },
   radioInner: {
-    width: horizontalScale(8),
-    height: verticalScale(8),
-    borderRadius: horizontalScale(4),
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.violate,
   },
   roleIcon: {
-    width: horizontalScale(22),
-    height: verticalScale(22),
+    width: 22,
+    height: 22,
     alignItems: "center",
     justifyContent: "center",
   },
   roleText: {
-    fontFamily: fonts.Regular,
+    fontFamily: "Plus Jakarta Sans",
     fontWeight: "400",
-    fontSize: fontScale(14),
-    lineHeight: fontScale(18),
+    fontStyle: "normal",
+    fontSize: 14,
+    lineHeight: 18,
     letterSpacing: 0,
     color: colors.white,
   },
@@ -202,29 +227,79 @@ export default StyleSheet.create({
     marginBottom: verticalScale(10),
   },
   customInput: {
-    marginBottom: verticalScale(4),
+    marginBottom: verticalScale(6),
+  },
+  inputLabel: {
+    fontSize: fontScale(14),
+    fontFamily: fonts.Medium,
+    color: colors.white,
+    marginBottom: verticalScale(8),
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: verticalScale(12),
+    paddingHorizontal: horizontalScale(15),
+    paddingVertical: verticalScale(15),
+  },
+  inputIcon: {
+    fontSize: fontScale(18),
+    marginRight: horizontalScale(10),
+  },
+  textInput: {
+    flex: 1,
+    fontSize: fontScale(16),
+    fontFamily: fonts.Regular,
+    color: colors.white,
+  },
+  phoneCodeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: horizontalScale(10),
+  },
+  flagIcon: {
+    fontSize: fontScale(16),
+    marginRight: horizontalScale(5),
+  },
+  phoneCode: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.Medium,
+    color: colors.white,
+    marginRight: horizontalScale(5),
+  },
+  dropdownArrow: {
+    fontSize: fontScale(12),
+    color: colors.disableGray,
+  },
+  phoneInput: {
+    marginLeft: horizontalScale(10),
+  },
+  eyeIcon: {
+    fontSize: fontScale(18),
+    color: colors.disableGray,
   },
   documentSection: {
     paddingHorizontal: horizontalScale(20),
     marginBottom: verticalScale(30),
   },
   documentUpload: {
-    width: horizontalScale(335),
-    height: verticalScale(138),
+    width: 335,
+    height: 138,
     borderWidth: 1,
-    borderColor: colors.whiteTransparent,
+    borderColor: colors.disableGray,
     borderStyle: "solid",
-    borderRadius: horizontalScale(20),
-    paddingTop: verticalScale(14),
-    paddingRight: horizontalScale(10),
-    paddingBottom: verticalScale(20),
-    paddingLeft: horizontalScale(12),
+    borderRadius: 20,
+    paddingTop: 14,
+    paddingRight: 10,
+    paddingBottom: 20,
+    paddingLeft: 12,
     alignItems: "center",
     alignSelf: "center",
   },
   documentContent: {
     alignItems: "center",
-    gap: verticalScale(8),
+    gap: 8,
   },
   documentText: {
     fontSize: fontScale(16),
@@ -239,31 +314,41 @@ export default StyleSheet.create({
     marginBottom: verticalScale(15),
   },
   browseButton: {
-    width: horizontalScale(98),
-    height: verticalScale(31),
+    width: 98,
+    height: 31,
     backgroundColor: colors.violate,
-    borderRadius: horizontalScale(90),
-    paddingTop: verticalScale(6),
-    paddingRight: horizontalScale(16),
-    paddingBottom: verticalScale(6),
-    paddingLeft: horizontalScale(16),
+    borderRadius: 90,
+    paddingTop: 6,
+    paddingRight: 16,
+    paddingBottom: 6,
+    paddingLeft: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   browseButtonText: {
-    fontFamily: fonts.Regular,
+    fontFamily: "Plus Jakarta Sans",
     fontWeight: "400",
-    fontSize: fontScale(12),
-    lineHeight: fontScale(19.2),
+    fontStyle: "normal",
+    fontSize: 12,
+    lineHeight: 19.2, // 160% of 12px
     letterSpacing: 0,
     textAlign: "center",
     color: colors.white,
   },
   buttonSection: {
     paddingHorizontal: horizontalScale(20),
-    paddingBottom: verticalScale(10),
+    paddingBottom: verticalScale(20),
   },
-  signUpButton: {
+  loginLinkSection: {
+    paddingHorizontal: horizontalScale(20),
+    paddingBottom: verticalScale(30),
+    paddingTop: verticalScale(20),
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  handleSavePasswordButton: {
     marginBottom: verticalScale(20),
   },
   loginLink: {
@@ -274,98 +359,103 @@ export default StyleSheet.create({
     fontFamily: fonts.Regular,
     fontWeight: "400",
     color: colors.white,
-    lineHeight: fontScale(20),
+    lineHeight: 20,
     letterSpacing: 0,
     textAlign: "center",
+    opacity: 0.8,
   },
   loginLinkText: {
     fontSize: fontScale(14),
     fontFamily: fonts.Regular,
     fontWeight: "400",
     color: colors.violate,
-    lineHeight: fontScale(20),
+    lineHeight: 20,
     letterSpacing: 0,
     textAlign: "center",
   },
-  passwordValidationContainer: {
-    marginTop: 0,
-    marginBottom: verticalScale(16),
-    paddingHorizontal: horizontalScale(4),
-  },
-  passwordValidationTitle: {
-    fontSize: fontScale(12),
-    fontFamily: fonts.medium,
-    fontWeight: "400",
-    color: colors.white,
-    marginBottom: verticalScale(8),
-    lineHeight: fontScale(16),
-    letterSpacing: 0,
-  },
-  validationList: {
-    gap: verticalScale(4),
-  },
-  validationItem: {
+  optionsSection: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: verticalScale(4),
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: verticalScale(0),
+    marginBottom: verticalScale(20),
   },
-  validationText: {
-    fontSize: fontScale(12),
-    fontFamily: fonts.regular,
-    fontWeight: "400",
-    fontStyle: "normal",
-    color: colors.disableGray,
-    lineHeight: fontScale(16),
-    letterSpacing: 0,
+  rememberMeContainer: {
     flex: 1,
-    flexWrap: "wrap",
   },
-  validationTextValid: {
-    color: colors.green,
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  selectedFileContainer: {
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.disableGray,
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: verticalScale(10),
+    marginRight: horizontalScale(8),
   },
-  selectedFileName: {
-    fontSize: fontScale(14),
-    fontFamily: fonts.regular,
-    fontWeight: "500",
+  checkedBox: {
+    backgroundColor: colors.violate,
+    borderColor: colors.violate,
+  },
+  checkmark: {
     color: colors.white,
-    textAlign: "center",
-    marginBottom: verticalScale(4),
-  },
-  selectedFileSize: {
     fontSize: fontScale(12),
-    fontFamily: fonts.regular,
+    fontWeight: "600",
+  },
+  rememberMeText: {
+    fontFamily: "Plus Jakarta Sans",
     fontWeight: "400",
-    color: colors.disableGray,
-    textAlign: "center",
-    marginBottom: verticalScale(12),
-  },
-  changeFileButton: {
-    backgroundColor: colors.whiteTransparentLight,
-    paddingHorizontal: horizontalScale(16),
-    paddingVertical: verticalScale(8),
-    borderRadius: horizontalScale(20),
-    borderWidth: 1,
-    borderColor: colors.whiteTransparentMedium,
-  },
-  changeFileButtonText: {
-    fontSize: fontScale(12),
-    fontFamily: fonts.regular,
-    fontWeight: "500",
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0,
     color: colors.white,
   },
-  signUpLinkSection: {
-    paddingHorizontal: horizontalScale(20),
-    paddingBottom: verticalScale(30),
-    paddingTop: verticalScale(20),
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.primary_blue,
+  forgotPasswordContainer: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+  forgotPasswordText: {
+    fontFamily: "Manrope",
+    fontWeight: "600",
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0,
+    textAlign: "center",
+    color: colors.violate,
+  },
+  passwordRequirements: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: colors.primary_blue, // Add appropriate color
+    borderRadius: 8,
+  },
+  requirementsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+    color: colors.primary_pinkLight, // Add appropriate color
+  },
+  requirement: {
+    fontSize: 12,
+    color: colors.red, // Red for unmet requirements
+    marginBottom: 2,
+  },
+  requirementMet: {
+    color: colors.green, // Green for met requirements
+  },
+  disabledButton: {
+    opacity: 0.6,
+    backgroundColor: colors.disableGray, // Make sure this color exists
+  },
+  passwordMismatchError: {
+    color: colors.red, // Make sure you have error color defined
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
 });

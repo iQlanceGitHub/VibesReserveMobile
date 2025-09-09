@@ -258,7 +258,7 @@ export default StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.primary_blue,
+    backgroundColor: '#120128',
   },
   signUpButton: {
     marginBottom: verticalScale(60),

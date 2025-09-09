@@ -78,6 +78,15 @@ export const strings = {
   profile: "Profile",
 };
 
+export const AWSOptions = {
+  // keyPrefix: 'uploads/',
+  bucket: "shw-doc-app",
+  region: "eu-central-1",
+  accessKey: "",
+  secretKey: "",
+  successActionStatus: 201,
+};
+
 export const screenName = {
   Welcomme: "WelcomeScreen",
   LanguageSelection: "LanguageSelectionScreen",
