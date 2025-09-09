@@ -7,7 +7,7 @@ import IntroScreen from "../screen/auth/IntroScreen/IntroScreen";
 // import { BackButton } from "../components/BackButton";
 import LinearGradient from "react-native-linear-gradient";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import signupScreen from "../screen/signUpScreen/signUpScreen";
+import SignupScreen from "../screen/signUpScreen/signUpScreen";
 import signInScreen from "../screen/signInScreen/signInScreen";
 import WelcomeScreen from "../screen/welcomeScreen/welcomeScreen";
 import OTPVerificationScreen from "../screen/auth/OTPVerificationScreen/OTPVerificationScreen";
@@ -75,8 +75,8 @@ const NavigationStack: React.FC = () => {
           />
           <Stack.Screen
             options={{ headerShown: false }}
-            name="signupScreen"
-            component={signupScreen}
+            name="SignupScreen"
+            component={SignupScreen}
           />
           <Stack.Screen
             options={{ headerShown: false }}

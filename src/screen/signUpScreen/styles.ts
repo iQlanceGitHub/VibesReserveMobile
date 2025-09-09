@@ -358,4 +358,14 @@ export default StyleSheet.create({
     fontWeight: "500",
     color: colors.white,
   },
+  signUpLinkSection: {
+    paddingHorizontal: horizontalScale(20),
+    paddingBottom: verticalScale(30),
+    paddingTop: verticalScale(20),
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.primary_blue,
+  },
 });
