@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   KeyboardTypeOptions,
@@ -7,18 +7,23 @@ import {
   Pressable,
   TouchableOpacity,
   PixelRatio,
-} from 'react-native';
-import {HelperText, TextInput} from 'react-native-paper';
-import {parentStyles, textstyles} from '../../../utils/schema/commonStyles';
+  Platform,
+} from "react-native";
+import { HelperText, TextInput } from "react-native-paper";
+// import { parentStyles, textstyles } from "../../../utils/schema/commonStyles";
+
+import { shallowEqual } from "react-redux";
+import { colors } from "../utilis/colors";
+import { keyboardType } from "../utilis/appConstant";
+import { fonts } from "../utilis/fonts";
+import EyeIcon from "../assets/svg/eyeIcon";
+import EyeClosedIcon from "../assets/svg/eyeClosedIcon";
+import CloseIcon from "../assets/svg/closeIcon";
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
-  colors,
-  fonts,
-  getWidth,
-  images,
-  keyboardType,
-} from '../../../utils/constants/appConstants';
-import {shallowEqual} from 'react-redux';
-import i18n from '../../../translations/i18n';
+    appleAuth,
+    AppleButton,
+} from '@invertase/react-native-apple-authentication';
 
 interface CustomTextInputProps {
   editable?: boolean;
@@ -32,7 +37,7 @@ interface CustomTextInputProps {
   onChangeText: (text: string) => void;
   style?: object;
   message: string;
-  leftImage: string;
+  leftImage: string | React.ReactNode;
   rightImageShow?: boolean;
 }
 
@@ -52,62 +57,103 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
   rightImageShow = false,
 }) => {
   return (
-    <View style={{flex: 1}}>
-      <TextInput
-        editable={editable}
-        theme={{colors: {text: colors.grey_text}}}
-        autoCorrect={false}
-        value={value}
-        mode="outlined"
-        maxLength={kType == keyboardType.email_address ? 80 : maxLength}
-        multiline={multiline}
-        keyboardType={kType}
-        label={' ' + label}
-        placeholder={
-          kType == keyboardType.email_address
-            ? i18n.t('email_address')
-            : placeholder
-        }
-        keyboardType={Platform.OS === 'ios' ? 'ascii-capable' : 'visible-password'}
-        onChangeText={onChangeText}
-        outlineColor={error == true ? colors.red : colors.light_primary}
-        activeOutlineColor={error == true ? colors.red : colors.dark_primary}
-        cursorColor={colors.grey_text}
-        style={[
-          {
-            backgroundColor: colors.white,
+    <View style={{ flex: 1 }}>
+      <Text
+        style={{
+          color: colors.white,
+          fontSize: 14,
+          fontFamily: fonts.medium,
+          marginBottom: 8,
+        }}
+      >
+        {label.includes("(Optional)") ? (
+          <>
+            {label.replace(" (Optional)", "")}
+            <Text style={{ color: "#868C98" }}> (Optional)</Text>
+          </>
+        ) : label.includes("*") ? (
+          <>
+            {label.replace(" *", "")}
+            <Text style={{ color: "#868C98" }}> *</Text>
+          </>
+        ) : (
+          label
+        )}
+      </Text>
+      <View style={{ position: "relative" }}>
+        {leftImage && typeof leftImage !== "string" && (
+          <View
+            style={{
+              position: "absolute",
+              left: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {leftImage}
+          </View>
+        )}
+        <TextInput
+          editable={editable}
+          theme={{ colors: { text: colors.darkGray } }}
+          autoCorrect={false}
+          value={value}
+          mode="outlined"
+          maxLength={kType == keyboardType.email_address ? 80 : maxLength}
+          multiline={multiline}
+          keyboardType={kType}
+          placeholder={
+            kType == keyboardType.email_address
+              ? "Enter your email"
+              : placeholder
+          }
+          keyboardType={
+            Platform.OS === "ios" ? "ascii-capable" : "visible-password"
+          }
+          onChangeText={onChangeText}
+          outlineColor={error == true ? colors.red : "#FFFFFF33"}
+          activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
+          cursorColor={colors.white}
+          style={[
+            {
+              backgroundColor: "transparent",
+              fontFamily: fonts.reguler,
+              color: colors.white,
+              fontSize: 15,
+              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
+            },
+            style,
+          ]}
+          placeholderTextColor={colors.textColor}
+          outlineStyle={{
+            borderRadius: 90,
+            borderWidth: error == true ? 1 : 1,
+          }}
+          contentStyle={{
+            color: colors.white,
             fontFamily: fonts.reguler,
-            color: colors.grey_text,
             fontSize: 15,
-          },
-          style,
-        ]}
-        placeholderTextColor={colors.grey}
-        outlineStyle={{
-          borderRadius: 32,
-          borderWidth: error == true ? 1 : 1,
-        }}
-        contentStyle={{
-          color: colors.dark_primary,
-          fontFamily: fonts.reguler,
-          fontSize: 15,
-        }}
-        left={
-          <TextInput.Icon
-            icon={leftImage}
-            color={colors.purple_primary} // Add this line to set the color
-          />
-        }
-        right={
-          rightImageShow == true && (
-            <TextInput.Icon
-              icon={images.ic_arrow_down}
-              size={15}
-              color={colors.dark_primary} // Add this line to set the color
-            />
-          )
-        }
-      />
+          }}
+          left={
+            leftImage && typeof leftImage === "string" ? (
+              <TextInput.Icon icon={leftImage} color={colors.white} />
+            ) : undefined
+          }
+          // right={
+          //   rightImageShow == true && (
+          //     <TextInput.Icon
+          //       icon={images.ic_arrow_down}
+          //       size={15}
+          //       color={colors.darkGray} // Add this line to set the color
+          //     />
+          //   )
+          // }
+        />
+      </View>
       {error ? (
         <HelperText
           style={{
@@ -115,8 +161,9 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
             flex: 1,
           }}
           type="error"
-          visible={error}>
-          {message !== '' ? `${message}` : `${label} field is required`}
+          visible={error}
+        >
+          {message !== "" ? `${message}` : `${label.replace(/\* ?/g, "")} field is required`}
         </HelperText>
       ) : null}
     </View>
@@ -151,46 +198,71 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
   maxLength,
   multiline,
   onPressPhoneCode,
-  phoneCode = '00',
+  phoneCode = "00",
 }) => {
   const internalInputRef = useRef();
   return (
     <View style={[style]}>
+      <Text
+        style={{
+          color: colors.white,
+          fontSize: 14,
+          fontFamily: fonts.medium,
+          marginBottom: 8,
+        }}
+      >
+        {label.includes("(Optional)") ? (
+          <>
+            {label.replace(" (Optional)", "")}
+            <Text style={{ color: "#868C98" }}> (Optional)</Text>
+          </>
+        ) : label.includes("*") ? (
+          <>
+            {label.replace(" *", "")}
+            <Text style={{ color: "#868C98" }}> *</Text>
+          </>
+        ) : (
+          label
+        )}
+      </Text>
       <View
         style={{
           zIndex: 1,
-          position: 'absolute',
-          height: '100%',
-          width: '20%',
-
-          justifyContent: 'space-evenly',
-        }}>
+          position: "absolute",
+          height: "100%",
+          width: "20%",
+          top: 30,
+          justifyContent: "space-evenly",
+        }}
+      >
         <Pressable
           style={{
-            alignItems: 'center',
-            height: '100%',
+            alignItems: "center",
+            height: "100%",
           }}
-          onPress={onPressPhoneCode}>
+          onPress={onPressPhoneCode}
+        >
           <View
             style={{
-              flexDirection: 'row',
+              flexDirection: "row",
 
               marginTop: 20,
-            }}>
+            }}
+          >
             <Text
-              style={[textstyles.medium, {fontSize: 15}]}
+              // style={[textstyles.medium, { fontSize: 15 }]}
               children={phoneCode}
             />
-            <Image
+            {/* <Image
               style={{
                 width: 12,
                 marginLeft: phoneCode.length > 4 ? 2 : 5,
-                resizeMode: 'contain',
-                alignSelf: 'center',
-                tintColor: colors.grey_text,
+                resizeMode: "contain",
+                alignSelf: "center",
+                tintColor: colors.darkGray,
               }}
               source={images.ic_arrow_down}
-            />
+            /> */}
           </View>
         </Pressable>
       </View>
@@ -202,26 +274,26 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
         // error={props.error}
         value={value}
         keyboardType={keyboardType.phone_pad}
-        label={label}
-        placeholder={label}
-        onChangeText={data => {
-          onChangeText(data.replace(/[^0-9]/g, ''));
+        placeholder={placeholder}
+        onChangeText={(data) => {
+          onChangeText(data.replace(/[^0-9]/g, ""));
         }}
-        outlineColor={error == true ? colors.red : colors.light_primary}
-        activeOutlineColor={error == true ? colors.red : colors.dark_primary}
-        cursorColor={colors.grey}
+        outlineColor={error == true ? colors.red : "#FFFFFF33"}
+        activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
+        cursorColor={colors.white}
         style={{
-          paddingLeft: '15%',
-          backgroundColor: 'white',
+          paddingLeft: "15%",
+          backgroundColor: "transparent",
           fontFamily: fonts.medium,
           fontSize: 15,
         }}
-        placeholderTextColor={colors.grey}
+        placeholderTextColor={colors.textColor}
         outlineStyle={{
-          borderRadius: 32,
+          borderRadius: 90,
           borderWidth: error == true ? 1 : 1,
         }}
         contentStyle={{
+          color: colors.white,
           fontFamily: fonts.reguler,
           fontSize: 15,
         }}
@@ -233,8 +305,9 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
             flex: 1,
           }}
           type="error"
-          visible={error}>
-          {message !== '' ? `${message}` : `${label} field is required`}
+          visible={error}
+        >
+          {message !== "" ? `${message}` : `${label} field is required`}
         </HelperText>
       ) : null}
     </View>
@@ -252,7 +325,7 @@ interface CustomPasswordTextInputProps {
   onChangeText: (text: string) => void;
   style: object;
   message: string;
-  leftImage: string;
+  leftImage: string | React.ReactNode;
 }
 
 export const CustomePasswordTextInput: React.FC<
@@ -267,7 +340,7 @@ export const CustomePasswordTextInput: React.FC<
   placeholder,
   style,
   value,
-  kType = 'default',
+  kType = "default",
   leftImage,
 }) => {
   const [secure, setSecure] = useState(true);
@@ -276,61 +349,114 @@ export const CustomePasswordTextInput: React.FC<
   };
   return (
     <View>
-      <TextInput
-        secureTextEntry={secure}
-        theme={{colors: {text: colors.grey_text}}}
-        autoCorrect={false}
-        value={value}
-        mode="outlined"
-        maxLength={kType == keyboardType.email_address ? 80 : maxLength}
-        multiline={multiline}
-        keyboardType={kType}
-        label={' ' + label}
-        placeholder={
-          kType == keyboardType.email_address
-            ? i18n.t('email_address')
-            : placeholder
-        }
-        onChangeText={onChangeText}
-        outlineColor={error == true ? colors.red : colors.light_primary}
-        activeOutlineColor={error == true ? colors.red : colors.dark_primary}
-        cursorColor={colors.grey_text}
-        style={[
-          {
-            backgroundColor: colors.white,
-            fontFamily: fonts.reguler,
-            color: colors.grey_text,
-            fontSize: 15,
-          },
-          style,
-        ]}
-        placeholderTextColor={colors.grey}
-        outlineStyle={{
-          borderRadius: 32,
-          borderWidth: error == true ? 1 : 1,
+      <Text
+        style={{
+          color: colors.white,
+          fontSize: 14,
+          fontFamily: fonts.medium,
+          marginBottom: 8,
         }}
-        contentStyle={{
-          color: colors.dark_primary,
-          fontFamily: fonts.reguler,
-          fontSize: 15,
-        }}
-        right={
-          <TextInput.Icon
-            icon={secure ? images.ic_close_eye : images.ic_open_eye}
+      >
+        {label.includes("(Optional)") ? (
+          <>
+            {label.replace(" (Optional)", "")}
+            <Text style={{ color: "#868C98" }}> (Optional)</Text>
+          </>
+        ) : label.includes("*") ? (
+          <>
+            {label.replace(" *", "")}
+            <Text style={{ color: "#868C98" }}> *</Text>
+          </>
+        ) : (
+          label
+        )}
+      </Text>
+      <View style={{ position: "relative" }}>
+        {leftImage && typeof leftImage !== "string" && (
+          <View
+            style={{
+              position: "absolute",
+              left: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {leftImage}
+          </View>
+        )}
+        {value && value.length > 0 && (
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              right: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
             onPress={onEyePress}
-          />
-        }
-        left={
-          <TextInput.Icon
-            icon={leftImage}
-            onPress={() => console.log('')}
-            color={colors.purple_primary} // Add this line to set the color
-          />
-        }
-      />
+          >
+            {secure ? <EyeClosedIcon /> : <EyeIcon />}
+          </TouchableOpacity>
+        )}
+        <TextInput
+          secureTextEntry={secure}
+          theme={{ colors: { text: colors.darkGray } }}
+          autoCorrect={false}
+          value={value}
+          mode="outlined"
+          maxLength={kType == keyboardType.email_address ? 80 : maxLength}
+          multiline={multiline}
+          keyboardType={kType}
+          placeholder={
+            kType == keyboardType.email_address
+              ? "Enter your email"
+              : placeholder
+          }
+          onChangeText={onChangeText}
+          outlineColor={error == true ? colors.red : "#FFFFFF33"}
+          activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
+          cursorColor={colors.white}
+          style={[
+            {
+              backgroundColor: "transparent",
+              fontFamily: fonts.reguler,
+              color: colors.white,
+              fontSize: 15,
+              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
+            },
+            style,
+          ]}
+          placeholderTextColor={colors.textColor}
+          outlineStyle={{
+            borderRadius: 90,
+            borderWidth: error == true ? 1 : 1,
+          }}
+          contentStyle={{
+            color: colors.white,
+            fontFamily: fonts.reguler,
+            fontSize: 15,
+          }}
+          left={
+            leftImage && typeof leftImage === "string" ? (
+              <TextInput.Icon
+                icon={leftImage}
+                onPress={() => console.log("")}
+                color={colors.white}
+              />
+            ) : undefined
+          }
+        />
+      </View>
       {error ? (
-        <HelperText style={{color: colors.red}} type="error" visible={error}>
-          {message != '' ? `${message}` : `${label} field is required`}
+        <HelperText style={{ color: colors.red }} type="error" visible={error}>
+          {message != "" ? `${message}` : `${label} field is required`}
         </HelperText>
       ) : null}
     </View>
@@ -369,23 +495,173 @@ export const SearchBarTextInput: React.FC<SearchBarTextInputProps> = ({
         keyboardType={kType}
         placeholder={placeholder}
         onChangeText={onChangeText}
-        cursorColor={colors.dark_primary}
+        cursorColor={colors.primary_blue}
         style={[
           {
-            backgroundColor: '#F2F2F2',
+            backgroundColor: "#F2F2F2",
             fontFamily: fonts.reguler,
-            color: colors.dark_primary,
+            color: colors.darkGray,
             fontSize: 14,
           },
           style,
         ]}
-        placeholderTextColor={colors.grey_text}
+        placeholderTextColor={colors.darkGray}
         contentStyle={{
-          color: colors.dark_primary,
+          color: colors.darkGray,
           fontFamily: fonts.reguler,
           fontSize: 14,
         }}
       />
+    </View>
+  );
+};
+
+
+interface CustomeSearchTextInputProps {
+  value: string;
+  kType?: KeyboardTypeOptions;
+  maxLength?: number;
+  multiline?: boolean;
+  error: boolean;
+  label: string;
+  placeholder: string;
+  onChangeText: (text: string) => void;
+  style: object;
+  message: string;
+  leftImage: string | React.ReactNode;
+}
+
+export const CustomeSearchTextInput: React.FC<
+CustomeSearchTextInputProps
+> = ({
+  error,
+  label,
+  maxLength,
+  message,
+  multiline,
+  onChangeText,
+  placeholder,
+  style,
+  value,
+  kType = "default",
+  leftImage,
+}) => {
+  const [secure, setSecure] = useState(true);
+  const onEyePress = () => {
+    setSecure(!secure);
+  };
+  return (
+    <View>
+      <Text
+        style={{
+          color: colors.white,
+          fontSize: 14,
+          fontFamily: fonts.medium,
+          marginBottom: 8,
+        }}
+      >
+        {label.includes("(Optional)") ? (
+          <>
+            {label.replace(" (Optional)", "")}
+            <Text style={{ color: "#868C98" }}> (Optional)</Text>
+          </>
+        ) : label.includes("*") ? (
+          <>
+            {label.replace(" *", "")}
+            <Text style={{ color: "#868C98" }}> *</Text>
+          </>
+        ) : (
+          label
+        )}
+      </Text>
+      <View style={{ position: "relative" }}>
+        {leftImage && typeof leftImage !== "string" && (
+          <View
+            style={{
+              position: "absolute",
+              left: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {leftImage}
+          </View>
+        )}
+        {value && value.length > 0 && (
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              right: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={onEyePress}
+          >
+            {secure ? <CloseIcon /> : <CloseIcon />}
+          </TouchableOpacity>
+        )}
+        <TextInput
+          secureTextEntry={secure}
+          theme={{ colors: { text: colors.darkGray } }}
+          autoCorrect={false}
+          value={value}
+          mode="outlined"
+          maxLength={kType == keyboardType.email_address ? 80 : maxLength}
+          multiline={multiline}
+          keyboardType={kType}
+          placeholder={
+            kType == keyboardType.email_address
+              ? "Enter your email"
+              : placeholder
+          }
+          onChangeText={onChangeText}
+          outlineColor={error == true ? colors.red : "#FFFFFF33"}
+          activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
+          cursorColor={colors.white}
+          style={[
+            {
+              backgroundColor: "transparent",
+              fontFamily: fonts.reguler,
+              color: colors.white,
+              fontSize: 15,
+              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
+            },
+            style,
+          ]}
+          placeholderTextColor={colors.textColor}
+          outlineStyle={{
+            borderRadius: 90,
+            borderWidth: error == true ? 1 : 1,
+          }}
+          contentStyle={{
+            color: colors.white,
+            fontFamily: fonts.reguler,
+            fontSize: 15,
+          }}
+          left={
+            leftImage && typeof leftImage === "string" ? (
+              <TextInput.Icon
+                icon={leftImage}
+                onPress={() => console.log("")}
+                color={colors.white}
+              />
+            ) : undefined
+          }
+        />
+      </View>
+      {error ? (
+        <HelperText style={{ color: colors.red }} type="error" visible={error}>
+          {message != "" ? `${message}` : `${label} field is required`}
+        </HelperText>
+      ) : null}
     </View>
   );
 };
