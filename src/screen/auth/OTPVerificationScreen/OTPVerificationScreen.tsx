@@ -61,7 +61,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
   const [isResendDisabled, setIsResendDisabled] = useState<boolean>(true);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const [uid, setUid] = useState(route?.params?.id);
   const inputRefs = useRef<TextInput[]>([]);
   const email = route?.params?.email || "mike.hussey@gmail.com";
 
@@ -83,18 +83,17 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       verifyOtp?.status === "1"
     ) {
       console.log("verifyOtp:+>", verifyOtp);
-      setMsg(verifyOtp?.message?.toString());
+      if (route?.params?.type != 'signup') {
+        navigation.navigate('ResetPasswordScreen', { id: uid })
+      } else {
+        navigation.navigate('VerificationSucessScreen', { id: uid });
+      }
       dispatch(verifyOtpData(''));
     }
 
     if (verifyOtpErr) {
       console.log("verifyOtpErr:+>", verifyOtpErr);
-      //setMsg(verifyOtpErr?.message?.toString())
-      if(verifyOtpErr?.message?.toString() == 'Invalid OTP.') {
-        navigation.navigate('ResetPasswordScreen', { id: route?.params?.id })
-      } else {
-        setMsg(verifyOtpErr?.message?.toString());
-      }
+      setMsg(verifyOtpErr?.message?.toString())
       dispatch(verifyOtpError(''));
     }
   }, [verifyOtp, verifyOtpErr]);
@@ -109,6 +108,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     ) {
       console.log("resendVerifyOtp:+>", resendVerifyOtp);
       setMsg(resendVerifyOtp?.message?.toString());
+      setUid(resendVerifyOtp?.data?._id);
       dispatch(resendVerifyOtpData(''));
     }
     if (resendVerifyOtpErr) {
@@ -192,11 +192,11 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       // Here you would typically validate the OTP with your backend
       console.log("OTP submitted:", otpString);
       const payload = {
-        "currentRole": "host", //user,host
-        "userId": route?.params?.id,
+        "currentRole": "user", //user,host
+        "userId": uid,
         "otp": otpString,
         "usingtype": route?.params?.type == 'signup' ? "signup" : "forgot_password",//forgot_password,signup
-        "type": route?.params?.email,//email,phone,
+        "type": "email",//email,phone,
         "deviceToken": "test12221212121212122"
       }
       dispatch(onVerifyOtp(payload))
@@ -224,10 +224,11 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       setOtp(["", "", "", ""]);
       inputRefs.current[0]?.focus();
       let obj = {
-       "type":"email",//phone , email
-       "typevalue": route?.params?.email,//phone ex:- +912345678901 , email
-       "usingtype": route?.params?.type == 'signup' ? "signup" : "forgot_password"//forgot_password,signup
-    }
+        "currentRole": "user",
+        "type": "email",//phone , email
+        "typevalue": route?.params?.email,//phone ex:- +912345678901 , email
+        "usingtype": route?.params?.type == 'signup' ? "signup" : "forgot_password"//forgot_password,signup
+      }
       dispatch(onResendVerifyOtp(obj))
       // Alert.alert("Success", "OTP has been resent to your email");
     } catch (error) {
@@ -333,7 +334,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
               if (msg == 'OTP request limit reached for today. Try again tomorrow.') {
 
               } else {
-               // navigation.navigate('VerificationSucessScreen')
+                // navigation.navigate('VerificationSucessScreen')
 
               }
             }}

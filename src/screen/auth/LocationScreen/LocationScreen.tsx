@@ -22,20 +22,23 @@ import {
 } from "../../../utilis/appConstant";
 import Location from "../../../assets/svg/location";
 
-
 interface LocationScreenProps {
   navigation?: any;
+  route?: {
+    params?: {
+      id?: string;
+    };
+  };
 }
 import styles from "./styles";
 
 const LocationScreen: React.FC<LocationScreenProps> = ({
   navigation,
+  route,
 }) => {
- 
 
-  const handleSubmit = async () => {
-   
-  };
+  console.log("route?.params?.id", route?.params?.id)
+
 
   return (
     <View style={styles.container}>
@@ -51,28 +54,28 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
         style={styles.container}
       >
         <SafeAreaView style={styles.safeArea}>
-            <View style={styles.congratulationContainer}>
-          <Location />
+          <View style={styles.congratulationContainer}>
+            <Location />
           </View>
 
           <View style={styles.content}>
             <Text style={styles.title}>What is Your Locations?</Text>
-            
+
             <Text style={styles.discriptionText}>
-            To Find Nearby Events, Share Your Locations with Us. </Text>
-            
-  <View style={styles.buttonSection}>
+              To Find Nearby Events, Share Your Locations with Us. </Text>
+
+            <View style={styles.buttonSection}>
               <Buttons
                 title="Allow Location Access"
                 onPress={() => console.log('')}
                 style={styles.getStartedButton}
                 isCap={false}
               />
-               <TouchableOpacity
-              style={styles.manualContainer}
-              onPress={()=> console.log('')}
-            >
-              <Text
+              <TouchableOpacity
+                style={styles.manualContainer}
+                onPress={() => navigation.navigate('LocationManuallyScreen')}
+              >
+                <Text
                   style={[
                     styles.manualLink,
                   ]}
@@ -80,7 +83,7 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
                   Enter Location Manually
                 </Text></TouchableOpacity>
             </View>
-            
+
           </View>
         </SafeAreaView>
       </LinearGradient>

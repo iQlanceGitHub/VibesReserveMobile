@@ -27,8 +27,8 @@ import EmailIcon from "../../assets/svg/emailIcon";
 import LockIcon from "../../assets/svg/lockIcon";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
-    appleAuth,
-    AppleButton,
+  appleAuth,
+  AppleButton,
 } from '@invertase/react-native-apple-authentication';
 
 //API
@@ -63,7 +63,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     email: '',
     name: '',
     socialID: '',
-});
+  });
   const [errors, setErrors] = useState({
     email: false,
     password: false,
@@ -82,7 +82,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const socialLogin = useSelector((state: any) => state.auth.socialLogin);
   const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
   const [msg, setMsg] = useState('');
-
+  const [uid, setUid] = useState('');
   // Validation functions
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -103,33 +103,33 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const validateForm = () => {
     const emailValid = validateEmail(formData.email);
     const passwordValid = validatePassword(formData.password);
-    
+
     setIsFormValid(emailValid && passwordValid);
     return emailValid && passwordValid;
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    
+
     // Validate field in real-time
     if (field === "email") {
       const isValid = validateEmail(value);
       setErrors((prev) => ({ ...prev, email: !isValid }));
-      setErrorMessages((prev) => ({ 
-        ...prev, 
-        email: value && !isValid ? "Please enter a valid email address" : "" 
+      setErrorMessages((prev) => ({
+        ...prev,
+        email: value && !isValid ? "Please enter a valid email address" : ""
       }));
     }
-    
+
     if (field === "password") {
       const isValid = validatePassword(value);
       setErrors((prev) => ({ ...prev, password: !isValid }));
-      setErrorMessages((prev) => ({ 
-        ...prev, 
-        password: value && !isValid ? "Password must meet all requirements" : "" 
+      setErrorMessages((prev) => ({
+        ...prev,
+        password: value && !isValid ? "Password must meet all requirements" : ""
       }));
     }
-    
+
     // Validate entire form
     validateForm();
   };
@@ -148,210 +148,198 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       }
       return;
     }
-    
+
     // Handle successful sign in logic
     console.log("Sign in data:", formData);
     dispatch(onSignin(formData));
   };
 
-   // Get token
-   const getUserToken = async () => {
+  // Get token
+  const getUserToken = async () => {
     try {
-        const token = await AsyncStorage.getItem('user_token');
-        if (token !== null) {
-            console.log('User token retrieved:', token);
-            return token;
-        }
+      const token = await AsyncStorage.getItem('user_token');
+      if (token !== null) {
+        console.log('User token retrieved:', token);
+        return token;
+      }
     } catch (e) {
-        console.error('Failed to fetch the user token.', e);
+      console.error('Failed to fetch the user token.', e);
     }
-};
+  };
 
-useEffect(() => {
-  getUserToken();
-},[])
+  useEffect(() => {
+    getUserToken();
+  }, [])
 
-useEffect(() => {
+  useEffect(() => {
     if (
-        signin?.status === true ||
-        signin?.status === 'true' || 
-        signin?.status === 1 ||
-        signin?.status === "1"
+      signin?.status === true ||
+      signin?.status === 'true' ||
+      signin?.status === 1 ||
+      signin?.status === "1"
     ) {
-        console.log("signin:+>", signin);
-        setFormData({
-            email: '',
-            password: '',
-        });
-        setErrors({
-            email: false,
-            password: false,
-            terms: false,
-        })
-        dispatch(setUser(signin));
-        setMsg(signin?.message?.toString())
-       // navigation.navigate('NameScreen')
-        dispatch(signinData(''));
+      console.log("signin:+>", signin);
+      setFormData({
+        email: '',
+        password: '',
+      });
+      setErrors({
+        email: false,
+        password: false,
+        terms: false,
+      })
+      dispatch(setUser(signin));
+      setMsg(signin?.message?.toString())
+
+      // navigation.navigate('NameScreen')
+      dispatch(signinData(''));
     }
 
     if (signinErr) {
-        console.log("signinErr:+>", signinErr);
-        setMsg(signinErr?.message?.toString())
-        setFormData({
-            email: '',
-            password: '',
-        });
-        setErrors({
-            email: false,
-            password: false,
-            terms: false,
-        });
-        if (signinErr?.message == "Email is not verified. OTP has been sent to your email.") {
-            setFormData({
-                email: '',
-                password: '',
-            });
-            navigation.navigate('VerificationCodeScreen', { email: formData.email.toString() })
-
-        } else {
-            // Alert.alert(signinErr.message);
-        }
-        dispatch(signinError(''));
+      console.log("signinErr:+>", signinErr);
+      setMsg(signinErr?.message?.toString())
+      setUid(signinErr?.user?._id);
+      setErrors({
+        email: false,
+        password: false,
+        terms: false,
+      });
+      dispatch(signinError(''));
     }
 
     if (
-        socialLogin?.status === true ||
-        socialLogin?.status === 'true' ||
-        socialLogin?.status === 1 ||
-        socialLogin?.status === "1"
+      socialLogin?.status === true ||
+      socialLogin?.status === 'true' ||
+      socialLogin?.status === 1 ||
+      socialLogin?.status === "1"
     ) {
-        console.log("socialLogin:+>", socialLogin);
-        setMsg(socialLogin?.message?.toString());
-        dispatch(setUser(socialLogin))
-        dispatch(socialLoginData(''));
+      console.log("socialLogin:+>", socialLogin);
+      setMsg(socialLogin?.message?.toString());
+      dispatch(setUser(socialLogin))
+      dispatch(socialLoginData(''));
     }
 
     if (socialLoginErr) {
-        console.log("signinErr:+>", socialLoginErr);
-        setMsg(socialLoginErr.message.toString())
-        dispatch(socialLoginError(''));
+      console.log("signinErr:+>", socialLoginErr);
+      setMsg(socialLoginErr.message.toString())
+      dispatch(socialLoginError(''));
     }
-}, [signin, signinErr, socialLogin, socialLoginErr]);
+  }, [signin, signinErr, socialLogin, socialLoginErr]);
 
 
   const handleGoogleSignIn = async () => {
     try {
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
-        console.log('User Info:', userInfo?.data?.user?.email);
-        console.log('User Info:', userInfo);
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      console.log('User Info:', userInfo?.data?.user?.email);
+      console.log('User Info:', userInfo);
+
+      let obj = {
+        "email": userInfo?.data?.user?.email,
+        "socialId": userInfo?.data?.user?.id,
+        "loginType": "google",
+        "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+        "currentRole": "user",
+      }
+
+      if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
+        dispatch(onSocialLogin(obj));
+      }
+      console.log("socialData+>>>>", socialData);
+      //Alert.alert('Success', 'You have successfully signed in with Google!');
+      // navigation.navigate('NameScreen')
+    } catch (error) {
+      console.error('Google Sign-In error:', error);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      console.log("Starting Apple Sign-In...");
+
+      // Check if Apple Sign-In is available
+      const isAvailable = await appleAuth.isAvailable;
+      if (!isAvailable) {
+        Alert.alert("Error", "Apple Sign-In is not available on this device");
+        return;
+      }
+
+      const appleAuthRequestResponse = await appleAuth.performRequest({
+        requestedOperation: appleAuth.Operation.LOGIN,
+        requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+      });
+
+      console.log("Apple Auth Response:", JSON.stringify(appleAuthRequestResponse, null, 2));
+
+      const {
+        identityToken,
+        email,
+        fullName,
+      } = appleAuthRequestResponse;
+
+      const userId = appleAuthRequestResponse.user;
+      console.log("Apple User ID:", userId);
+      console.log("Apple Email:", email);
+      console.log("Apple Full Name:", fullName);
+
+      // Handle successful sign-in
+      if (identityToken) {
+        const fullNameStr = fullName ?
+          `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() :
+          'Apple User';
 
         let obj = {
-            "email": userInfo?.data?.user?.email,
-            "socialId": userInfo?.data?.user?.id,
-            "loginType": "google",
-            "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-            "currentRole":"user",
-        }
-       
-        if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
-            dispatch(onSocialLogin(obj));
-        }
-        console.log("socialData+>>>>", socialData);
-        //Alert.alert('Success', 'You have successfully signed in with Google!');
-        // navigation.navigate('NameScreen')
+          "email": email || `apple_${userId}@privaterelay.appleid.com`,
+          "socialId": identityToken,
+          "loginType": "apple",
+          "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+          "currentRole": "user",
+          "name": fullNameStr,
+          "userId": userId
+        };
+
+        console.log("Apple Sign-In Object:", obj);
+
+        // Dispatch the social login action
+        dispatch(onSocialLogin(obj));
+
+        // Show success message
+        Alert.alert(
+          "Success",
+          "Apple Sign-In successful!",
+          [{ text: "OK" }]
+        );
+
+      } else {
+        console.error("No identity token received from Apple");
+        throw new Error("Apple Sign-In failed - no identity token returned");
+      }
     } catch (error) {
-        console.error('Google Sign-In error:', error);
+      console.error("Apple Sign-In Error:", error);
+
+      // Handle specific Apple Sign-In errors
+      if (error.code === appleAuth.Error.CANCELED) {
+        console.log("Apple Sign-In was cancelled by user");
+        // Don't show alert for user cancellation - this is normal behavior
+        return;
+      } else if (error.code === appleAuth.Error.FAILED) {
+        console.error("Apple Sign-In failed");
+        Alert.alert("Error", "Apple Sign-In failed. Please try again.");
+      } else if (error.code === appleAuth.Error.INVALID_RESPONSE) {
+        console.error("Invalid response from Apple");
+        Alert.alert("Error", "Invalid response from Apple. Please try again.");
+      } else if (error.code === appleAuth.Error.NOT_HANDLED) {
+        console.error("Apple Sign-In not handled");
+        Alert.alert("Error", "Apple Sign-In not handled. Please try again.");
+      } else if (error.code === appleAuth.Error.UNKNOWN) {
+        console.error("Unknown Apple Sign-In error");
+        Alert.alert("Error", "Unknown error occurred during Apple Sign-In.");
+      } else {
+        console.error("Apple Sign-In error:", error.message);
+        Alert.alert("Error", `Apple Sign-In failed: ${error.message || 'Unknown error'}`);
+      }
     }
-};
-
-const handleAppleSignIn = async () => {
-    try {
-        console.log("Starting Apple Sign-In...");
-        
-        // Check if Apple Sign-In is available
-        const isAvailable = await appleAuth.isAvailable;
-        if (!isAvailable) {
-            Alert.alert("Error", "Apple Sign-In is not available on this device");
-            return;
-        }
-
-        const appleAuthRequestResponse = await appleAuth.performRequest({
-            requestedOperation: appleAuth.Operation.LOGIN,
-            requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
-        });
-
-        console.log("Apple Auth Response:", JSON.stringify(appleAuthRequestResponse, null, 2));
-
-        const {
-            identityToken,
-            email,
-            fullName,
-        } = appleAuthRequestResponse;
-        
-        const userId = appleAuthRequestResponse.user;
-        console.log("Apple User ID:", userId);
-        console.log("Apple Email:", email);
-        console.log("Apple Full Name:", fullName);
-
-        // Handle successful sign-in
-        if (identityToken) {
-            const fullNameStr = fullName ? 
-                `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : 
-                'Apple User';
-
-            let obj = {
-                "email": email || `apple_${userId}@privaterelay.appleid.com`,
-                "socialId": identityToken,
-                "loginType": "apple",
-                "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-                "currentRole": "user",
-                "name": fullNameStr,
-                "userId": userId
-            };
-
-            console.log("Apple Sign-In Object:", obj);
-            
-            // Dispatch the social login action
-            dispatch(onSocialLogin(obj));
-            
-            // Show success message
-            Alert.alert(
-                "Success", 
-                "Apple Sign-In successful!",
-                [{ text: "OK" }]
-            );
-            
-        } else {
-            console.error("No identity token received from Apple");
-            throw new Error("Apple Sign-In failed - no identity token returned");
-        }
-    } catch (error) {
-        console.error("Apple Sign-In Error:", error);
-        
-        // Handle specific Apple Sign-In errors
-        if (error.code === appleAuth.Error.CANCELED) {
-            console.log("Apple Sign-In was cancelled by user");
-            // Don't show alert for user cancellation - this is normal behavior
-            return;
-        } else if (error.code === appleAuth.Error.FAILED) {
-            console.error("Apple Sign-In failed");
-            Alert.alert("Error", "Apple Sign-In failed. Please try again.");
-        } else if (error.code === appleAuth.Error.INVALID_RESPONSE) {
-            console.error("Invalid response from Apple");
-            Alert.alert("Error", "Invalid response from Apple. Please try again.");
-        } else if (error.code === appleAuth.Error.NOT_HANDLED) {
-            console.error("Apple Sign-In not handled");
-            Alert.alert("Error", "Apple Sign-In not handled. Please try again.");
-        } else if (error.code === appleAuth.Error.UNKNOWN) {
-            console.error("Unknown Apple Sign-In error");
-            Alert.alert("Error", "Unknown error occurred during Apple Sign-In.");
-        } else {
-            console.error("Apple Sign-In error:", error.message);
-            Alert.alert("Error", `Apple Sign-In failed: ${error.message || 'Unknown error'}`);
-        }
-    }
-};
+  };
 
 
   const handleRememberMe = () => {
@@ -466,7 +454,7 @@ const handleAppleSignIn = async () => {
                   leftImage={<LockIcon />}
                   style={styles.customInput}
                 />
-                
+
                 {/* Password requirements hint */}
                 {formData.password && errors.password && (
                   <View style={styles.passwordRequirements}>
@@ -543,15 +531,25 @@ const handleAppleSignIn = async () => {
             </View>
           </View>
           <CustomAlertSingleBtn
-                            btn1Style={{ backgroundColor: colors.violate }}
-                            isVisible={msg != ''}
-                            message={msg}
-                            button2Text={'Ok'}
-                            onButton2Press={() => {
-                                setMsg('');
-                            }}
-                            title={'Curiouzz'}
-                        />
+            btn1Style={{ backgroundColor: colors.violate }}
+            isVisible={msg != ''}
+            message={msg}
+            button2Text={'Ok'}
+            onButton2Press={() => {
+              setMsg('');
+              if (msg == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
+                console.log("=>>", uid)
+                navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })
+                setFormData({
+                  email: '',
+                  password: '',
+                });
+              } else {
+
+              }
+            }}
+            title={'Curiouzz'}
+          />
         </KeyboardAvoidingView>
       </LinearGradient>
     </View>

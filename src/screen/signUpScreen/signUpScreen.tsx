@@ -23,7 +23,7 @@ import {
   MediaType,
 } from "react-native-image-picker";
 import { request, PERMISSIONS, RESULTS } from "react-native-permissions";
-import { onSignup } from "../../redux/auth/actions";
+import { onSignup, signupData, signupError } from "../../redux/auth/actions";
 import FilePickerPopup from "../../components/FilePickerPopup";
 import LinearGradient from "react-native-linear-gradient";
 import { Buttons } from "../../components/buttons";
@@ -98,13 +98,16 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
         "Account created successfully! Please check your email for verification."
       );
       setTimeout(() => {
-        navigation?.navigate("SignInScreen");
+        // navigation?.navigate("SignInScreen");
+        navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: signup?.user?._id })
       }, 2000);
+      dispatch(signupData(''));
     } else if (signupErr) {
       showToast(
         "error",
         signupErr?.message || "Something went wrong. Please try again."
       );
+      dispatch(signupError(''));
     }
   }, [signup, signupErr]);
 
@@ -251,7 +254,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       }
 
       const signupPayload = {
-        currentRole: selectedRole === "explore" ? "User" : "host",
+        currentRole: selectedRole === "explore" ? "user" : "host",
         fullName: formData.fullName.trim(),
         email: formData.email.trim(),
         countrycode: phoneCode,
@@ -263,7 +266,6 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
         timeZone: "Asia/Kolkata",
         loginType: "email",
       };
-
       dispatch(onSignup(signupPayload));
     } catch (error) {
       showToast("error", "Failed to upload document. Please try again.");

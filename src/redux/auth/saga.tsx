@@ -67,7 +67,7 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "currentRole":"host",
+      "currentRole": "user",
       "email": payload?.email,
       "password": payload?.password,
       "deviceToken": 'abcd',
@@ -102,24 +102,35 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
 }
 
 interface SignupPayload {
+  currentRole?: string;
+  fullName?: string;
   email?: string;
+  countrycode?: string;
+  phone?: string;
+  dateOfBirth?: string;
   password?: string;
-  deviceToken?: string;
-  deviceType?: string;
+  confirmPassword?: string;
+  userDocument?: string;
   timeZone?: string;
+  loginType?: string;
 }
 
 function* onSignupSaga({ payload }: { payload: SignupPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "currentRole":"host",
+      "currentRole": payload?.currentRole,  //user,host <- U need small
+      "fullName": payload?.fullName,
       "email": payload?.email,
+      "countrycode": payload?.countrycode,
+      "phone": payload?.phone,
+      "dateOfBirth": payload?.dateOfBirth,
       "password": payload?.password,
-      "deviceToken": 'abcd',
-      "deviceType": "ios",
+      "confirmPassword": payload?.confirmPassword,
+      "userDocument": payload?.userDocument,
       "timeZone": payload?.timeZone,
-    };
+      "loginType": payload?.loginType,
+    }
     const response = yield call(fetchPost, {
       url: `${baseurl}${'user/signUp'}`,
       params,
@@ -155,12 +166,12 @@ function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "currentRole":"host",
-      "type":"email",
+      "currentRole": "user",
+      "type": "email",
       "typevalue": payload?.email,
       "deviceToken": 'abcd',
       "deviceType": "ios",
-      "usingtype":"forgot_password"//forgot_password,signup
+      "usingtype": "forgot_password"//forgot_password,signup
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${'user/forgotPassword'}`,
@@ -404,7 +415,7 @@ function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }) {
   }
 }
 
-interface ResetPasswordPayload {}
+interface ResetPasswordPayload { }
 
 function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
   try {
@@ -437,7 +448,7 @@ function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
   }
 }
 
-interface SocialLoginPayload {}
+interface SocialLoginPayload { }
 
 function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
   try {
@@ -470,7 +481,7 @@ function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
   }
 }
 
-interface ProfilePayload {}
+interface ProfilePayload { }
 
 function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
   try {
@@ -500,7 +511,7 @@ function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
   }
 }
 
-interface LogoutPayload {}
+interface LogoutPayload { }
 
 function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
   try {
@@ -547,7 +558,7 @@ function* authSaga() {
   yield takeLatest(onSocialLogin().type, SocialLoginSaga);
   yield takeLatest(onProfile().type, getProfileSaga);
   yield takeLatest(onLogout().type, LogoutSaga);
-  
+
 }
 
 export default authSaga;
