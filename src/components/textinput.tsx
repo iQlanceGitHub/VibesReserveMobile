@@ -21,8 +21,8 @@ import EyeClosedIcon from "../assets/svg/eyeClosedIcon";
 import CloseIcon from "../assets/svg/closeIcon";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
-    appleAuth,
-    AppleButton,
+  appleAuth,
+  AppleButton,
 } from '@invertase/react-native-apple-authentication';
 
 interface CustomTextInputProps {
@@ -143,15 +143,15 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
               <TextInput.Icon icon={leftImage} color={colors.white} />
             ) : undefined
           }
-          // right={
-          //   rightImageShow == true && (
-          //     <TextInput.Icon
-          //       icon={images.ic_arrow_down}
-          //       size={15}
-          //       color={colors.darkGray} // Add this line to set the color
-          //     />
-          //   )
-          // }
+        // right={
+        //   rightImageShow == true && (
+        //     <TextInput.Icon
+        //       icon={images.ic_arrow_down}
+        //       size={15}
+        //       color={colors.darkGray} // Add this line to set the color
+        //     />
+        //   )
+        // }
         />
       </View>
       {error ? (
@@ -343,125 +343,125 @@ export const CustomePasswordTextInput: React.FC<
   kType = "default",
   leftImage,
 }) => {
-  const [secure, setSecure] = useState(true);
-  const onEyePress = () => {
-    setSecure(!secure);
-  };
-  return (
-    <View>
-      <Text
-        style={{
-          color: colors.white,
-          fontSize: 14,
-          fontFamily: fonts.medium,
-          marginBottom: 8,
-        }}
-      >
-        {label.includes("(Optional)") ? (
-          <>
-            {label.replace(" (Optional)", "")}
-            <Text style={{ color: "#868C98" }}> (Optional)</Text>
-          </>
-        ) : label.includes("*") ? (
-          <>
-            {label.replace(" *", "")}
-            <Text style={{ color: "#868C98" }}> *</Text>
-          </>
-        ) : (
-          label
-        )}
-      </Text>
-      <View style={{ position: "relative" }}>
-        {leftImage && typeof leftImage !== "string" && (
-          <View
-            style={{
-              position: "absolute",
-              left: 15,
-              top: 18,
-              zIndex: 1,
-              width: 20,
-              height: 20,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            {leftImage}
-          </View>
-        )}
-        {value && value.length > 0 && (
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              right: 15,
-              top: 18,
-              zIndex: 1,
-              width: 20,
-              height: 20,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={onEyePress}
-          >
-            {secure ? <EyeClosedIcon /> : <EyeIcon />}
-          </TouchableOpacity>
-        )}
-        <TextInput
-          secureTextEntry={secure}
-          theme={{ colors: { text: colors.darkGray } }}
-          autoCorrect={false}
-          value={value}
-          mode="outlined"
-          maxLength={kType == keyboardType.email_address ? 80 : maxLength}
-          multiline={multiline}
-          keyboardType={kType}
-          placeholder={
-            kType == keyboardType.email_address
-              ? "Enter your email"
-              : placeholder
-          }
-          onChangeText={onChangeText}
-          outlineColor={error == true ? colors.red : "#FFFFFF33"}
-          activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
-          cursorColor={colors.white}
-          style={[
-            {
-              backgroundColor: "transparent",
-              fontFamily: fonts.reguler,
-              color: colors.white,
-              fontSize: 15,
-              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
-            },
-            style,
-          ]}
-          placeholderTextColor={colors.textColor}
-          outlineStyle={{
-            borderRadius: 90,
-            borderWidth: error == true ? 1 : 1,
-          }}
-          contentStyle={{
+    const [secure, setSecure] = useState(true);
+    const onEyePress = () => {
+      setSecure(!secure);
+    };
+    return (
+      <View>
+        <Text
+          style={{
             color: colors.white,
-            fontFamily: fonts.reguler,
-            fontSize: 15,
+            fontSize: 14,
+            fontFamily: fonts.medium,
+            marginBottom: 8,
           }}
-          left={
-            leftImage && typeof leftImage === "string" ? (
-              <TextInput.Icon
-                icon={leftImage}
-                onPress={() => console.log("")}
-                color={colors.white}
-              />
-            ) : undefined
-          }
-        />
+        >
+          {label.includes("(Optional)") ? (
+            <>
+              {label.replace(" (Optional)", "")}
+              <Text style={{ color: "#868C98" }}> (Optional)</Text>
+            </>
+          ) : label.includes("*") ? (
+            <>
+              {label.replace(" *", "")}
+              <Text style={{ color: "#868C98" }}> *</Text>
+            </>
+          ) : (
+            label
+          )}
+        </Text>
+        <View style={{ position: "relative" }}>
+          {leftImage && typeof leftImage !== "string" && (
+            <View
+              style={{
+                position: "absolute",
+                left: 15,
+                top: 18,
+                zIndex: 1,
+                width: 20,
+                height: 20,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {leftImage}
+            </View>
+          )}
+          {value && value.length > 0 && (
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                right: 15,
+                top: 18,
+                zIndex: 1,
+                width: 20,
+                height: 20,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onPress={onEyePress}
+            >
+              {secure ? <EyeClosedIcon /> : <EyeIcon />}
+            </TouchableOpacity>
+          )}
+          <TextInput
+            secureTextEntry={secure}
+            theme={{ colors: { text: colors.darkGray } }}
+            autoCorrect={false}
+            value={value}
+            mode="outlined"
+            maxLength={kType == keyboardType.email_address ? 80 : maxLength}
+            multiline={multiline}
+            keyboardType={kType}
+            placeholder={
+              kType == keyboardType.email_address
+                ? "Enter your email"
+                : placeholder
+            }
+            onChangeText={onChangeText}
+            outlineColor={error == true ? colors.red : "#FFFFFF33"}
+            activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
+            cursorColor={colors.white}
+            style={[
+              {
+                backgroundColor: "transparent",
+                fontFamily: fonts.reguler,
+                color: colors.white,
+                fontSize: 15,
+                paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
+              },
+              style,
+            ]}
+            placeholderTextColor={colors.textColor}
+            outlineStyle={{
+              borderRadius: 90,
+              borderWidth: error == true ? 1 : 1,
+            }}
+            contentStyle={{
+              color: colors.white,
+              fontFamily: fonts.reguler,
+              fontSize: 15,
+            }}
+            left={
+              leftImage && typeof leftImage === "string" ? (
+                <TextInput.Icon
+                  icon={leftImage}
+                  onPress={() => console.log("")}
+                  color={colors.white}
+                />
+              ) : undefined
+            }
+          />
+        </View>
+        {error ? (
+          <HelperText style={{ color: colors.red }} type="error" visible={error}>
+            {message != "" ? `${message}` : `${label} field is required`}
+          </HelperText>
+        ) : null}
       </View>
-      {error ? (
-        <HelperText style={{ color: colors.red }} type="error" visible={error}>
-          {message != "" ? `${message}` : `${label} field is required`}
-        </HelperText>
-      ) : null}
-    </View>
-  );
-};
+    );
+  };
 
 interface SearchBarTextInputProps {
   editable?: boolean;
@@ -532,7 +532,7 @@ interface CustomeSearchTextInputProps {
 }
 
 export const CustomeSearchTextInput: React.FC<
-CustomeSearchTextInputProps
+  CustomeSearchTextInputProps
 > = ({
   error,
   label,
@@ -546,122 +546,122 @@ CustomeSearchTextInputProps
   kType = "default",
   leftImage,
 }) => {
-  const [secure, setSecure] = useState(true);
-  const onEyePress = () => {
-    setSecure(!secure);
-  };
-  return (
-    <View>
-      <Text
-        style={{
-          color: colors.white,
-          fontSize: 14,
-          fontFamily: fonts.medium,
-          marginBottom: 8,
-        }}
-      >
-        {label.includes("(Optional)") ? (
-          <>
-            {label.replace(" (Optional)", "")}
-            <Text style={{ color: "#868C98" }}> (Optional)</Text>
-          </>
-        ) : label.includes("*") ? (
-          <>
-            {label.replace(" *", "")}
-            <Text style={{ color: "#868C98" }}> *</Text>
-          </>
-        ) : (
-          label
-        )}
-      </Text>
-      <View style={{ position: "relative" }}>
-        {leftImage && typeof leftImage !== "string" && (
-          <View
-            style={{
-              position: "absolute",
-              left: 15,
-              top: 18,
-              zIndex: 1,
-              width: 20,
-              height: 20,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            {leftImage}
-          </View>
-        )}
-        {value && value.length > 0 && (
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              right: 15,
-              top: 18,
-              zIndex: 1,
-              width: 20,
-              height: 20,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={onEyePress}
-          >
-            {secure ? <CloseIcon /> : <CloseIcon />}
-          </TouchableOpacity>
-        )}
-        <TextInput
-          secureTextEntry={secure}
-          theme={{ colors: { text: colors.darkGray } }}
-          autoCorrect={false}
-          value={value}
-          mode="outlined"
-          maxLength={kType == keyboardType.email_address ? 80 : maxLength}
-          multiline={multiline}
-          keyboardType={kType}
-          placeholder={
-            kType == keyboardType.email_address
-              ? "Enter your email"
-              : placeholder
-          }
-          onChangeText={onChangeText}
-          outlineColor={error == true ? colors.red : "#FFFFFF33"}
-          activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
-          cursorColor={colors.white}
-          style={[
-            {
-              backgroundColor: "transparent",
-              fontFamily: fonts.reguler,
-              color: colors.white,
-              fontSize: 15,
-              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
-            },
-            style,
-          ]}
-          placeholderTextColor={colors.textColor}
-          outlineStyle={{
-            borderRadius: 90,
-            borderWidth: error == true ? 1 : 1,
-          }}
-          contentStyle={{
+    const [secure, setSecure] = useState(true);
+    const onEyePress = () => {
+      setSecure(!secure);
+    };
+    return (
+      <View>
+        <Text
+          style={{
             color: colors.white,
-            fontFamily: fonts.reguler,
-            fontSize: 15,
+            fontSize: 14,
+            fontFamily: fonts.medium,
+            marginBottom: 8,
           }}
-          left={
-            leftImage && typeof leftImage === "string" ? (
-              <TextInput.Icon
-                icon={leftImage}
-                onPress={() => console.log("")}
-                color={colors.white}
-              />
-            ) : undefined
-          }
-        />
+        >
+          {label.includes("(Optional)") ? (
+            <>
+              {label.replace(" (Optional)", "")}
+              <Text style={{ color: "#868C98" }}> (Optional)</Text>
+            </>
+          ) : label.includes("*") ? (
+            <>
+              {label.replace(" *", "")}
+              <Text style={{ color: "#868C98" }}> *</Text>
+            </>
+          ) : (
+            label
+          )}
+        </Text>
+        <View style={{ position: "relative" }}>
+          {leftImage && typeof leftImage !== "string" && (
+            <View
+              style={{
+                position: "absolute",
+                left: 15,
+                top: 18,
+                zIndex: 1,
+                width: 20,
+                height: 20,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {leftImage}
+            </View>
+          )}
+          {value && value.length > 0 && (
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                right: 15,
+                top: 18,
+                zIndex: 1,
+                width: 20,
+                height: 20,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onPress={onEyePress}
+            >
+              {secure ? <CloseIcon /> : <CloseIcon />}
+            </TouchableOpacity>
+          )}
+          <TextInput
+            secureTextEntry={secure}
+            theme={{ colors: { text: colors.darkGray } }}
+            autoCorrect={false}
+            value={value}
+            mode="outlined"
+            maxLength={kType == keyboardType.email_address ? 80 : maxLength}
+            multiline={multiline}
+            keyboardType={kType}
+            placeholder={
+              kType == keyboardType.email_address
+                ? "Enter your email"
+                : placeholder
+            }
+            onChangeText={onChangeText}
+            outlineColor={error == true ? colors.red : "#FFFFFF33"}
+            activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
+            cursorColor={colors.white}
+            style={[
+              {
+                backgroundColor: "transparent",
+                fontFamily: fonts.reguler,
+                color: colors.white,
+                fontSize: 15,
+                paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
+              },
+              style,
+            ]}
+            placeholderTextColor={colors.textColor}
+            outlineStyle={{
+              borderRadius: 90,
+              borderWidth: error == true ? 1 : 1,
+            }}
+            contentStyle={{
+              color: colors.white,
+              fontFamily: fonts.reguler,
+              fontSize: 15,
+            }}
+            left={
+              leftImage && typeof leftImage === "string" ? (
+                <TextInput.Icon
+                  icon={leftImage}
+                  onPress={() => console.log("")}
+                  color={colors.white}
+                />
+              ) : undefined
+            }
+          />
+        </View>
+        {error ? (
+          <HelperText style={{ color: colors.red }} type="error" visible={error}>
+            {message != "" ? `${message}` : `${label} field is required`}
+          </HelperText>
+        ) : null}
       </View>
-      {error ? (
-        <HelperText style={{ color: colors.red }} type="error" visible={error}>
-          {message != "" ? `${message}` : `${label} field is required`}
-        </HelperText>
-      ) : null}
-    </View>
-  );
-};
+    );
+  };
