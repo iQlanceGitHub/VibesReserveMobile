@@ -159,15 +159,15 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
               <TextInput.Icon icon={leftImage} color={colors.white} />
             ) : undefined
           }
-          // right={
-          //   rightImageShow == true && (
-          //     <TextInput.Icon
-          //       icon={images.ic_arrow_down}
-          //       size={15}
-          //       color={colors.darkGray} // Add this line to set the color
-          //     />
-          //   )
-          // }
+        // right={
+        //   rightImageShow == true && (
+        //     <TextInput.Icon
+        //       icon={images.ic_arrow_down}
+        //       size={15}
+        //       color={colors.darkGray} // Add this line to set the color
+        //     />
+        //   )
+        // }
         />
       </View>
       {error ? (
