@@ -18,6 +18,10 @@ export const {
   signinData,
   signinError,
 
+  onForgotPassword,
+  forgotPasswordData,
+  forgotPasswordError,
+
   onResendVerifyOtp,
   resendVerifyOtpData,
   resendVerifyOtpError,
@@ -79,6 +83,10 @@ export const {
   'ON_SIGNIN',
   'SIGNIN_DATA',
   'SIGNIN_ERROR',
+
+  'ON_FORGOT_PASSWORD',
+  'FORGOT_PASSWORD_DATA',
+  'FORGOT_PASSWORD_ERROR',
 
   'ON_RESEND_VERIFY_OTP',
   'RESEND_VERIFY_OTP_DATA',

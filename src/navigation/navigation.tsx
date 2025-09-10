@@ -15,7 +15,7 @@ import WelcomeScreen from "../screen/welcomeScreen/welcomeScreen";
 // import LocationScreen from "../screen/auth/LocationScreen/LocationScreen";
 // import LocationManuallyScreen from "../screen/auth/LocationManuallyScreen/LocationManuallyScreen";
 // import PasswordChangedSucessScreen from "../screen/auth/PasswordChangedSucessScreen/PasswordChangedSucessScreen";
-// import ForgotPasswordScreen from '../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen';
+import ForgotPasswordScreen from '../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen';
 // import ResetPasswordScreen from '../screen/auth/ResetPasswordScreen/ResetPasswordScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -107,13 +107,13 @@ const NavigationStack: React.FC = () => {
             options={{ headerShown: false }}
             name="PasswordChangedSucessScreen"
             component={PasswordChangedSucessScreen}
-          />
+          /> */}
            <Stack.Screen
             options={{ headerShown: false }}
             name="ForgotPasswordScreen"
             component={ForgotPasswordScreen}
           />
-               <Stack.Screen
+               {/* <Stack.Screen
             options={{ headerShown: false }}
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}

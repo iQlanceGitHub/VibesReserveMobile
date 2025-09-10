@@ -16,6 +16,10 @@ import {
   signinData,
   signinError,
 
+  onForgotPassword,
+  forgotPasswordData,
+  forgotPasswordError,
+
   onResendVerifyOtp,
   resendVerifyOtpData,
   resendVerifyOtpError,
@@ -106,6 +110,43 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
   } catch (error) {
     console.log('Error:===', error);
     yield put(signinError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface ForgotPasswordPayload {
+  email?: string;
+}
+
+function* onForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      "currentRole":"user",
+      "type":"email",
+      "typevalue": payload?.email,
+      "deviceToken": 'abcd',
+      "deviceType": "ios",
+      "usingtype":"forgot_password"//forgot_password,signup
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/forgotPassword'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/signIn'}`)
+
+    // console.log('response:->', response);
+    if (response?.status == 1 || response?.status == true || response?.status == "1" || response?.status == "true") {
+      yield put(forgotPasswordData(response));
+    } else {
+      console.log('Error:===2', response);
+      yield put(forgotPasswordError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log('Error:===', error);
+    yield put(forgotPasswordError(error));
     yield put(displayLoading(false));
   }
 }
@@ -448,6 +489,7 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
 
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
+  yield takeLatest(onForgotPassword().type, onForgotPasswordSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
   yield takeLatest(onUpdateProfileFields().type, UpdateProfileFieldsSaga);
   yield takeLatest(onGetDynamicContent().type, getDynamicContentSaga);

@@ -14,6 +14,9 @@ import {
   signinData,
   signinError,
 
+  forgotPasswordData,
+  forgotPasswordError,
+
   resendVerifyOtpData,
   resendVerifyOtpError,
 
@@ -54,6 +57,8 @@ export const initialState = {
   signupErr: '',
   signin: '',
   signinErr: '',
+  forgotPassword: '',
+  forgotPasswordErr: '',
   resendVerifyOtp: '',
   resendVerifyOtpErr: '',
   verifyEmail: '',
@@ -118,6 +123,16 @@ const authReducer = handleActions(
       draft.signupErr = action.payload;
     }),
 
+
+    // payload forgotPassword
+    [forgotPasswordData().type]: produce((draft, action) => {
+      console.log('payload forgot Password', action.payload);
+      draft.forgotPassword = action.payload;
+    }),
+    [forgotPasswordError().type]: produce((draft, action) => {
+      console.log('payload forgot Password Err', action.payload);
+      draft.forgotPasswordErr = action.payload;
+    }),
 
     // payload resendVerifyOtp
     [resendVerifyOtpData().type]: produce((draft, action) => {
