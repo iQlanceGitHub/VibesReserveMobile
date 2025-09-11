@@ -23,7 +23,7 @@ export const colors = {
   textcolor: "rgba(134, 140, 152, 1)",
   validationSuccess: "rgba(56, 199, 147, 1)",
   whiteTransparentLight: "rgba(255, 255, 255, 0.1)",
-  whiteSeperatorLight: "rgba(255, 255, 255, 1)",
+  whiteLight: "rgba(255, 255, 255, 1)",
   whiteTransparentMedium: "rgba(255, 255, 255, 0.3)",
   primary_lighter: "rgba(243, 240, 251, 1)",
   purpleBorder: "rgba(69, 2, 156, 1)",

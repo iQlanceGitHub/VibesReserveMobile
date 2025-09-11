@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     height: 0,
     opacity: 0.2,
     borderWidth: 1,
-    borderColor: colors.whiteSeperatorLight,
+    borderColor: colors.whiteLight,
     marginBottom: verticalScale(15),
   },
   separatorsecond: {
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     height: 0,
     opacity: 0.2,
     borderWidth: 1,
-    borderColor: colors.whiteSeperatorLight,
+    borderColor: colors.whiteLight,
     marginTop: verticalScale(15),
   },
   ratingLabel: {
