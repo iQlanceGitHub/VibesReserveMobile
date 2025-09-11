@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -25,28 +25,26 @@ import AppleIcon from "../../assets/svg/appleIcon";
 import { BackButton } from "../../components/BackButton";
 import EmailIcon from "../../assets/svg/emailIcon";
 import LockIcon from "../../assets/svg/lockIcon";
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import {
   appleAuth,
   AppleButton,
-} from '@invertase/react-native-apple-authentication';
+} from "@invertase/react-native-apple-authentication";
 import { showToast } from "../../utilis/toastUtils.tsx";
 //API
 import {
   onSignin,
   signinData,
   signinError,
-
   onSocialLogin,
   socialLoginData,
   socialLoginError,
   setUser,
-} from '../../redux/auth/actions';
+} from "../../redux/auth/actions";
 // import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { CustomAlertSingleBtn } from '../../components/CustomeAlertDialog';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useDispatch, useSelector } from "react-redux";
+import { CustomAlertSingleBtn } from "../../components/CustomeAlertDialog";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface SignInScreenProps {
   navigation?: any;
@@ -60,9 +58,9 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     deviceToken: "abcd",
   });
   const [socialData, setSocialData] = useState({
-    email: '',
-    name: '',
-    socialID: '',
+    email: "",
+    name: "",
+    socialID: "",
   });
   const [errors, setErrors] = useState({
     email: false,
@@ -81,8 +79,8 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const signinErr = useSelector((state: any) => state.auth.signinErr);
   const socialLogin = useSelector((state: any) => state.auth.socialLogin);
   const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
-  const [msg, setMsg] = useState('');
-  const [uid, setUid] = useState('');
+  const [msg, setMsg] = useState("");
+  const [uid, setUid] = useState("");
   // Validation functions
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -96,7 +94,8 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     // At least one lowercase letter (a-z)
     // At least one number (0-9)
     // At least one special character (e.g., ! @ # $ % ^ & *)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
     return passwordRegex.test(password);
   };
 
@@ -117,7 +116,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       setErrors((prev) => ({ ...prev, email: !isValid }));
       setErrorMessages((prev) => ({
         ...prev,
-        email: value && !isValid ? "Please enter a valid email address" : ""
+        email: value && !isValid ? "Please enter a valid email address" : "",
       }));
     }
 
@@ -126,7 +125,8 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       setErrors((prev) => ({ ...prev, password: !isValid }));
       setErrorMessages((prev) => ({
         ...prev,
-        password: value && !isValid ? "Password must meet all requirements" : ""
+        password:
+          value && !isValid ? "Password must meet all requirements" : "",
       }));
     }
 
@@ -144,7 +144,10 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       }
       if (!formData.password) {
         setErrors((prev) => ({ ...prev, password: true }));
-        setErrorMessages((prev) => ({ ...prev, password: "Password is required" }));
+        setErrorMessages((prev) => ({
+          ...prev,
+          password: "Password is required",
+        }));
       }
       return;
     }
@@ -157,37 +160,37 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   // Get token
   const getUserToken = async () => {
     try {
-      const token = await AsyncStorage.getItem('user_token');
+      const token = await AsyncStorage.getItem("user_token");
       if (token !== null) {
-        console.log('User token retrieved:', token);
+        console.log("User token retrieved:", token);
         return token;
       }
     } catch (e) {
-      console.error('Failed to fetch the user token.', e);
+      console.error("Failed to fetch the user token.", e);
     }
   };
 
   useEffect(() => {
     getUserToken();
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (
       signin?.status === true ||
-      signin?.status === 'true' ||
+      signin?.status === "true" ||
       signin?.status === 1 ||
       signin?.status === "1"
     ) {
       console.log("signin:+>", signin);
       setFormData({
-        email: '',
-        password: '',
+        email: "",
+        password: "",
       });
       setErrors({
         email: false,
         password: false,
         terms: false,
-      })
+      });
       dispatch(setUser(signin));
       // setMsg(signin?.message?.toString())
       showToast(
@@ -196,7 +199,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       );
 
       // navigation.navigate('NameScreen')
-      dispatch(signinData(''));
+      dispatch(signinData(""));
     }
 
     if (signinErr) {
@@ -206,15 +209,21 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "error",
         signinErr?.message || "Something went wrong. Please try again."
       );
-      if (signinErr?.message == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
-        console.log("=>>", uid)
-        navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })
+      if (
+        signinErr?.message ==
+        "Your email has not been verified. An OTP has been sent to your registered email address."
+      ) {
+        console.log("=>>", uid);
+        navigation.navigate("OTPVerificationScreen", {
+          email: formData?.email,
+          type: "signup",
+          id: uid,
+        });
         setFormData({
-          email: '',
-          password: '',
+          email: "",
+          password: "",
         });
       } else {
-
       }
       setUid(signinErr?.user?._id);
       setErrors({
@@ -222,12 +231,12 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         password: false,
         terms: false,
       });
-      dispatch(signinError(''));
+      dispatch(signinError(""));
     }
 
     if (
       socialLogin?.status === true ||
-      socialLogin?.status === 'true' ||
+      socialLogin?.status === "true" ||
       socialLogin?.status === 1 ||
       socialLogin?.status === "1"
     ) {
@@ -237,8 +246,8 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "success",
         socialLogin?.message || "Something went wrong. Please try again."
       );
-      dispatch(setUser(socialLogin))
-      dispatch(socialLoginData(''));
+      dispatch(setUser(socialLogin));
+      dispatch(socialLoginData(""));
     }
 
     if (socialLoginErr) {
@@ -247,25 +256,24 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "error",
         socialLoginErr?.message || "Something went wrong. Please try again."
       );
-      dispatch(socialLoginError(''));
+      dispatch(socialLoginError(""));
     }
   }, [signin, signinErr, socialLogin, socialLoginErr]);
-
 
   const handleGoogleSignIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log('User Info:', userInfo?.data?.user?.email);
-      console.log('User Info:', userInfo);
+      console.log("User Info:", userInfo?.data?.user?.email);
+      console.log("User Info:", userInfo);
 
       let obj = {
-        "email": userInfo?.data?.user?.email,
-        "socialId": userInfo?.data?.user?.id,
-        "loginType": "google",
-        "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-        "currentRole": "user",
-      }
+        email: userInfo?.data?.user?.email,
+        socialId: userInfo?.data?.user?.id,
+        loginType: "google",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        currentRole: "user",
+      };
 
       if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
         dispatch(onSocialLogin(obj));
@@ -274,7 +282,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       //Alert.alert('Success', 'You have successfully signed in with Google!');
       // navigation.navigate('NameScreen')
     } catch (error) {
-      console.error('Google Sign-In error:', error);
+      console.error("Google Sign-In error:", error);
     }
   };
 
@@ -294,13 +302,12 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
       });
 
-      console.log("Apple Auth Response:", JSON.stringify(appleAuthRequestResponse, null, 2));
+      console.log(
+        "Apple Auth Response:",
+        JSON.stringify(appleAuthRequestResponse, null, 2)
+      );
 
-      const {
-        identityToken,
-        email,
-        fullName,
-      } = appleAuthRequestResponse;
+      const { identityToken, email, fullName } = appleAuthRequestResponse;
 
       const userId = appleAuthRequestResponse.user;
       console.log("Apple User ID:", userId);
@@ -309,18 +316,18 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
       // Handle successful sign-in
       if (identityToken) {
-        const fullNameStr = fullName ?
-          `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() :
-          'Apple User';
+        const fullNameStr = fullName
+          ? `${fullName.givenName || ""} ${fullName.familyName || ""}`.trim()
+          : "Apple User";
 
         let obj = {
-          "email": email || `apple_${userId}@privaterelay.appleid.com`,
-          "socialId": identityToken,
-          "loginType": "apple",
-          "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-          "currentRole": "user",
-          "name": fullNameStr,
-          "userId": userId
+          email: email || `apple_${userId}@privaterelay.appleid.com`,
+          socialId: identityToken,
+          loginType: "apple",
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          currentRole: "user",
+          name: fullNameStr,
+          userId: userId,
         };
 
         console.log("Apple Sign-In Object:", obj);
@@ -334,7 +341,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         //   "Apple Sign-In successful!",
         //   [{ text: "OK" }]
         // );
-
       } else {
         console.error("No identity token received from Apple");
         throw new Error("Apple Sign-In failed - no identity token returned");
@@ -361,11 +367,13 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         Alert.alert("Error", "Unknown error occurred during Apple Sign-In.");
       } else {
         console.error("Apple Sign-In error:", error.message);
-        Alert.alert("Error", `Apple Sign-In failed: ${error.message || 'Unknown error'}`);
+        Alert.alert(
+          "Error",
+          `Apple Sign-In failed: ${error.message || "Unknown error"}`
+        );
       }
     }
   };
-
 
   const handleRememberMe = () => {
     setRememberMe(!rememberMe);
@@ -375,8 +383,14 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     navigation?.navigate("ForgotPasswordScreen");
   };
 
+  const handleSkip = () => {
+    navigation?.navigate("LeaveReviewScreen");
+  };
+
   return (
-    <View style={[styles.container, { paddingTop: Platform.OS === "ios" ? 0 : 0 }]}>
+    <View
+      style={[styles.container, { paddingTop: Platform.OS === "ios" ? 0 : 0 }]}
+    >
       <StatusBar
         barStyle="light-content"
         backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
@@ -402,11 +416,14 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
               <View style={styles.statusBar}>
                 <BackButton
                   navigation={navigation}
-                  onBackPress={() => navigation?.navigate('WelcomeScreen')}
+                  onBackPress={() => navigation?.navigate("WelcomeScreen")}
                 />
-                <View style={styles.statusIcons}>
+                <TouchableOpacity
+                  onPress={handleSkip}
+                  style={styles.statusIcons}
+                >
                   <Text style={styles.skipText}>Skip</Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -483,20 +500,52 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                 {/* Password requirements hint */}
                 {formData.password && errors.password && (
                   <View style={styles.passwordRequirements}>
-                    <Text style={styles.requirementsTitle}>Password must contain:</Text>
-                    <Text style={[styles.requirement, formData.password.length >= 8 && formData.password.length <= 16 && styles.requirementMet]}>
+                    <Text style={styles.requirementsTitle}>
+                      Password must contain:
+                    </Text>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        formData.password.length >= 8 &&
+                          formData.password.length <= 16 &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • 8-16 characters
                     </Text>
-                    <Text style={[styles.requirement, /[A-Z]/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /[A-Z]/.test(formData.password) &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • At least one uppercase letter (A-Z)
                     </Text>
-                    <Text style={[styles.requirement, /[a-z]/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /[a-z]/.test(formData.password) &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • At least one lowercase letter (a-z)
                     </Text>
-                    <Text style={[styles.requirement, /\d/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /\d/.test(formData.password) && styles.requirementMet,
+                      ]}
+                    >
                       • At least one number (0-9)
                     </Text>
-                    <Text style={[styles.requirement, /[!@#$%^&*]/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /[!@#$%^&*]/.test(formData.password) &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • At least one special character (!@#$%^&*)
                     </Text>
                   </View>
@@ -535,7 +584,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                 isCap={false}
                 style={[
                   styles.signUpButton,
-                  !isFormValid && styles.disabledButton
+                  !isFormValid && styles.disabledButton,
                 ]}
                 disabled={!isFormValid}
               />
@@ -557,23 +606,29 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
           </View>
           <CustomAlertSingleBtn
             btn1Style={{ backgroundColor: colors.violate }}
-            isVisible={msg != ''}
+            isVisible={msg != ""}
             message={msg}
-            button2Text={'Ok'}
+            button2Text={"Ok"}
             onButton2Press={() => {
-              setMsg('');
-              if (msg == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
-                console.log("=>>", uid)
-                navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })
+              setMsg("");
+              if (
+                msg ==
+                "Your email has not been verified. An OTP has been sent to your registered email address."
+              ) {
+                console.log("=>>", uid);
+                navigation.navigate("OTPVerificationScreen", {
+                  email: formData?.email,
+                  type: "signup",
+                  id: uid,
+                });
                 setFormData({
-                  email: '',
-                  password: '',
+                  email: "",
+                  password: "",
                 });
               } else {
-
               }
             }}
-            title={'Curiouzz'}
+            title={"Curiouzz"}
           />
         </KeyboardAvoidingView>
       </LinearGradient>
