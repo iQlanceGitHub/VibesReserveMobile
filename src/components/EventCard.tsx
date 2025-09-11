@@ -11,6 +11,7 @@ import HeartIcon from "../assets/svg/heartIcon";
 import LocationIcon from "../assets/svg/locationIcon";
 import ClockIcon from "../assets/svg/clockIcon";
 import ArrowRightIcon from "../assets/svg/arrowRightIcon";
+import LocationFavourite from "../assets/svg/locationFavourite";
 
 interface EventCardProps {
   event: {
@@ -57,7 +58,7 @@ const EventCard: React.FC<EventCardProps> = ({
 
         <View style={styles.detailsRow}>
           <View style={styles.detailItem}>
-            <LocationIcon size={14} color={colors.violate} />
+            <LocationFavourite size={14} color={colors.violate} />
             <Text style={styles.detailText}>{event.location}</Text>
           </View>
         </View>

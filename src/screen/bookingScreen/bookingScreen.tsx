@@ -12,8 +12,9 @@ import {
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
-import LocationIcon from "../../assets/svg/locationIcon";
+import locationFavourite from "../../assets/svg/locationFavourite";
 import ClockIcon from "../../assets/svg/clockIcon";
+import LocationFavourite from "../../assets/svg/locationFavourite";
 
 interface BookingScreenProps {
   navigation?: any;
@@ -118,7 +119,7 @@ const BookingCard: React.FC<{
           <Text style={styles.eventName}>{booking.name}</Text>
 
           <View style={styles.detailsRow}>
-            <LocationIcon size={14} color={colors.violate} />
+            <LocationFavourite size={14} color={colors.violate} />
             <Text style={styles.detailText}>{booking.location}</Text>
           </View>
 
