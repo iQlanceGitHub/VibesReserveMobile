@@ -23,4 +23,12 @@ export const colors = {
   validationSuccess: "rgba(56, 199, 147, 1)",
   whiteTransparentLight: "rgba(255, 255, 255, 0.1)",
   whiteTransparentMedium: "rgba(255, 255, 255, 0.3)",
+  primary_lighter: "rgba(243, 240, 251, 1)",
+  purpleBorder: "rgba(69, 2, 156, 1)",
+  cardBackground: "rgba(18, 1, 40, 1)",
+  categoryBackground: "rgba(141, 52, 255, 0.2)",
+  unselectedBackground: "#1A0037",
+  unselectedGradientStart: "#1F0045",
+  unselectedGradientEnd: "#120128",
+  bottomTabBackground: "rgba(19, 0, 44, 0.2)",
 };
