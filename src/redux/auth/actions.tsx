@@ -26,6 +26,10 @@ export const {
   verifyEmailData,
   verifyEmailError,
 
+  onForgotPassword,
+  forgotPasswordData,
+  forgotPasswordError,
+
   onSendOtp,
   sendOtpData,
   sendOtpError,
@@ -58,6 +62,10 @@ export const {
   getDynamicContentData,
   getDynamicContentError,
 
+  onUpdateLocation,
+  updateLocationData,
+  updateLocationError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -87,9 +95,13 @@ export const {
   "VERIFY_EMAIL_DATA",
   "VERIFY_EMAIL_ERROR",
 
-  "ON_SEND_OTP",
-  "SEND_OTP_DATA",
-  "SEND_OTP_ERROR",
+  'ON_FORGOT_PASSWORD',
+  'FORGOT_PASSWORD_DATA',
+  'FORGOT_PASSWORD_ERROR',
+
+  'ON_SEND_OTP',
+  'SEND_OTP_DATA',
+  'SEND_OTP_ERROR',
 
   "ON_VERIFY_OTP",
   "VERIFY_OTP_DATA",
@@ -118,6 +130,10 @@ export const {
   "ON_GET_DYNAMIC_CONTENT",
   "GET_DYNAMIC_CONTENT_DATA",
   "GET_DYNAMIC_CONTENT_ERROR",
+
+  "ON_UPDATE_LOCATION",
+  "UPDATE_LOCATION_DATA",
+  "UPDATE_LOCATION_ERROR",
 
   "SET_LOGIN_TOKEN",
 

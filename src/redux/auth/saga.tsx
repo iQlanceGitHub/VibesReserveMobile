@@ -17,6 +17,11 @@ import {
   onVerifyEmail,
   verifyEmailData,
   verifyEmailError,
+
+  onForgotPassword,
+  forgotPasswordData,
+  forgotPasswordError,
+
   onSendOtp,
   sendOtpData,
   sendOtpError,
@@ -41,6 +46,10 @@ import {
   onGetDynamicContent,
   getDynamicContentData,
   getDynamicContentError,
+  onUpdateLocation,
+  updateLocationData,
+  updateLocationError,
+
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -62,17 +71,18 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      email: payload?.email,
-      password: payload?.password,
-      deviceToken: payload?.deviceToken,
-      deviceType: payload?.deviceType,
-      timeZone: payload?.timeZone,
+      //"currentRole": "user",
+      "email": payload?.email,
+      "password": payload?.password,
+      "deviceToken": 'abcd',
+      "deviceType": "ios",
+      "timeZone": payload?.timeZone,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"signin"}`,
+      url: `${baseurl}${'user/signIn'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"signin"}`);
+    console.log(`==>> ${baseurl}${'user/signIn'}`)
 
     console.log("response:->", response);
     if (
@@ -109,15 +119,29 @@ interface SignupPayload {
   loginType?: string;
 }
 
-function* SignupSaga({ payload }: { payload: SignupPayload }) {
+function* onSignupSaga({ payload }: { payload: SignupPayload }) {
   try {
     yield put(displayLoading(true));
-    const params = payload;
+    const params = {
+      "currentRole": payload?.currentRole,  //user,host <- U need small
+      "fullName": payload?.fullName,
+      "email": payload?.email,
+      "countrycode": payload?.countrycode,
+      "phone": payload?.phone,
+      "dateOfBirth": payload?.dateOfBirth,
+      "password": payload?.password,
+      "confirmPassword": payload?.confirmPassword,
+      "userDocument": payload?.userDocument,
+      "timeZone": payload?.timeZone,
+      "loginType": payload?.loginType,
+    }
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"signUp"}`,
+      url: `${baseurl}${'user/signUp'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"signUp"}`);
+    console.log(`==>> ${baseurl}${'user/signUp'}`)
+
+    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -138,6 +162,44 @@ function* SignupSaga({ payload }: { payload: SignupPayload }) {
   }
 }
 
+interface ForgotPasswordPayload {
+  email?: string;
+}
+
+function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      //"currentRole": "user",
+      "type": "email",
+      "typevalue": payload?.email,
+      "deviceToken": 'abcd',
+      "deviceType": "ios",
+      "usingtype": "forgot_password"//forgot_password,signup
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/forgotPassword'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/signIn'}`)
+
+    // console.log('response:->', response);
+    if (response?.status == 1 || response?.status == true || response?.status == "1" || response?.status == "true") {
+      yield put(forgotPasswordData(response));
+    } else {
+      console.log('Error:===2', response);
+      yield put(forgotPasswordError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log('Error:===', error);
+    yield put(forgotPasswordError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+
 interface ResendVerifyOtpSagaPayload {
   email?: string;
 }
@@ -149,14 +211,12 @@ function* onResendVerifyOtpSaga({
 }) {
   try {
     yield put(displayLoading(true));
-    const params = {
-      email: payload.email,
-    };
+    const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"resend-verify-otp"}`,
+      url: `${baseurl}${'user/resendOtp'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"resend-verify-otp"}`);
+    console.log(`==>> ${baseurl}${'user/resendOtp'}`)
 
     console.log("response:->", response);
     if (
@@ -333,10 +393,10 @@ function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }) {
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"verify-otp"}`,
+      url: `${baseurl}${'user/otpVerify'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"verify-otp"}`);
+    console.log(`==>> ${baseurl}${'user/otpVerify'}`)
 
     console.log("response:->", response);
     if (
@@ -359,17 +419,17 @@ function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }) {
   }
 }
 
-interface ResetPasswordPayload {}
+interface ResetPasswordPayload { }
 
 function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
   try {
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"reset-password"}`,
+      url: `${baseurl}${'user/ResetPassword'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"reset-password"}`);
+    console.log(`==>> ${baseurl}${'user/ResetPassword'}`)
 
     console.log("response:->", response);
     if (
@@ -392,17 +452,17 @@ function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
   }
 }
 
-interface SocialLoginPayload {}
+interface SocialLoginPayload { }
 
 function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
   try {
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"social-login"}`,
+      url: `${baseurl}${'user/checkSocialid'}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"social-login"}`);
+    console.log(`==>> ${baseurl}${'user/checkSocialid'}`)
 
     console.log("response:->", response);
     if (
@@ -425,7 +485,50 @@ function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
   }
 }
 
-interface ProfilePayload {}
+
+interface UpdateLocationPayload {
+  userId?: string;
+  longitude?: string;
+  latitude?: string;
+}
+
+function* onUpdateLocationSaga({ payload }: { payload: UpdateLocationPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      "userId": payload?.userId,
+      "longitude": payload?.longitude,
+      "latitude": payload?.latitude,
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/updateLocation'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/updateLocation'}`)
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(updateLocationData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(updateLocationError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(updateLocationError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+
+interface ProfilePayload { }
 
 function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
   try {
@@ -455,7 +558,7 @@ function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
   }
 }
 
-interface LogoutPayload {}
+interface LogoutPayload { }
 
 function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
   try {
@@ -493,14 +596,18 @@ function* authSaga() {
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
   yield takeLatest(onUpdateProfileFields().type, UpdateProfileFieldsSaga);
   yield takeLatest(onGetDynamicContent().type, getDynamicContentSaga);
-  yield takeLatest(onSignup().type, SignupSaga);
+  yield takeLatest(onSignup().type, onSignupSaga);
   yield takeLatest(onVerifyEmail().type, VerifyEmailSaga);
   yield takeLatest(onSendOtp().type, SendOtpSaga);
   yield takeLatest(onVerifyOtp().type, VerifyOtpSaga);
+  yield takeLatest(onForgotPassword().type, ForgotPasswordSaga);
   yield takeLatest(onResetPassword().type, ResetPasswordSaga);
   yield takeLatest(onSocialLogin().type, SocialLoginSaga);
   yield takeLatest(onProfile().type, getProfileSaga);
   yield takeLatest(onLogout().type, LogoutSaga);
+  yield takeLatest(onUpdateLocation().type, onUpdateLocationSaga);
+
+
 }
 
 export default authSaga;

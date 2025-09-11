@@ -321,7 +321,7 @@ export default StyleSheet.create({
     flexWrap: "wrap",
   },
   validationTextValid: {
-    color: colors.validationSuccess,
+    color: colors.green,
   },
   selectedFileContainer: {
     alignItems: "center",
@@ -357,5 +357,15 @@ export default StyleSheet.create({
     fontFamily: fonts.regular,
     fontWeight: "500",
     color: colors.white,
+  },
+  signUpLinkSection: {
+    paddingHorizontal: horizontalScale(20),
+    paddingBottom: verticalScale(30),
+    paddingTop: verticalScale(20),
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.primary_blue,
   },
 });

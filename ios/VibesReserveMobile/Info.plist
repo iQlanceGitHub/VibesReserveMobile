@@ -20,42 +20,107 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.233362513415-dlq70usscn8n825h5njp9osp4l6im5c7</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>54.241.179.201</key>
 			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
 				<key>NSIncludesSubdomains</key>
 				<true/>
-				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+				<key>NSRequiresCertificateTransparency</key>
 				<true/>
-				<key>NSTemporaryExceptionMinimumTLSVersion</key>
-				<string>TLSv1.1</string>
+			</dict>
+			<key>maps.googleapis.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<false/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSRequiresCertificateTransparency</key>
+				<true/>
 			</dict>
 		</dict>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to camera to take photos for your profile and documents</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to photo library to select images for your profile and documents</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>This app needs access to documents folder to select files for upload</string>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to your location even when in the background to provide location-based features.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to your location even when in the background to provide location-based features.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to find nearby events and provide better service.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to select images for your profile and documents</string>
+
+	<key>NSCalendarsUsageDescription</key>
+<string>This app needs access to your calendar to help schedule and manage events.</string>
+
+<key>NSContactsUsageDescription</key>
+<string>This app needs access to your contacts to make it easier to connect and invite friends.</string>
+
+<key>NSMicrophoneUsageDescription</key>
+<string>This app needs access to the microphone to allow voice input and audio features.</string>
+
+<key>NSAppleMusicUsageDescription</key>
+<string>This app needs access to your music library to enhance your media experience.</string>
+
+<key>NSMotionUsageDescription</key>
+<string>This app uses motion data to improve activity tracking and user experience.</string>
+
+<key>NSSpeechRecognitionUsageDescription</key>
+<string>This app needs access to speech recognition to convert your voice into text.</string>
+
+<!-- Optional (but Apple flagged it) -->
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>This app needs access to Bluetooth to connect with nearby devices and enhance app features.</string>
+
 	<key>RCTNewArchEnabled</key>
+	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>PlusJakartaSans-Bold.ttf</string>
+		<string>PlusJakartaSans-Light.ttf</string>
+		<string>PlusJakartaSans-Medium.ttf</string>
+		<string>PlusJakartaSans-Regular.ttf</string>
+		<string>PlusJakartaSans-SemiBold.ttf</string>
+		<string>BlackerDisplayTrial-Bold.ttf</string>
+		<string>BlackerDisplayTrial-Light.ttf</string>
+		<string>BlackerDisplayTrial-Medium.ttf</string>
+		<string>BlackerDisplayTrial-Regular.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -71,17 +136,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>PlusJakartaSans-Bold.ttf</string>
-		<string>PlusJakartaSans-Light.ttf</string>
-		<string>PlusJakartaSans-Medium.ttf</string>
-		<string>PlusJakartaSans-Regular.ttf</string>
-		<string>PlusJakartaSans-SemiBold.ttf</string>
-		<string>BlackerDisplayTrial-Bold.ttf</string>
-		<string>BlackerDisplayTrial-Light.ttf</string>
-		<string>BlackerDisplayTrial-Medium.ttf</string>
-		<string>BlackerDisplayTrial-Regular.ttf</string>
-	</array>
 </dict>
 </plist>
