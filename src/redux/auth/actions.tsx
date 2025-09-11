@@ -62,6 +62,10 @@ export const {
   getDynamicContentData,
   getDynamicContentError,
 
+  onUpdateLocation,
+  updateLocationData,
+  updateLocationError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -126,6 +130,10 @@ export const {
   "ON_GET_DYNAMIC_CONTENT",
   "GET_DYNAMIC_CONTENT_DATA",
   "GET_DYNAMIC_CONTENT_ERROR",
+
+  "ON_UPDATE_LOCATION",
+  "UPDATE_LOCATION_DATA",
+  "UPDATE_LOCATION_ERROR",
 
   "SET_LOGIN_TOKEN",
 

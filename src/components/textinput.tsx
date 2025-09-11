@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { HelperText, TextInput } from "react-native-paper";
-// import { parentStyles, textstyles } from "../../../utils/schema/commonStyles";
 
 import { shallowEqual } from "react-redux";
 import { colors } from "../utilis/colors";
@@ -37,6 +36,7 @@ import {
 } from "libphonenumber-js";
 import examples from "libphonenumber-js/examples.mobile.json";
 import CloseIcon from "../assets/svg/closeIcon";
+
 
 const getCountryISOFromDialCode = (dialCode: string): string => {
   const match = countryCodes.find((c) => c.dial_code === dialCode);
@@ -160,15 +160,6 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
               <TextInput.Icon icon={leftImage} color={colors.white} />
             ) : undefined
           }
-        // right={
-        //   rightImageShow == true && (
-        //     <TextInput.Icon
-        //       icon={images.ic_arrow_down}
-        //       size={15}
-        //       color={colors.darkGray} // Add this line to set the color
-        //     />
-        //   )
-        // }
         />
       </View>
       {error ? (
@@ -267,19 +258,8 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
             }}
           >
             <Text
-              // style={[textstyles.medium, { fontSize: 15 }]}
               children={phoneCode}
             />
-            {/* <Image
-              style={{
-                width: 12,
-                marginLeft: phoneCode.length > 4 ? 2 : 5,
-                resizeMode: "contain",
-                alignSelf: "center",
-                tintColor: colors.darkGray,
-              }}
-              source={images.ic_arrow_down}
-            /> */}
           </View>
         </Pressable>
       </View>
@@ -288,7 +268,6 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
         ref={internalInputRef}
         mode="outlined"
         maxLength={12}
-        // error={props.error}
         value={value}
         keyboardType="phone-pad"
         placeholder={placeholder}
@@ -460,12 +439,7 @@ export const CustomePasswordTextInput: React.FC<
             fontFamily: fonts.reguler,
             fontSize: 15,
           }}
-          // right={
-          //   <TextInput.Icon
-          //     icon={secure ? images.ic_close_eye : images.ic_open_eye}
-          //     onPress={onEyePress}
-          //   />
-          // }
+          //  right={secure ? <EyeIcon width={16} height={16} /> :  <EyeClosedIcon width={16} height={16} />}
           left={
             leftImage && typeof leftImage === "string" ? (
               <TextInput.Icon
@@ -901,18 +875,6 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
           }}
         />
       </View>
-
-      {/* <Text
-        style={{
-          marginTop: 4,
-          fontSize: 12,
-          color: colors.darkGray,
-          fontFamily: fonts.regular,
-        }}
-      >
-        Enter {numberLength} digit phone number
-      </Text> */}
-
       {(error && message) || phoneError ? (
         <Text
           style={{

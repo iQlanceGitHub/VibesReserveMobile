@@ -28,7 +28,7 @@ const PasswordChangedSucessScreen: React.FC<VerificationSucessScreenProps> = ({
 }) => {
  
   const handleSubmit = async () => {
-    navigation?.navigate("SignInScreen");
+    navigation?.replace("SignInScreen");
   };
 
   const handleBack = () => {

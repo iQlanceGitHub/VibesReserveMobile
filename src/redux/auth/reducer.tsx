@@ -47,6 +47,9 @@ import {
   getDynamicContentData,
   getDynamicContentError,
 
+  updateLocationData,
+  updateLocationError,
+
 } from './actions';
 
 export const initialState = {
@@ -81,6 +84,8 @@ export const initialState = {
   logoutErr: '',
   getDynamicContent: '',
   getDynamicContentErr: '',
+  updateLocation: '',
+  updateLocationErr: '',
   user:'',
 
 };
@@ -232,6 +237,15 @@ const authReducer = handleActions(
     [getDynamicContentError().type]: produce((draft, action) => {
       console.log('payload get Dynamic Content Err ', action.payload);
       draft.getDynamicContentErr = action.payload;
+    }),
+   
+    [updateLocationData().type]: produce((draft, action) => {
+      console.log('payload updateLocation ', action.payload);
+      draft.updateLocation = action.payload;
+    }),
+    [updateLocationError().type]: produce((draft, action) => {
+      console.log('payload updateLocationErr Err ', action.payload);
+      draft.updateLocationErr = action.payload;
     }),
   },
   initialState,

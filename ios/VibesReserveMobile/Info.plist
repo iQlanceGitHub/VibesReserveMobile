@@ -51,12 +51,18 @@
 				<string>TLSv1.2</string>
 				<key>NSIncludesSubdomains</key>
 				<true/>
+				<key>NSRequiresCertificateTransparency</key>
+				<true/>
 			</dict>
 			<key>maps.googleapis.com</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
+				<false/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
 				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSRequiresCertificateTransparency</key>
 				<true/>
 			</dict>
 		</dict>
@@ -73,6 +79,29 @@
 	<string>This app needs access to your location to find nearby events and provide better service.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to photo library to select images for your profile and documents</string>
+
+	<key>NSCalendarsUsageDescription</key>
+<string>This app needs access to your calendar to help schedule and manage events.</string>
+
+<key>NSContactsUsageDescription</key>
+<string>This app needs access to your contacts to make it easier to connect and invite friends.</string>
+
+<key>NSMicrophoneUsageDescription</key>
+<string>This app needs access to the microphone to allow voice input and audio features.</string>
+
+<key>NSAppleMusicUsageDescription</key>
+<string>This app needs access to your music library to enhance your media experience.</string>
+
+<key>NSMotionUsageDescription</key>
+<string>This app uses motion data to improve activity tracking and user experience.</string>
+
+<key>NSSpeechRecognitionUsageDescription</key>
+<string>This app needs access to speech recognition to convert your voice into text.</string>
+
+<!-- Optional (but Apple flagged it) -->
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>This app needs access to Bluetooth to connect with nearby devices and enhance app features.</string>
+
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
@@ -90,8 +119,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
-		<string>fetch</string>
-		<string>processing</string>
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>

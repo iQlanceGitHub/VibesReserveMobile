@@ -27,6 +27,17 @@ import CloseIcon from "../../../assets/svg/closeIcon";
 import CurrentLocationIcon from "../../../assets/svg/locationIcon";
 import { Buttons } from "../../../components/buttons";
 
+//API
+import {
+  onUpdateLocation,
+  updateLocationData,
+  updateLocationError,
+} from '../../../redux/auth/actions';
+import { showToast } from "../../../utilis/toastUtils.tsx";
+
+import { useDispatch, useSelector } from 'react-redux';
+import { CustomAlertSingleBtn } from '../../../components/CustomeAlertDialog';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // Define types for location data
 interface LocationResult {
   id: string;
@@ -39,7 +50,11 @@ interface LocationResult {
 
 interface LocationManuallyScreenProps {
   navigation?: any;
-  route?: any;
+  route?: {
+    params?: {
+      id?: string;
+    };
+  };
 }
 
 const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
@@ -60,6 +75,11 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCurrentLocation, setIsLoadingCurrentLocation] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [uid, setUid] = useState(route?.params?.id);
+
+  const dispatch = useDispatch();
+  const updateLocation = useSelector((state: any) => state.auth.updateLocation);
+  const updateLocationErr = useSelector((state: any) => state.auth.updateLocationErr);
 
   // Google Maps API key (store this securely in your app configuration)
   const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
@@ -105,6 +125,33 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (
+      updateLocation?.status === true ||
+      updateLocation?.status === 'true' ||
+      updateLocation?.status === 1 ||
+      updateLocation?.status === "1"
+    ) {
+      console.log("updateLocation:+>", updateLocation);
+      navigation.navigate('VerificationSucessScreen',  { id: uid });
+      //  setMsg(updateLocation?.message?.toString());
+      showToast(
+        "success",
+        updateLocation?.message || "Something went wrong. Please try again."
+      );
+      dispatch(updateLocationData(''));
+    }
+
+    if (updateLocationErr) {
+      console.log("updateLocationErr:+>", updateLocationErr);
+      showToast(
+        "error",
+        updateLocationErr?.message || "Something went wrong. Please try again."
+      );
+      dispatch(updateLocationError(''));
+    }
+  }, [updateLocation, updateLocationErr]);
 
   // Function to get place details including lat/lng
   const getPlaceDetails = async (placeId: string) => {
@@ -159,7 +206,12 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
               };
 
               // Navigate with the location data
-              navigation.navigate('NextScreen', { locationData });
+              const obj = {
+                "userId": uid,
+                "longitude": latitude,
+                "latitude": longitude,
+              }
+              dispatch(onUpdateLocation(obj))
             } else {
               Alert.alert("Error", "Could not get address for your location");
             }
@@ -240,7 +292,12 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
     };
 
     console.log('Selected location:==', locationData);
-    navigation.navigate('VerificationSucessScreen')
+    const obj = {
+      "userId": uid,
+      "longitude": location.latitude,
+      "latitude": location.longitude,
+    }
+    dispatch(onUpdateLocation(obj))
   };
 
   const handleUseCurrentLocation = () => {
@@ -279,8 +336,13 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
             longitude: lng
           };
           console.log("locationData:==>", locationData);
-
-          navigation.navigate('NextScreen', { locationData });
+          const obj = {
+            "userId": uid,
+            "longitude": lat,
+            "latitude": lng,
+          }
+          dispatch(onUpdateLocation(obj))
+         
         } else {
           Alert.alert("Error", "Could not find the specified location");
         }

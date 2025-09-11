@@ -45,6 +45,7 @@ import LockIcon from "../../assets/svg/lockIcon";
 import { showToast } from "../../utilis/toastUtils.tsx";
 import { uploadFileToS3 } from "../../utilis/s3Upload";
 import styles from "./styles";
+import RNFS from 'react-native-fs'; // You'll need to install this package
 
 interface SignupScreenProps {
   navigation?: any;
@@ -343,6 +344,31 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     return true;
   };
 
+  const reatePermanentFileCopy = async (file: any) => {
+    if (Platform.OS !== 'ios') {
+      return file; // Only needed for iOS
+    }
+  
+    try {
+      const sourcePath = file.uri;
+      const fileName = file.name || `file_${Date.now()}`;
+      const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+  
+      // Copy file to permanent storage
+      await RNFS.copyFile(sourcePath, destPath);
+  
+      // Return new file object with permanent path
+      return {
+        ...file,
+        uri: destPath,
+        permanentPath: destPath // Keep track of the permanent path
+      };
+    } catch (error) {
+      console.error('Error creating file copy:', error);
+      return file; // Fallback to original file
+    }
+  };
+
   const handleCameraCapture = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
@@ -358,7 +384,24 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       saveToPhotos: false,
     };
 
-    launchCamera(options, (response) => {
+    // launchCamera(options, (response) => {
+    //   if (response.didCancel) {
+    //   } else if (response.errorMessage) {
+    //     showToast("error", `Failed to capture image: ${response.errorMessage}`);
+    //   } else if (response.assets && response.assets[0]) {
+    //     const asset = response.assets[0];
+    //     const file = {
+    //       uri: asset.uri,
+    //       name: asset.fileName || `camera_${Date.now()}.jpg`,
+    //       type: asset.type || "image/jpeg",
+    //       size: asset.fileSize || 0,
+    //     };
+    //     validateAndSetFile(file);
+    //   } else {
+    //     showToast("error", "No image was captured. Please try again.");
+    //   }
+    // });
+    launchCamera(options, async (response) => {
       if (response.didCancel) {
       } else if (response.errorMessage) {
         showToast("error", `Failed to capture image: ${response.errorMessage}`);
@@ -370,7 +413,10 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           type: asset.type || "image/jpeg",
           size: asset.fileSize || 0,
         };
-        validateAndSetFile(file);
+        
+        // Create permanent copy for iOS
+        const permanentFile = await reatePermanentFileCopy(file);
+        validateAndSetFile(permanentFile);
       } else {
         showToast("error", "No image was captured. Please try again.");
       }
@@ -395,7 +441,24 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       includeBase64: false,
     };
 
-    launchImageLibrary(options, (response) => {
+    // launchImageLibrary(options, (response) => {
+    //   if (response.didCancel) {
+    //   } else if (response.errorMessage) {
+    //     showToast("error", `Failed to select image: ${response.errorMessage}`);
+    //   } else if (response.assets && response.assets[0]) {
+    //     const asset = response.assets[0];
+    //     const file = {
+    //       uri: asset.uri,
+    //       name: asset.fileName || `gallery_${Date.now()}.jpg`,
+    //       type: asset.type || "image/jpeg",
+    //       size: asset.fileSize || 0,
+    //     };
+    //     validateAndSetFile(file);
+    //   } else {
+    //     showToast("error", "No image was selected. Please try again.");
+    //   }
+    // });
+    launchImageLibrary(options, async (response) => {
       if (response.didCancel) {
       } else if (response.errorMessage) {
         showToast("error", `Failed to select image: ${response.errorMessage}`);
@@ -407,7 +470,10 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           type: asset.type || "image/jpeg",
           size: asset.fileSize || 0,
         };
-        validateAndSetFile(file);
+        
+        // Create permanent copy for iOS
+        const permanentFile = await reatePermanentFileCopy(file);
+        validateAndSetFile(permanentFile);
       } else {
         showToast("error", "No image was selected. Please try again.");
       }
@@ -421,22 +487,21 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           const result = await pick({
             type: [types.pdf, types.doc],
             allowMultiSelection: false,
-            presentationStyle:
-              Platform.OS === "ios" ? "pageSheet" : "fullScreen",
+            presentationStyle: Platform.OS === "ios" ? "pageSheet" : "fullScreen",
             mode: "import",
           });
-
+      
           if (result && Array.isArray(result) && result.length > 0) {
             const file = result[0];
-            validateAndSetFile(file);
+            
+            // Create permanent copy for iOS
+            const permanentFile = await reatePermanentFileCopy(file);
+            validateAndSetFile(permanentFile);
           } else {
             showToast("error", "No file was selected");
           }
         } catch (err) {
-          if (
-            isErrorWithCode(err) &&
-            err.code === errorCodes.OPERATION_CANCELED
-          ) {
+          if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
           } else {
             const errorMessage = (err as any)?.message || "Unknown error";
             showToast("error", `Failed to select document: ${errorMessage}`);
@@ -448,23 +513,65 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     }
   };
 
-  const validateAndSetFile = (file: any) => {
-    const fileSizeInMB = file.size ? file.size / (1024 * 1024) : 0;
+  const cleanupTemporaryFiles = async () => {
+    if (Platform.OS === 'ios' && selectedDocument?.permanentPath) {
+      try {
+        await RNFS.unlink(selectedDocument.permanentPath);
+      } catch (error) {
+        console.error('Error cleaning up temporary file:', error);
+      }
+    }
+  };
+  
+  // Call this when component unmounts or when file is replaced
+  useEffect(() => {
+    return () => {
+      cleanupTemporaryFiles();
+    };
+  }, [selectedDocument]);
 
+  const validateAndSetFile = (file: any) => {
+    // React Native files have uri, name, type, and size properties
+    const fileSizeInMB = file.size ? file.size / (1024 * 1024) : 0;
+  
     if (fileSizeInMB > 5) {
       showToast("error", "Please select a file smaller than 5MB.");
       return;
     }
-
-    const allowedTypes = ["application/pdf", "application/msword"];
-
-    if (!allowedTypes.includes(file.type || "")) {
+  
+    // Get file extension for additional validation
+    const fileName = file.name ? file.name.toLowerCase() : '';
+    const fileExtension = fileName.split('.').pop() || '';
+    
+    // Allowed MIME types and extensions for React Native
+    const allowedTypes = [
+      "application/pdf",         // PDF
+      "application/msword",      // DOC
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
+      "image/jpeg",              // JPG/JPEG
+      "image/png",               // PNG
+      "image/gif",               // GIF
+      "image/webp",              // WebP
+      "",                        // iOS sometimes returns empty string
+      "application/octet-stream" // Fallback for some iOS files
+    ];
+  
+    const allowedExtensions = [
+      'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp'
+    ];
+  
+    // Check both MIME type and file extension for iOS compatibility
+    const isValidType = allowedTypes.includes(file.type || "") || 
+                       allowedExtensions.includes(fileExtension);
+  
+    if (!isValidType) {
       showToast(
         "error",
-        "Please select a valid document file (PDF or DOC only)."
+        "Please select a valid file (PDF, DOC, DOCX, JPG, PNG, GIF, WebP only)."
       );
       return;
     }
+  
     setSelectedDocument(file);
     showToast("success", "Document selected successfully!");
   };

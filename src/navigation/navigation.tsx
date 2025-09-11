@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
-import { useColorScheme } from "react-native";
+import { useColorScheme, View, StyleSheet, ActivityIndicator } from "react-native";
 
 import IntroScreen from "../screen/auth/IntroScreen/IntroScreen";
-
+import {useSelector} from 'react-redux';
 // import { BackButton } from "../components/BackButton";
 import LinearGradient from "react-native-linear-gradient";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -17,6 +17,9 @@ import LocationManuallyScreen from "../screen/auth/LocationManuallyScreen/Locati
 import PasswordChangedSucessScreen from "../screen/auth/PasswordChangedSucessScreen/PasswordChangedSucessScreen";
 import ForgotPasswordScreen from '../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screen/auth/ResetPasswordScreen/ResetPasswordScreen';
+import { colors } from "../utilis/colors";
+import * as appConstant from "../utilis/appConstant";
+import React from "react";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -54,6 +57,7 @@ export type RootStackParamList = {
 
 const NavigationStack: React.FC = () => {
   const theme = useColorScheme();
+  const loader = useSelector((state: any) => state.auth.loader);
   return (
     <NavigationContainer>
       <LinearGradient
@@ -120,6 +124,30 @@ const NavigationStack: React.FC = () => {
           />    
         </Stack.Navigator>
       </LinearGradient>
+      {loader && (
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            flex: 1,
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.black,
+              justifyContent: "center",
+              alignItems: "center",
+              width: appConstant.horizontalScale(70),
+              height: appConstant.horizontalScale(70),
+              borderRadius: 10,
+              alignSelf: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color={colors.white} />
+          </View>
+        </View>
+      )}
+ 
     </NavigationContainer>
   );
 };

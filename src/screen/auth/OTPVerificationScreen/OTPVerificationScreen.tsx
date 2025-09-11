@@ -20,7 +20,7 @@ import {
   verticalScale,
   fontScale,
 } from "../../../utilis/appConstant";
-
+import { showToast } from "../../../utilis/toastUtils.tsx";
 
 //API
 import {
@@ -83,17 +83,26 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       verifyOtp?.status === "1"
     ) {
       console.log("verifyOtp:+>", verifyOtp);
+      showToast(
+        "success",
+        verifyOtp?.message || "Something went wrong. Please try again."
+      );
       if (route?.params?.type != 'signup') {
         navigation.navigate('ResetPasswordScreen', { id: uid })
       } else {
-        navigation.navigate('VerificationSucessScreen', { id: uid });
+       // navigation.navigate('VerificationSucessScreen', { id: uid });
+       navigation.navigate('LocationScreen', { id: uid });
       }
       dispatch(verifyOtpData(''));
     }
 
     if (verifyOtpErr) {
       console.log("verifyOtpErr:+>", verifyOtpErr);
-      setMsg(verifyOtpErr?.message?.toString())
+      //setMsg(verifyOtpErr?.message?.toString())
+      showToast(
+        "error",
+        verifyOtpErr?.message || "Something went wrong. Please try again."
+      );
       dispatch(verifyOtpError(''));
     }
   }, [verifyOtp, verifyOtpErr]);
@@ -107,13 +116,19 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       resendVerifyOtp?.status === "1"
     ) {
       console.log("resendVerifyOtp:+>", resendVerifyOtp);
-      setMsg(resendVerifyOtp?.message?.toString());
+     showToast(
+      "success",
+      resendVerifyOtp?.message || "Something went wrong. Please try again."
+    );
       setUid(resendVerifyOtp?.data?._id);
       dispatch(resendVerifyOtpData(''));
     }
     if (resendVerifyOtpErr) {
       console.log("resendVerifyOtpErr:+>", resendVerifyOtpErr);
-      setMsg(resendVerifyOtpErr?.message.toString())
+     showToast(
+      "error",
+      resendVerifyOtpErr?.message || "Something went wrong. Please try again."
+    );
       dispatch(resendVerifyOtpError(''));
     }
   }, [resendVerifyOtp, resendVerifyOtpErr]);
@@ -192,7 +207,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       // Here you would typically validate the OTP with your backend
       console.log("OTP submitted:", otpString);
       const payload = {
-        "currentRole": "user", //user,host
+       // "currentRole": "user", //user,host
         "userId": uid,
         "otp": otpString,
         "usingtype": route?.params?.type == 'signup' ? "signup" : "forgot_password",//forgot_password,signup
@@ -224,7 +239,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       setOtp(["", "", "", ""]);
       inputRefs.current[0]?.focus();
       let obj = {
-        "currentRole": "user",
+       // "currentRole": "user",
         "type": "email",//phone , email
         "typevalue": route?.params?.email,//phone ex:- +912345678901 , email
         "usingtype": route?.params?.type == 'signup' ? "signup" : "forgot_password"//forgot_password,signup

@@ -56,7 +56,7 @@ const VerificationSucessScreen: React.FC<VerificationSucessScreenProps> = ({
             <View style={styles.buttonSection}>
               <Buttons
                 title="Get Started"
-                onPress={() => navigation.replace('LocationScreen', { id: route?.params?.id })}
+                onPress={() => navigation.replace('WelcomeScreen')}
                 style={styles.getStartedButton}
                 isCap={false}
               />

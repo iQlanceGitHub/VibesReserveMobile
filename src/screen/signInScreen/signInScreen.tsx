@@ -30,7 +30,7 @@ import {
   appleAuth,
   AppleButton,
 } from '@invertase/react-native-apple-authentication';
-
+import { showToast } from "../../utilis/toastUtils.tsx";
 //API
 import {
   onSignin,
@@ -189,7 +189,11 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         terms: false,
       })
       dispatch(setUser(signin));
-      setMsg(signin?.message?.toString())
+      // setMsg(signin?.message?.toString())
+      showToast(
+        "success",
+        signin?.message || "Something went wrong. Please try again."
+      );
 
       // navigation.navigate('NameScreen')
       dispatch(signinData(''));
@@ -197,7 +201,21 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
     if (signinErr) {
       console.log("signinErr:+>", signinErr);
-      setMsg(signinErr?.message?.toString())
+      //setMsg(signinErr?.message?.toString())
+      showToast(
+        "error",
+        signinErr?.message || "Something went wrong. Please try again."
+      );
+      if (signinErr?.message == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
+        console.log("=>>", uid)
+        navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })
+        setFormData({
+          email: '',
+          password: '',
+        });
+      } else {
+
+      }
       setUid(signinErr?.user?._id);
       setErrors({
         email: false,
@@ -214,14 +232,21 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       socialLogin?.status === "1"
     ) {
       console.log("socialLogin:+>", socialLogin);
-      setMsg(socialLogin?.message?.toString());
+      //  setMsg(socialLogin?.message?.toString());
+      showToast(
+        "success",
+        socialLogin?.message || "Something went wrong. Please try again."
+      );
       dispatch(setUser(socialLogin))
       dispatch(socialLoginData(''));
     }
 
     if (socialLoginErr) {
       console.log("signinErr:+>", socialLoginErr);
-      setMsg(socialLoginErr.message.toString())
+      showToast(
+        "error",
+        socialLoginErr?.message || "Something went wrong. Please try again."
+      );
       dispatch(socialLoginError(''));
     }
   }, [signin, signinErr, socialLogin, socialLoginErr]);
@@ -304,11 +329,11 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         dispatch(onSocialLogin(obj));
 
         // Show success message
-        Alert.alert(
-          "Success",
-          "Apple Sign-In successful!",
-          [{ text: "OK" }]
-        );
+        // Alert.alert(
+        //   "Success",
+        //   "Apple Sign-In successful!",
+        //   [{ text: "OK" }]
+        // );
 
       } else {
         console.error("No identity token received from Apple");
@@ -377,7 +402,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
               <View style={styles.statusBar}>
                 <BackButton
                   navigation={navigation}
-                  onBackPress={() => navigation?.goBack()}
+                  onBackPress={() => navigation?.navigate('WelcomeScreen')}
                 />
                 <View style={styles.statusIcons}>
                   <Text style={styles.skipText}>Skip</Text>

@@ -23,7 +23,7 @@ import {
 } from "../../../components/textinput";
 import { BackButton } from "../../../components/BackButton";
 import EmailIcon from "../../../assets/svg/emailIcon";
-
+import { showToast } from "../../../utilis/toastUtils.tsx";
 
 //API
 import {
@@ -73,7 +73,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
   const forgotPassword = useSelector((state: any) => state.auth.forgotPassword);
   const forgotPasswordErr = useSelector((state: any) => state.auth.forgotPasswordErr);
   const [msg, setMsg] = useState('');
-  
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -101,15 +101,29 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
       forgotPassword?.status === "1"
     ) {
       console.log("forgotPassword:+>", forgotPassword);
-      setMsg(forgotPassword?.message?.toString());
+      // setMsg(forgotPassword?.message?.toString());
+      showToast(
+        "success",
+        forgotPassword?.message || "Something went wrong. Please try again."
+      );
       setUid(forgotPassword?.data?._id);
-      
+      navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'forgot_password', id: forgotPassword?.data?._id })
       dispatch(forgotPasswordData(''));
     }
 
     if (forgotPasswordErr) {
       console.log("forgotPasswordErr:+>", forgotPasswordErr);
-      setMsg(forgotPasswordErr?.message.toString())
+      // setMsg(forgotPasswordErr?.message.toString())
+      showToast(
+        "error",
+        forgotPasswordErr?.message || "Something went wrong. Please try again."
+      );
+      if (msg == 'OTP request limit reached for today. Try again tomorrow.') {
+
+      } else {
+        //
+
+      }
       dispatch(forgotPasswordError(''));
     }
   }, [forgotPassword, forgotPasswordErr]);

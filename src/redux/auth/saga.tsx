@@ -46,6 +46,10 @@ import {
   onGetDynamicContent,
   getDynamicContentData,
   getDynamicContentError,
+  onUpdateLocation,
+  updateLocationData,
+  updateLocationError,
+
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -67,7 +71,7 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "currentRole": "user",
+      //"currentRole": "user",
       "email": payload?.email,
       "password": payload?.password,
       "deviceToken": 'abcd',
@@ -166,7 +170,7 @@ function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "currentRole": "user",
+      //"currentRole": "user",
       "type": "email",
       "typevalue": payload?.email,
       "deviceToken": 'abcd',
@@ -481,6 +485,49 @@ function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
   }
 }
 
+
+interface UpdateLocationPayload {
+  userId?: string;
+  longitude?: string;
+  latitude?: string;
+}
+
+function* onUpdateLocationSaga({ payload }: { payload: UpdateLocationPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      "userId": payload?.userId,
+      "longitude": payload?.longitude,
+      "latitude": payload?.latitude,
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/updateLocation'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/updateLocation'}`)
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(updateLocationData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(updateLocationError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(updateLocationError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+
 interface ProfilePayload { }
 
 function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
@@ -558,6 +605,8 @@ function* authSaga() {
   yield takeLatest(onSocialLogin().type, SocialLoginSaga);
   yield takeLatest(onProfile().type, getProfileSaga);
   yield takeLatest(onLogout().type, LogoutSaga);
+  yield takeLatest(onUpdateLocation().type, onUpdateLocationSaga);
+
 
 }
 

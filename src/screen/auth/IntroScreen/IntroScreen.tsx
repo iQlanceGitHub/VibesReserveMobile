@@ -126,7 +126,7 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
       {/* Buttons container */}
       <View style={styles.buttonsContainer}>
         <Buttons
-          onPress={() => navigation.navigate("VerificationSucessScreen")}
+          onPress={() => navigation.navigate("WelcomeScreen")}
           title={buttonArray[activeSlide]}
           isCap={false}
           style={[styles.btn, styles.signUpBtn]}
