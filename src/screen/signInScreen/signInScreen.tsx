@@ -96,7 +96,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     // At least one lowercase letter (a-z)
     // At least one number (0-9)
     // At least one special character (e.g., ! @ # $ % ^ & *)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{7,16}$/;
     return passwordRegex.test(password);
   };
 
@@ -163,7 +163,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         return token;
       }
     } catch (e) {
-      console.error('Failed to fetch the user token.', e);
+      console.log('Failed to fetch the user token.', e);
     }
   };
 
@@ -279,94 +279,43 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       //Alert.alert('Success', 'You have successfully signed in with Google!');
       // navigation.navigate('NameScreen')
     } catch (error) {
-      console.error('Google Sign-In error:', error);
+      console.log('Google Sign-In error:', error);
     }
   };
 
   const handleAppleSignIn = async () => {
     try {
-      console.log("Starting Apple Sign-In...");
-
-      // Check if Apple Sign-In is available
-      const isAvailable = await appleAuth.isAvailable;
-      if (!isAvailable) {
-        Alert.alert("Error", "Apple Sign-In is not available on this device");
-        return;
-      }
-
       const appleAuthRequestResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
       });
 
-      console.log("Apple Auth Response:", JSON.stringify(appleAuthRequestResponse, null, 2));
-
       const {
         identityToken,
         email,
-        fullName,
+        fullName: {givenName, familyName},
       } = appleAuthRequestResponse;
-
       const userId = appleAuthRequestResponse.user;
-      console.log("Apple User ID:", userId);
-      console.log("Apple Email:", email);
-      console.log("Apple Full Name:", fullName);
 
-      // Handle successful sign-in
-      if (identityToken) {
-        const fullNameStr = fullName ?
-          `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() :
-          'Apple User';
-
-        let obj = {
-          "email": email || `apple_${userId}@privaterelay.appleid.com`,
-          "socialId": identityToken,
-          "loginType": "apple",
-          "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-          "currentRole": "user",
-          "name": fullNameStr,
-          "userId": userId
-        };
-
-        console.log("Apple Sign-In Object:", obj);
-
-        // Dispatch the social login action
-        dispatch(onSocialLogin(obj));
-
-        // Show success message
-        // Alert.alert(
-        //   "Success",
-        //   "Apple Sign-In successful!",
-        //   [{ text: "OK" }]
-        // );
-
-      } else {
-        console.error("No identity token received from Apple");
-        throw new Error("Apple Sign-In failed - no identity token returned");
+      // Handle the obtained data as per your requirements
+    
+      let obj = {
+        "email": email == null ? '' : email,
+        "socialId": userId,
+        "loginType": 'apple',
+        "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+        "currentRole": "user",
       }
-    } catch (error) {
-      console.error("Apple Sign-In Error:", error);
 
-      // Handle specific Apple Sign-In errors
+      if (userId) {
+        dispatch(onSocialLogin(obj));
+      }
+
+    } catch (error: any) {
       if (error.code === appleAuth.Error.CANCELED) {
-        console.log("Apple Sign-In was cancelled by user");
-        // Don't show alert for user cancellation - this is normal behavior
-        return;
-      } else if (error.code === appleAuth.Error.FAILED) {
-        console.error("Apple Sign-In failed");
-        Alert.alert("Error", "Apple Sign-In failed. Please try again.");
-      } else if (error.code === appleAuth.Error.INVALID_RESPONSE) {
-        console.error("Invalid response from Apple");
-        Alert.alert("Error", "Invalid response from Apple. Please try again.");
-      } else if (error.code === appleAuth.Error.NOT_HANDLED) {
-        console.error("Apple Sign-In not handled");
-        Alert.alert("Error", "Apple Sign-In not handled. Please try again.");
-      } else if (error.code === appleAuth.Error.UNKNOWN) {
-        console.error("Unknown Apple Sign-In error");
-        Alert.alert("Error", "Unknown error occurred during Apple Sign-In.");
+        console.log('Apple Login: User cancelled the login flow.');
       } else {
-        console.error("Apple Sign-In error:", error.message);
-        Alert.alert("Error", `Apple Sign-In failed: ${error.message || 'Unknown error'}`);
+        console.log('Apple Login: Error occurred:', error.message);
       }
     }
   };

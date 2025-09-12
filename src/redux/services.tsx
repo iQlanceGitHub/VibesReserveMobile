@@ -17,7 +17,7 @@ export const fetchGet = async (payload) => {
       const jsonValue = await AsyncStorage.getItem(key);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (e) {
-      console.error("Error retrieving array:", e);
+      console.log("Error retrieving array:", e);
       return null;
     }
   };
@@ -73,7 +73,7 @@ export const fetchPost = async (payload) => {
       const jsonValue = await AsyncStorage.getItem(key);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (e) {
-      console.error("Error retrieving array:", e);
+      console.log("Error retrieving array:", e);
       return null;
     }
   };
@@ -150,7 +150,7 @@ export const fetchDelete = async (payload) => {
       const jsonValue = await AsyncStorage.getItem(key);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (e) {
-      console.error("Error retrieving data:", e);
+      console.log("Error retrieving data:", e);
       return null;
     }
   };
@@ -257,7 +257,7 @@ export const fetchPut = async (payload) => {
       const jsonValue = await AsyncStorage.getItem(key);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (e) {
-      console.error("Error retrieving array:", e);
+      console.log("Error retrieving array:", e);
       return null;
     }
   };

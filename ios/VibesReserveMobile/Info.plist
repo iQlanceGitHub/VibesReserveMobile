@@ -67,8 +67,16 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app needs access to your music library to enhance your media experience.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>This app needs access to Bluetooth to connect with nearby devices and enhance app features.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>This app needs access to your calendar to help schedule and manage events.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to camera to take photos for your profile and documents</string>
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to your contacts to make it easier to connect and invite friends.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>This app needs access to documents folder to select files for upload</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -77,31 +85,14 @@
 	<string>This app needs access to your location even when in the background to provide location-based features.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to your location to find nearby events and provide better service.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to the microphone to allow voice input and audio features.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>This app uses motion data to improve activity tracking and user experience.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to photo library to select images for your profile and documents</string>
-
-	<key>NSCalendarsUsageDescription</key>
-<string>This app needs access to your calendar to help schedule and manage events.</string>
-
-<key>NSContactsUsageDescription</key>
-<string>This app needs access to your contacts to make it easier to connect and invite friends.</string>
-
-<key>NSMicrophoneUsageDescription</key>
-<string>This app needs access to the microphone to allow voice input and audio features.</string>
-
-<key>NSAppleMusicUsageDescription</key>
-<string>This app needs access to your music library to enhance your media experience.</string>
-
-<key>NSMotionUsageDescription</key>
-<string>This app uses motion data to improve activity tracking and user experience.</string>
-
-<key>NSSpeechRecognitionUsageDescription</key>
-<string>This app needs access to speech recognition to convert your voice into text.</string>
-
-<!-- Optional (but Apple flagged it) -->
-<key>NSBluetoothAlwaysUsageDescription</key>
-<string>This app needs access to Bluetooth to connect with nearby devices and enhance app features.</string>
-
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app needs access to speech recognition to convert your voice into text.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
@@ -131,8 +122,12 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>

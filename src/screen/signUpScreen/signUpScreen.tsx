@@ -8,6 +8,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   PermissionsAndroid,
+  Alert,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../utilis/colors";
@@ -23,8 +24,14 @@ import {
   MediaType,
 } from "react-native-image-picker";
 import { request, PERMISSIONS, RESULTS } from "react-native-permissions";
-import { onSignup, signupData, signupError } from "../../redux/auth/actions";
+import {
+  onSignup, signupData, signupError, onSocialLogin,
+  socialLoginData,
+  socialLoginError,
+  setUser
+} from "../../redux/auth/actions";
 import FilePickerPopup from "../../components/FilePickerPopup";
+import { openSettings } from 'react-native-permissions';
 import LinearGradient from "react-native-linear-gradient";
 import { Buttons } from "../../components/buttons";
 import {
@@ -46,13 +53,20 @@ import { showToast } from "../../utilis/toastUtils.tsx";
 import { uploadFileToS3 } from "../../utilis/s3Upload";
 import styles from "./styles";
 import RNFS from 'react-native-fs'; // You'll need to install this package
-
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {
+  appleAuth,
+  AppleButton,
+} from '@invertase/react-native-apple-authentication';
 interface SignupScreenProps {
   navigation?: any;
 }
 
 const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
+  const socialLogin = useSelector((state: any) => state.auth.socialLogin);
+  const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
+
   const { signup, signupErr, loader } = useSelector((state: any) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [phoneCode, setPhoneCode] = useState<string>("+1");
@@ -112,6 +126,33 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     }
   }, [signup, signupErr]);
 
+
+  useEffect(() => {
+    if (
+      socialLogin?.status === true ||
+      socialLogin?.status === 'true' ||
+      socialLogin?.status === 1 ||
+      socialLogin?.status === "1"
+    ) {
+      console.log("socialLogin:+>", socialLogin);
+      showToast(
+        "success",
+        socialLogin?.message || "Something went wrong. Please try again."
+      );
+      dispatch(setUser(socialLogin))
+      dispatch(socialLoginData(''));
+    }
+
+    if (socialLoginErr) {
+      console.log("signinErr:+>", socialLoginErr);
+      showToast(
+        "error",
+        socialLoginErr?.message || "Something went wrong. Please try again."
+      );
+      dispatch(socialLoginError(''));
+    }
+  }, [socialLogin, socialLoginErr]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (value.length === 0) {
@@ -158,7 +199,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     setPhoneCode(code);
   };
 
-  const handlePhoneCodePress = () => {};
+  const handlePhoneCodePress = () => { };
 
   const handlePhoneValidation = (isError: boolean) => {
     setErrors((prev) => ({ ...prev, phoneNumber: isError }));
@@ -274,12 +315,67 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     }
   };
 
-  const handleGoogleSignUp = () => {
-    // Google sign up
+  const handleGoogleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      console.log('User Info:', userInfo?.data?.user?.email);
+      console.log('User Info:', userInfo);
+
+      let obj = {
+        "email": userInfo?.data?.user?.email,
+        "socialId": userInfo?.data?.user?.id,
+        "loginType": "google",
+        "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+        "currentRole": "user",
+      }
+
+      if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
+        dispatch(onSocialLogin(obj));
+      }
+      console.log("socialData+>>>>", socialData);
+      //Alert.alert('Success', 'You have successfully signed in with Google!');
+      // navigation.navigate('NameScreen')
+    } catch (error) {
+      console.log('Google Sign-In error:', error);
+    }
   };
 
-  const handleAppleSignUp = () => {
-    // Apple sign up
+  const handleAppleSignIn = async () => {
+    try {
+      const appleAuthRequestResponse = await appleAuth.performRequest({
+        requestedOperation: appleAuth.Operation.LOGIN,
+        requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+      });
+
+      const {
+        identityToken,
+        email,
+        fullName: { givenName, familyName },
+      } = appleAuthRequestResponse;
+      const userId = appleAuthRequestResponse.user;
+
+      // Handle the obtained data as per your requirements
+
+      let obj = {
+        "email": email == null ? '' : email,
+        "socialId": userId,
+        "loginType": 'apple',
+        "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+        "currentRole": "user",
+      }
+
+      if (userId) {
+        dispatch(onSocialLogin(obj));
+      }
+
+    } catch (error: any) {
+      if (error.code === appleAuth.Error.CANCELED) {
+        console.log('Apple Login: User cancelled the login flow.');
+      } else {
+        console.log('Apple Login: Error occurred:', error.message);
+      }
+    }
   };
 
   const requestCameraPermission = async () => {
@@ -348,15 +444,15 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     if (Platform.OS !== 'ios') {
       return file; // Only needed for iOS
     }
-  
+
     try {
       const sourcePath = file.uri;
       const fileName = file.name || `file_${Date.now()}`;
       const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-  
+
       // Copy file to permanent storage
       await RNFS.copyFile(sourcePath, destPath);
-  
+
       // Return new file object with permanent path
       return {
         ...file,
@@ -364,7 +460,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
         permanentPath: destPath // Keep track of the permanent path
       };
     } catch (error) {
-      console.error('Error creating file copy:', error);
+      console.log('Error creating file copy:', error);
       return file; // Fallback to original file
     }
   };
@@ -373,6 +469,21 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       showToast("error", "Camera permission is required to take photos");
+      Alert.alert(
+        'Permission Required',
+        'Camera permission is required to take photos. Please enable it in your device settings.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Open Settings',
+            onPress: async () => await openSettings(),
+          },
+        ],
+        { cancelable: false }
+      );
       return;
     }
     const options = {
@@ -384,23 +495,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       saveToPhotos: false,
     };
 
-    // launchCamera(options, (response) => {
-    //   if (response.didCancel) {
-    //   } else if (response.errorMessage) {
-    //     showToast("error", `Failed to capture image: ${response.errorMessage}`);
-    //   } else if (response.assets && response.assets[0]) {
-    //     const asset = response.assets[0];
-    //     const file = {
-    //       uri: asset.uri,
-    //       name: asset.fileName || `camera_${Date.now()}.jpg`,
-    //       type: asset.type || "image/jpeg",
-    //       size: asset.fileSize || 0,
-    //     };
-    //     validateAndSetFile(file);
-    //   } else {
-    //     showToast("error", "No image was captured. Please try again.");
-    //   }
-    // });
+
     launchCamera(options, async (response) => {
       if (response.didCancel) {
       } else if (response.errorMessage) {
@@ -413,7 +508,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           type: asset.type || "image/jpeg",
           size: asset.fileSize || 0,
         };
-        
+
         // Create permanent copy for iOS
         const permanentFile = await reatePermanentFileCopy(file);
         validateAndSetFile(permanentFile);
@@ -430,9 +525,25 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
         "error",
         "Photo library permission is required to select images"
       );
+      Alert.alert(
+        'Permission Required',
+        'Photo library permission is required to select images. Please enable it in your device settings.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Open Settings',
+            onPress: async () => await openSettings()
+          },
+        ],
+        { cancelable: false }
+      );
       return;
     }
 
+   
     const options = {
       mediaType: "photo" as MediaType,
       quality: 0.8 as const,
@@ -441,23 +552,6 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       includeBase64: false,
     };
 
-    // launchImageLibrary(options, (response) => {
-    //   if (response.didCancel) {
-    //   } else if (response.errorMessage) {
-    //     showToast("error", `Failed to select image: ${response.errorMessage}`);
-    //   } else if (response.assets && response.assets[0]) {
-    //     const asset = response.assets[0];
-    //     const file = {
-    //       uri: asset.uri,
-    //       name: asset.fileName || `gallery_${Date.now()}.jpg`,
-    //       type: asset.type || "image/jpeg",
-    //       size: asset.fileSize || 0,
-    //     };
-    //     validateAndSetFile(file);
-    //   } else {
-    //     showToast("error", "No image was selected. Please try again.");
-    //   }
-    // });
     launchImageLibrary(options, async (response) => {
       if (response.didCancel) {
       } else if (response.errorMessage) {
@@ -470,7 +564,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           type: asset.type || "image/jpeg",
           size: asset.fileSize || 0,
         };
-        
+
         // Create permanent copy for iOS
         const permanentFile = await reatePermanentFileCopy(file);
         validateAndSetFile(permanentFile);
@@ -490,10 +584,10 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
             presentationStyle: Platform.OS === "ios" ? "pageSheet" : "fullScreen",
             mode: "import",
           });
-      
+
           if (result && Array.isArray(result) && result.length > 0) {
             const file = result[0];
-            
+
             // Create permanent copy for iOS
             const permanentFile = await reatePermanentFileCopy(file);
             validateAndSetFile(permanentFile);
@@ -518,11 +612,11 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       try {
         await RNFS.unlink(selectedDocument.permanentPath);
       } catch (error) {
-        console.error('Error cleaning up temporary file:', error);
+        console.log('Error cleaning up temporary file:', error);
       }
     }
   };
-  
+
   // Call this when component unmounts or when file is replaced
   useEffect(() => {
     return () => {
@@ -533,16 +627,16 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const validateAndSetFile = (file: any) => {
     // React Native files have uri, name, type, and size properties
     const fileSizeInMB = file.size ? file.size / (1024 * 1024) : 0;
-  
+
     if (fileSizeInMB > 5) {
       showToast("error", "Please select a file smaller than 5MB.");
       return;
     }
-  
+
     // Get file extension for additional validation
     const fileName = file.name ? file.name.toLowerCase() : '';
     const fileExtension = fileName.split('.').pop() || '';
-    
+
     // Allowed MIME types and extensions for React Native
     const allowedTypes = [
       "application/pdf",         // PDF
@@ -555,15 +649,15 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       "",                        // iOS sometimes returns empty string
       "application/octet-stream" // Fallback for some iOS files
     ];
-  
+
     const allowedExtensions = [
       'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp'
     ];
-  
+
     // Check both MIME type and file extension for iOS compatibility
-    const isValidType = allowedTypes.includes(file.type || "") || 
-                       allowedExtensions.includes(fileExtension);
-  
+    const isValidType = allowedTypes.includes(file.type || "") ||
+      allowedExtensions.includes(fileExtension);
+
     if (!isValidType) {
       showToast(
         "error",
@@ -571,7 +665,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       );
       return;
     }
-  
+
     setSelectedDocument(file);
     showToast("success", "Document selected successfully!");
   };
@@ -625,7 +719,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
             <View style={styles.socialSection}>
               <TouchableOpacity
                 style={styles.socialButton}
-                onPress={handleGoogleSignUp}
+                onPress={handleGoogleSignIn}
               >
                 <View style={styles.socialButtonContent}>
                   <View style={styles.appleIcons}>
@@ -639,7 +733,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
 
               <TouchableOpacity
                 style={styles.socialButton}
-                onPress={handleAppleSignUp}
+                onPress={handleAppleSignIn}
               >
                 <View style={styles.socialButtonContent}>
                   <View style={styles.appleIcons}>
@@ -684,7 +778,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                         style={[
                           styles.roleIconContainer,
                           selectedRole === "explore" &&
-                            styles.selectedIconContainer,
+                          styles.selectedIconContainer,
                         ]}
                       >
                         <View style={styles.roleIcon}>
@@ -721,7 +815,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                         style={[
                           styles.roleIconContainer,
                           selectedRole === "host" &&
-                            styles.selectedIconContainer,
+                          styles.selectedIconContainer,
                         ]}
                       >
                         <View style={styles.roleIcon}>
@@ -746,6 +840,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                   message={errorMessages.fullName}
                   leftImage={<NameIcon />}
                   style={styles.customInput}
+                  maxLength={30}
                 />
               </View>
 
@@ -760,6 +855,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                   leftImage={<EmailIcon />}
                   kType="email-address"
                   style={styles.customInput}
+                  maxLength={30}
                 />
               </View>
 
@@ -841,7 +937,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                           style={[
                             styles.validationText,
                             passwordValidation.length &&
-                              styles.validationTextValid,
+                            styles.validationTextValid,
                           ]}
                         >
                           8–16 characters
@@ -852,7 +948,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                           style={[
                             styles.validationText,
                             passwordValidation.uppercase &&
-                              styles.validationTextValid,
+                            styles.validationTextValid,
                           ]}
                         >
                           At least one uppercase letter (A–Z)
@@ -863,7 +959,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                           style={[
                             styles.validationText,
                             passwordValidation.lowercase &&
-                              styles.validationTextValid,
+                            styles.validationTextValid,
                           ]}
                         >
                           At least one lowercase letter (a–z)
@@ -874,7 +970,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                           style={[
                             styles.validationText,
                             passwordValidation.number &&
-                              styles.validationTextValid,
+                            styles.validationTextValid,
                           ]}
                         >
                           At least one number (0–9)
@@ -885,7 +981,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                           style={[
                             styles.validationText,
                             passwordValidation.specialChar &&
-                              styles.validationTextValid,
+                            styles.validationTextValid,
                           ]}
                         >
                           At least one special character (e.g., ! @ # $ % ^ & *)

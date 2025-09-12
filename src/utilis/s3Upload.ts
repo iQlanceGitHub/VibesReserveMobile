@@ -24,13 +24,13 @@ export const uploadImageToS3 = async (
   try {
     const response = await RNS3.put(file, options);
     if (response.status !== 201) {
-      console.error("Upload failed:", response);
+      console.log("Upload failed:", response);
       throw new Error("Failed to upload image to S3");
     }
 
     return response.body.postResponse.location;
   } catch (error) {
-    console.error("S3 Upload Error:", error);
+    console.log("S3 Upload Error:", error);
     throw error;
   }
 };
@@ -58,13 +58,13 @@ export const uploadFileToS3 = async (
   try {
     const response = await RNS3.put(file, options);
     if (response.status !== 201) {
-      console.error("Upload failed:", response);
+      console.log("Upload failed:", response);
       throw new Error("Failed to upload file to S3");
     }
 
     return response.body.postResponse.location;
   } catch (error) {
-    console.error("S3 Upload Error:", error);
+    console.log("S3 Upload Error:", error);
     throw error;
   }
 };
