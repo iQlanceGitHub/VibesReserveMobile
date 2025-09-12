@@ -206,6 +206,11 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "error",
         signinErr?.message || "Something went wrong. Please try again."
       );
+      if (signinErr?.message == 'Your account is inactive. Please contact support.') {
+        console.log("=>>", uid)
+        navigation.navigate('HomeTabs')
+
+      }
       if (signinErr?.message == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
         console.log("=>>", uid)
         navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })

@@ -18,6 +18,8 @@ export const colors = {
   gradient_light_purple: "#14002C",
   whiteTransparent: "rgba(255, 255, 255, 0.2)",
   gray: "#666666",
+  gray100: "rgba(205, 208, 213, 1)",
+  gray20: "rgba(255, 255, 255, 0.2)",
   lightBackground: "#F8F9FA",
   borderColor: "#E5E5E5",
   validationSuccess: "rgba(56, 199, 147, 1)",

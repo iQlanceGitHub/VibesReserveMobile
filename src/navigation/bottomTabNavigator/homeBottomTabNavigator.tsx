@@ -12,6 +12,8 @@ import SelectBookings from "../../assets/svg/selectBookings";
 import SelectChat from "../../assets/svg/selectChat";
 import SelectProfile from "../../assets/svg/selectProfile";
 import styles from "./styles";
+import * as appConstant from "../../utilis/appConstant";
+import { colors } from "../../utilis/colors";
 
 const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
   return (
@@ -44,32 +46,32 @@ const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
                 >
                   {index == 0 ? (
                     isFocused ? (
-                      <SelectHome width={24} height={24} />
+                      <SelectHome width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     ) : (
-                      <HomeIcon color="#CDD0D5" width={24} height={24} />
+                      <HomeIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     )
                   ) : index == 1 ? (
                     isFocused ? (
-                      <SelectFavourite width={24} height={24} />
+                      <SelectFavourite width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     ) : (
-                      <FavouriteIcon color="#CDD0D5" width={24} height={24} />
+                      <FavouriteIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     )
                   ) : index == 2 ? (
                     isFocused ? (
-                      <SelectBookings width={24} height={24} />
+                      <SelectBookings width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     ) : (
-                      <BookingIcon color="#CDD0D5" width={24} height={24} />
+                      <BookingIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     )
                   ) : index == 3 ? (
                     isFocused ? (
-                      <SelectChat width={24} height={24} />
+                      <SelectChat width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     ) : (
-                      <ChatIcon color="#CDD0D5" width={24} height={24} />
+                      <ChatIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     )
                   ) : isFocused ? (
-                    <SelectProfile width={24} height={24} />
+                    <SelectProfile width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                   ) : (
-                    <ProfileIcon color="#CDD0D5" width={24} height={24} />
+                    <ProfileIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                   )}
                 </View>
                 {isFocused && <View style={styles.selectedIndicator} />}
