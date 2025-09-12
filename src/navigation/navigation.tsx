@@ -23,6 +23,7 @@ import PasswordChangedSucessScreen from "../screen/auth/PasswordChangedSucessScr
 import ForgotPasswordScreen from "../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen";
 import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswordScreen";
 import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
+import ProfileScreen from "../screen/profileScreen/profileScreen";
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
 import React from "react";
@@ -60,6 +61,7 @@ export type RootStackParamList = {
   CongratulationDiscovery: undefined;
   HomeTabs: undefined;
   LeaveReviewScreen: undefined;
+  ProfileScreen: undefined;
 };
 
 const NavigationStack: React.FC = () => {
@@ -133,6 +135,11 @@ const NavigationStack: React.FC = () => {
             options={{ headerShown: false }}
             name="LeaveReviewScreen"
             component={LeaveReviewScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="ProfileScreen"
+            component={ProfileScreen}
           />
         </Stack.Navigator>
       </LinearGradient>

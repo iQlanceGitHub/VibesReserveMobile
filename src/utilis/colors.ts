@@ -34,4 +34,6 @@ export const colors = {
   unselectedGradientStart: "#1F0045",
   unselectedGradientEnd: "#120128",
   bottomTabBackground: "rgba(19, 0, 44, 0.2)",
+  profileCardBackground: "rgba(18, 1, 40, 1)",
+  profileImageBorder: "rgba(141, 52, 255, 1)",
 };
