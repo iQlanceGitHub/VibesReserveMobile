@@ -61,13 +61,14 @@ class AppDelegate: RCTAppDelegate {
     // You can add your custom initial props in the dictionary below.
     // They will be passed down to the ViewController used by React Native.
     self.initialProps = [:]
-
+    Thread.sleep(forTimeInterval: 5.0)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     self.bundleURL()
   }
+  
 
   override func bundleURL() -> URL? {
 #if DEBUG

@@ -118,7 +118,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
         setSearchResults([]);
       }
     } catch (error) {
-      console.error('Error searching locations:', error);
+      console.log('Error searching locations:', error);
       Alert.alert('Error', 'Failed to search locations. Please check your connection.');
       setSearchResults([]);
     } finally {
@@ -172,7 +172,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
       }
       return null;
     } catch (error) {
-      console.error('Error getting place details:', error);
+      console.log('Error getting place details:', error);
       return null;
     }
   };
@@ -216,14 +216,14 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
               Alert.alert("Error", "Could not get address for your location");
             }
           } catch (error) {
-            console.error('Error reverse geocoding:', error);
+            console.log('Error reverse geocoding:', error);
             Alert.alert("Error", "Failed to get your location address");
           } finally {
             setIsLoadingCurrentLocation(false);
           }
         },
         (error) => {
-          console.error('Error getting location:', error);
+          console.log('Error getting location:', error);
           Alert.alert(
             "Location Access Required",
             "Please enable location services to use this feature",
@@ -347,7 +347,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
           Alert.alert("Error", "Could not find the specified location");
         }
       } catch (error) {
-        console.error('Error geocoding address:', error);
+        console.log('Error geocoding address:', error);
         Alert.alert("Error", "Failed to validate the location");
       } finally {
         setIsLoading(false);

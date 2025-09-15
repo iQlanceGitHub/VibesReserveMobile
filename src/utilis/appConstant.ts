@@ -196,19 +196,6 @@ export async function checkStorageCameraPermission() {
   }
 }
 
-// export const getData = async (key: string): Promise<any> => {
-//   try {
-//     const value = await AsyncStorage.getItem(key);
-
-//     if (value !== null) {
-//       return value;
-//     } else {
-//       console.log('Async Stored Data is NULL');
-//     }
-//   } catch (e) {
-//     console.log('Async Fatche Failed =>\n', e);
-//   }
-// };
 export const getData = async (key: any) => {
   try {
     const jsonValue = await AsyncStorage.getItem(key);
@@ -216,7 +203,7 @@ export const getData = async (key: any) => {
     const retrievedArray = jsonValue != null ? jsonValue : null;
     return retrievedArray;
   } catch (e) {
-    // console.error('Error retrieving array:', e);
+   
     return null;
   }
 };
@@ -226,7 +213,6 @@ export const getDataJson = async (key: any) => {
     const retrievedArray = jsonValue != null ? JSON.parse(jsonValue) : null;
     return retrievedArray;
   } catch (e) {
-    // console.error('Error retrieving array:', e);
     return null;
   }
 };
@@ -234,7 +220,6 @@ export const removeAllAsyncData = async () => {
   try {
     await AsyncStorage.clear();
   } catch (e) {
-    // console.error('Error remove multiple:', e);
     return null;
   }
 };
