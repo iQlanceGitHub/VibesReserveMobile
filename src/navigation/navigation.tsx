@@ -25,6 +25,7 @@ import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswor
 import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
+import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -75,6 +76,17 @@ function MyTabs() {
       <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
       <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
       <Tab.Screen name="Setting" component={homeScreen}options={{ headerShown: false }} />
+    </Tab.Navigator>
+  );
+}
+
+function HostTabs() {
+  return (
+    <Tab.Navigator tabBar={(props) => <HostBottomTabNavigator {...props} />}>
+      <Tab.Screen name="Home" component={homeScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Search" component={homeScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
+      <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }
@@ -162,6 +174,12 @@ const NavigationStack: React.FC = () => {
             component={MyTabs}
             options={{ headerShown: false }}
           /> 
+          <Stack.Screen
+            name="HostTabs"
+            component={HostTabs}
+            options={{ headerShown: false }}
+          /> 
+          
         </Stack.Navigator>
       </LinearGradient>
       {loader && (
