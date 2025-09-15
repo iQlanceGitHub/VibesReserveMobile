@@ -1,9 +1,14 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
-import { useColorScheme, View, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  useColorScheme,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 
 import IntroScreen from "../screen/auth/IntroScreen/IntroScreen";
-import {useSelector} from 'react-redux';
+import { useSelector } from "react-redux";
 // import { BackButton } from "../components/BackButton";
 import LinearGradient from "react-native-linear-gradient";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -15,11 +20,12 @@ import VerificationSucessScreen from "../screen/auth/VerificationSucessScreen/Ve
 import LocationScreen from "../screen/auth/LocationScreen/LocationScreen";
 import LocationManuallyScreen from "../screen/auth/LocationManuallyScreen/LocationManuallyScreen";
 import PasswordChangedSucessScreen from "../screen/auth/PasswordChangedSucessScreen/PasswordChangedSucessScreen";
-import ForgotPasswordScreen from '../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen';
-import ResetPasswordScreen from '../screen/auth/ResetPasswordScreen/ResetPasswordScreen';
-
+import ForgotPasswordScreen from "../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen";
+import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswordScreen";
+import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
+import ProfileScreen from "../screen/profileScreen/profileScreen";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
-
+import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -58,6 +64,8 @@ export type RootStackParamList = {
   FeedQuestionScreen: undefined;
   CongratulationDiscovery: undefined;
   HomeTabs: undefined;
+  LeaveReviewScreen: undefined;
+  ProfileScreen: undefined;
 };
 
 function MyTabs() {
@@ -68,6 +76,17 @@ function MyTabs() {
       <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
       <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
       <Tab.Screen name="Setting" component={homeScreen}options={{ headerShown: false }} />
+    </Tab.Navigator>
+  );
+}
+
+function HostTabs() {
+  return (
+    <Tab.Navigator tabBar={(props) => <HostBottomTabNavigator {...props} />}>
+      <Tab.Screen name="Home" component={homeScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Search" component={homeScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
+      <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }
@@ -129,22 +148,38 @@ const NavigationStack: React.FC = () => {
             name="PasswordChangedSucessScreen"
             component={PasswordChangedSucessScreen}
           />
-           <Stack.Screen
+          <Stack.Screen
             options={{ headerShown: false }}
             name="ForgotPasswordScreen"
             component={ForgotPasswordScreen}
           />
-           <Stack.Screen
+          <Stack.Screen
             options={{ headerShown: false }}
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}
-          />   
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="LeaveReviewScreen"
+            component={LeaveReviewScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="ProfileScreen"
+            component={ProfileScreen}
+          />
 
            <Stack.Screen
             name="HomeTabs"
             component={MyTabs}
             options={{ headerShown: false }}
           /> 
+          <Stack.Screen
+            name="HostTabs"
+            component={HostTabs}
+            options={{ headerShown: false }}
+          /> 
+          
         </Stack.Navigator>
       </LinearGradient>
       {loader && (
@@ -170,7 +205,6 @@ const NavigationStack: React.FC = () => {
           </View>
         </View>
       )}
- 
     </NavigationContainer>
   );
 };

@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import * as appConstant from "../../utilis/appConstant";
 import { colors } from "../../utilis/colors";
 
@@ -18,7 +18,7 @@ export default StyleSheet.create({
     justifyContent: "center",
     alignSelf: "center",
     marginBottom: appConstant.verticalScale(30),
-    shadowColor: colors.primary_pinkLight,
+    shadowColor: Platform.OS === "ios" ? colors.primary_pinkLight: '',
     shadowOffset: {
       width: appConstant.horizontalScale(2),
       height: appConstant.verticalScale(1),
@@ -55,7 +55,7 @@ export default StyleSheet.create({
   },
   selectedIconWrapper: {
     // backgroundColor: colors.violate,
-    borderRadius: appConstant.horizontalScale(20),
+    //borderRadius: appConstant.horizontalScale(20),
   },
   selectedIndicator: {
     width: appConstant.horizontalScale(6),
