@@ -6,6 +6,6 @@
     "jsx": "react"
   },
   "extends": "@react-native/typescript-config",
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "src/screen/notificationScreen", "src/screen/notificationScreen"],
   "exclude": ["**/node_modules", "**/Pods"]
 }

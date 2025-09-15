@@ -14,6 +14,7 @@ import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import EditIcon from "../../assets/svg/editIcon";
 import RightArrow from "../../assets/svg/rightArrow";
+import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
 import styles from "./styles";
 
 interface ProfileScreenProps {
@@ -23,6 +24,7 @@ interface ProfileScreenProps {
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [exploreNightLife, setExploreNightLife] = useState(true);
   const [notifications, setNotifications] = useState(false);
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
 
   const handleExploreNightLifeToggle = () => {
     setExploreNightLife(!exploreNightLife);
@@ -37,7 +39,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const handleLogout = () => {
-    console.log("Logout pressed");
+    setShowLogoutPopup(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    console.log("Logout confirmed");
+    setShowLogoutPopup(false);
+    // Add your logout logic here
+    // For example: navigation.navigate('SignInScreen');
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutPopup(false);
   };
 
   const handleEditProfile = () => {
@@ -177,6 +190,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
+
+      <LogoutConfirmationPopup
+        visible={showLogoutPopup}
+        onCancel={handleLogoutCancel}
+        onLogout={handleLogoutConfirm}
+      />
     </View>
   );
 };

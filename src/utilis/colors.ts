@@ -38,4 +38,6 @@ export const colors = {
   bottomTabBackground: "rgba(19, 0, 44, 0.2)",
   profileCardBackground: "rgba(18, 1, 40, 1)",
   profileImageBorder: "rgba(141, 52, 255, 1)",
+  overlayBackground: "rgba(0, 0, 0, 0.5)",
+  transparent: "transparent",
 };
