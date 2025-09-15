@@ -1,0 +1,184 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  StatusBar,
+  SafeAreaView,
+  Platform,
+  TouchableOpacity,
+  Image,
+  Switch,
+} from "react-native";
+import { colors } from "../../utilis/colors";
+import LinearGradient from "react-native-linear-gradient";
+import EditIcon from "../../assets/svg/editIcon";
+import RightArrow from "../../assets/svg/rightArrow";
+import styles from "./styles";
+
+interface ProfileScreenProps {
+  navigation?: any;
+}
+
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
+  const [exploreNightLife, setExploreNightLife] = useState(true);
+  const [notifications, setNotifications] = useState(false);
+
+  const handleExploreNightLifeToggle = () => {
+    setExploreNightLife(!exploreNightLife);
+  };
+
+  const handleNotificationsToggle = () => {
+    setNotifications(!notifications);
+  };
+
+  const handleShareWithFriends = () => {
+    console.log("Share with friends pressed");
+  };
+
+  const handleLogout = () => {
+    console.log("Logout pressed");
+  };
+
+  const handleEditProfile = () => {
+    console.log("Edit profile pressed");
+  };
+
+  const renderMenuOption = (
+    title: string,
+    onPress: () => void,
+    rightComponent: React.ReactNode,
+    showArrow: boolean = false
+  ) => {
+    return (
+      <LinearGradient
+        colors={["#1F0045", "#120128"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.menuOption}
+      >
+        <TouchableOpacity style={styles.menuOptionTouchable} onPress={onPress}>
+          <Text style={styles.menuOptionText}>{title}</Text>
+          <View style={styles.menuRightContainer}>
+            {rightComponent}
+            {showArrow && (
+              <View style={styles.arrowContainer}>
+                <RightArrow width={24} height={24} />
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </LinearGradient>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={
+          Platform.OS === "ios" ? "transparent" : colors.profileCardBackground
+        }
+        translucent={Platform.OS === "ios"}
+      />
+      <LinearGradient
+        colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView
+            style={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <View style={styles.profileSection}>
+              <View style={styles.header}>
+                <View style={styles.statusBar}></View>
+                <View style={styles.placeholder} />
+                <Text style={styles.title}>Profile</Text>
+                <View style={styles.placeholder} />
+              </View>
+              <View style={styles.profileContent}>
+                <View style={styles.profileImageContainer}>
+                  <Image
+                    source={{
+                      uri: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+                    }}
+                    style={styles.profileImage}
+                  />
+                  <TouchableOpacity
+                    style={styles.editIconContainer}
+                    onPress={handleEditProfile}
+                  >
+                    <EditIcon width={16} height={16} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.userInfoContainer}>
+                  <Text style={styles.userInfoName}>Mike Hussey</Text>
+                  <Text style={styles.userInfoValue}>
+                    mike.hussey@gmail.com
+                  </Text>
+                  <Text style={styles.userInfoValue}>+62703-701-9964</Text>
+                  <Text style={styles.userInfoValue}>09/09/1990</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.licenseSection}>
+              <View style={styles.licenseBorderContainer}>
+                <View style={styles.licenseContainer}></View>
+              </View>
+            </View>
+            <View style={styles.menuSection}>
+              {renderMenuOption(
+                "Explore Night Life",
+                handleExploreNightLifeToggle,
+                <TouchableOpacity
+                  style={[
+                    styles.switchButton,
+                    {
+                      backgroundColor: exploreNightLife
+                        ? colors.BtnBackground
+                        : colors.disableGray,
+                    },
+                  ]}
+                  onPress={handleExploreNightLifeToggle}
+                >
+                  <Text style={styles.switchButtonText}>Switch</Text>
+                </TouchableOpacity>
+              )}
+
+              {renderMenuOption(
+                "Notifications",
+                handleNotificationsToggle,
+                <Switch
+                  value={notifications}
+                  onValueChange={handleNotificationsToggle}
+                  trackColor={{
+                    false: colors.disableGray,
+                    true: colors.BtnBackground,
+                  }}
+                  thumbColor={colors.white}
+                />
+              )}
+
+              {renderMenuOption(
+                "Share with Friends",
+                handleShareWithFriends,
+                <View style={styles.shareIconsContainer}></View>,
+                true
+              )}
+
+              {renderMenuOption("Logout", handleLogout, <View />, true)}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
+  );
+};
+
+export default ProfileScreen;

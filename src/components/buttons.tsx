@@ -26,10 +26,7 @@ export const Buttons: FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={[styles.titleText]}>
-        {/* {isCap ? title.toUpperCase() : title} */}
-        {title}
-      </Text>
+      <Text style={[styles.titleText]}>{title}</Text>
     </TouchableOpacity>
   );
 };
