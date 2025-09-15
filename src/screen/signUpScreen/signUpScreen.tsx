@@ -107,15 +107,15 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (signup && signup.status) {
+    if ( signup?.status === true ||
+      signup?.status === "true" ||
+      signup?.status === 1 ||
+      signup?.status === "1") {
       showToast(
         "success",
         "Account created successfully! Please check your email for verification."
       );
-      setTimeout(() => {
-        // navigation?.navigate("SignInScreen");
-        navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: signup?.user?._id })
-      }, 2000);
+      navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: signup?.user?._id })
       dispatch(signupData(''));
     } else if (signupErr) {
       showToast(

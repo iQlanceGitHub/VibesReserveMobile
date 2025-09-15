@@ -66,8 +66,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const handleSignIn = () => {
     // navigation?.navigate("SignInScreen");
     //navigation?.navigate("OTPVerificationScreen", { email: "test@test.com" });
-    // navigation?.navigate("SignInScreen");
-    navigation?.navigate("HostTabs");
+     navigation?.navigate("SignInScreen");
+   
   };
 
   // Get token
