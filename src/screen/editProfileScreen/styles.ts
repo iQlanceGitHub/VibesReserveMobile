@@ -153,4 +153,14 @@ export const styles = StyleSheet.create({
     width: "100%",
     marginBottom: verticalScale(0),
   },
+  documentImageStyle: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 13.41,
+  },
+  noDocumentText: {
+    color: colors.gray,
+    fontSize: 12,
+    textAlign: "center",
+  },
 });

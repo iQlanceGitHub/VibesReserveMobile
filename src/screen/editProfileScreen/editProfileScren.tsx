@@ -187,21 +187,11 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                     {documentImage ? (
                       <Image
                         source={{ uri: documentImage }}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: 13.41,
-                        }}
+                        style={styles.documentImageStyle}
                         resizeMode="cover"
                       />
                     ) : (
-                      <Text
-                        style={{
-                          color: colors.gray,
-                          fontSize: 12,
-                          textAlign: "center",
-                        }}
-                      >
+                      <Text style={styles.noDocumentText}>
                         No Document{"\n"}Selected
                       </Text>
                     )}
