@@ -38,6 +38,17 @@ export const colors = {
   bottomTabBackground: "rgba(19, 0, 44, 0.2)",
   profileCardBackground: "rgba(18, 1, 40, 1)",
   profileImageBorder: "rgba(141, 52, 255, 1)",
+
+  requestCardBackground: "rgba(18, 1, 40, 1)",
+  requestCardBorder: "rgba(141, 52, 255, 0.3)",
+  acceptButtonBackground: "rgba(141, 52, 255, 1)",
+  rejectButtonBorder: "rgba(223, 28, 65, 1)",
+  rejectButtonText: "rgba(223, 28, 65, 1)",
+  categoryTagBackground: "rgba(141, 52, 255, 0.2)",
+  hostGradientStart: "#090014",
+  hostGradientEnd: "#14002C",
+  addButtonBackground: "rgba(141, 52, 255, 0.15)",
   overlayBackground: "rgba(0, 0, 0, 0.5)",
   transparent: "transparent",
+
 };
