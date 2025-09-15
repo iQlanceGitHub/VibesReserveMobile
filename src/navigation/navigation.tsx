@@ -24,9 +24,12 @@ import ForgotPasswordScreen from "../screen/auth/ForgotPasswordScreen/ForgotPass
 import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswordScreen";
 import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
+import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
+
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
 import React from "react";
+import homeScreen from "../screen/dashboard/user/homeScreen/homeScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -63,6 +66,18 @@ export type RootStackParamList = {
   LeaveReviewScreen: undefined;
   ProfileScreen: undefined;
 };
+
+function MyTabs() {
+  return (
+    <Tab.Navigator tabBar={(props) => <HomeBottomTabNavigator {...props} />}>
+      <Tab.Screen name="Home" component={homeScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Search" component={homeScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
+      <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Setting" component={homeScreen}options={{ headerShown: false }} />
+    </Tab.Navigator>
+  );
+}
 
 const NavigationStack: React.FC = () => {
   const theme = useColorScheme();
@@ -141,6 +156,12 @@ const NavigationStack: React.FC = () => {
             name="ProfileScreen"
             component={ProfileScreen}
           />
+
+           <Stack.Screen
+            name="HomeTabs"
+            component={MyTabs}
+            options={{ headerShown: false }}
+          /> 
         </Stack.Navigator>
       </LinearGradient>
       {loader && (
