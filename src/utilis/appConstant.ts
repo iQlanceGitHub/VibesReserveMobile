@@ -80,11 +80,11 @@ export const strings = {
 
 export const AWSOptions = {
   // keyPrefix: 'uploads/',
-  bucket: "shw-doc-app",
-  region: "eu-central-1",
-  accessKey: "",
-  secretKey: "",
-  // successActionStatus: 201,
+  bucket: 'shw-doc-app',
+  region: 'eu-central-1',
+  accessKey: 'AKIA5FTZFOARMQTIJXOS',
+  secretKey: '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',
+  successActionStatus: 201,
 };
 
 export const screenName = {

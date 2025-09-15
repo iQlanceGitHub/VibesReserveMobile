@@ -27,7 +27,8 @@ export const Buttons: FC<ButtonProps> = ({
       disabled={disabled}
     >
       <Text style={[styles.titleText]}>
-        {isCap ? title.toUpperCase() : title}
+        {/* {isCap ? title.toUpperCase() : title} */}
+        {title}
       </Text>
     </TouchableOpacity>
   );
