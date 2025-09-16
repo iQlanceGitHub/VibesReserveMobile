@@ -51,5 +51,9 @@ export const colors = {
   addButtonBackground: "rgba(141, 52, 255, 0.15)",
   overlayBackground: "rgba(0, 0, 0, 0.5)",
   transparent: "transparent",
+  yellow: "#FFD700",
 
+  backgroundColor: "rgba(18, 1, 40, 1)",
+  vilate20: "rgba(141, 52, 255, 0.2)",
+  vilate10: "rgba(141, 52, 255, 0.1)",
 };

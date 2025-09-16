@@ -125,6 +125,7 @@ const HomeScreen = () => {
   const handleBookNow = () => {
     console.log('Book Now clicked');
     // Handle booking logic here
+    navigation.navigate("ClubDetailScreen" as never);
   };
 
   const handleFavorite = (isFavorite: boolean) => {
