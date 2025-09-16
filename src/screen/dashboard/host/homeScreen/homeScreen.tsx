@@ -104,7 +104,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   };
 
   const handleAddPress = () => {
-    console.log("Add button pressed");
+    navigation?.navigate("AddClubEventDetailScreen");
   };
 
   return (
