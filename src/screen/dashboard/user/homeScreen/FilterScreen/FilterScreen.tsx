@@ -32,13 +32,39 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
     { id: "dance", title: "🕺 Dance Floors" },
   ];
 
-  const dates = [
-    { id: "today", title: "Today 4 Sep" },
-    { id: "mon", title: "Mon 5 Sep" },
-    { id: "tue", title: "Tue 6 Sep" },
-    { id: "wed", title: "Wed 7 Sep" },
-    { id: "thu", title: "Thu 8 Sep" },
-  ];
+  // Generate dates for next 15 days
+  const generateDates = () => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 15; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      const dayName = dayNames[date.getDay()];
+      const day = date.getDate();
+      const month = monthNames[date.getMonth()];
+      
+      const id = i === 0 ? 'today' : `day_${i}`;
+      const dayText = i === 0 ? 'Today' : dayName;
+      const dateText = `${day} ${month}`;
+      
+      dates.push({
+        id,
+        dayText,
+        dateText,
+        date: date,
+        formattedDate: date.toISOString().split('T')[0] // YYYY-MM-DD format
+      });
+    }
+    
+    return dates;
+  };
+
+  const dates = generateDates();
 
   const handleCategoryPress = useCallback((categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -65,9 +91,47 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
   }, []);
 
   const handleApply = useCallback(() => {
+    // Collect all selected filter values
+    const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+    const selectedDateData = dates.find(date => date.id === selectedDate);
+    
+    const filterValues = {
+      selectedCategory: {
+        id: selectedCategory,
+        data: selectedCategoryData
+      },
+      selectedDate: {
+        id: selectedDate,
+        data: selectedDateData,
+        formattedDate: selectedDateData?.formattedDate || new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+      },
+      priceRange: {
+        min: priceRange[0],
+        max: priceRange[1],
+        range: priceRange
+      },
+      distanceRange: {
+        min: distanceRange[0],
+        max: distanceRange[1],
+        range: distanceRange
+      },
+      selectedLocation: selectedLocation,
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('=== FILTER SCREEN - APPLIED VALUES ===');
+    console.log('Filter Applied at:', filterValues.timestamp);
+    console.log('Selected Category:', filterValues.selectedCategory);
+    console.log('Selected Date:', filterValues.selectedDate);
+    console.log('Formatted Date (YYYY-MM-DD):', filterValues.selectedDate.formattedDate);
+    console.log('Price Range:', filterValues.priceRange);
+    console.log('Distance Range:', filterValues.distanceRange);
+    console.log('Selected Location:', filterValues.selectedLocation);
+    console.log('=====================================');
+
     onApply();
     onClose();
-  }, [onApply, onClose]);
+  }, [onApply, onClose, selectedCategory, selectedDate, priceRange, distanceRange, selectedLocation, categories, dates]);
 
   return (
     <Modal
@@ -145,7 +209,8 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
                 {dates.map((date) => (
                   <DateButton
                     key={date.id}
-                    title={date.title}
+                    dayText={date.dayText}
+                    dateText={date.dateText}
                     isSelected={selectedDate === date.id}
                     onPress={() => handleDatePress(date.id)}
                   />
