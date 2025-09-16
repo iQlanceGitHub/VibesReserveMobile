@@ -47,7 +47,7 @@ const CategoryButton: React.FC<CategoryButtonProps> = ({
 const styles = StyleSheet.create({
   button: {
     borderRadius: verticalScale(20),
-    marginRight: horizontalScale(10),
+    marginRight: horizontalScale(12),
     paddingTop: verticalScale(8),
     paddingRight: horizontalScale(14),
     paddingBottom: verticalScale(8),
@@ -61,8 +61,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   unselectedButton: {
-    backgroundColor: colors.unselectedGradientEnd,
-    borderColor: colors.purpleBorder,
+    backgroundColor: 'transparent',
+    borderColor: colors.white,
     borderWidth: 1,
   },
   buttonContent: {

@@ -26,6 +26,9 @@ import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
 import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
+import favouriteScreen from '../screen/favouriteScreen/favouriteScreen';
+import ExploreScreen from '../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen';
+import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIlterListScreen";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -72,7 +75,7 @@ function MyTabs() {
   return (
     <Tab.Navigator tabBar={(props) => <HomeBottomTabNavigator {...props} />}>
       <Tab.Screen name="Home" component={homeScreen} options={{ headerShown: false }} />
-      <Tab.Screen name="Search" component={homeScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Search" component={favouriteScreen}options={{ headerShown: false }} />
       <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
       <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
       <Tab.Screen name="Setting" component={homeScreen}options={{ headerShown: false }} />
@@ -84,7 +87,7 @@ function HostTabs() {
   return (
     <Tab.Navigator tabBar={(props) => <HostBottomTabNavigator {...props} />}>
       <Tab.Screen name="Home" component={homeScreen} options={{ headerShown: false }} />
-      <Tab.Screen name="Search" component={homeScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Search" component={favouriteScreen}options={{ headerShown: false }} />
       <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
       <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
     </Tab.Navigator>
@@ -178,7 +181,17 @@ const NavigationStack: React.FC = () => {
             name="HostTabs"
             component={HostTabs}
             options={{ headerShown: false }}
-          /> 
+          />
+           <Stack.Screen
+            name="ExploreScreen"
+            component={ExploreScreen}
+            options={{ headerShown: false }}
+          />  
+           <Stack.Screen
+            name="FilterListScreen"
+            component={FilterListScreen}
+            options={{ headerShown: false }}
+          />  
           
         </Stack.Navigator>
       </LinearGradient>
