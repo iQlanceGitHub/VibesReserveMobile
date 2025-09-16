@@ -107,7 +107,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
   useEffect(() => {
-    if ( signup?.status === true ||
+    if (signup?.status === true ||
       signup?.status === "true" ||
       signup?.status === 1 ||
       signup?.status === "1") {
@@ -168,6 +168,40 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     if (field === "confirmPassword") {
       validatePasswordMatch(formData.password, value);
     }
+  };
+
+   // 🔑 Format function
+   const formatDateFromText = (text: string): string => {
+    if (!text) return "";
+  
+    // Handle DD/MM/YYYY or DD-MM-YYYY
+    const parts = text.includes("/") ? text.split("/") : text.split("-");
+    if (parts.length === 3) {
+      let [day, month, year] = parts;
+  
+      // If year is first (e.g., 1997-01-01), reorder
+      if (year.length === 4 && Number(day) > 12) {
+        // already in DD/MM/YYYY → fine
+      } else if (day.length === 4) {
+        // if it's YYYY-MM-DD
+        [year, month, day] = parts;
+      }
+  
+      const d = String(day).padStart(2, "0");
+      const m = String(month).padStart(2, "0");
+      return `${d}-${m}-${year}`;
+    }
+  
+    // Fallback: try native Date
+    const date = new Date(text);
+    if (!isNaN(date.getTime())) {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+  
+    return text; // if nothing worked, return raw
   };
 
   const validatePasswordRequirements = (password: string) => {
@@ -301,7 +335,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
         email: formData.email.trim(),
         countrycode: phoneCode,
         phone: formData.phoneNumber.trim(),
-        dateOfBirth: formData.dateOfBirth,
+        dateOfBirth: formatDateFromText(formData.dateOfBirth),
         password: formData.password,
         confirmPassword: formData.confirmPassword,
         userDocument: uploadedDocumentUrl,
@@ -543,7 +577,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       return;
     }
 
-   
+
     const options = {
       mediaType: "photo" as MediaType,
       quality: 0.8 as const,
@@ -891,6 +925,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                   leftImage={<CalendarIcon />}
                   style={styles.customInput}
                 />
+                
               </View>
 
               <View style={styles.inputContainer}>

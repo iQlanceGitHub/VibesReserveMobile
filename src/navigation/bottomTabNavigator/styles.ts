@@ -8,12 +8,13 @@ export default StyleSheet.create({
     height: appConstant.verticalScale(94),
     position: "absolute",
     bottom: appConstant.verticalScale(5),
-   // backgroundColor: colors.primary_blue
   },
   mainContainer: {
     width: appConstant.horizontalScale(334),
     height: appConstant.verticalScale(58),
-    backgroundColor: colors.bottomTabBackground,
+    //backgroundColor: colors.bottomTabBackground,
+
+    backgroundColor: colors.profileCardBackground,
     borderRadius: appConstant.verticalScale(90),
     justifyContent: "center",
     alignSelf: "center",
