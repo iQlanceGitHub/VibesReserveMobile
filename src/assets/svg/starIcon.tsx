@@ -4,23 +4,17 @@ import Svg, { Path } from "react-native-svg";
 interface StarIconProps {
   size?: number;
   color?: string;
-  filled?: boolean;
 }
 
 const StarIcon: React.FC<StarIconProps> = ({
   size = 32,
-  color = "#525866",
-  filled = false,
+  color = "#FFD700", // gold by default
   ...props
 }) => (
   <Svg width={size} height={size} viewBox="0 0 33 32" fill="none" {...props}>
     <Path
       d="M18.8067 4.67953L21.1533 9.37287C21.4733 10.0262 22.3267 10.6529 23.0467 10.7729L27.3 11.4795C30.02 11.9329 30.66 13.9062 28.7 15.8529L25.3933 19.1595C24.8333 19.7195 24.5267 20.7995 24.7 21.5729L25.6467 25.6662C26.3933 28.9062 24.6733 30.1595 21.8067 28.4662L17.82 26.1062C17.1 25.6795 15.9133 25.6795 15.18 26.1062L11.1933 28.4662C8.34 30.1595 6.60667 28.8929 7.35333 25.6662L8.3 21.5729C8.47333 20.7995 8.16667 19.7195 7.60667 19.1595L4.3 15.8529C2.35333 13.9062 2.98 11.9329 5.7 11.4795L9.95333 10.7729C10.66 10.6529 11.5133 10.0262 11.8333 9.37287L14.18 4.67953C15.46 2.13286 17.54 2.13286 18.8067 4.67953Z"
-      fill={filled ? color : "none"}
-      stroke={color}
-      strokeWidth={filled ? 0 : 1}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill={color}
     />
   </Svg>
 );

@@ -29,6 +29,7 @@ import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator"
 import favouriteScreen from '../screen/favouriteScreen/favouriteScreen';
 import ExploreScreen from '../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen';
 import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIlterListScreen";
+import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -192,6 +193,12 @@ const NavigationStack: React.FC = () => {
             component={FilterListScreen}
             options={{ headerShown: false }}
           />  
+           <Stack.Screen
+            name="ClubDetailScreen"
+            component={ClubDetailScreen}
+            options={{ headerShown: false }}
+          />  
+          
           
         </Stack.Navigator>
       </LinearGradient>
