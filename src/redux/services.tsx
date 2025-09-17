@@ -15,9 +15,17 @@ export const fetchGet = async (payload) => {
   const retrieveData = async (key) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      if (jsonValue == null) return null;
+      
+      // Try to parse as JSON first, if it fails, return as string
+      try {
+        return JSON.parse(jsonValue);
+      } catch (parseError) {
+        // If JSON parsing fails, return the raw string (for tokens)
+        return jsonValue;
+      }
     } catch (e) {
-      console.log("Error retrieving array:", e);
+      console.log("Error retrieving data:", e);
       return null;
     }
   };
@@ -25,14 +33,18 @@ export const fetchGet = async (payload) => {
   const retrievedData = await retrieveData("user_token");
   console.log("retrievedData----->", retrievedData);
 
-  let headders = "";
+  let headders: any = {};
 
-  headders = {
-    "Content-Type": "application/json",
-    datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
-    device_type: Platform.OS == "android" ? "android" : "ios",
-    Authorization: "Bearer " + retrievedData,
-  };
+  if (!retrievedData || retrievedData === "") {
+    headders = { "Content-Type": "application/json" };
+  } else {
+    headders = {
+      "Content-Type": "application/json",
+      datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
+      device_type: Platform.OS == "android" ? "android" : "ios",
+      Authorization: "Bearer " + retrievedData,
+    };
+  }
   console.log("fetchGet...", payload?.url, headders);
 
   if (res) {
@@ -71,9 +83,17 @@ export const fetchPost = async (payload) => {
   const retrieveData = async (key) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      if (jsonValue == null) return null;
+      
+      // Try to parse as JSON first, if it fails, return as string
+      try {
+        return JSON.parse(jsonValue);
+      } catch (parseError) {
+        // If JSON parsing fails, return the raw string (for tokens)
+        return jsonValue;
+      }
     } catch (e) {
-      console.log("Error retrieving array:", e);
+      console.log("Error retrieving data:", e);
       return null;
     }
   };
@@ -82,31 +102,35 @@ export const fetchPost = async (payload) => {
 
   const retrievedToken = await retrieveData("user_token");
 
-  console.log("retrievedData:------------------------->", retrievedData);
+  console.log("=== FETCHPOST TOKEN DEBUG ===");
+  console.log("retrievedData (signin):", retrievedData);
+  console.log("retrievedToken (user_token):", retrievedToken);
+  console.log("retrievedToken type:", typeof retrievedToken);
+  console.log("retrievedToken length:", retrievedToken?.length);
 
-  console.log(retrievedData?.token);
+  let headders: any = {};
 
-  let headders = "";
+  // Prioritize user_token over signin data
+  const tokenToUse = retrievedToken || retrievedData?.token;
 
-  if (retrievedData?.token == "") {
+  console.log("tokenToUse:", tokenToUse);
+  console.log("tokenToUse type:", typeof tokenToUse);
+  console.log("tokenToUse length:", tokenToUse?.length);
+
+  if (!tokenToUse || tokenToUse === "" || tokenToUse === "null" || tokenToUse === "undefined") {
+    console.log("No valid token available - using headers without auth");
     headders = { "Content-Type": "application/json" };
   } else {
-    if (retrievedToken != undefined) {
-      headders = {
-        "Content-Type": "application/json",
-        datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
-        device_type: Platform.OS == "android" ? "android" : "ios",
-        Authorization: `Bearer ${retrievedToken}`,
-      };
-    } else {
-      headders = {
-        "Content-Type": "application/json",
-        datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
-        device_type: Platform.OS == "android" ? "android" : "ios",
-        Authorization: `Bearer ${retrievedData?.token}`,
-      };
-    }
+    console.log("Using token for authorization");
+    headders = {
+      "Content-Type": "application/json",
+      datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
+      device_type: Platform.OS == "android" ? "android" : "ios",
+      Authorization: `Bearer ${tokenToUse}`,
+    };
   }
+  console.log("Final headers:", headders);
+  console.log("=============================");
   if (res) {
     try {
       console.log("passed headders", headders);
@@ -158,12 +182,18 @@ export const fetchDelete = async (payload) => {
   const retrievedToken = await retrieveData("user_token");
   console.log("retrievedToken----->", retrievedToken);
 
-  let headers = {
-    "Content-Type": "application/json",
-    datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
-    device_type: Platform.OS === "android" ? "android" : "ios",
-    Authorization: `Bearer ${retrievedToken}`,
-  };
+  let headers: any = {};
+
+  if (!retrievedToken || retrievedToken === "") {
+    headers = { "Content-Type": "application/json" };
+  } else {
+    headers = {
+      "Content-Type": "application/json",
+      datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
+      device_type: Platform.OS === "android" ? "android" : "ios",
+      Authorization: `Bearer ${retrievedToken}`,
+    };
+  }
 
   console.log("fetchDelete...", payload?.url, headers);
 
@@ -255,9 +285,17 @@ export const fetchPut = async (payload) => {
   const retrieveData = async (key) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      if (jsonValue == null) return null;
+      
+      // Try to parse as JSON first, if it fails, return as string
+      try {
+        return JSON.parse(jsonValue);
+      } catch (parseError) {
+        // If JSON parsing fails, return the raw string (for tokens)
+        return jsonValue;
+      }
     } catch (e) {
-      console.log("Error retrieving array:", e);
+      console.log("Error retrieving data:", e);
       return null;
     }
   };
@@ -265,12 +303,18 @@ export const fetchPut = async (payload) => {
   const retrievedToken = await retrieveData("user_token");
   console.log("retrievedToken----->", retrievedToken);
 
-  let headers = {
-    "Content-Type": "application/json",
-    datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
-    device_type: Platform.OS == "android" ? "android" : "ios",
-    Authorization: `Bearer ${retrievedToken}`,
-  };
+  let headers: any = {};
+
+  if (!retrievedToken || retrievedToken === "") {
+    headers = { "Content-Type": "application/json" };
+  } else {
+    headers = {
+      "Content-Type": "application/json",
+      datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
+      device_type: Platform.OS == "android" ? "android" : "ios",
+      Authorization: `Bearer ${retrievedToken}`,
+    };
+  }
 
   console.log("passed headers", headers);
 
