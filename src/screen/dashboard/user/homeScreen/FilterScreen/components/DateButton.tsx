@@ -6,12 +6,13 @@ import { fonts } from '../../../../../../utilis/fonts';
 import { fontScale, horizontalScale, verticalScale } from '../../../../../../utilis/appConstant';
 
 interface DateButtonProps {
-  title: string;
+  dayText: string;
+  dateText: string;
   isSelected: boolean;
   onPress: () => void;
 }
 
-const DateButton: React.FC<DateButtonProps> = ({ title, isSelected, onPress }) => {
+const DateButton: React.FC<DateButtonProps> = ({ dayText, dateText, isSelected, onPress }) => {
   return (
     <TouchableOpacity
       style={[
@@ -26,7 +27,7 @@ const DateButton: React.FC<DateButtonProps> = ({ title, isSelected, onPress }) =
           isSelected && styles.dateButtonTextSelected
         ]}
       >
-        {title}
+        {dayText}
       </Text>
       <Text
         style={[
@@ -34,7 +35,7 @@ const DateButton: React.FC<DateButtonProps> = ({ title, isSelected, onPress }) =
           isSelected && styles.dateButtonTextSelected
         ]}
       >
-        {title}
+        {dateText}
       </Text>
     </TouchableOpacity>
   );
