@@ -111,7 +111,7 @@ export default StyleSheet.create({
   eventDetails: {
     gap: verticalScale(8),
     marginBottom: verticalScale(16),
-    flexDirection: 'row',
+    //flexDirection: 'row',
     justifyContent: 'space-between',
   },
   detailRow: {
@@ -244,6 +244,7 @@ export default StyleSheet.create({
     backgroundColor: colors.cardBackground,
     //padding: horizontalScale(16),
     borderRadius: verticalScale(12),
+    marginTop: verticalScale(12),
   
   },
   organizerAvatar: {

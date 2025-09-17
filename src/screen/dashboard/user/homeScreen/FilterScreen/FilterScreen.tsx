@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
@@ -7,11 +7,12 @@ import PriceRangeSlider from './components/PriceRangeSlider';
 import DistanceSlider from './components/DistanceSlider';
 import DateButton from './components/DateButton';
 import LocationDropdown from './components/LocationDropdown';
+import { useCategory } from '../../../../../hooks/useCategory';
 
 interface FilterScreenProps {
   visible: boolean;
   onClose: () => void;
-  onApply: () => void;
+  onApply: (filterValues: any) => void;
 }
 
 const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }) => {
@@ -22,49 +23,54 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
   const [distanceRange, setDistanceRange] = useState([0, 20]);
   const [selectedLocation, setSelectedLocation] = useState('New York, USA');
 
-  const categories = [
-    { id: "all", title: "🔥 All" },
-    { id: "vip", title: "🥂 VIP Clubs" },
-    { id: "dj", title: "🎧 DJ Nights" },
-    { id: "events", title: "🎉 Events" },
-    { id: "lounge", title: "🍸 Lounge Bars" },
-    { id: "live", title: "🎤 Live Music" },
-    { id: "dance", title: "🕺 Dance Floors" },
+  // Use the custom hook for category management
+  const { categories, isLoading, error, fetchCategories } = useCategory();
+
+  // Fetch categories when component mounts
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Add "All" category at the beginning and fallback to static categories
+  const allCategories = [
+    { _id: "all", name: "🔥 All" },
+    ...(categories.length > 0 ? categories : [
+    ])
   ];
 
-  // Generate dates for next 15 days
-  const generateDates = () => {
-    const dates = [];
-    const today = new Date();
+ // Generate dates for next 15 days
+ const generateDates = () => {
+  const dates = [];
+  const today = new Date();
+  
+  for (let i = 0; i < 15; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
     
-    for (let i = 0; i < 15; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      
-      const dayName = dayNames[date.getDay()];
-      const day = date.getDate();
-      const month = monthNames[date.getMonth()];
-      
-      const id = i === 0 ? 'today' : `day_${i}`;
-      const dayText = i === 0 ? 'Today' : dayName;
-      const dateText = `${day} ${month}`;
-      
-      dates.push({
-        id,
-        dayText,
-        dateText,
-        date: date,
-        formattedDate: date.toISOString().split('T')[0] // YYYY-MM-DD format
-      });
-    }
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    return dates;
-  };
+    const dayName = dayNames[date.getDay()];
+    const day = date.getDate();
+    const month = monthNames[date.getMonth()];
+    
+    const id = i === 0 ? 'today' : `day_${i}`;
+    const dayText = i === 0 ? 'Today' : dayName;
+    const dateText = `${day} ${month}`;
+    
+    dates.push({
+      id,
+      dayText,
+      dateText,
+      date: date,
+      formattedDate: date.toISOString().split('T')[0] // YYYY-MM-DD format
+    });
+  }
+  
+  return dates;
+};
 
-  const dates = generateDates();
+const dates = generateDates();
 
   const handleCategoryPress = useCallback((categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -92,7 +98,7 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
 
   const handleApply = useCallback(() => {
     // Collect all selected filter values
-    const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
+        const selectedCategoryData = allCategories.find(cat => (cat as any).id === selectedCategory || (cat as any)._id === selectedCategory);
     const selectedDateData = dates.find(date => date.id === selectedDate);
     
     const filterValues = {
@@ -129,9 +135,9 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
     console.log('Selected Location:', filterValues.selectedLocation);
     console.log('=====================================');
 
-    onApply();
+    onApply(filterValues);
     onClose();
-  }, [onApply, onClose, selectedCategory, selectedDate, priceRange, distanceRange, selectedLocation, categories, dates]);
+  }, [onApply, onClose]);
 
   return (
     <Modal
@@ -168,34 +174,33 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.categoriesContainer}
               >
-                {categories.map((category) => (
-                  <CategoryButton
-                    key={category.id}
-                    title={category.title}
-                    isSelected={selectedCategory === category.id}
-                    onPress={() => handleCategoryPress(category.id)}
-                    style={styles.categoryButton}
-                  />
-                ))}
+                  {allCategories.map((category) => (
+                    <CategoryButton
+                      key={(category as any)._id || (category as any).id}
+                      title={(category as any).name}
+                      isSelected={selectedCategory === ((category as any)._id || (category as any).id)}
+                      onPress={() => handleCategoryPress((category as any)._id || (category as any).id)}
+                    />
+                  ))}
               </ScrollView>
             </View>
 
             {/* Price Range Filter */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Price Range</Text>
-              <PriceRangeSlider
-                value={priceRange}
-                onValueChange={handlePriceRangeChange}
-              />
+            <PriceRangeSlider
+              value={priceRange as [number, number]}
+              onValueChange={handlePriceRangeChange}
+            />
             </View>
 
             {/* Distance Filter */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Distance</Text>
-              <DistanceSlider
-                value={distanceRange}
-                onValueChange={handleDistanceRangeChange}
-              />
+            <DistanceSlider
+              value={distanceRange as [number, number]}
+              onValueChange={handleDistanceRangeChange}
+            />
             </View>
 
             {/* Date Filter */}
@@ -206,7 +211,7 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.datesContainer}
               >
-                {dates.map((date) => (
+               {dates.map((date) => (
                   <DateButton
                     key={date.id}
                     dayText={date.dayText}

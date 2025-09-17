@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
 import styles from './styles';
 import { useNavigation } from '@react-navigation/native';
@@ -16,15 +16,32 @@ import Filtericon from '../../../../assets/svg/filtericon';
 import Blox from '../../../../assets/svg/blox';
 import SearchIcon from '../../../../assets/svg/searchIcon';
 import FilterScreen from './FilterScreen/FilterScreen';
+import { useCategory } from '../../../../hooks/useCategory';
+
+//API
+import {
+  onHome,
+  homeData,
+  homeError,
+  onFilter,
+  filterData,
+  filterError,
+  onTogglefavorite,
+  togglefavoriteData,
+  togglefavoriteError,
+} from '../../../../redux/auth/actions';
+import { useDispatch, useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CustomAlertSingleBtn } from '../../../../components/CustomeAlertDialog';
 
 const categories = [
-  { id: "all", title: "🔥 All" },
-  { id: "vip", title: "🥂 VIP Clubs" },
-  { id: "dj", title: "🎧 DJ Nights" },
-  { id: "events", title: "🎟️ Events" },
-  { id: "lounge", title: "🍸 Lounge Bars" },
-  { id: "live", title: "🎤 Live Music" },
-  { id: "dance", title: "🕺 Dance Floors" },
+  { id: "all", name: "🔥 All" },
+  { id: "vip", name: "🥂 VIP Clubs" },
+  { id: "dj", name: "🎧 DJ Nights" },
+  { id: "events", name: "🎟️ Events" },
+  { id: "lounge", name: "🍸 Lounge Bars" },
+  { id: "live", name: "🎤 Live Music" },
+  { id: "dance", name: "🕺 Dance Floors" },
 ];
 
 const featuredEvent = {
@@ -100,14 +117,176 @@ const HomeScreen = () => {
   const [events, setEvents] = useState(sampleEvents);
   const [searchVal, setSearchVal] = useState('');
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+
+  const [featured, setFeatured] = useState<any[]>([]);
+  const [nearby, setNearby] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [userId, setUserId] = useState('');
+
+  const dispatch = useDispatch();
+  const home = useSelector((state: any) => state.auth.home);
+  const homeErr = useSelector((state: any) => state.auth.homeErr);
+  const filter = useSelector((state: any) => state.auth.filter);
+  const filterErr = useSelector((state: any) => state.auth.filterErr);
+  const togglefavorite = useSelector((state: any) => state.auth.togglefavorite);
+  const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
+  const [msg, setMsg] = useState('');
+
+  // Use the custom hook for category management
+  const { categories: apiCategories, fetchCategories } = useCategory();
   
-  const handleCategoryPress = (categoryId: string) => {
+  // Use the custom hook for home data management
+  // Default location coordinates
+  const defaultLat = "23.012649201096547";
+  const defaultLong = "72.51123340677258";
+
+  // Get user ID from AsyncStorage
+  const getUserID = async (): Promise<string | null> => {
+    try {
+      const userData = await AsyncStorage.getItem('user_data');
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        const userId = parsedUserData?.id || '';
+        setUserId(userId);
+        return userId;
+      }
+      return null;
+    } catch (error) {
+      console.log('Error getting user ID:', error);
+      return null;
+    }
+  };
+
+  // Fetch categories and home data when component mounts
+  useEffect(() => {
+    fetchCategories();
+    getUserID();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    const callHomeAPI = async () => {
+      const userId = await getUserID();
+      dispatch(onHome({
+        lat: defaultLong,
+        long: defaultLat,
+        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+      }));
+    };
+    callHomeAPI();
+  }, []);
+
+  // Use API categories if available, otherwise fallback to static categories
+  const allCategories = apiCategories.length > 0 ? [
+    { _id: "all", name: "🔥 All" },
+    ...apiCategories
+  ] : categories;
+
+
+  const handleCategoryPress = async (categoryId: string) => {
     setSelectedCategory(categoryId);
+    
+    const userId = await getUserID();
+    
+    // Refresh home data with new category filter
+    if (categoryId !== 'all') {
+      const homeParams = {
+        lat: defaultLong,
+        long: defaultLat,
+        categoryid: categoryId,
+        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+      };
+      dispatch(onHome(homeParams));
+    } else {
+      // If "All" is selected, fetch without category filter
+      const homeParams = {
+        lat: defaultLong,
+        long: defaultLat,
+        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+      };
+      dispatch(onHome(homeParams));
+    }
   };
   
   const onSearchClose = () => {
     setSearchVal('');
   };
+
+
+  useEffect(() => {
+    if (
+      home?.status === true ||
+      home?.status === 'true' ||
+      home?.status === 1 ||
+      home?.status === "1"
+    ) {
+      console.log("home:+>", home);
+      console.log("featured data:", home?.data?.featured);
+      console.log("nearby data:", home?.data?.nearby);
+      
+      if (home?.data?.featured) {
+        setFeatured(home.data.featured);
+      }
+      if (home?.data?.nearby) {
+        setNearby(home.data.nearby);
+      }
+      dispatch(homeData(''));
+    }
+
+    if (homeErr) {
+      console.log("homeErr:+>", homeErr);
+      setMsg(homeErr?.message?.toString())
+      dispatch(homeError(''));
+    }
+  }, [home, homeErr, dispatch]);
+
+  // Handle filter API response
+  useEffect(() => {
+    if (
+      filter?.status === true ||
+      filter?.status === 'true' ||
+      filter?.status === 1 ||
+      filter?.status === "1"
+    ) {
+      console.log("filter response:+>", filter);
+      setFilteredData(filter?.data || []);
+      dispatch(filterData(''));
+    }
+
+    if (filterErr) {
+      console.log("filterErr:+>", filterErr);
+      setMsg(filterErr?.message?.toString())
+      dispatch(filterError(''));
+    }
+  }, [filter, filterErr, dispatch]);
+
+  // Handle Toggle Favorite API response
+  useEffect(() => {
+    const handleToggleFavoriteResponse = async () => {
+      if (
+        togglefavorite?.status === true ||
+        togglefavorite?.status === 'true' ||
+        togglefavorite?.status === 1 ||
+        togglefavorite?.status === "1"
+      ) {
+        console.log("togglefavorite response in home:+>", togglefavorite);
+        const userId = await getUserID();
+        dispatch(onHome({
+          lat: defaultLong,
+          long: defaultLat,
+          userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        }));
+        dispatch(togglefavoriteData(''));
+      }
+
+      if (togglefavoriteErr) {
+        console.log("togglefavoriteErr in home:+>", togglefavoriteErr);
+        setMsg(togglefavoriteErr?.message?.toString());
+        dispatch(togglefavoriteError(''));
+      }
+    };
+
+    handleToggleFavoriteResponse();
+  }, [togglefavorite, togglefavoriteErr, dispatch]);
   
   const handleFilterPress = () => {
     setIsFilterVisible(true);
@@ -117,30 +296,46 @@ const HomeScreen = () => {
     setIsFilterVisible(false);
   };
   
-  const handleFilterApply = () => {
-    // Navigate to FilterListScreen when Apply is pressed
+  const handleFilterApply = (filterValues: any) => {
+    console.log('=== FILTER APPLY CALLED ===');
+    console.log('Filter Values:', filterValues);
+    
+    // Format the filter data according to API requirements
+    const filterPayload = {
+      lat: "23.0126",
+      long: "72.5112",
+      categoryId: filterValues?.selectedCategory?.id !== 'all' ? filterValues?.selectedCategory?.id : undefined,
+      minPrice: filterValues?.priceRange?.min || 0,
+      maxPrice: filterValues?.priceRange?.max || 3000,
+      date: filterValues?.selectedDate?.formattedDate || new Date().toISOString().split('T')[0],
+      minDistance: filterValues?.distanceRange?.min || 0,
+      maxDistance: filterValues?.distanceRange?.max || 20,
+      userId: userId || "68c147b05f4b76754d914383" // fallback user ID
+    };
+
+    console.log('Filter Payload:', filterPayload);
+    
+    // Call filter API
+    dispatch(onFilter(filterPayload));
+    
+    // Navigate to FilterListScreen
     navigation.navigate("FilterListScreen" as never);
   };
 
-  const handleBookNow = () => {
-    console.log('Book Now clicked');
+  const handleBookNow = (eventId?: string) => {
+    console.log('Book Now clicked for event:', eventId);
     // Handle booking logic here
-    navigation.navigate("ClubDetailScreen" as never);
+    (navigation as any).navigate("ClubDetailScreen", { clubId: eventId || '68b6eceba9ae1fc590695248' });
   };
 
-  const handleFavorite = (isFavorite: boolean) => {
-    console.log('Favorite status:', isFavorite);
-    // Handle favorite logic here
+  const handleFavorite = (eventId: string) => {
+    console.log('Toggling favorite for event ID:', eventId);
+    dispatch(onTogglefavorite({ eventId }));
   };
 
   const handleFavoritePress = (eventId: string) => {
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === eventId
-          ? { ...event, isFavorite: !event.isFavorite }
-          : event
-      )
-    );
+    console.log('Toggling favorite for event ID:', eventId);
+    dispatch(onTogglefavorite({ eventId }));
   };
 
   return (
@@ -205,14 +400,18 @@ const HomeScreen = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesContainer}
         >
-          {categories.map((category) => (
+        {allCategories.map((category) => {
+          const categoryId = (category as any)._id || (category as any).id;
+          const categoryTitle = (category as any).name || (category as any).title;
+          return (
             <CategoryButton
-              key={category.id}
-              title={category.title}
-              isSelected={selectedCategory === category.id}
-              onPress={() => handleCategoryPress(category.id)}
+              key={categoryId}
+              title={categoryTitle}
+              isSelected={selectedCategory === categoryId}
+              onPress={() => handleCategoryPress(categoryId)}
             />
-          ))}
+          );
+        })}
         </ScrollView>
       </View>
       <ScrollView 
@@ -220,20 +419,29 @@ const HomeScreen = () => {
         contentContainerStyle={styles.eventsContent}
       >
         {/* Featured Event */}
-        <Text style={styles.sectionTitle}>Featured</Text>
-       
+        <Text style={styles.sectionTitle}>Featured ({featured.length})</Text>
          <FlatList
          horizontal
-          data={sampleEvents}
+          data={featured.length > 0 ? featured : []}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.FeatureEventContainer}
-          keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => (
-            <EventCard
-          onBookNow={handleBookNow}
-          onFavoritePress={handleFavorite}
-        />
-          )}
+          keyExtractor={(item, index) => (item as any)._id || index.toString()}
+          renderItem={({ item }) => {
+            return (
+              <EventCard
+                title={(item as any).name}
+                location={(item as any).address}
+                date={new Date((item as any).startDate).toLocaleDateString()}
+                price={`$${(item as any).entryFee}`}
+                tag={(item as any).type}
+                image={(item as any).photos?.[0] || ''}
+                rating={4.5}
+                isFavorite={(item as any).isFavorite}
+                onBookNow={() => handleBookNow((item as any)._id)}
+                onFavoritePress={() => handleFavorite((item as any)._id)}
+              />
+            );
+          }}
         />
 
         {/* Nearby Events */}
@@ -242,15 +450,15 @@ const HomeScreen = () => {
           <TouchableOpacity><Text style={styles.seeAllText}>See All</Text></TouchableOpacity>
         </View>
         <FlatList
-          data={sampleEvents}
+          data={nearby.length > 0 ? nearby : sampleEvents}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.nearbyEventsContainer}
-          keyExtractor={(_, i) => i.toString()}
+          keyExtractor={(item, index) => (item as any)._id || (item as any).id || index.toString()}
           renderItem={({ item }) => (
             <NearbyEventCard
               event={item}
-              onPress={() => console.log('Nearby event pressed:', item.name)}
-              onFavoritePress={() => handleFavoritePress(item.id)}
+              onPress={() => handleBookNow((item as any)._id || (item as any).id)}
+              onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
             />
           )}
         />

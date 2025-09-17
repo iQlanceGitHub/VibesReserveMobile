@@ -10,7 +10,7 @@ import {
 import StarRating from "../../../../../../components/StarRating";
 
 export default StyleSheet.create({
-    card: {
+      card: {
         backgroundColor: colors.cardBackground,
         borderRadius: horizontalScale(20),
         overflow: 'hidden',
@@ -18,20 +18,21 @@ export default StyleSheet.create({
         marginVertical: verticalScale(8),
         shadowColor: colors.BtnBackground,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
-        borderWidth: 0.5,
-        borderColor: colors.violate
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: colors.BtnBackground,
+        width: horizontalScale(280),
       },
       imageContainer: {
         position: 'relative',
         width: '100%',
-        padding: horizontalScale(10), 
+        padding: horizontalScale(8), 
       },
       eventImage: {
-        width: horizontalScale(270),
-        height: verticalScale(160),
+        width: '100%',
+        height: verticalScale(180),
         borderRadius: horizontalScale(16),
       },
       favoriteButton: {
@@ -65,6 +66,7 @@ export default StyleSheet.create({
       },
       content: {
         paddingHorizontal: horizontalScale(16),
+        paddingBottom: verticalScale(12),
       },
       title: {
         fontSize: fontScale(16),
@@ -84,7 +86,19 @@ export default StyleSheet.create({
       },
       detailRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: verticalScale(8),
+      },
+      locationContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: horizontalScale(8),
+      },
+      dateContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
       },
       detailText: {
         fontSize: fontScale(10),
@@ -92,6 +106,7 @@ export default StyleSheet.create({
         fontFamily: fonts.regular,
         color: colors.primary_lighter,
         marginLeft: horizontalScale(8),
+        height: verticalScale(20),
         //flex: 1,
       },
       ratingContainer: {
@@ -110,7 +125,8 @@ export default StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: verticalScale(16),
+        paddingTop: verticalScale(12),
+        marginTop: verticalScale(8),
       },
       price: {
         fontSize: fontScale(20),
@@ -120,22 +136,19 @@ export default StyleSheet.create({
         marginBottom: horizontalScale(10)
       },
       bookButton: {
-        //270.35
         backgroundColor: colors.BtnBackground,
-        textAlign:'center',
-        alignContent: 'center',
-        alignSelf: 'center',
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: verticalScale(10),
-        borderRadius: horizontalScale(16),
+        paddingVertical: verticalScale(12),
+        borderRadius: horizontalScale(20),
         shadowColor: colors.BtnBackground,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 3,
-        width: horizontalScale(170),
-        height: verticalScale(35),
-        marginBottom: horizontalScale(10)
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 6,
+        width: horizontalScale(180),
+        height: verticalScale(40),
+        marginBottom: horizontalScale(8)
       },
       bookButtonText: {
         fontSize: fontScale(14),

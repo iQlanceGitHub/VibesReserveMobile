@@ -45,7 +45,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { CustomAlertSingleBtn } from "../../components/CustomeAlertDialog";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { CommonActions } from "@react-navigation/native";
 interface SignInScreenProps {
   navigation?: any;
 }
@@ -157,6 +157,27 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   };
 
   // Get token
+  const storeUserToken = async (token: any) => {
+    try {
+      await AsyncStorage.setItem("user_token", token);
+      console.log("User token saved:", token);
+      getUserToken();
+    } catch (e) {
+      console.error("Failed to save the user token.", e);
+    }
+  };
+
+  // Store user ID
+  const storeUserId = async (userId: any) => {
+    try {
+      await AsyncStorage.setItem("user_id", userId);
+      console.log("User ID saved:", userId);
+    } catch (e) {
+      console.error("Failed to save the user ID.", e);
+    }
+  };
+
+  // Get token
   const getUserToken = async () => {
     try {
       const token = await AsyncStorage.getItem("user_token");
@@ -165,7 +186,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         return token;
       }
     } catch (e) {
-      console.log('Failed to fetch the user token.', e);
+      console.error("Failed to fetch the user token.", e);
     }
   };
 
@@ -173,7 +194,21 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     getUserToken();
   }, []);
 
+  const getNavigation = async () => {
+    try {
+      navigation.navigate('HomeTabs')
+    } catch (e) {
+      console.error("Failed to fetch the user token.", e);
+    }
+  }; 
+
   useEffect(() => {
+    getUserToken().then((token) => {
+      console.log('token:===>',token)
+      if(token){
+        getNavigation();
+      }
+    });
     if (
       signin?.status === true ||
       signin?.status === "true" ||
@@ -196,7 +231,12 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "success",
         signin?.message || "Something went wrong. Please try again."
       );
-
+      if (signin?.token) {
+        storeUserToken(signin?.token);
+      }
+      if (signin?.user?.id) {
+        storeUserId(signin.user.id);
+      }
       // navigation.navigate('NameScreen')
       dispatch(signinData(""));
     }
@@ -207,11 +247,11 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "error",
         signinErr?.message || "Something went wrong. Please try again."
       );
-      if (signinErr?.message == 'Your account is inactive. Please contact support.') {
-        console.log("=>>", uid)
-        navigation.navigate('HomeTabs')
+      // if (signinErr?.message == 'Your account is inactive. Please contact support.') {
+      //   console.log("=>>", uid)
+      
  
-      }
+      // }
       if (signinErr?.message == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
         console.log("=>>", uid)
         navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })
@@ -276,8 +316,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         dispatch(onSocialLogin(obj));
       }
       console.log("socialData+>>>>", socialData);
-      //Alert.alert('Success', 'You have successfully signed in with Google!');
-      // navigation.navigate('NameScreen')
     } catch (error) {
       console.log('Google Sign-In error:', error);
     }

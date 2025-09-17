@@ -66,6 +66,34 @@ export const {
   updateLocationData,
   updateLocationError,
 
+  onHome,
+  homeData,
+  homeError,
+
+  onFilter,
+  filterData,
+  filterError,
+
+  onViewdetails,
+  viewdetailsData,
+  viewdetailsError,
+
+  onCategory,
+  categoryData,
+  categoryError,
+
+  onFacility,
+  facilityData,
+  facilityError,
+
+  onTogglefavorite,
+  togglefavoriteData,
+  togglefavoriteError,
+
+  onFavoriteslist,
+  favoriteslistData,
+  favoriteslistError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -134,6 +162,34 @@ export const {
   "ON_UPDATE_LOCATION",
   "UPDATE_LOCATION_DATA",
   "UPDATE_LOCATION_ERROR",
+
+  'ON_HOME',
+  'HOME_DATA',
+  'HOME_ERROR',
+
+  'ON_FILTER',
+  'FILTER_DATA',
+  'FILTER_ERROR',
+
+  'ON_VIEWDETAILS',
+  'VIEWDETAILS_DATA',
+  'VIEWDETAILS_ERROR',
+
+  'ON_CATEGORY',
+  'CATEGORY_DATA',
+  'CATEGORY_ERROR',
+
+  'ON_FACILITY',
+  'FACILITY_DATA',
+  'FACILITY_ERROR',
+
+  'ON_TOGGLEFAVORITE',
+  'TOGGLEFAVORITE_DATA',
+  'TOGGLEFAVORITE_ERROR',
+
+  'ON_FAVORITESLIST',
+  'FAVORITESLIST_DATA',
+  'FAVORITESLIST_ERROR',
 
   "SET_LOGIN_TOKEN",
 

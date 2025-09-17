@@ -1,93 +1,5 @@
-// import React, { useState } from 'react';
-// import { View, Text, TouchableOpacity, Image } from 'react-native';
-// import styles from './styles';
-// import FavouriteIcon from "../../../../../../assets/svg/favouriteIcon";
-// import LocationFavourite from "../../../../../../assets/svg/locationFavourite";
-// import ClockIcon from "../../../../../../assets/svg/clockIcon";
-// import ArrowRightIcon from "../../../../../../assets/svg/arrowRightIcon";
-// import { colors } from '../../../../../../utilis/colors';
-
-// interface NearbyEventCardProps {
-//   title?: string;
-//   location?: string;
-//   date?: string;
-//   price?: string;
-//   tag?: string;
-//   image?: string;
-//   onPress?: () => void;
-//   onFavoritePress?: (isFavorite: boolean) => void;
-// }
-
-// const NearbyEventCard: React.FC<NearbyEventCardProps> = ({ 
-//   title = "Neon Nights", 
-//   location = "New York, USA",
-//   date = "Sep 4 - 10:00 PM", 
-//   price = "$500",
-//   tag = "DJ Nights",
-//   image = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819",
-//   onPress,
-//   onFavoritePress 
-// }) => {
-//   const [isFavorite, setIsFavorite] = useState(false);
-
-//   const handleFavoritePress = () => {
-//     setIsFavorite(!isFavorite);
-//     onFavoritePress && onFavoritePress(!isFavorite);
-//   };
-
-//   return (
-//     <TouchableOpacity style={styles.card} onPress={onPress}>
-//       {/* Left Side - Event Image */}
-//       <View style={styles.imageContainer}>
-//         <Image source={{ uri: image }} style={styles.eventImage} resizeMode="cover" />
-        
-//         {/* Heart Icon - Top Left */}
-//         <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
-//           <View style={styles.heartIconContainer}>
-//             <FavouriteIcon isFilled={isFavorite} />
-//           </View>
-//         </TouchableOpacity>
-        
-//         {/* Tag - Top Right */}
-//         <View style={styles.tagContainer}>
-//           <Text style={styles.tagText}>{tag}</Text>
-//         </View>
-//       </View>
-      
-//       {/* Right Side - Event Content */}
-//       <View style={styles.content}>
-//         {/* Price - Top Right */}
-//         <Text style={styles.price}>{price}</Text>
-        
-//         {/* Event Title */}
-//         <Text style={styles.title}>{title}</Text>
-        
-//         {/* Location with icon */}
-//         <View style={styles.detailRow}>
-//           <LocationFavourite />
-//           <Text style={styles.detailText}>{location}</Text>
-//         </View>
-        
-//         {/* Date with icon */}
-//         <View style={styles.detailRow}>
-//           <ClockIcon />
-//           <Text style={styles.detailText}>{date}</Text>
-//         </View>
-        
-//         {/* Arrow Button - Bottom Right */}
-//         <TouchableOpacity style={styles.arrowButton} onPress={onPress}>
-//           <ArrowRightIcon />
-//         </TouchableOpacity>
-       
-//       </View>
-//     </TouchableOpacity>
-//   );
-// };
-
-// export default NearbyEventCard;
-
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { colors } from "../../../../../../utilis/colors";
 import { fonts } from "../../../../../../utilis/fonts";
 import {
@@ -96,6 +8,7 @@ import {
   verticalScale,
 } from "../../../../../../utilis/appConstant";
 import HeartIcon from "../../../../../../assets/svg/heartIcon";
+import FavouriteIcon from "../../../../../../assets/svg/favouriteIcon";
 import LocationIcon from "../../../../../../assets/svg/locationIcon";
 import ClockIcon from "../../../../../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../../../../../assets/svg/arrowRightIcon";
@@ -115,7 +28,7 @@ interface NearbyEventCardProps {
     isFavorite: boolean;
   };
   onPress: () => void;
-  onFavoritePress: () => void;
+  onFavoritePress: (eventId: string) => void;
 }
 
 const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
@@ -123,44 +36,107 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
   onPress,
   onFavoritePress,
 }) => {
+  // Use isFavorite directly from event data
+  const isFavorite = (event as any).isFavorite || false;
+
+  const handleFavoritePress = () => {
+    const eventId = (event as any)?._id || event?.id;
+    if (!eventId) {
+      Alert.alert('Error', 'Event ID not available');
+      return;
+    }
+
+    console.log('Nearby Event - Toggling favorite for event ID:', eventId);
+    
+    // Call the parent's onFavoritePress function
+    if (onFavoritePress) {
+      onFavoritePress(eventId);
+    }
+  };
+
+  // Format date to "Sep 4 - 10:00 PM" format
+  const formatDateTime = (dateString: string, timeString: string) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const formattedDate = date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric'
+      });
+      
+      // Format time to 12-hour format
+      let formattedTime = '';
+      if (timeString) {
+        try {
+          const time = new Date(`2000-01-01T${timeString}`);
+          formattedTime = time.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+        } catch {
+          formattedTime = timeString;
+        }
+      }
+      
+      return formattedTime ? `${formattedDate} - ${formattedTime}` : formattedDate;
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
+      {/* Event Image */}
       <View style={styles.imageContainer}>
-        <Image source={event.image} style={styles.eventImage} />
+        <Image 
+          source={(event as any).photos?.[0] ? { uri: (event as any).photos[0] } : { uri: 'https://via.placeholder.com/120x90/2D014D/8D34FF?text=Event' }} 
+          style={styles.eventImage} 
+          resizeMode="cover"
+        />
+        {/* Heart Icon - Top Left of Image */}
         <TouchableOpacity
           style={styles.favoriteButton}
-          onPress={onFavoritePress}
+          onPress={handleFavoritePress}
         >
-          <HeartIcon size={20} color={colors.white} filled={event.isFavorite} />
+          {isFavorite ? (
+            <FavouriteIcon size={16} color={colors.violate} />
+          ) : (
+            <HeartIcon size={16} color={colors.white} />
+          )}
         </TouchableOpacity>
       </View>
 
+      {/* Content Area */}
       <View style={styles.contentContainer}>
-        <View style={styles.headerRow}>
-          <View style={styles.categoryTag}>
-            <Text style={styles.categoryText}>{event.category}</Text>
-          </View>
-          <Text style={styles.priceText}>{event.price}</Text>
+        {/* Category Tag - Top Right Area */}
+        <View style={styles.categoryTag}>
+          <Text style={styles.categoryText}>VIP Clubs</Text>
         </View>
 
+        {/* Price - Top Right Corner */}
+        <Text style={styles.priceText}>${(event as any).entryFee || event.price}</Text>
+
+        {/* Event Title */}
         <Text style={styles.eventName}>{event.name}</Text>
 
+        {/* Location */}
         <View style={styles.detailsRow}>
-          <View style={styles.detailItem}>
-            <LocationFavourite size={14} color={colors.violate} />
-            <Text style={styles.detailText}>{event.location}</Text>
-          </View>
+          <LocationFavourite size={14} color={colors.violate} />
+          <Text style={styles.detailText} numberOfLines={1}>
+            {(event as any).address || event.location}
+          </Text>
         </View>
 
+        {/* Date & Time */}
         <View style={styles.detailsRow}>
-          <View style={styles.detailItem}>
-            <ClockIcon size={14} color={colors.violate} />
-            <Text style={styles.detailText}>
-              {event.date} - {event.time}
-            </Text>
-          </View>
+          <ClockIcon size={14} color={colors.violate} />
+          <Text style={styles.detailText}>
+            {formatDateTime((event as any).startDate || event.date, (event as any).openingTime || event.time)}
+          </Text>
         </View>
 
+        {/* Action Button - Bottom Right */}
         <TouchableOpacity style={styles.actionButton} onPress={onPress}>
           <ArrowRightIcon size={16} color={colors.white} />
         </TouchableOpacity>
