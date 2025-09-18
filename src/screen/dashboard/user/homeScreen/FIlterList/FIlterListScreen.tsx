@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import NearbyEventCard from '../card/nearbyEvent/nearbyEvent';
 import { BackButton } from '../../../../../components/BackButton';
 import styles from './styles';
@@ -87,9 +87,30 @@ const filteredEvents = [
   },
 ];
 
-const FilterListScreen = () => {
+interface FilterListScreenProps {
+  route: {
+    params: {
+      filteredData: any[];
+    };
+  };
+}
+
+const FilterListScreen: React.FC<FilterListScreenProps> = () => {
   const navigation = useNavigation();
-  const [events, setEvents] = useState(filteredEvents);
+  const route = useRoute();
+  const [events, setEvents] = useState<any[]>([]);
+  
+  // Get filtered data from navigation params
+  const { filteredData = [] } = (route.params as any) || {};
+
+  // Set events from filtered data when component mounts or filteredData changes
+  useEffect(() => {
+    if (filteredData && Array.isArray(filteredData) && filteredData.length > 0) {
+      setEvents(filteredData);
+    } else {
+      setEvents([]);
+    }
+  }, [filteredData]);
 
   const handleFavoritePress = (eventId: string) => {
     setEvents((prevEvents) =>
@@ -121,17 +142,26 @@ const FilterListScreen = () => {
         <BackButton navigation={navigation} onBackPress={() => navigation.goBack()} />
       
       </View>
-       <View style={styles.header}>
+       {/* <View style={styles.header}>
         <Text style={styles.headerTitle}>New York, USA</Text>
         <View style={styles.headerSpacer} />
-      </View>
+      </View> */}
       {/* Events List */}
       <FlatList
         data={events}
         renderItem={renderEventCard}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => (item as any)._id || (item as any).id || index.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.eventsList}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>🔍</Text>
+            <Text style={styles.emptyTitle}>No Events Found</Text>
+            <Text style={styles.emptyMessage}>
+              Try adjusting your filters to find more events
+            </Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );

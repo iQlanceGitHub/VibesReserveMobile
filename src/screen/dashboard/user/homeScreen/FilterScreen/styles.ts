@@ -26,15 +26,34 @@ export default StyleSheet.create({
     marginBottom: verticalScale(8),
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: verticalScale(16),
+    paddingHorizontal: horizontalScale(20),
   },
   headerTitle: {
     fontSize: fontScale(20),
     fontFamily: fonts.Bold,
     color: colors.white,
     fontWeight: '700',
+    flex: 1,
+    textAlign: 'center',
   },
+  closeButton: {
+    width: horizontalScale(32),
+    height: horizontalScale(32),
+    borderRadius: horizontalScale(16),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    fontSize: fontScale(18),
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  // Content section
   content: {
     flex: 1,
     paddingHorizontal: horizontalScale(20),

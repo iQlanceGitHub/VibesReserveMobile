@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,210 +6,148 @@ import {
   StatusBar,
   SafeAreaView,
   Platform,
+  FlatList,
 } from "react-native";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import CategoryButton from "../../components/CategoryButton";
-import EventCard from "../../components/EventCard";
+import NearbyEventCard from "../dashboard/user/homeScreen/card/nearbyEvent/nearbyEvent";
 import styles from "./styles";
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  onFavoriteslist,
+  favoriteslistData,
+  favoriteslistError,
+  onTogglefavorite,
+  togglefavoriteData,
+  togglefavoriteError,
+} from '../../redux/auth/actions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCategory } from '../../hooks/useCategory';
 
 interface FavouriteScreenProps {
   navigation?: any;
 }
 
-// Sample event data
-const sampleEvents = [
-  {
-    id: "1",
-    name: "Neon Nights",
-    category: "DJ Nights",
-    location: "Bartonfort, Canada",
-    date: "Aug 29",
-    time: "10:00 PM",
-    price: "$80",
-    image: {
-      uri: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=300&fit=crop&auto=format",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "2",
-    name: "Aurora Lounge",
-    category: "Lounge Bars",
-    location: "Bartonfort, Canada",
-    date: "Aug 29",
-    time: "10:00 PM",
-    price: "$80",
-    image: {
-      uri: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "3",
-    name: "Sunset Jazz Fest",
-    category: "Live Music",
-    location: "Montreal, QC",
-    date: "Sept 5",
-    time: "4:00 PM",
-    price: "$50",
-    image: {
-      uri: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "4",
-    name: "Vibe Nation",
-    category: "Dance Floors",
-    location: "Bartonfort, Canada",
-    date: "Aug 29",
-    time: "10:00 PM",
-    price: "$80",
-    image: {
-      uri: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "5",
-    name: "Elite VIP Lounge",
-    category: "VIP Clubs",
-    location: "Toronto, ON",
-    date: "Sept 2",
-    time: "9:00 PM",
-    price: "$120",
-    image: {
-      uri: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "6",
-    name: "Summer Concert Series",
-    category: "Events",
-    location: "Vancouver, BC",
-    date: "Sept 8",
-    time: "7:00 PM",
-    price: "$65",
-    image: {
-      uri: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "7",
-    name: "Rock Festival 2024",
-    category: "Concerts",
-    location: "Calgary, AB",
-    date: "Sept 15",
-    time: "6:00 PM",
-    price: "$95",
-    image: {
-      uri: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "8",
-    name: "Pool Party Bash",
-    category: "Parties",
-    location: "Miami, FL",
-    date: "Sept 12",
-    time: "2:00 PM",
-    price: "$45",
-    image: {
-      uri: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-  {
-    id: "9",
-    name: "Music Festival",
-    category: "Festivals",
-    location: "Austin, TX",
-    date: "Sept 20",
-    time: "12:00 PM",
-    price: "$150",
-    image: {
-      uri: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop",
-    },
-    isFavorite: true,
-  },
-];
-
-const categories = [
-  { id: "all", title: "All" },
-  {
-    id: "vip",
-    title: "VIP Clubs",
-  },
-  {
-    id: "dj",
-    title: "DJ Nights",
-  },
-  {
-    id: "events",
-    title: "Events",
-  },
-  {
-    id: "lounge",
-    title: "Lounge Bars",
-  },
-  {
-    id: "live",
-    title: "Live Music",
-  },
-  {
-    id: "dance",
-    title: "Dance Floors",
-  },
-];
-
 const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [events, setEvents] = useState(sampleEvents);
+  const [events, setEvents] = useState<any[]>([]);
+  const [userId, setUserId] = useState('');
+  // Remove local loading state since global loader handles it
+
+  const dispatch = useDispatch();
+  const favoriteslist = useSelector((state: any) => state.auth.favoriteslist);
+  const favoriteslistErr = useSelector((state: any) => state.auth.favoriteslistErr);
+  const togglefavorite = useSelector((state: any) => state.auth.togglefavorite);
+  const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
+
+  // Use the custom hook for category management
+  const { categories: apiCategories, fetchCategories } = useCategory();
+
+  // Get user ID from AsyncStorage
+  const getUserID = async (): Promise<string | null> => {
+    try {
+      const userData = await AsyncStorage.getItem('user_data');
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        const userId = parsedUserData?.id || '';
+        setUserId(userId);
+        return userId;
+      }
+      return null;
+    } catch (error) {
+      console.log('Error getting user ID:', error);
+      return null;
+    }
+  };
+
+  // Fetch favorites list
+  const fetchFavoritesList = async (categoryId?: string) => {
+    const userId = await getUserID();
+    const payload = {
+      userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+      ...(categoryId && categoryId !== 'all' && { categoryId })
+    };
+    dispatch(onFavoriteslist(payload));
+  };
+
+  // Fetch categories and favorites on component mount
+  useEffect(() => {
+  //  fetchCategories();
+     getUserID();
+    fetchFavoritesList();
+  }, []);
+
+  // Handle favorites list API response
+  useEffect(() => {
+    if (
+      favoriteslist?.status === true ||
+      favoriteslist?.status === 'true' ||
+      favoriteslist?.status === 1 ||
+      favoriteslist?.status === "1"
+    ) {
+      console.log("favoriteslist response:", favoriteslist);
+      if (favoriteslist?.data) {
+        setEvents(favoriteslist.data);
+      }
+      dispatch(favoriteslistData(''));
+    }
+
+    if (favoriteslistErr) {
+      console.log("favoriteslistErr:", favoriteslistErr);
+      dispatch(favoriteslistError(''));
+    }
+  }, [favoriteslist, favoriteslistErr, dispatch]);
+
+  // Handle toggle favorite API response
+  useEffect(() => {
+    if (
+      togglefavorite?.status === true ||
+      togglefavorite?.status === 'true' ||
+      togglefavorite?.status === 1 ||
+      togglefavorite?.status === "1"
+    ) {
+      console.log("togglefavorite response in favorites:", togglefavorite);
+      // Re-fetch favorites list after toggle
+      fetchFavoritesList(selectedCategory !== 'all' ? selectedCategory : undefined);
+      dispatch(togglefavoriteData(''));
+    }
+
+    if (togglefavoriteErr) {
+      console.log("togglefavoriteErr in favorites:", togglefavoriteErr);
+      dispatch(togglefavoriteError(''));
+    }
+  }, [togglefavorite, togglefavoriteErr, dispatch]);
 
   const handleCategoryPress = (categoryId: string) => {
     setSelectedCategory(categoryId);
+    // Fetch favorites with category filter
+    fetchFavoritesList(categoryId !== 'all' ? categoryId : undefined);
   };
 
   const handleEventPress = (eventId: string) => {
     console.log("Event pressed:", eventId);
     // Navigate to event details
+    console.log('Book Now clicked for event:', eventId);
+    // Handle booking logic here
+    (navigation as any).navigate("ClubDetailScreen", { clubId: eventId || '68b6eceba9ae1fc590695248' });
   };
 
   const handleFavoritePress = (eventId: string) => {
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === eventId
-          ? { ...event, isFavorite: !event.isFavorite }
-          : event
-      )
-    );
+    console.log('Toggling favorite for event ID:', eventId);
+    dispatch(onTogglefavorite({ eventId }));
   };
 
-  const filteredEvents =
-    selectedCategory === "all"
-      ? events
-      : events.filter((event) => {
-          switch (selectedCategory) {
-            case "vip":
-              return event.category === "VIP Clubs";
-            case "dj":
-              return event.category === "DJ Nights";
-            case "events":
-              return event.category === "Events";
-            case "lounge":
-              return event.category === "Lounge Bars";
-            case "live":
-              return event.category === "Live Music";
-            case "dance":
-              return event.category === "Dance Floors";
-            default:
-              return true;
-          }
-        });
+  // Use API categories if available, otherwise fallback to static categories
+  const allCategories = apiCategories.length > 0 ? [
+    { _id: "all", name: "All" },
+    ...apiCategories
+  ] : [
+    { _id: "all", name: "All" }
+  ];
+
+  // No need for local filtering since we're using API filtering
+  const filteredEvents = events;
 
   return (
     <View style={styles.container}>
@@ -237,31 +175,84 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriesContainer}
             >
-              {categories.map((category) => (
-                <CategoryButton
-                  key={category.id}
-                  title={category.title}
-                  isSelected={selectedCategory === category.id}
-                  onPress={() => handleCategoryPress(category.id)}
-                />
-              ))}
+              {allCategories.map((category) => {
+                const categoryId = (category as any)._id || (category as any).id;
+                const categoryTitle = (category as any).name || (category as any).title;
+                return (
+                  <CategoryButton
+                    key={categoryId}
+                    title={categoryTitle}
+                    isSelected={selectedCategory === categoryId}
+                    onPress={() => handleCategoryPress(categoryId)}
+                  />
+                );
+              })}
             </ScrollView>
           </View>
 
-          <ScrollView
-            style={styles.eventsContainer}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.eventsContent}
-          >
-            {filteredEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                onPress={() => handleEventPress(event.id)}
-                onFavoritePress={() => handleFavoritePress(event.id)}
+          <View style={styles.eventsContainer}>
+            {/* Favorites Section */}
+            <Text style={styles.sectionTitle}>Favorites ({filteredEvents.length})</Text>
+            
+            {filteredEvents.length > 0 ? (
+              <FlatList
+                data={filteredEvents}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.eventsContent}
+                keyExtractor={(item, index) => (item as any).eventId?._id || (item as any)._id || index.toString()}
+                renderItem={({ item: favorite, index }) => {
+                  const event = favorite.eventId; // Extract event data from eventId
+                  const eventId = event?._id || favorite._id;
+                  
+                  // Create event object that matches the structure expected by NearbyEventCard
+                  const eventData = {
+                    ...event, // Spread all event properties
+                    _id: eventId,
+                    id: eventId,
+                    isFavorite: true, // All items in favorites are favorited
+                    // Ensure we have the required properties
+                    name: event?.name || 'Unknown Event',
+                    type: event?.type || 'Event',
+                    address: event?.address || 'Location not available',
+                    photos: event?.photos || [],
+                    startDate: event?.startDate || favorite.createdAt,
+                    openingTime: event?.openingTime || 'Time not available',
+                    // Calculate entryFee from booths if available
+                    entryFee: (() => {
+                      if (event?.booths && event.booths.length > 0) {
+                        const prices = event.booths
+                          .map((booth: any) => booth.boothPrice || booth.discountedPrice || 0)
+                          .filter((price: number) => price > 0);
+                        
+                        if (prices.length > 0) {
+                          return Math.min(...prices).toString();
+                        }
+                      }
+                      return '0';
+                    })(),
+                  };
+                  
+                  return (
+                    <NearbyEventCard
+                      event={eventData}
+                      onPress={() => handleEventPress(eventId)}
+                      onFavoritePress={() => handleFavoritePress(eventId)}
+                    />
+                  );
+                }}
               />
-            ))}
-          </ScrollView>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyTitle}>No Favorites Yet</Text>
+                <Text style={styles.emptySubtitle}>
+                  {selectedCategory === 'all' 
+                    ? "Start adding events to your favorites to see them here!"
+                    : "No favorites found in this category. Try selecting a different category."
+                  }
+                </Text>
+              </View>
+            )}
+          </View>
         </SafeAreaView>
       </LinearGradient>
     </View>

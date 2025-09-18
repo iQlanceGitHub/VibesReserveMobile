@@ -231,6 +231,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "success",
         signin?.message || "Something went wrong. Please try again."
       );
+      
       if (signin?.token) {
         storeUserToken(signin?.token);
       }
@@ -284,6 +285,12 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         socialLogin?.message || "Something went wrong. Please try again."
       );
       dispatch(setUser(socialLogin));
+      if (socialLogin?.token) {
+        storeUserToken(socialLogin?.token);
+      }
+      if (socialLogin?.user?.id) {
+        storeUserId(socialLogin.user.id);
+      }
       dispatch(socialLoginData(""));
     }
 

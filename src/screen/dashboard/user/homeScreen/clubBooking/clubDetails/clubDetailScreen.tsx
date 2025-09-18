@@ -50,7 +50,6 @@ const ClubDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
   const [selectedLounge, setSelectedLounge] = useState('crystal');
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [viewedMap, setViewedMap] = useState(false);
@@ -84,12 +83,12 @@ const ClubDetailScreen = () => {
     ) {
       console.log("viewdetails response:+>", viewdetails);
       setClubDetails(viewdetails?.data);
-      
+
       // Initialize bookmark state based on club details
       if (viewdetails?.data?.isFavorite !== undefined) {
         setIsBookmarked(viewdetails.data.isFavorite);
       }
-      
+
       dispatch(viewdetailsData(''));
     }
 
@@ -109,7 +108,7 @@ const ClubDetailScreen = () => {
       togglefavorite?.status === "1"
     ) {
       console.log("togglefavorite response:+>", togglefavorite);
-      
+
       // Update bookmark state based on server response
       if (togglefavorite?.data?.isFavorite !== undefined) {
         setIsBookmarked(togglefavorite.data.isFavorite);
@@ -117,7 +116,7 @@ const ClubDetailScreen = () => {
         // Fallback: toggle current state
         setIsBookmarked((prev: boolean) => !prev);
       }
-      
+
       dispatch(togglefavoriteData(''));
     }
 
@@ -134,8 +133,8 @@ const ClubDetailScreen = () => {
     title: facility.name || 'Facility',
     icon: <CocktailIcon size={16} color={colors.white} />
   })) || [
-    
-  ];
+
+    ];
 
   // Get coordinates from API data or use default
   const location = {
@@ -514,7 +513,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       console.log('user_token length:', userToken?.length);
       console.log('signin data (raw):', signinData);
       console.log('eventId:', eventId);
-      
+
       // Test if token is valid JWT format
       if (userToken && userToken.includes('.')) {
         const parts = userToken.split('.');
@@ -550,13 +549,12 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       selectedLounge: selectedLounge,
       selectedLoungeData: selectedLoungeData,
       isBookmarked: isBookmarked,
-      isLiked: isLiked,
       totalPrice: getTotalPrice(),
       eventDetails: {
         title: (clubDetails as any)?.name || 'Club Event',
         location: (clubDetails as any)?.address || 'Location',
-        date: clubDetails ? 
-          `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` : 
+        date: clubDetails ?
+          `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
           'Date',
         rating: '4.8',
         category: (clubDetails as any)?.type || 'Club'
@@ -571,7 +569,6 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       userInteractions: {
         viewedMap: viewedMap,
         bookmarked: isBookmarked,
-        liked: isLiked
       }
     };
 
@@ -616,17 +613,23 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               style={styles.iconButton}
               onPress={handleToggleFavorite}
             >
-              {isBookmarked ? (
+              {/* {isBookmarked ? (
                 <FavouriteIcon size={20} color={colors.violate} />
               ) : (
                 <HeartIcon size={20} color={colors.white} />
+              )} */}
+              {/* {isBookmarked ? (
+                <FavouriteIcon size={16} color={colors.violate} />
+              ) : (
+                <HeartIcon size={16} color={colors.white} />
+              )} */}
+
+              {isBookmarked ? (
+                <HeartIcon size={20} color={colors.white} />
+              ) : (
+                <FavouriteIcon size={20} color={colors.violate} />
               )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => setIsLiked(!isLiked)}
-            >
-              <HeartIcon size={20} color={isLiked ? colors.violate : colors.white} />
+              
             </TouchableOpacity>
           </View>
         </View>
@@ -657,8 +660,8 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
             <View style={styles.detailRow}>
               <ClockIcon size={16} color={colors.violate} />
               <Text style={styles.detailText}>
-                {clubDetails ? 
-                  `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` : 
+                {clubDetails ?
+                  `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
                   'Loading...'
                 }
               </Text>
@@ -755,10 +758,10 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                 <Text style={styles.mapButtonText}>View on Map</Text>
               </TouchableOpacity></View>
 
-             <View style={styles.addressRow}>
-               <LocationFavourite size={16} color={colors.violate} />
-               <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
-             </View>
+            <View style={styles.addressRow}>
+              <LocationFavourite size={16} color={colors.violate} />
+              <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
+            </View>
 
 
             <View style={styles.mapContainer}>
@@ -784,7 +787,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Facilities</Text>
             <View style={styles.facilitiesContainer}>
-               {facilities.map((facility: any) => (
+              {facilities.map((facility: any) => (
                 <TouchableOpacity
                   key={facility.id}
                   style={[

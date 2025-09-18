@@ -280,4 +280,28 @@ locationTitleContainer: {
   backgroundColor: 'transparent',
   pointerEvents: 'none', // Don't block map touches
 },
+// Test button styles - Remove in production
+testButton: {
+  backgroundColor: colors.primary_blue,
+  paddingVertical: verticalScale(12),
+  paddingHorizontal: horizontalScale(24),
+  borderRadius: verticalScale(25),
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginHorizontal: horizontalScale(20),
+  marginVertical: verticalScale(20),
+  shadowColor: colors.primary_blue,
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.3,
+  shadowRadius: 8,
+  elevation: 4,
+},
+testButtonText: {
+  fontSize: fontScale(16),
+  fontFamily: fonts.Medium,
+  color: colors.white,
+},
 });

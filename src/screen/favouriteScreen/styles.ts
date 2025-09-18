@@ -62,7 +62,41 @@ export default StyleSheet.create({
   eventsContainer: {
     flex: 1,
   },
+  nearbyEventsContainer: {
+    paddingHorizontal: horizontalScale(20),
+    paddingBottom: verticalScale(20),
+  },
   eventsContent: {
     paddingBottom: verticalScale(20),
+  },
+  sectionTitle: {
+    fontSize: fontScale(18),
+    fontFamily: fonts.bold,
+    color: colors.white,
+    marginBottom: verticalScale(16),
+    marginTop: verticalScale(8),
+    paddingHorizontal: horizontalScale(20),
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: verticalScale(50),
+    paddingHorizontal: horizontalScale(40),
+  },
+  emptyTitle: {
+    fontSize: fontScale(20),
+    fontFamily: fonts.bold,
+    color: colors.white,
+    marginBottom: verticalScale(10),
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: fontScale(14),
+    fontFamily: fonts.regular,
+    color: colors.white,
+    textAlign: 'center',
+    opacity: 0.7,
+    lineHeight: fontScale(20),
   },
 });

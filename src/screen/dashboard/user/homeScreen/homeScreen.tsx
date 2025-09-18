@@ -122,6 +122,7 @@ const HomeScreen = () => {
   const [nearby, setNearby] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState([]);
   const [userId, setUserId] = useState('');
+  const [shouldNavigateToFilter, setShouldNavigateToFilter] = useState(false);
 
   const dispatch = useDispatch();
   const home = useSelector((state: any) => state.auth.home);
@@ -256,8 +257,26 @@ const HomeScreen = () => {
       console.log("filterErr:+>", filterErr);
       setMsg(filterErr?.message?.toString())
       dispatch(filterError(''));
+      // Reset navigation flag on error
+      setShouldNavigateToFilter(false);
     }
   }, [filter, filterErr, dispatch]);
+
+  // Navigate to FilterListScreen when filter API is successful
+  useEffect(() => {
+    if (
+      shouldNavigateToFilter &&
+      (filter?.status === true ||
+      filter?.status === 'true' ||
+      filter?.status === 1 ||
+      filter?.status === "1")
+    ) {
+      // Navigate to FilterListScreen with filtered data
+      (navigation as any).navigate("FilterListScreen", { filteredData: filteredData });
+      // Reset the flag
+      setShouldNavigateToFilter(false);
+    }
+  }, [filter, filteredData, navigation, shouldNavigateToFilter]);
 
   // Handle Toggle Favorite API response
   useEffect(() => {
@@ -315,11 +334,11 @@ const HomeScreen = () => {
 
     console.log('Filter Payload:', filterPayload);
     
+    // Set flag to navigate when filter response is received
+    setShouldNavigateToFilter(true);
+    
     // Call filter API
     dispatch(onFilter(filterPayload));
-    
-    // Navigate to FilterListScreen
-    navigation.navigate("FilterListScreen" as never);
   };
 
   const handleBookNow = (eventId?: string) => {
@@ -385,7 +404,7 @@ const HomeScreen = () => {
             <TouchableOpacity style={styles.filterButton} onPress={handleFilterPress}>
               <Filtericon/>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton} onPress={()=> navigation.navigate("ExploreScreen" as never)}>
+            <TouchableOpacity style={styles.filterButton} onPress={()=> (navigation as any).navigate("ExploreScreen", { nearbyEvents: nearby, featuredEvents: featured })}>
              <LocationFavouriteWhiteIcon />
             </TouchableOpacity>
           </View>
@@ -438,7 +457,8 @@ const HomeScreen = () => {
                 rating={4.5}
                 isFavorite={(item as any).isFavorite}
                 onBookNow={() => handleBookNow((item as any)._id)}
-                onFavoritePress={() => handleFavorite((item as any)._id)}
+                onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
+                _id={(item as any)._id || (item as any).id}
               />
             );
           }}
@@ -447,7 +467,9 @@ const HomeScreen = () => {
         {/* Nearby Events */}
         <View style={styles.nearbyHeaderRow}>
           <Text style={styles.sectionTitle}>Nearby</Text>
-          <TouchableOpacity><Text style={styles.seeAllText}>See All</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => (navigation as any).navigate("NearbyEventsSeeAllScreen", { nearbyEvents: nearby })}>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
         </View>
         <FlatList
           data={nearby.length > 0 ? nearby : sampleEvents}
@@ -462,6 +484,14 @@ const HomeScreen = () => {
             />
           )}
         />
+
+        {/* Test Button for UpcomingScreen - Remove this in production */}
+        <TouchableOpacity 
+          style={styles.testButton}
+          onPress={() => (navigation as any).navigate("UpcomingScreen")}
+        >
+          <Text style={styles.testButtonText}>Test Upcoming Screen</Text>
+        </TouchableOpacity>
       </ScrollView>
       
       {/* Filter Modal */}

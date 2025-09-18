@@ -19,6 +19,7 @@ interface EventCardProps {
   tag?: string;
   image?: string;
   isFavorite?: boolean;
+  _id?: string;
   onBookNow?: () => void;
   onFavoritePress?: (eventId: string) => void;
 }
@@ -33,17 +34,18 @@ const EventCard: React.FC<EventCardProps> = ({
   tag,
   image,
   isFavorite = false,
+  _id = '',
   onBookNow,
   onFavoritePress 
 }) => {
 
   const handleFavoritePress = () => {
-    if (!event?._id && !event?.id) {
+    const eventId = (event as any)?._id || _id;
+    if (!eventId) {
       Alert.alert('Error', 'Event ID not available');
       return;
     }
 
-    const eventId = event?._id || event?.id;
     console.log('Featured Event - Toggling favorite for event ID:', eventId);
     
     // Call the parent's onFavoritePress function
@@ -62,12 +64,15 @@ const EventCard: React.FC<EventCardProps> = ({
         <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
           <View style={styles.heartIconContainer}>
             {isFavorite ? (
-              <FavouriteIcon size={20} color={colors.violate} />
-            ) : (
               <HeartIcon size={20} color={colors.white} />
+            ) : (
+              <FavouriteIcon size={20} color={colors.violate} />
             )}
+            
+            
           </View>
         </TouchableOpacity>
+        
         
         {/* Tag - Top Right */}
         <View style={styles.tagContainer}>

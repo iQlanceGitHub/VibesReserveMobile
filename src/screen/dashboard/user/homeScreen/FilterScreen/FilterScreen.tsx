@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
+import { colors } from '../../../../../utilis/colors';
 import CategoryButton from '../../../../../components/CategoryButton';
 import PriceRangeSlider from './components/PriceRangeSlider';
 import DistanceSlider from './components/DistanceSlider';
@@ -146,14 +147,33 @@ const dates = generateDates();
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.filterContainer}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.filterContainer}>
           {/* Drag Handle */}
           <View style={styles.dragHandle} />
           
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Filter</Text>
+            <TouchableOpacity 
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }} 
+              onPress={onClose}
+            >
+              <Text style={{
+                fontSize: 18,
+                color: colors.white,
+                fontWeight: 'bold',
+              }}>✕</Text>
+            </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -233,8 +253,10 @@ const dates = generateDates();
               <Text style={styles.applyButtonText}>Apply</Text>
             </TouchableOpacity>
           </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
