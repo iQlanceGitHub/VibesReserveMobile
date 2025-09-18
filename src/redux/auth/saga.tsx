@@ -78,13 +78,24 @@ import {
   favoriteslistData,
   favoriteslistError,
 
+  onBookingrequest,
+  bookingrequestData,
+  bookingrequestError,
+
+  onAcceptreject,
+  acceptrejectData,
+  acceptrejectError,
+
+  onCreateevent,
+  createeventData,
+  createeventError,
 
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
 
 import { base_url_client, base_url_qa } from "../apiConstant";
-import { fetchPost, fetchGet } from "../services";
+import { fetchPost, fetchGet, fetchPut } from "../services";
 
 const baseurl = base_url_client;
 
@@ -562,6 +573,7 @@ interface HomePayload {
   long?: string;
   categoryid?: string;
   userId?: string;
+  search_keyword: string;
 }
 
 function* HomeSaga({ payload }: { payload: HomePayload }) {
@@ -572,6 +584,7 @@ function* HomeSaga({ payload }: { payload: HomePayload }) {
       "long": payload?.long,
       categoryid:payload?.categoryid,
       userId:payload?.userId,
+      search_keyword: payload?.search_keyword,
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${'user/home'}`,
@@ -860,6 +873,40 @@ interface FavoriteslistPayload {
   eventId?: string;
 }
 
+interface BookingrequestPayload {
+  page: number;
+  limit: number;
+}
+
+interface AcceptrejectPayload {
+  bookingId: string;
+  action: 'accept' | 'reject';
+  reason: string;
+}
+
+interface CreateeventPayload {
+  type: string;
+  name: string;
+  details: string;
+  entryFee: number;
+  openingTime: string;
+  closeTime: string;
+  startDate: string;
+  endDate: string;
+  address: string;
+  coordinates: {
+    type: string;
+    coordinates: number[];
+  };
+  photos: string[];
+  facilities: string[];
+  tickets: Array<{
+    ticketType: string;
+    ticketPrice: number;
+    capacity: number;
+  }>;
+}
+
 function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
   try {
     yield put(displayLoading(true));
@@ -894,8 +941,116 @@ function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
   }
 }
 
+// function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }) {
+//   try {
+//     yield put(displayLoading(true));
+    
+//     const response = yield call(fetchGet, {
+  interface BookingrequestPayload {
+    eventId?: string;
+  }
+  
+  function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }) {
+    try {
+      yield put(displayLoading(true));
+      const params = {
+        "status": 'pending',
+        
+      };
+      const response = yield call(fetchPost, {
+      url: `${baseurl}${`user/bookingrequest?page=${payload?.page}&limit=${payload?.limit}`}`,
+      params,
+    });
+    
+    console.log("BookingrequestSaga response:", response);
+    
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(bookingrequestData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(bookingrequestError(response));
+    }
+    
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(bookingrequestError(error));
+    yield put(displayLoading(false));
+  }
+}
 
+function* AcceptrejectSaga({ payload }: { payload: AcceptrejectPayload }) {
+  try {
+    yield put(displayLoading(true));
+    
+    const params = {
+      "bookingId": payload?.bookingId,
+      "action": payload?.action,
+      "reason": payload?.reason,
+    };
+    
+    const response = yield call(fetchPut, {
+      url: `${baseurl}${`user/acceptreject`}`,
+      params,
+    });
+    
+    console.log("AcceptrejectSaga response:", response);
+    
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(acceptrejectData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(acceptrejectError(response));
+    }
+    
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(acceptrejectError(error));
+    yield put(displayLoading(false));
+  }
+}
 
+function* CreateeventSaga({ payload }: { payload: CreateeventPayload }) {
+  try {
+    yield put(displayLoading(true));
+    
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${`user/createevent`}`,
+      params: payload,
+    });
+    
+    console.log("CreateeventSaga response:", response);
+    
+    if (
+      response?.status === true ||
+      response?.status === 'true' ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(createeventData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(createeventError(response));
+    }
+    
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(createeventError(error));
+    yield put(displayLoading(false));
+  }
+}
 
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
@@ -920,6 +1075,9 @@ function* authSaga() {
   yield takeLatest(onFacility().type, FacilitySaga);
   yield takeLatest(onTogglefavorite().type, TogglefavoriteSaga);
   yield takeLatest(onFavoriteslist().type, FavoriteslistSaga);
+  yield takeLatest(onBookingrequest().type, BookingrequestSaga);
+  yield takeLatest(onAcceptreject().type, AcceptrejectSaga);
+  yield takeLatest(onCreateevent().type, CreateeventSaga);
 
 }
 

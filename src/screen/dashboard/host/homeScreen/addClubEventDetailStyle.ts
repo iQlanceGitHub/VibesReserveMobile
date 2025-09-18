@@ -47,6 +47,21 @@ const addClubDetailStyle = StyleSheet.create({
   formElement: {
     marginBottom: verticalScale(16),
   },
+  errorText: {
+    color: colors.red,
+    fontSize: fontScale(12),
+    fontFamily: fonts.regular,
+    marginTop: verticalScale(4),
+    marginLeft: horizontalScale(4),
+  },
+  uploadedImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: horizontalScale(8),
+  },
+  typeContainer: {
+    paddingVertical: verticalScale(8),
+  },
   timeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -80,6 +95,12 @@ const addClubDetailStyle = StyleSheet.create({
     minHeight: verticalScale(50),
   },
   timeInputText: {
+    color: colors.white,
+    fontSize: fontScale(15),
+    fontFamily: fonts.reguler,
+    flex: 1,
+  },
+  timeInputPlaceholder: {
     color: colors.white,
     fontSize: fontScale(15),
     fontFamily: fonts.reguler,

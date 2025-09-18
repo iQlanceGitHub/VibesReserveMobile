@@ -32,6 +32,9 @@ import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIl
 import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
 import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearbyEventsSeeAll/nearbyEventsSeeAllScreen";
 import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
+import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
+
+import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -103,10 +106,10 @@ function MyTabs() {
 function HostTabs() {
   return (
     <Tab.Navigator tabBar={(props) => <HostBottomTabNavigator {...props} />}>
-      <Tab.Screen name="Home" component={homeScreen} options={{ headerShown: false }} />
-      <Tab.Screen name="Search" component={favouriteScreen}options={{ headerShown: false }} />
-      <Tab.Screen name="Match" component={homeScreen} options={{ headerShown: false }}/>
-      <Tab.Screen name="Chat" component={homeScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Home" component={HostHomeScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Search" component={UpcomingScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Match" component={UpcomingScreen} options={{ headerShown: false }}/>
+      <Tab.Screen name="Chat" component={UpcomingScreen}options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }
@@ -222,6 +225,11 @@ const NavigationStack: React.FC = () => {
            <Stack.Screen
             name="UpcomingScreen"
             component={UpcomingScreen}
+            options={{ headerShown: false }}
+          />  
+            <Stack.Screen
+            name="AddClubEventDetailScreen"
+            component={AddClubEventDetailScreen}
             options={{ headerShown: false }}
           />  
           

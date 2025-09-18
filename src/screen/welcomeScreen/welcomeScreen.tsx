@@ -109,22 +109,36 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     }
   };
 
-  const getNavigation = async () => {
+ 
+  const getUser = async () => {
     try {
-      navigation.navigate('HomeTabs')
+      const user = await AsyncStorage.getItem("user");
+      if (user !== null) {
+        const parsedUser = JSON.parse(user);
+        console.log("User retrieved:", parsedUser);
+        return parsedUser;
+      }
     } catch (e) {
-      console.error("Failed to fetch the user token.", e);
+      console.error("Failed to fetch the user.", e);
     }
-  }; 
+  };
 
   useEffect(() => {
-
-  getUserToken().then((token) => {
-    console.log('token:===>',token)
-    if(token){
-      getNavigation();
-    }
-  });
+    getUserToken().then((token) => {
+      console.log('token:===>',token)
+      if(token){
+        getUser().then((user) => {
+          console.log('user::===>',user)
+          console.log('user::===>',user?.currentRole)
+          if(user?.currentRole === 'user'){
+            navigation.navigate('HomeTabs' as never);
+          }else if(user?.currentRole === 'host'){
+            navigation.navigate('HostTabs' as never);
+          }else{
+          }
+        });
+      }
+    });
     if (
       socialLogin?.status === true ||
       socialLogin?.status === 'true' ||

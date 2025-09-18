@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Platform,
   StatusBar,
   SafeAreaView,
+  Image,
+  PermissionsAndroid,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
@@ -18,6 +20,8 @@ import { Buttons } from "../../../../components/buttons";
 import { colors } from "../../../../utilis/colors";
 import DetailsInput from "../../../../components/DetailsInput";
 import CustomDropdown from "../../../../components/CustomDropdown";
+import ImageSelectionBottomSheet from "../../../../components/ImageSelectionBottomSheet";
+import CategoryButton from "../../../../components/CategoryButton";
 import addClubEventDetailStyle from "./addClubEventDetailStyle";
 import TimeIcon from "../../../../assets/svg/timeIcon";
 import CalendarIcon from "../../../../assets/svg/calendarIcon";
@@ -26,6 +30,15 @@ import PlusIcon from "../../../../assets/svg/plusIcon";
 import GalleryIcon from "../../../../assets/svg/galleryIcon";
 import BackIcon from "../../../../assets/svg/backIcon";
 import LinearGradient from "react-native-linear-gradient";
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  onCreateevent,
+  createeventData,
+  createeventError,
+} from '../../../../redux/auth/actions';
+import { showToast } from '../../../../utilis/toastUtils';
+import { uploadFileToS3 } from '../../../../utilis/s3Upload';
+import { launchCamera, launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 
 interface BoothType {
   id: string;
@@ -45,30 +58,47 @@ interface AddClubDetailScreenProps {
 const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   navigation,
 }) => {
-  const [fee, setFee] = useState("");
-  const [type, setType] = useState("Club");
+  // Form data
+  const [type, setType] = useState("Event");
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [boothName, setBoothName] = useState("");
-  const [boothType, setBoothType] = useState("");
   const [entryFee, setEntryFee] = useState("");
-  const [boothPrice, setBoothPrice] = useState("");
-  const [capacity, setCapacity] = useState("");
-  const [discountedPrice, setDiscountedPrice] = useState("");
   const [address, setAddress] = useState("");
   const [ticketType, setTicketType] = useState("");
   const [ticketPrice, setTicketPrice] = useState("");
+  const [capacity, setCapacity] = useState("");
 
+  // UI state
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [timePickerMode, setTimePickerMode] = useState<"start" | "end">(
-    "start"
-  );
-  const [boothImages, setBoothImages] = useState<string[]>([]);
+  const [timePickerMode, setTimePickerMode] = useState<"start" | "end">("start");
   const [uploadPhotos, setUploadPhotos] = useState<string[]>([]);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // Validation errors
+  const [errors, setErrors] = useState({
+    name: false,
+    details: false,
+    entryFee: false,
+    startTime: false,
+    endTime: false,
+    startDate: false,
+    endDate: false,
+    address: false,
+    ticketType: false,
+    ticketPrice: false,
+    capacity: false,
+  });
+
+  // Redux
+  const dispatch = useDispatch();
+  const createevent = useSelector((state: any) => state.auth.createevent);
+  const createeventErr = useSelector((state: any) => state.auth.createeventErr);
 
   const types: BoothType[] = [
     { id: "1", name: "Club" },
@@ -104,6 +134,136 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
   const [facilitiesList, setFacilitiesList] = useState<Facility[]>(facilities);
 
+  // Validation function
+  const validateForm = () => {
+    const newErrors = {
+      name: !name.trim(),
+      details: !details.trim(),
+      entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
+      startTime: !startTime.trim(),
+      endTime: !endTime.trim(),
+      startDate: !startDate.trim(),
+      endDate: !endDate.trim(),
+      address: !address.trim(),
+      ticketType: type === "Event" && !ticketType.trim(),
+      ticketPrice: type === "Event" && (!ticketPrice.trim() || isNaN(Number(ticketPrice))),
+      capacity: type === "Event" && (!capacity.trim() || isNaN(Number(capacity))),
+    };
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error);
+  };
+
+  // Image handling functions
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'App needs camera permission to take photos',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs storage permission to access photos',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleImagePicker = (type: 'camera' | 'gallery') => {
+    setShowImagePicker(false);
+    
+    const options = {
+      mediaType: 'photo' as MediaType,
+      quality: 0.8 as any,
+      maxWidth: 1024,
+      maxHeight: 1024,
+    };
+
+    const callback = (response: ImagePickerResponse) => {
+      if (response.didCancel || response.errorMessage) {
+        return;
+      }
+
+      if (response.assets && response.assets[0]) {
+        const asset = response.assets[0];
+        if (asset.uri) {
+          handleImageUpload(asset.uri);
+        }
+      }
+    };
+
+    if (type === 'camera') {
+      requestCameraPermission().then(hasPermission => {
+        if (hasPermission) {
+          launchCamera(options, callback);
+        } else {
+          showToast('error', 'Camera permission denied');
+        }
+      });
+    } else {
+      requestStoragePermission().then(hasPermission => {
+        if (hasPermission) {
+          launchImageLibrary(options, callback);
+        } else {
+          showToast('error', 'Storage permission denied');
+        }
+      });
+    }
+  };
+
+  const handleImageUpload = async (imageUri: string) => {
+    try {
+      setLoading(true);
+      const fileName = `event_${Date.now()}.jpg`;
+      const uploadedUrl = await uploadFileToS3(imageUri, fileName, 'image/jpeg');
+      
+      const newPhotos = [...uploadPhotos];
+      if (currentImageIndex < newPhotos.length) {
+        newPhotos[currentImageIndex] = uploadedUrl;
+      } else {
+        newPhotos.push(uploadedUrl);
+      }
+      setUploadPhotos(newPhotos);
+      
+      showToast('success', 'Image uploaded successfully');
+    } catch (error) {
+      console.log('Image upload error:', error);
+      showToast('error', 'Failed to upload image');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false);
     if (selectedTime) {
@@ -133,31 +293,77 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     );
   };
 
-  const handleBoothImageUpload = () => {
-    if (boothImages.length < 3) {
-      Alert.alert("Image Upload", "Image picker would open here");
-    }
-  };
-
-  const handlePhotoUpload = () => {
-    if (uploadPhotos.length < 3) {
-      Alert.alert("Photo Upload", "Image picker would open here");
-    }
-  };
 
   const handleSave = () => {
-    Alert.alert("Success", "Club details saved successfully!", [
-      {
-        text: "OK",
-        onPress: () => {
-          navigation?.goBack();
-        },
-      },
-    ]);
+    if (!validateForm()) {
+      showToast('error', 'Please fill in all required fields correctly');
+      return;
+    }
+
+    // Get selected facilities
+    const selectedFacilities = facilitiesList
+      .filter(facility => facility.selected)
+      .map(facility => facility.id);
+
+    // Prepare tickets array for events
+    const tickets = type === "Event" ? [{
+      ticketType: ticketType,
+      ticketPrice: Number(ticketPrice),
+      capacity: Number(capacity)
+    }] : [];
+
+    // Prepare coordinates (you might want to get this from location picker)
+    const coordinates = {
+      type: "Point",
+      coordinates: [23.026071652494444, 72.50766386964187] // Default coordinates
+    };
+
+    const eventData = {
+      type: type,
+      name: name,
+      details: details,
+      entryFee: Number(entryFee),
+      openingTime: startTime,
+      closeTime: endTime,
+      startDate: startDate,
+      endDate: endDate,
+      address: address,
+      coordinates: coordinates,
+      photos: uploadPhotos,
+      facilities: selectedFacilities,
+      tickets: tickets
+    };
+
+    console.log('Creating event with data:', eventData);
+    dispatch(onCreateevent(eventData));
   };
 
   const handleBack = () => {
     navigation?.goBack();
+  };
+
+  // Handle API responses
+  useEffect(() => {
+    if (
+      createevent?.status === true ||
+      createevent?.status === 'true' ||
+      createevent?.status === 1 ||
+      createevent?.status === "1"
+    ) {
+      showToast('success', 'Event created successfully!');
+      dispatch(createeventData(''));
+      navigation?.goBack();
+    }
+    if (createeventErr) {
+      showToast('error', createeventErr?.message || 'Failed to create event');
+      dispatch(createeventError(''));
+    }
+  }, [createevent, createeventErr, dispatch, navigation]);
+
+  // Update image upload handlers
+  const handlePhotoUpload = (index: number) => {
+    setCurrentImageIndex(index);
+    setShowImagePicker(true);
   };
 
   return (
@@ -200,9 +406,14 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 label="Name"
                 placeholder="Enter name"
                 value={name}
-                onChangeText={setName}
-                error={false}
-                message=""
+                onChangeText={(text) => {
+                  setName(text);
+                  if (errors.name) {
+                    setErrors(prev => ({ ...prev, name: false }));
+                  }
+                }}
+                error={errors.name}
+                message={errors.name ? "Name is required" : ""}
                 leftImage=""
                 kType="default"
               />
@@ -212,9 +423,14 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               label="Details"
               placeholder="Enter here"
               value={details}
-              onChangeText={setDetails}
-              error={false}
-              message=""
+              onChangeText={(text) => {
+                setDetails(text);
+                if (errors.details) {
+                  setErrors(prev => ({ ...prev, details: false }));
+                }
+              }}
+              error={errors.details}
+              message={errors.details ? "Details are required" : ""}
               required={false}
             />
             <View style={addClubEventDetailStyle.formElement}>
@@ -222,9 +438,14 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 label="Entry Fee"
                 placeholder="Enter fee"
                 value={entryFee}
-                onChangeText={setEntryFee}
-                error={false}
-                message=""
+                onChangeText={(text) => {
+                  setEntryFee(text);
+                  if (errors.entryFee) {
+                    setErrors(prev => ({ ...prev, entryFee: false }));
+                  }
+                }}
+                error={errors.entryFee}
+                message={errors.entryFee ? "Valid entry fee is required" : ""}
                 leftImage=""
                 kType="numeric"
               />
@@ -235,9 +456,14 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 label="Start Date"
                 placeholder="Select date"
                 value={startDate}
-                onChangeText={setStartDate}
-                error={false}
-                message=""
+                onChangeText={(text) => {
+                  setStartDate(text);
+                  if (errors.startDate) {
+                    setErrors(prev => ({ ...prev, startDate: false }));
+                  }
+                }}
+                error={errors.startDate}
+                message={errors.startDate ? "Start date is required" : ""}
                 leftImage=""
                 style={addClubEventDetailStyle.datePickerWrapper}
               />
@@ -250,9 +476,14 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 label="End Date"
                 placeholder="Select date"
                 value={endDate}
-                onChangeText={setEndDate}
-                error={false}
-                message=""
+                onChangeText={(text) => {
+                  setEndDate(text);
+                  if (errors.endDate) {
+                    setErrors(prev => ({ ...prev, endDate: false }));
+                  }
+                }}
+                error={errors.endDate}
+                message={errors.endDate ? "End date is required" : ""}
                 leftImage=""
                 style={addClubEventDetailStyle.datePickerWrapper}
               />
@@ -264,27 +495,49 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.label}>Start Time</Text>
               <TouchableOpacity
-                style={addClubEventDetailStyle.timeInputButton}
-                onPress={() => showTimePickerModal("start")}
+                style={[
+                  addClubEventDetailStyle.timeInputButton,
+                  errors.startTime && { borderColor: colors.red }
+                ]}
+                onPress={() => {
+                  showTimePickerModal("start");
+                  if (errors.startTime) {
+                    setErrors(prev => ({ ...prev, startTime: false }));
+                  }
+                }}
               >
-                <Text style={addClubEventDetailStyle.timeInputText}>
+                <Text style={startTime ? addClubEventDetailStyle.timeInputText : addClubEventDetailStyle.timeInputPlaceholder}>
                   {startTime || "Select time"}
                 </Text>
                 <TimeIcon />
               </TouchableOpacity>
+              {errors.startTime && (
+                <Text style={addClubEventDetailStyle.errorText}>Start time is required</Text>
+              )}
             </View>
 
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.label}>End Time</Text>
               <TouchableOpacity
-                style={addClubEventDetailStyle.timeInputButton}
-                onPress={() => showTimePickerModal("end")}
+                style={[
+                  addClubEventDetailStyle.timeInputButton,
+                  errors.endTime && { borderColor: colors.red }
+                ]}
+                onPress={() => {
+                  showTimePickerModal("end");
+                  if (errors.endTime) {
+                    setErrors(prev => ({ ...prev, endTime: false }));
+                  }
+                }}
               >
-                <Text style={addClubEventDetailStyle.timeInputText}>
+                <Text style={endTime ? addClubEventDetailStyle.timeInputText : addClubEventDetailStyle.timeInputPlaceholder}>
                   {endTime || "Select time"}
                 </Text>
                 <TimeIcon />
               </TouchableOpacity>
+              {errors.endTime && (
+                <Text style={addClubEventDetailStyle.errorText}>End time is required</Text>
+              )}
             </View>
 
             <View style={addClubEventDetailStyle.formElement}>
@@ -292,78 +545,20 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 label="Address"
                 placeholder="Enter address"
                 value={address}
-                onChangeText={setAddress}
-                error={false}
-                message=""
+                onChangeText={(text) => {
+                  setAddress(text);
+                  if (errors.address) {
+                    setErrors(prev => ({ ...prev, address: false }));
+                  }
+                }}
+                error={errors.address}
+                message={errors.address ? "Address is required" : ""}
                 leftImage=""
                 kType="default"
                 multiline={true}
               />
             </View>
 
-            {type === "Club" && (
-              <>
-                <View style={addClubEventDetailStyle.formElement}>
-                  <CustomeTextInput
-                    label="Booth Name"
-                    placeholder="Enter booth name"
-                    value={boothName}
-                    onChangeText={setBoothName}
-                    error={false}
-                    message=""
-                    leftImage=""
-                    kType="default"
-                  />
-                </View>
-
-                <CustomDropdown
-                  label="Booth Type"
-                  placeholder="Select booth type"
-                  options={boothTypes}
-                  selectedValue={boothType}
-                  onSelect={setBoothType}
-                />
-
-                <View style={addClubEventDetailStyle.formElement}>
-                  <CustomeTextInput
-                    label="Booth Price"
-                    placeholder="Enter booth price"
-                    value={boothPrice}
-                    onChangeText={setBoothPrice}
-                    error={false}
-                    message=""
-                    leftImage=""
-                    kType="numeric"
-                  />
-                </View>
-
-                <View style={addClubEventDetailStyle.formElement}>
-                  <CustomeTextInput
-                    label="Capacity"
-                    placeholder="Enter capacity"
-                    value={capacity}
-                    onChangeText={setCapacity}
-                    error={false}
-                    message=""
-                    leftImage=""
-                    kType="numeric"
-                  />
-                </View>
-
-                <View style={addClubEventDetailStyle.formElement}>
-                  <CustomeTextInput
-                    label="Discounted Price"
-                    placeholder="Enter discounted price"
-                    value={discountedPrice}
-                    onChangeText={setDiscountedPrice}
-                    error={false}
-                    message=""
-                    leftImage=""
-                    kType="numeric"
-                  />
-                </View>
-              </>
-            )}
 
             {type === "Event" && (
               <>
@@ -372,17 +567,30 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                   placeholder="Select ticket type"
                   options={ticketTypes}
                   selectedValue={ticketType}
-                  onSelect={setTicketType}
+                  onSelect={(value) => {
+                    setTicketType(value);
+                    if (errors.ticketType) {
+                      setErrors(prev => ({ ...prev, ticketType: false }));
+                    }
+                  }}
                 />
+                {errors.ticketType && (
+                  <Text style={addClubEventDetailStyle.errorText}>Ticket type is required</Text>
+                )}
 
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
                     label="Ticket Price"
                     placeholder="Enter ticket price"
                     value={ticketPrice}
-                    onChangeText={setTicketPrice}
-                    error={false}
-                    message=""
+                    onChangeText={(text) => {
+                      setTicketPrice(text);
+                      if (errors.ticketPrice) {
+                        setErrors(prev => ({ ...prev, ticketPrice: false }));
+                      }
+                    }}
+                    error={errors.ticketPrice}
+                    message={errors.ticketPrice ? "Valid ticket price is required" : ""}
                     leftImage=""
                     kType="numeric"
                   />
@@ -393,9 +601,14 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     label="Capacity"
                     placeholder="Enter capacity"
                     value={capacity}
-                    onChangeText={setCapacity}
-                    error={false}
-                    message=""
+                    onChangeText={(text) => {
+                      setCapacity(text);
+                      if (errors.capacity) {
+                        setErrors(prev => ({ ...prev, capacity: false }));
+                      }
+                    }}
+                    error={errors.capacity}
+                    message={errors.capacity ? "Valid capacity is required" : ""}
                     leftImage=""
                     kType="numeric"
                   />
@@ -412,47 +625,27 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </>
             )}
 
-            {type === "Club" && (
-              <View style={addClubEventDetailStyle.imageSection}>
-                <Text style={addClubEventDetailStyle.sectionLabel}>
-                  Booth Image
-                </Text>
-                <View style={addClubEventDetailStyle.imageContainer}>
-                  <View style={addClubEventDetailStyle.imageBoxesContainer}>
-                    {[1, 2, 3].map((index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={addClubEventDetailStyle.imageUploadBox}
-                        onPress={handleBoothImageUpload}
-                      >
-                        <GalleryIcon />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <TouchableOpacity
-                    style={addClubEventDetailStyle.addNewBoothButton}
-                  >
-                    <PlusIcon />
-                    <Text style={addClubEventDetailStyle.addNewBoothText}>
-                      Add New Booth
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
 
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.sectionLabel}>
                 Upload Photos
               </Text>
               <View style={addClubEventDetailStyle.uploadPhotosRow}>
-                {[1, 2, 3].map((index) => (
+                {[0, 1, 2].map((index) => (
                   <TouchableOpacity
                     key={index}
                     style={addClubEventDetailStyle.imageUploadBox}
-                    onPress={handlePhotoUpload}
+                    onPress={() => handlePhotoUpload(index)}
                   >
-                    <GalleryIcon />
+                    {uploadPhotos[index] ? (
+                      <Image
+                        source={{ uri: uploadPhotos[index] }}
+                        style={addClubEventDetailStyle.uploadedImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <GalleryIcon />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -492,9 +685,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
             <View style={addClubEventDetailStyle.formElement}>
               <Buttons
-                title="Save"
+                title={loading ? "Creating..." : "Save"}
                 onPress={handleSave}
                 style={addClubEventDetailStyle.saveButton}
+                disabled={loading}
               />
             </View>
           </ScrollView>
@@ -507,8 +701,16 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
           mode="time"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={handleTimeChange}
+          textColor={colors.white}
         />
       )}
+
+      <ImageSelectionBottomSheet
+        visible={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onCameraPress={() => handleImagePicker('camera')}
+        onGalleryPress={() => handleImagePicker('gallery')}
+      />
     </View>
   );
 };

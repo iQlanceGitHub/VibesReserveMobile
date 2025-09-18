@@ -94,6 +94,18 @@ export const {
   favoriteslistData,
   favoriteslistError,
 
+  onBookingrequest,
+  bookingrequestData,
+  bookingrequestError,
+
+  onAcceptreject,
+  acceptrejectData,
+  acceptrejectError,
+
+  onCreateevent,
+  createeventData,
+  createeventError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -190,6 +202,18 @@ export const {
   'ON_FAVORITESLIST',
   'FAVORITESLIST_DATA',
   'FAVORITESLIST_ERROR',
+
+  'ON_BOOKINGREQUEST',
+  'BOOKINGREQUEST_DATA',
+  'BOOKINGREQUEST_ERROR',
+
+  'ON_ACCEPTREJECT',
+  'ACCEPTREJECT_DATA',
+  'ACCEPTREJECT_ERROR',
+
+  'ON_CREATEEVENT',
+  'CREATEEVENT_DATA',
+  'CREATEEVENT_ERROR',
 
   "SET_LOGIN_TOKEN",
 

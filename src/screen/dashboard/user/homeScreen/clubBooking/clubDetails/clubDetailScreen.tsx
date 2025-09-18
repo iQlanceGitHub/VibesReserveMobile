@@ -588,7 +588,8 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       {/* Header with Club Image */}
       <View style={styles.headerContainer}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop' }}
+          source={{ uri: (clubDetails as any)?.photos[0]
+          }}
           style={styles.headerImage}
           resizeMode="cover"
         />

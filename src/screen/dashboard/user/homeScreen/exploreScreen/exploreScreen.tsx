@@ -448,6 +448,25 @@ const ExploreScreen = () => {
 
   const onSearchClose = () => {
     setSearchVal('');
+    // Reset to original data when search is cleared
+    fetchNearbyData();
+  };
+
+  const handleSearch = async (searchText: string) => {
+    setSearchVal(searchText);
+    
+    if (searchText.trim().length > 0) {
+      const userId = await getUserID();
+      dispatch(onHome({
+        lat: currentLocation.longitude.toString(),
+        long: currentLocation.latitude.toString(),
+        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        search_keyword: searchText.trim(),
+      }));
+    } else {
+      // If search is empty, fetch original data
+      fetchNearbyData();
+    }
   };
 
   const handleRefresh = () => {
@@ -592,7 +611,7 @@ const ExploreScreen = () => {
         </Marker>
         
         {/* Nearby Event Markers */}
-        {nearbyEvents.map(renderEventMarker)}
+        {nearbyEvents.length > 0 ? nearbyEvents.map(renderEventMarker) : null}
       </MapView>
 
       {/* Overlay Content */}
@@ -613,7 +632,7 @@ const ExploreScreen = () => {
             <SearchIcon size={18} color={colors.violate} />
             <TextInput
               value={searchVal}
-              onChangeText={setSearchVal}
+              onChangeText={handleSearch}
               style={styles.input}
               placeholder="Search clubs, events, Bars,..."
               placeholderTextColor={'#9CA3AF'}

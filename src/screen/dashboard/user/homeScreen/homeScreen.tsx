@@ -210,6 +210,38 @@ const HomeScreen = () => {
   
   const onSearchClose = () => {
     setSearchVal('');
+    // Reset to original data when search is cleared
+    const callHomeAPI = async () => {
+      const userId = await getUserID();
+      dispatch(onHome({
+        lat: defaultLong,
+        long: defaultLat,
+        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+      }));
+    };
+    callHomeAPI();
+  };
+
+  const handleSearch = async (searchText: string) => {
+    setSearchVal(searchText);
+    
+    if (searchText.trim().length > 0) {
+      const userId = await getUserID();
+      dispatch(onHome({
+        lat: defaultLong,
+        long: defaultLat,
+        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        search_keyword: searchText.trim(),
+      }));
+    } else {
+      // If search is empty, fetch original data
+      const userId = await getUserID();
+      dispatch(onHome({
+        lat: defaultLong,
+        long: defaultLat,
+        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+      }));
+    }
   };
 
 
@@ -388,7 +420,7 @@ const HomeScreen = () => {
             <SearchIcon size={18} color={colors.violate} />
             <TextInput
               value={searchVal}
-              onChangeText={setSearchVal}
+              onChangeText={handleSearch}
               style={styles.input}
               placeholder="Search clubs, events, Bars,..."
               placeholderTextColor={'#9CA3AF'}
@@ -471,27 +503,25 @@ const HomeScreen = () => {
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
-        <FlatList
-          data={nearby.length > 0 ? nearby : sampleEvents}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.nearbyEventsContainer}
-          keyExtractor={(item, index) => (item as any)._id || (item as any).id || index.toString()}
-          renderItem={({ item }) => (
-            <NearbyEventCard
-              event={item}
-              onPress={() => handleBookNow((item as any)._id || (item as any).id)}
-              onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
-            />
-          )}
-        />
-
-        {/* Test Button for UpcomingScreen - Remove this in production */}
-        <TouchableOpacity 
-          style={styles.testButton}
-          onPress={() => (navigation as any).navigate("UpcomingScreen")}
-        >
-          <Text style={styles.testButtonText}>Test Upcoming Screen</Text>
-        </TouchableOpacity>
+        {nearby.length > 0 ? (
+          <FlatList
+            data={nearby}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.nearbyEventsContainer}
+            keyExtractor={(item, index) => (item as any)._id || (item as any).id || index.toString()}
+            renderItem={({ item }) => (
+              <NearbyEventCard
+                event={item}
+                onPress={() => handleBookNow((item as any)._id || (item as any).id)}
+                onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
+              />
+            )}
+          />
+        ) : (
+          <View style={styles.emptyStateContainer}>
+            <Text style={styles.emptyStateText}>No nearby events found</Text>
+          </View>
+        )}
       </ScrollView>
       
       {/* Filter Modal */}
