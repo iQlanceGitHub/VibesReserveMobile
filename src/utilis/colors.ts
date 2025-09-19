@@ -39,7 +39,6 @@ export const colors = {
   profileCardBackground: "rgba(18, 1, 40, 1)",
   profileImageBorder: "rgba(141, 52, 255, 1)",
 
-  
   requestCardBackground: "rgba(18, 1, 40, 1)",
   requestCardBorder: "rgba(141, 52, 255, 0.3)",
   acceptButtonBackground: "rgba(141, 52, 255, 1)",
@@ -51,6 +50,7 @@ export const colors = {
   addButtonBackground: "rgba(141, 52, 255, 0.15)",
   overlayBackground: "rgba(0, 0, 0, 0.5)",
   transparent: "transparent",
+  rejectionRowBackground: "rgba(223, 28, 65, 1)",
   yellow: "#FFD700",
 
   backgroundColor: "rgba(18, 1, 40, 1)",
