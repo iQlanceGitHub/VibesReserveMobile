@@ -15,11 +15,12 @@ interface DropdownOption {
 }
 
 interface CustomDropdownProps {
-  label: string;
+  label?: string;
   placeholder: string;
-  options: DropdownOption[];
+  data?: DropdownOption[];
+  options?: DropdownOption[];
   selectedValue: string;
-  onSelect: (value: string) => void;
+  onSelect: (item: DropdownOption) => void;
   error?: boolean;
   message?: string;
 }
@@ -27,17 +28,20 @@ interface CustomDropdownProps {
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
   label,
   placeholder,
-  options,
+  data,
+  options = [],
   selectedValue,
   onSelect,
   error = false,
   message = "",
 }) => {
+  // Use data prop if provided, otherwise fall back to options
+  const dropdownOptions = data || options;
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<View>(null);
 
-  const handleSelect = (value: string) => {
-    onSelect(value);
+  const handleSelect = (option: DropdownOption) => {
+    onSelect(option);
     setIsOpen(false);
   };
 
@@ -63,15 +67,15 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
       {isOpen && (
         <View style={styles.dropdownList}>
-          {options.map((option, index) => (
+          {dropdownOptions.map((option, index) => (
             <TouchableOpacity
               key={option.id}
               style={[
                 styles.dropdownItem,
                 selectedValue === option.name && styles.selectedItem,
-                index === options.length - 1 && styles.lastDropdownItem,
+                index === dropdownOptions.length - 1 && styles.lastDropdownItem,
               ]}
-              onPress={() => handleSelect(option.name)}
+              onPress={() => handleSelect(option)}
             >
               <Text
                 style={[

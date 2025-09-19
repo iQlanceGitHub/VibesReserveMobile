@@ -17,6 +17,8 @@ import Blox from '../../../../assets/svg/blox';
 import SearchIcon from '../../../../assets/svg/searchIcon';
 import FilterScreen from './FilterScreen/FilterScreen';
 import { useCategory } from '../../../../hooks/useCategory';
+import { useFacility } from '../../../../hooks/useFacility';
+
 
 //API
 import {
@@ -135,11 +137,13 @@ const HomeScreen = () => {
 
   // Use the custom hook for category management
   const { categories: apiCategories, fetchCategories } = useCategory();
+  const { facilities, isLoading, error, fetchFacilities, refreshFacilities } = useFacility();
+
   
   // Use the custom hook for home data management
   // Default location coordinates
-  const defaultLat = "23.012649201096547";
-  const defaultLong = "72.51123340677258";
+  const defaultLat = "72.51123340677258";
+  const defaultLong = "23.012649201096547";
 
   // Get user ID from AsyncStorage
   const getUserID = async (): Promise<string | null> => {
@@ -163,6 +167,11 @@ const HomeScreen = () => {
     fetchCategories();
     getUserID();
   }, [fetchCategories]);
+
+  useEffect(() => {
+    fetchFacilities();
+    console.log("facilities:->", facilities);
+  }, [fetchFacilities]);
 
   useEffect(() => {
     const callHomeAPI = async () => {

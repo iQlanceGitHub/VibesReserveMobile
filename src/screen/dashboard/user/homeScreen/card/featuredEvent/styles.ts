@@ -106,7 +106,7 @@ export default StyleSheet.create({
         fontFamily: fonts.regular,
         color: colors.primary_lighter,
         marginLeft: horizontalScale(8),
-        height: verticalScale(20),
+        lineHeight: fontScale(14),
         //flex: 1,
       },
       ratingContainer: {

@@ -9,6 +9,9 @@ export default StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  overlayTouchable: {
+    flex: 1,
+  },
   filterContainer: {
     backgroundColor: colors.gradient_dark_purple,
     borderTopLeftRadius: verticalScale(20),

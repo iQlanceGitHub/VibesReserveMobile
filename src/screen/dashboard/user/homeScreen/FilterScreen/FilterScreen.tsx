@@ -147,10 +147,11 @@ const dates = generateDates();
       transparent={true}
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalOverlay}>
-          <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={styles.filterContainer}>
+      <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.overlayTouchable} />
+        </TouchableWithoutFeedback>
+        <View style={styles.filterContainer}>
           {/* Drag Handle */}
           <View style={styles.dragHandle} />
           
@@ -253,10 +254,8 @@ const dates = generateDates();
               <Text style={styles.applyButtonText}>Apply</Text>
             </TouchableOpacity>
           </View>
-            </View>
-          </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </Modal>
   );
 };
