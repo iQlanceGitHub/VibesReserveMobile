@@ -172,6 +172,15 @@ export default StyleSheet.create({
     width: horizontalScale(280), // Fixed width for horizontal scroll
     flexShrink: 0, // Prevent shrinking
   },
+  ticketCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: verticalScale(12),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.purpleBorder,
+    width: horizontalScale(173), // Fixed width for horizontal scroll
+    flexShrink: 0, // Prevent shrinking
+  },
   loungeCardSelected: {
     borderColor: colors.violate,
     borderWidth: 2,

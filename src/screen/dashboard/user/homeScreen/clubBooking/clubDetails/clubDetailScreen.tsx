@@ -45,10 +45,12 @@ import MessageIcon from '../../../../../../assets/svg/messageIcon';
 import PhoneIcon from '../../../../../../assets/svg/phoneIcon';
 import CocktailIcon from '../../../../../../assets/svg/cocktailIcon';
 import MapView, { Marker } from 'react-native-maps';
+import { useLocation, LocationProvider } from '../../../../../../contexts/LocationContext';
 
 const ClubDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { locationData } = useLocation();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [selectedLounge, setSelectedLounge] = useState('crystal');
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
@@ -136,10 +138,10 @@ const ClubDetailScreen = () => {
 
     ];
 
-  // Get coordinates from API data or use default
+  // Get coordinates from API data or use user's current location
   const location = {
-    latitude: (clubDetails as any)?.coordinates?.coordinates?.[1] || 43.6532,
-    longitude: (clubDetails as any)?.coordinates?.coordinates?.[0] || -79.3832,
+    latitude: (clubDetails as any)?.coordinates?.coordinates?.[1] || locationData?.latitude || 23.012649201096547,
+    longitude: (clubDetails as any)?.coordinates?.coordinates?.[0] || locationData?.longitude || 72.51123340677258,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
@@ -153,6 +155,14 @@ const ClubDetailScreen = () => {
     originalPrice: booth.boothPrice || 1000,
     discountedPrice: booth.discountedPrice || 800,
     image: booth.boothImage?.[0] || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
+  })) || [];
+
+  const transformedTickets = (clubDetails as any)?.tickets?.map((ticket: any, index: number) => ({
+    id: ticket._id || `ticket_${index}`,
+    name: ticket.ticketType?.name || 'General Admission',
+    type: ticket.ticketType?.name || 'General',
+    capacity: `${ticket.capacity || 0} People`,
+    price: ticket.ticketPrice || 45,
   })) || [];
 
 
@@ -464,18 +474,29 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const getTotalPrice = () => {
+    // If there are tickets, calculate based on selected ticket
+    if (transformedTickets && transformedTickets.length > 0) {
+      const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
+      return selectedTicketData ? selectedTicketData.price : 0;
+    }
+
+    // Otherwise, calculate based on selected lounge/booth
     const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
     return selectedLoungeData ? selectedLoungeData.discountedPrice + 100 : 0; // +100 for base event price
   };
 
+
+
   const handleBookNow = () => {
     // Collect all selected values
     const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+    const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
     const selectedFacilitiesData = facilities.filter((facility: any) => selectedFacilities.includes(facility.id));
 
     const selectedValues = {
       selectedLounge: selectedLounge,
       selectedLoungeData: selectedLoungeData,
+      selectedTicketData: selectedTicketData,
       isBookmarked: isBookmarked,
       totalPrice: getTotalPrice(),
       eventDetails: {
@@ -543,17 +564,6 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               style={styles.iconButton}
               onPress={handleToggleFavorite}
             >
-              {/* {isBookmarked ? (
-                <FavouriteIcon size={20} color={colors.violate} />
-              ) : (
-                <HeartIcon size={20} color={colors.white} />
-              )} */}
-              {/* {isBookmarked ? (
-                <FavouriteIcon size={16} color={colors.violate} />
-              ) : (
-                <HeartIcon size={16} color={colors.white} />
-              )} */}
-
               {isBookmarked ? (
                 <HeartIcon size={20} color={colors.white} />
               ) : (
@@ -655,6 +665,61 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                   </View>
                 </TouchableOpacity>
               ))}
+
+              {transformedTickets.map((ticket: any) => (
+                <TouchableOpacity
+                  key={ticket.id}
+                  style={[
+                    styles.ticketCard,
+                    selectedLounge === ticket.id && styles.loungeCardSelected
+                  ]}
+                  onPress={() => handleLoungeSelect(ticket.id)}
+                >
+
+                  <View style={styles.loungeContent}>
+
+                    <Text style={styles.loungeDetails}>
+                      <Text style={styles.loungeTitle}>Ticket Type: </Text>
+                      <Text style={styles.loungeDetails}>{ticket.type}</Text>
+                      {'\n'}
+                      <Text style={styles.loungeTitle}>Capacity: </Text>
+                      <Text style={styles.loungeDetails}>{ticket.capacity}</Text>
+                    </Text>
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.discountedPrice}>${ticket.price}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <TouchableOpacity
+                        style={[
+                          styles.selectButton,
+                          selectedLounge === ticket.id && styles.selectButtonSelected
+                        ]}
+                        onPress={() => handleLoungeSelect(ticket.id)}
+                      >
+                        <Text style={[
+                          styles.selectButtonText,
+                          selectedLounge === ticket.id && styles.selectButtonTextSelected
+                        ]}>
+                          {selectedLounge === ticket.id ? 'Selected' : 'Select'}
+                        </Text>
+                      </TouchableOpacity>
+
+                    </View>
+
+                  </View>
+                </TouchableOpacity>
+              ))}
+
+
+              {/* const transformedTickets = (clubDetails as any)?.tickets?.map((ticket: any, index: number) => ({
+    id: ticket._id || `ticket_${index}`,
+    name: ticket.ticketType?.name || 'General Admission',
+    type: ticket.ticketType?.name || 'General',
+    capacity: `${ticket.capacity || 0} People`,
+    price: ticket.ticketPrice || 45,
+  })) || [];
+   */}
+
             </ScrollView>
           </View>
 
@@ -768,4 +833,12 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   );
 };
 
-export default ClubDetailScreen;
+const ClubDetailScreenWithLocation = () => {
+  return (
+    <LocationProvider>
+      <ClubDetailScreen />
+    </LocationProvider>
+  );
+};
+
+export default ClubDetailScreenWithLocation;

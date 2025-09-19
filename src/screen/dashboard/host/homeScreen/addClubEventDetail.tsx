@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useRoute } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -44,6 +45,11 @@ import { launchCamera, launchImageLibrary, ImagePickerResponse, MediaType } from
 import { fetchGet } from '../../../../redux/services';
 import BoothForm from './components/BoothForm';
 import EventForm from './components/EventForm';
+import { useCategory } from '../../../../hooks/useCategory';
+import { useFacility } from '../../../../hooks/useFacility';
+import LocationIcon from '../../../../assets/svg/locationIcon';
+import GoogleAddressAutocomplete from '../../../../components/GoogleAddressAutocomplete';
+import TicketDisplay from './components/TicketDisplay';
 
 // Google Maps API key
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
@@ -75,8 +81,6 @@ interface EventData {
   eventType: string;
   eventPrice: string;
   capacity: string;
-  discountedPrice: string;
-  eventImages: string[];
 }
 
 interface AddClubDetailScreenProps {
@@ -86,6 +90,11 @@ interface AddClubDetailScreenProps {
 const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   navigation,
 }) => {
+  const route = useRoute();
+  // Hooks for dynamic data
+  const { categories, isLoading: categoriesLoading, error: categoriesError, fetchCategories } = useCategory();
+  const { facilities, isLoading: facilitiesLoading, error: facilitiesError, fetchFacilities } = useFacility();
+
   // Form data
   const [type, setType] = useState("Event");
   const [name, setName] = useState("");
@@ -96,6 +105,17 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [endDate, setEndDate] = useState("");
   const [entryFee, setEntryFee] = useState("");
   const [address, setAddress] = useState("");
+  const [coordinates, setCoordinates] = useState({
+    type: "Point",
+    coordinates: [0, 0] // Default coordinates
+  });
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState<"start" | "end">("start");
+  
+  // State for existing event data (for display mode)
+  const [existingEventData, setExistingEventData] = useState<any>(null);
+  const [isDisplayMode, setIsDisplayMode] = useState(false);
 
   // Dynamic form data
   const [booths, setBooths] = useState<BoothData[]>([]);
@@ -111,12 +131,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [currentBoothIndex, setCurrentBoothIndex] = useState(0);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [facilitiesLoading, setFacilitiesLoading] = useState(false);
   
-  // Address autocomplete
-  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
-  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
-  const [addressLoading, setAddressLoading] = useState(false);
 
   // Validation errors
   const [errors, setErrors] = useState({
@@ -134,66 +149,104 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const createeventErr = useSelector((state: any) => state.auth.createeventErr);
 
   const types: BoothType[] = [
-    { id: "1", name: "Booth" },
-    { id: "2", name: "Event" },
+    { id: "1", name: "Club" },
+    { id: "2", name: "Pub" },
+    { id: "3", name: "Event" },
   ];
 
-  const boothTypes: BoothType[] = [
-    { id: "1", name: "VIP Booth" },
-    { id: "2", name: "Standard Booth" },
-    { id: "3", name: "Premium Booth" },
-    { id: "4", name: "Luxury Booth" },
-  ];
+  // Convert categories to booth types format (use all categories)
+  const boothTypes: BoothType[] = categories.map((category: any) => ({
+    id: category._id,
+    name: category.name
+  }));
 
-  const eventTypes: BoothType[] = [
-    { id: "1", name: "Concert" },
-    { id: "2", name: "Party" },
-    { id: "3", name: "Conference" },
-    { id: "4", name: "Workshop" },
-  ];
+  // Convert categories to event types format (use all categories)
+  const eventTypes: BoothType[] = categories.map((category: any) => ({
+    id: category._id,
+    name: category.name
+  }));
 
 
+  // Convert facilities from hook to local state with selection
   const [facilitiesList, setFacilitiesList] = useState<Facility[]>([]);
 
-  // Static facilities as fallback
-  const staticFacilities: Facility[] = [
-    { _id: "68b57d91bd9b79b25b03e55c", name: "Parking", selected: false },
-    { _id: "68b57d91bd9b79b25b03e55c", name: "Wi-Fi", selected: false },
-    { _id: "68b57d91bd9b79b25b03e55c", name: "Food Menu", selected: false },
-    { _id: "68b57d91bd9b79b25b03e55c", name: "Live Music", selected: false },
-    { _id: "68b57d91bd9b79b25b03e55c", name: "VIP Area", selected: false },
-  ];
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchCategories();
+    fetchFacilities();
+  }, [fetchCategories, fetchFacilities]);
 
-  // Fetch facilities from API
-  const fetchFacilities = async () => {
-    try {
-      setFacilitiesLoading(true);
-      console.log('Fetching facilities from API...');
-      const response = await fetchGet('user/facility?page=1&limit=10');
-      console.log('Facilities API response:', response);
-      
-      if (response?.status === 1 && response?.data && response.data.length > 0) {
-        const facilities = response.data.map((facility: any) => ({
-          _id: facility._id,
-          name: facility.name,
-          selected: false
-        }));
-        console.log('Processed facilities:', facilities);
-        setFacilitiesList(facilities);
-        showToast("success", `Loaded ${facilities.length} facilities`);
-      } else {
-        console.log('No facilities data received, using static facilities');
-        setFacilitiesList(staticFacilities);
-        showToast("info", "Using default facilities");
-      }
-    } catch (error) {
-      console.log('Error fetching facilities, using static facilities:', error);
-      setFacilitiesList(staticFacilities);
-      showToast("info", "Using default facilities");
-    } finally {
-      setFacilitiesLoading(false);
+  // Handle address selection from GoogleAddressAutocomplete
+  const handleAddressSelect = (selectedAddress: any) => {
+    setAddress(selectedAddress.formatted_address);
+    setCoordinates({
+      type: "Point",
+      coordinates: [selectedAddress.geometry.location.lat, selectedAddress.geometry.location.lng]
+    });
+    setShowAddressModal(false);
+    if (errors.address) {
+      setErrors(prev => ({ ...prev, address: false }));
     }
   };
+
+  // Check if we're in display mode (existing event data passed)
+  useEffect(() => {
+    const params = route?.params as any;
+    console.log('Route params:', params);
+    if (params?.eventData) {
+      console.log('Existing event data received:', params.eventData);
+      setExistingEventData(params.eventData);
+      setIsDisplayMode(true);
+      
+      // Populate form with existing data
+      const eventData = params.eventData;
+      setType(eventData.type || "Event");
+      setName(eventData.name || "");
+      setDetails(eventData.details || "");
+      setEntryFee(eventData.entryFee?.toString() || "");
+      setStartTime(eventData.openingTime || "");
+      setEndTime(eventData.closeTime || "");
+      setStartDate(eventData.startDate ? new Date(eventData.startDate).toLocaleDateString('en-GB') : "");
+      setEndDate(eventData.endDate ? new Date(eventData.endDate).toLocaleDateString('en-GB') : "");
+      setAddress(eventData.address || "");
+      
+      if (eventData.coordinates) {
+        setCoordinates(eventData.coordinates);
+      }
+      
+      if (eventData.photos && eventData.photos.length > 0) {
+        setUploadPhotos(eventData.photos);
+      }
+      
+      // Handle facilities
+      if (eventData.facilities && eventData.facilities.length > 0) {
+        setFacilitiesList(prev => 
+          prev.map(facility => ({
+            ...facility,
+            selected: eventData.facilities.some((f: any) => f._id === facility._id)
+          }))
+        );
+      }
+    }
+  }, [route?.params]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Event type:', type, 'isDisplayMode:', isDisplayMode, 'existingEventData:', existingEventData, 'tickets:', existingEventData?.tickets);
+  }, [type, isDisplayMode, existingEventData]);
+
+  // Convert facilities from hook to local state with selection
+  useEffect(() => {
+    if (facilities && facilities.length > 0) {
+      const facilitiesWithSelection = facilities.map((facility: any) => ({
+        _id: facility._id,
+        name: facility.name,
+        selected: false
+      }));
+      setFacilitiesList(facilitiesWithSelection);
+      console.log('Facilities loaded from hook:', facilitiesWithSelection);
+    }
+  }, [facilities]);
 
   // Validation function
   const validateForm = () => {
@@ -218,12 +271,12 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       // Remove date/time validation since we're using fallback values
       address: !address.trim(),
       // Remove ticket validation - tickets are handled in dynamic forms
-      uploadPhotos: false, // We'll handle this separately based on type
+      uploadPhotos: (type === "Club" || type === "Pub") ? uploadPhotos.length === 0 : false, // Only require photos for Club/Pub
     };
 
     // Check if type is selected
-    if (!type || (type !== "Booth" && type !== "Event")) {
-      showToast("error", "Please select a type (Booth or Event)");
+    if (!type || (type !== "Club" && type !== "Pub" && type !== "Event")) {
+      showToast("error", "Please select a type (Club, Pub, or Event)");
       return false;
     }
 
@@ -244,8 +297,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       return false;
     }
 
-    // Validate booths if type is Booth
-    if (type === "Booth") {
+    // Validate booths if type is Club or Pub
+    if (type === "Club" || type === "Pub") {
       if (booths.length === 0) {
         showToast("error", "Please add at least one booth");
         return false;
@@ -266,10 +319,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       }
     }
 
-    // Validate events if type is Event
+    // Validate tickets if type is Event
     if (type === "Event") {
       if (events.length === 0) {
-        showToast("error", "Please add at least one event");
+        showToast("error", "Please add at least one ticket");
         return false;
       }
       
@@ -279,11 +332,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         !event.eventPrice.trim() || 
         isNaN(Number(event.eventPrice)) ||
         !event.capacity.trim() || 
-        isNaN(Number(event.capacity)) ||
-        event.eventImages.length === 0
+        isNaN(Number(event.capacity))
       );
       if (eventErrors) {
-        showToast("error", "Please fill all event fields and add at least one image for each event");
+        showToast("error", "Please fill all ticket fields");
         return false;
       }
     }
@@ -321,8 +373,6 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       eventType: "",
       eventPrice: "",
       capacity: "",
-      discountedPrice: "",
-      eventImages: [],
     };
     setEvents([...events, newEvent]);
   };
@@ -455,9 +505,6 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       } else if (imageType === "booth" && boothIndex >= 0 && booths[boothIndex]) {
         currentImages = booths[boothIndex].boothImages || [];
         console.log('Processing booth images, booth index:', boothIndex, 'current count:', currentImages.length);
-      } else if (imageType === "event" && eventIndex >= 0 && events[eventIndex]) {
-        currentImages = events[eventIndex].eventImages || [];
-        console.log('Processing event images, event index:', eventIndex, 'current count:', currentImages.length);
       }
       
       const remainingSlots = 3 - currentImages.length;
@@ -488,11 +535,6 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         const updatedBooths = [...booths];
         updatedBooths[boothIndex].boothImages = [...updatedBooths[boothIndex].boothImages, ...uploadedUrls];
         setBooths(updatedBooths);
-      } else if (imageType === "event" && eventIndex >= 0 && events[eventIndex]) {
-        console.log('Adding to event images, event index:', eventIndex, 'urls:', uploadedUrls);
-        const updatedEvents = [...events];
-        updatedEvents[eventIndex].eventImages = [...updatedEvents[eventIndex].eventImages, ...uploadedUrls];
-        setEvents(updatedEvents);
       }
       
       showToast('success', `${uploadedUrls.length} image(s) uploaded successfully`);
@@ -565,6 +607,33 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     setShowTimePicker(true);
     console.log('Time picker should now be visible');
   };
+
+  // Function to trigger date picker for calendar icons
+  const triggerDatePicker = (dateType: "start" | "end") => {
+    console.log('Calendar icon clicked for', dateType, 'date');
+    setDatePickerMode(dateType);
+    setShowDatePicker(true);
+  };
+
+  // Handle date picker change
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
+
+    if (selectedDate) {
+      const day = selectedDate.getDate().toString().padStart(2, "0");
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, "0");
+      const year = selectedDate.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
+      
+      if (datePickerMode === "start") {
+        setStartDate(formattedDate);
+      } else {
+        setEndDate(formattedDate);
+      }
+    }
+  };
   const toggleFacility = (id: string) => {
     setFacilitiesList((prev) =>
       prev.map((facility) =>
@@ -587,11 +656,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       .filter(facility => facility.selected)
       .map(facility => facility._id);
 
-    // Prepare coordinates (you might want to get this from location picker)
-    const coordinates = {
-      type: "Point",
-      coordinates: [23.026071652494444, 72.50766386964187] // Default coordinates
-    };
+    // Use dynamic coordinates from address selection
 
     // Format dates to YYYY-MM-DD format
     const formatDate = (dateString: string) => {
@@ -758,15 +823,15 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       endDate: finalEndDate,
       address: address,
       coordinates: coordinates,
-      photos: uploadPhotos,
+      photos: (type === "Club" || type === "Pub") ? uploadPhotos : [], // Only include photos for Club/Pub
       facilities: selectedFacilities,
     };
 
-    // Add booth or event specific data
-    if (type === "Booth") {
+    // Add booth or ticket specific data
+    if (type === "Club" || type === "Pub") {
       eventData.booths = booths.map(booth => ({
         boothName: booth.boothName,
-        boothType: '68b7dec9241ce469fe7e202b',
+        boothType: booth.boothType, // Use dynamic category ID
         boothPrice: Number(booth.boothPrice),
         capacity: Number(booth.capacity),
         discountedPrice: Number(booth.discountedPrice),
@@ -774,12 +839,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       }));
     } else if (type === "Event") {
       eventData.tickets = events.map(event => ({
-        // ticketType: event.eventType,
-        ticketType: '68b7def6241ce469fe7e2039',
+        ticketType: event.eventType, // Use dynamic category ID
         ticketPrice: Number(event.eventPrice),
         capacity: Number(event.capacity)
       }));
-      eventData.eventImages = events.flatMap(event => event.eventImages);
     }
 
     console.log('=== DEBUGGING DATE/TIME VALUES ===');
@@ -806,66 +869,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     navigation?.goBack();
   };
 
-  // Address search function
-  const searchAddresses = async (query: string) => {
-    if (!query.trim()) {
-      setAddressSuggestions([]);
-      setShowAddressSuggestions(false);
-      return;
-    }
 
-    setAddressLoading(true);
-    try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-          query
-        )}&key=${GOOGLE_MAPS_API_KEY}&types=geocode`
-      );
-
-      const data = await response.json();
-
-      if (data.status === 'OK') {
-        const suggestions = data.predictions.map((prediction: any, index: number) => ({
-          id: prediction.place_id || String(index),
-          description: prediction.description,
-          mainText: prediction.structured_formatting.main_text,
-          secondaryText: prediction.structured_formatting.secondary_text,
-        }));
-        setAddressSuggestions(suggestions);
-        setShowAddressSuggestions(true);
-      } else {
-        setAddressSuggestions([]);
-        setShowAddressSuggestions(false);
-      }
-    } catch (error) {
-      console.log('Address search error:', error);
-      setAddressSuggestions([]);
-      setShowAddressSuggestions(false);
-    } finally {
-      setAddressLoading(false);
-    }
-  };
-
-  // Handle address selection
-  const handleAddressSelect = (suggestion: any) => {
-    setAddress(suggestion.description);
-    setShowAddressSuggestions(false);
-    setAddressSuggestions([]);
-    if (errors.address) {
-      setErrors(prev => ({ ...prev, address: false }));
-    }
-  };
-
-  // Close suggestions when clicking outside
-  const closeAddressSuggestions = () => {
-    setShowAddressSuggestions(false);
-    setAddressSuggestions([]);
-  };
-
-  // Fetch facilities on component mount
-  useEffect(() => {
-    fetchFacilities();
-  }, []);
 
   // Handle API responses
   useEffect(() => {
@@ -907,7 +911,6 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   };
 
   return (
-    <TouchableWithoutFeedback onPress={closeAddressSuggestions}>
     <View style={addClubEventDetailStyle.container}>
       <StatusBar
         barStyle="light-content"
@@ -940,13 +943,13 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               options={types}
               selectedValue={type}
               onSelect={(value) => {
-                setType(value);
+                setType(typeof value === 'string' ? value : value.name);
                 if (errors.name) {
                   setErrors(prev => ({ ...prev, name: false }));
                 }
               }}
-              error={!type || (type !== "Booth" && type !== "Event")}
-              message={!type || (type !== "Booth" && type !== "Event") ? "Please select a type" : ""}
+              error={!type || (type !== "Club" && type !== "Pub" && type !== "Event")}
+              message={!type || (type !== "Club" && type !== "Pub" && type !== "Event") ? "Please select a type" : ""}
             />
 
             <View style={addClubEventDetailStyle.formElement}>
@@ -1013,9 +1016,12 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 leftImage=""
                 style={addClubEventDetailStyle.datePickerWrapper}
               />
-              <View style={addClubEventDetailStyle.datePickerRightIcon}>
+              <TouchableOpacity 
+                style={addClubEventDetailStyle.datePickerRightIcon}
+                onPress={() => triggerDatePicker("start")}
+              >
                 <CalendarIcon />
-              </View>
+              </TouchableOpacity>
             </View>
             <View style={addClubEventDetailStyle.formElement}>
               <DatePickerInput
@@ -1031,9 +1037,12 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 leftImage=""
                 style={addClubEventDetailStyle.datePickerWrapper}
               />
-              <View style={addClubEventDetailStyle.datePickerRightIcon}>
+              <TouchableOpacity 
+                style={addClubEventDetailStyle.datePickerRightIcon}
+                onPress={() => triggerDatePicker("end")}
+              >
                 <CalendarIcon />
-              </View>
+              </TouchableOpacity>
             </View>
 
             <View style={addClubEventDetailStyle.formElement}>
@@ -1096,63 +1105,35 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.label}>Address*</Text>
-              <View style={addClubEventDetailStyle.addressContainer}>
-                <TextInput
-                  style={[
-                    addClubEventDetailStyle.addressInput,
-                    errors.address && { borderColor: colors.red }
-                  ]}
-                placeholder="Enter address"
-                  placeholderTextColor={colors.textColor}
-                value={address}
-                  onChangeText={(text) => {
-                    setAddress(text);
-                    searchAddresses(text);
-                    if (errors.address) {
-                      setErrors(prev => ({ ...prev, address: false }));
-                    }
-                  }}
-                  onFocus={() => {
-                    if (address.trim()) {
-                      searchAddresses(address);
-                    }
-                  }}
-                multiline={true}
-              />
-                {addressLoading && (
-                  <View style={addClubEventDetailStyle.addressLoading}>
-                    <Text style={addClubEventDetailStyle.loadingText}>Searching...</Text>
-            </View>
-                )}
+              <TouchableOpacity
+                style={addClubEventDetailStyle.addressContainer}
+                onPress={() => setShowAddressModal(true)}
+              >
+                <View style={addClubEventDetailStyle.addressInputContainer}>
+                  <TextInput
+                    style={[
+                      addClubEventDetailStyle.addressInput,
+                      errors.address && { borderColor: colors.red }
+                    ]}
+                    placeholder="Tap to select address"
+                    placeholderTextColor={colors.textColor}
+                    value={address}
+                    editable={false}
+                    multiline={true}
+                  />
+                  <View style={addClubEventDetailStyle.locationIconContainer}>
+                    <LocationIcon width={20} height={20} color={colors.violate} />
+                  </View>
                 </View>
-
-              {/* Address Suggestions */}
-              {showAddressSuggestions && addressSuggestions.length > 0 && (
-                <View style={addClubEventDetailStyle.suggestionsContainer}>
-                  {addressSuggestions.map((suggestion) => (
-                    <TouchableOpacity
-                      key={suggestion.id}
-                      style={addClubEventDetailStyle.suggestionItem}
-                      onPress={() => handleAddressSelect(suggestion)}
-                    >
-                      <Text style={addClubEventDetailStyle.suggestionMainText}>
-                        {suggestion.mainText}
-                      </Text>
-                      <Text style={addClubEventDetailStyle.suggestionSecondaryText}>
-                        {suggestion.secondaryText}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+              </TouchableOpacity>
               
               {errors.address && (
                 <Text style={addClubEventDetailStyle.errorText}>Address is required</Text>
               )}
-                </View>
+            </View>
 
-            {/* Dynamic Booth Forms */}
-            {type === "Booth" && (
+            {/* Dynamic Booth Forms for Club and Pub */}
+            {(type === "Club" || type === "Pub") && (
               <>
                 {booths.map((booth, index) => (
                   <BoothForm
@@ -1163,8 +1144,6 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     onRemove={removeBooth}
                     onImagePicker={handleImagePicker}
                     boothTypes={boothTypes}
-                    showImagePicker={showImagePicker}
-                    setShowImagePicker={setShowImagePicker}
                   />
                 ))}
                 <TouchableOpacity
@@ -1179,67 +1158,131 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </>
             )}
 
-            {/* Dynamic Event Forms */}
+            {/* Test button for ticket display */}
+            {type === "Event" && (
+              <TouchableOpacity
+                style={[addClubEventDetailStyle.addNewButton, { backgroundColor: colors.green, marginBottom: 10 }]}
+                onPress={() => {
+                  // Test with sample ticket data
+                  const testTickets = [{
+                    _id: "test1",
+                    ticketType: { _id: "cat1", name: "General" },
+                    ticketPrice: 45,
+                    capacity: 150,
+                    soldTickets: 20
+                  }, {
+                    _id: "test2", 
+                    ticketType: { _id: "cat2", name: "VIP" },
+                    ticketPrice: 45,
+                    capacity: 150,
+                    soldTickets: 20
+                  }];
+                  setExistingEventData({ tickets: testTickets });
+                  setIsDisplayMode(true);
+                }}
+              >
+                <Text style={addClubEventDetailStyle.addNewButtonText}>Test Ticket Display</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Dynamic Ticket Forms for Event */}
             {type === "Event" && (
               <>
-                {events.map((event, index) => (
-                  <EventForm
-                    key={event.id}
-                    event={event}
-                    eventIndex={index}
-                    onUpdate={updateEvent}
-                    onRemove={removeEvent}
-                    onImagePicker={handleImagePicker}
-                    eventTypes={eventTypes}
-                    showImagePicker={showImagePicker}
-                    setShowImagePicker={setShowImagePicker}
+                {/* Show ticket display if in display mode and has existing tickets */}
+                {isDisplayMode && existingEventData?.tickets && existingEventData.tickets.length > 0 ? (
+                  <TicketDisplay
+                    tickets={existingEventData.tickets}
+                    onTicketSelect={(ticket) => {
+                      console.log('Ticket selected:', ticket);
+                      // Handle ticket selection if needed
+                    }}
+                    showSelectButton={false} // Don't show select button in display mode
                   />
-                ))}
-                  <TouchableOpacity
-                  style={addClubEventDetailStyle.addNewButton}
-                  onPress={addNewEvent}
-                  >
-                    <PlusIcon />
-                  <Text style={addClubEventDetailStyle.addNewButtonText}>
-                    Add New Event
+                ) : type === "Event" && events.length > 0 ? (
+                  <TicketDisplay
+                    tickets={events.map(event => ({
+                      _id: event.id,
+                      ticketType: {
+                        _id: event.eventType,
+                        name: eventTypes.find(t => t.id === event.eventType)?.name || event.eventType
+                      },
+                      ticketPrice: Number(event.eventPrice),
+                      capacity: Number(event.capacity)
+                    }))}
+                    onTicketSelect={(ticket) => {
+                      console.log('Ticket selected:', ticket);
+                    }}
+                    showSelectButton={true}
+                  />
+                ) : type === "Event" ? (
+                  <View style={{ padding: 20, backgroundColor: colors.vilate20, borderRadius: 10, marginVertical: 10 }}>
+                    <Text style={{ color: colors.white, fontSize: 16, textAlign: 'center' }}>
+                      No tickets added yet. Use the "Add New Ticket" button below to add tickets.
                     </Text>
-                  </TouchableOpacity>
+                  </View>
+                ) : (
+                  <>
+                    {events.map((event, index) => (
+                      <EventForm
+                        key={event.id}
+                        event={event}
+                        eventIndex={index}
+                        onUpdate={updateEvent}
+                        onRemove={removeEvent}
+                        onImagePicker={handleImagePicker}
+                        eventTypes={eventTypes}
+                      />
+                    ))}
+                    <TouchableOpacity
+                    style={addClubEventDetailStyle.addNewButton}
+                    onPress={addNewEvent}
+                    >
+                      <PlusIcon />
+                    <Text style={addClubEventDetailStyle.addNewButtonText}>
+                      Add New Ticket
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </>
             )}
 
 
 
 
-            <View style={addClubEventDetailStyle.formElement}>
-              <Text style={addClubEventDetailStyle.sectionLabel}>
-                Upload Photos ({uploadPhotos.length}/3)
-              </Text>
-              <View style={addClubEventDetailStyle.uploadPhotosRow}>
-                {[0, 1, 2].map((index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={addClubEventDetailStyle.imageUploadBox}
-                    onPress={() => {
-                      if (uploadPhotos.length < 3 || uploadPhotos[index]) {
-                        handlePhotoUpload(index);
-                      } else {
-                        showToast('error', 'Maximum 3 images allowed');
-                      }
-                    }}
-                  >
-                    {uploadPhotos[index] ? (
-                      <Image
-                        source={{ uri: uploadPhotos[index] }}
-                        style={addClubEventDetailStyle.uploadedImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                    <GalleryIcon />
-                    )}
-                  </TouchableOpacity>
-                ))}
+            {/* Upload Photos (only for Club/Pub types) */}
+            {(type === "Club" || type === "Pub") && (
+              <View style={addClubEventDetailStyle.formElement}>
+                <Text style={addClubEventDetailStyle.sectionLabel}>
+                  Upload Photos ({uploadPhotos.length}/3)
+                </Text>
+                <View style={addClubEventDetailStyle.uploadPhotosRow}>
+                  {[0, 1, 2].map((index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={addClubEventDetailStyle.imageUploadBox}
+                      onPress={() => {
+                        if (uploadPhotos.length < 3 || uploadPhotos[index]) {
+                          handlePhotoUpload(index);
+                        } else {
+                          showToast('error', 'Maximum 3 images allowed');
+                        }
+                      }}
+                    >
+                      {uploadPhotos[index] ? (
+                        <Image
+                          source={{ uri: uploadPhotos[index] }}
+                          style={addClubEventDetailStyle.uploadedImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                      <GalleryIcon />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            )}
 
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.sectionLabel}>
@@ -1301,26 +1344,40 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         />
       )}
 
+      {showDatePicker && (
+        <DateTimePicker
+          value={datePickerMode === "start" ? 
+            (startDate ? new Date(startDate.split('/').reverse().join('-')) : new Date()) : 
+            (endDate ? new Date(endDate.split('/').reverse().join('-')) : new Date())
+          }
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={handleDateChange}
+          textColor={colors.white}
+          themeVariant="dark"
+        />
+      )}
+
       <ImageSelectionBottomSheet
-        visible={showImagePicker}
+        visible={showImagePicker && currentImageType === "main"}
         onClose={() => setShowImagePicker(false)}
         onCameraPress={() => {
-          // For main photos, use -1 indices; for booth/event, use actual indices
-          const boothIndex = currentImageType === "main" ? -1 : currentBoothIndex;
-          const eventIndex = currentImageType === "main" ? -1 : currentEventIndex;
-          console.log('Camera pressed - currentImageType:', currentImageType, 'boothIndex:', boothIndex, 'eventIndex:', eventIndex);
-          handleImagePicker('camera', currentImageType, boothIndex, eventIndex);
+          console.log('Main photos - Camera pressed');
+          handleImagePicker('camera', 'main', -1, -1);
         }}
         onGalleryPress={() => {
-          // For main photos, use -1 indices; for booth/event, use actual indices
-          const boothIndex = currentImageType === "main" ? -1 : currentBoothIndex;
-          const eventIndex = currentImageType === "main" ? -1 : currentEventIndex;
-          console.log('Gallery pressed - currentImageType:', currentImageType, 'boothIndex:', boothIndex, 'eventIndex:', eventIndex);
-          handleImagePicker('gallery', currentImageType, boothIndex, eventIndex);
+          console.log('Main photos - Gallery pressed');
+          handleImagePicker('gallery', 'main', -1, -1);
         }}
       />
+
+      {/* Address Selection Modal */}
+      <GoogleAddressAutocomplete
+        visible={showAddressModal}
+        onClose={() => setShowAddressModal(false)}
+        onSelect={handleAddressSelect}
+      />
     </View>
-    </TouchableWithoutFeedback>
   );
 };
 

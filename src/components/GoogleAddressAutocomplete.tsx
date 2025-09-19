@@ -42,7 +42,10 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
   const [predictions, setPredictions] = useState<AddressResult[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Mock Google Places API - Replace with actual Google Places API
+  // Google Places API key
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
+
+  // Real Google Places API call
   const searchAddresses = async (query: string) => {
     if (!query.trim()) {
       setPredictions([]);
@@ -51,45 +54,37 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
 
     setLoading(true);
     
-    // Mock data - Replace with actual Google Places API call
-    const mockPredictions: AddressResult[] = [
-      {
-        formatted_address: `${query}, Toronto, ON, Canada`,
-        geometry: {
-          location: {
-            lat: 43.6532,
-            lng: -79.3832,
-          },
-        },
-        place_id: '1',
-      },
-      {
-        formatted_address: `${query} Street, Toronto, ON, Canada`,
-        geometry: {
-          location: {
-            lat: 43.6532,
-            lng: -79.3832,
-          },
-        },
-        place_id: '2',
-      },
-      {
-        formatted_address: `${query} Avenue, Toronto, ON, Canada`,
-        geometry: {
-          location: {
-            lat: 43.6532,
-            lng: -79.3832,
-          },
-        },
-        place_id: '3',
-      },
-    ];
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+          query
+        )}&key=${GOOGLE_MAPS_API_KEY}&types=geocode&components=country:us|country:ca|country:gb|country:au|country:in`
+      );
 
-    // Simulate API delay
-    setTimeout(() => {
-      setPredictions(mockPredictions);
+      const data = await response.json();
+
+      if (data.status === 'OK') {
+        const predictions = data.predictions.map((prediction: any) => ({
+          formatted_address: prediction.description,
+          geometry: {
+            location: {
+              lat: 0, // Will be fetched separately
+              lng: 0
+            }
+          },
+          place_id: prediction.place_id,
+        }));
+        setPredictions(predictions);
+      } else {
+        console.log('Google Places API error:', data.status);
+        setPredictions([]);
+      }
+    } catch (error) {
+      console.log('Address search error:', error);
+      setPredictions([]);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   useEffect(() => {
@@ -100,8 +95,41 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  const handleSelect = (address: AddressResult) => {
-    onSelect(address);
+  // Get place details with coordinates
+  const getPlaceDetails = async (placeId: string) => {
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLE_MAPS_API_KEY}&fields=geometry,formatted_address`
+      );
+      const data = await response.json();
+      
+      if (data.status === 'OK') {
+        return data.result;
+      }
+    } catch (error) {
+      console.log('Place details error:', error);
+    }
+    return null;
+  };
+
+  const handleSelect = async (address: AddressResult) => {
+    // Get full place details with coordinates
+    const details = await getPlaceDetails(address.place_id);
+    if (details) {
+      const fullAddress = {
+        ...address,
+        formatted_address: details.formatted_address || address.formatted_address,
+        geometry: {
+          location: {
+            lat: details.geometry.location.lat,
+            lng: details.geometry.location.lng
+          }
+        }
+      };
+      onSelect(fullAddress);
+    } else {
+      onSelect(address);
+    }
     setSearchQuery('');
     setPredictions([]);
   };
@@ -111,7 +139,7 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
       style={styles.addressItem}
       onPress={() => handleSelect(item)}
     >
-      <LocationIcon size={20} color={colors.gray} />
+      <LocationIcon width={20} height={20} color={colors.gray} />
       <Text style={styles.addressText} numberOfLines={2}>
         {item.formatted_address}
       </Text>

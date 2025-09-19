@@ -373,7 +373,9 @@ const addClubDetailStyle = StyleSheet.create({
   addressContainer: {
     position: "relative",
   },
-  addressInput: {
+  addressInputContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     backgroundColor: colors.transparent,
     borderRadius: 90,
     borderWidth: 1,
@@ -381,10 +383,19 @@ const addClubDetailStyle = StyleSheet.create({
     paddingHorizontal: horizontalScale(15),
     paddingVertical: verticalScale(15),
     minHeight: verticalScale(50),
+  },
+  addressInput: {
+    flex: 1,
     color: colors.white,
     fontSize: fontScale(15),
     fontFamily: fonts.Regular,
     textAlignVertical: "top",
+    paddingRight: horizontalScale(10),
+  },
+  locationIconContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingLeft: horizontalScale(5),
   },
   addressLoading: {
     position: "absolute",

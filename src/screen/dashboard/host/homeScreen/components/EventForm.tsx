@@ -15,8 +15,6 @@ interface EventData {
   eventType: string;
   eventPrice: string;
   capacity: string;
-  discountedPrice: string;
-  eventImages: string[];
 }
 
 interface EventFormProps {
@@ -26,8 +24,6 @@ interface EventFormProps {
   onRemove: (id: string) => void;
   onImagePicker: (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event", boothIndex: number, eventIndex: number) => void;
   eventTypes: Array<{ id: string; name: string }>;
-  showImagePicker: boolean;
-  setShowImagePicker: (show: boolean) => void;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -37,9 +33,8 @@ const EventForm: React.FC<EventFormProps> = ({
   onRemove,
   onImagePicker,
   eventTypes,
-  showImagePicker,
-  setShowImagePicker,
 }) => {
+  const [showImagePicker, setShowImagePicker] = React.useState(false);
   const styles = {
     eventContainer: {
       backgroundColor: colors.vilate20,
@@ -147,8 +142,8 @@ const EventForm: React.FC<EventFormProps> = ({
         label="Event Type*"
         placeholder="Select event type"
         options={eventTypes}
-        selectedValue={event.eventType}
-        onSelect={(value: any) => onUpdate(event.id, 'eventType', value)}
+        selectedValue={eventTypes.find(type => type.id === event.eventType)?.name || event.eventType}
+        onSelect={(value: any) => onUpdate(event.id, 'eventType', value.id)}
         error={false}
         message=""
       />
@@ -180,47 +175,6 @@ const EventForm: React.FC<EventFormProps> = ({
         </View>
       </View>
 
-      <CustomeTextInput
-        label="Discounted Price"
-        placeholder="Enter discounted price"
-        value={event.discountedPrice}
-        onChangeText={(text) => onUpdate(event.id, 'discountedPrice', text)}
-        kType="numeric"
-        error={false}
-        message=""
-        leftImage=""
-      />
-
-      <View style={styles.imageSection}>
-        <Text style={styles.imageSectionTitle}>
-          Event Images* ({event.eventImages.length}/3)
-        </Text>
-        <View style={styles.imageGrid}>
-          {event.eventImages.map((image, index) => (
-            <View key={index} style={styles.imageContainer}>
-              <Image source={{ uri: image }} style={styles.image} />
-            </View>
-          ))}
-          {event.eventImages.length < 3 && (
-            <TouchableOpacity
-              style={styles.addImageButton}
-              onPress={() => {
-                onImagePicker('gallery', 'event', 0, eventIndex);
-              }}
-            >
-              <GalleryIcon size={24} color={colors.violate} />
-              <Text style={styles.addImageText}>Add Image</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      <ImageSelectionBottomSheet
-        visible={showImagePicker}
-        onClose={() => setShowImagePicker(false)}
-        onCameraPress={() => onImagePicker('camera', 'event', 0, eventIndex)}
-        onGalleryPress={() => onImagePicker('gallery', 'event', 0, eventIndex)}
-      />
     </View>
   );
 };

@@ -39,7 +39,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CustomAlertSingleBtn } from '../../../../components/CustomeAlertDialog';
 
 const categories = [
-  { id: "all", name: "🔥 All" },
+  { id: "all", name: "All" },
   { id: "vip", name: "🥂 VIP Clubs" },
   { id: "dj", name: "🎧 DJ Nights" },
   { id: "events", name: "🎟️ Events" },
@@ -142,31 +142,68 @@ const HomeScreenContent = () => {
 
   
   // Use the custom hook for home data management
-  // Default location coordinates
-  const defaultLat = "72.51123340677258";
-  const defaultLong = "23.012649201096547";
+  // Get location data from context
+  const { locationData } = useLocation();
+  
+  // Use dynamic location or fallback to default
+  const defaultLat = locationData?.latitude?.toString() || "23.012649201096547";
+  const defaultLong = locationData?.longitude?.toString() || "72.51123340677258";
+
+  // Refresh home data when location changes
+  useEffect(() => {
+    if (locationData?.latitude && locationData?.longitude) {
+      console.log('Location updated, refreshing home data with new coordinates:', {
+        lat: locationData.latitude,
+        lng: locationData.longitude
+      });
+      const refreshHomeData = async () => {
+        const userId = await getUser();
+        dispatch(onHome({
+          lat: defaultLat,
+          long: defaultLong,
+          userId: userId,
+        }));
+      };
+      refreshHomeData();
+    }
+  }, [locationData?.latitude, locationData?.longitude]);
 
   // Get user ID from AsyncStorage
-  const getUserID = async (): Promise<string | null> => {
+  // const getUserID = async (): Promise<string | null> => {
+  //   try {
+  //     const userData = await AsyncStorage.getItem('user_data');
+  //     if (userData) {
+  //       const parsedUserData = JSON.parse(userData);
+  //       const userId = parsedUserData?.id || '';
+  //       setUserId(userId);
+  //       return userId;
+  //     }
+  //     return null;
+  //   } catch (error) {
+  //     console.log('Error getting user ID:', error);
+  //     return null;
+  //   }
+  // };
+  const getUser = async () => {
     try {
-      const userData = await AsyncStorage.getItem('user_data');
-      if (userData) {
-        const parsedUserData = JSON.parse(userData);
-        const userId = parsedUserData?.id || '';
+      const user = await AsyncStorage.getItem("user");
+      if (user !== null) {
+        const parsedUser = JSON.parse(user);
+        console.log("User retrieved:", parsedUser);
+        const userId = parsedUser?.id || '';
         setUserId(userId);
+
         return userId;
       }
-      return null;
-    } catch (error) {
-      console.log('Error getting user ID:', error);
-      return null;
+    } catch (e) {
+      console.error("Failed to fetch the user.", e);
     }
   };
 
   // Fetch categories and home data when component mounts
   useEffect(() => {
     fetchCategories();
-    getUserID();
+    getUser();
   }, [fetchCategories]);
 
   useEffect(() => {
@@ -176,11 +213,11 @@ const HomeScreenContent = () => {
 
   useEffect(() => {
     const callHomeAPI = async () => {
-      const userId = await getUserID();
+      const userId = await getUser();
       dispatch(onHome({
-        lat: defaultLong,
-        long: defaultLat,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
       }));
     };
     callHomeAPI();
@@ -188,7 +225,7 @@ const HomeScreenContent = () => {
 
   // Use API categories if available, otherwise fallback to static categories
   const allCategories = apiCategories.length > 0 ? [
-    { _id: "all", name: "🔥 All" },
+    { _id: "all", name: "All" },
     ...apiCategories
   ] : categories;
 
@@ -196,23 +233,23 @@ const HomeScreenContent = () => {
   const handleCategoryPress = async (categoryId: string) => {
     setSelectedCategory(categoryId);
     
-    const userId = await getUserID();
+    const userId = await getUser();
     
     // Refresh home data with new category filter
     if (categoryId !== 'all') {
       const homeParams = {
-        lat: defaultLong,
-        long: defaultLat,
+        lat: defaultLat,
+        long: defaultLong,
         categoryid: categoryId,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        userId: userId, // fallback userId
       };
       dispatch(onHome(homeParams));
     } else {
       // If "All" is selected, fetch without category filter
       const homeParams = {
-        lat: defaultLong,
-        long: defaultLat,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
       };
       dispatch(onHome(homeParams));
     }
@@ -222,11 +259,11 @@ const HomeScreenContent = () => {
     setSearchVal('');
     // Reset to original data when search is cleared
     const callHomeAPI = async () => {
-      const userId = await getUserID();
+      const userId = await getUser();
       dispatch(onHome({
-        lat: defaultLong,
-        long: defaultLat,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
       }));
     };
     callHomeAPI();
@@ -236,20 +273,20 @@ const HomeScreenContent = () => {
     setSearchVal(searchText);
     
     if (searchText.trim().length > 0) {
-      const userId = await getUserID();
+      const userId = await getUser();
       dispatch(onHome({
-        lat: defaultLong,
-        long: defaultLat,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
         search_keyword: searchText.trim(),
       }));
     } else {
       // If search is empty, fetch original data
-      const userId = await getUserID();
+      const userId = await getUser();
       dispatch(onHome({
-        lat: defaultLong,
-        long: defaultLat,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
       }));
     }
   };
@@ -313,11 +350,11 @@ const HomeScreenContent = () => {
         togglefavorite?.status === "1"
       ) {
         console.log("togglefavorite response in home:+>", togglefavorite);
-        const userId = await getUserID();
+        const userId = await getUser();
         dispatch(onHome({
           lat: defaultLong,
           long: defaultLat,
-          userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+          userId: userId, // fallback userId
         }));
         dispatch(togglefavoriteData(''));
       }
@@ -354,7 +391,7 @@ const HomeScreenContent = () => {
       date: filterValues?.selectedDate?.formattedDate || new Date().toISOString().split('T')[0],
       minDistance: filterValues?.distanceRange?.min || 0,
       maxDistance: filterValues?.distanceRange?.max || 20,
-      userId: userId || "68c147b05f4b76754d914383" // fallback user ID
+      userId: userId, // fallback user ID
     };
 
     console.log('Filter Payload:', filterPayload);

@@ -27,8 +27,6 @@ interface BoothFormProps {
   onRemove: (id: string) => void;
   onImagePicker: (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event", boothIndex: number, eventIndex: number) => void;
   boothTypes: Array<{ id: string; name: string }>;
-  showImagePicker: boolean;
-  setShowImagePicker: (show: boolean) => void;
 }
 
 const BoothForm: React.FC<BoothFormProps> = ({
@@ -38,9 +36,8 @@ const BoothForm: React.FC<BoothFormProps> = ({
   onRemove,
   onImagePicker,
   boothTypes,
-  showImagePicker,
-  setShowImagePicker,
 }) => {
+  const [showImagePicker, setShowImagePicker] = React.useState(false);
   const styles = {
     boothContainer: {
       backgroundColor: colors.vilate20,
@@ -148,8 +145,8 @@ const BoothForm: React.FC<BoothFormProps> = ({
         label="Booth Type*"
         placeholder="Select booth type"
         options={boothTypes}
-        selectedValue={booth.boothType}
-        onSelect={(value: any) => onUpdate(booth.id, 'boothType', value)}
+        selectedValue={boothTypes.find(type => type.id === booth.boothType)?.name || booth.boothType}
+        onSelect={(value: any) => onUpdate(booth.id, 'boothType', value.id)}
         error={false}
         message=""
       />

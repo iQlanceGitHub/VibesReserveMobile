@@ -34,7 +34,7 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
 
   // Add "All" category at the beginning and fallback to static categories
   const allCategories = [
-    { _id: "all", name: "🔥 All" },
+    { _id: "all", name: "All" },
     ...(categories.length > 0 ? categories : [
     ])
   ];

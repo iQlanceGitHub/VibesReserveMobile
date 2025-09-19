@@ -89,6 +89,7 @@ export type RootStackParamList = {
   ClubDetailScreen: undefined;
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
   UpcomingScreen: undefined;
+  AddClubEventDetailScreen: undefined;
 };
 
 function MyTabs() {
