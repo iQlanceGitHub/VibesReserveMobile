@@ -26,6 +26,9 @@ import {
   verifyOtpData,
   verifyOtpError,
 
+  forgotPasswordData,
+  forgotPasswordError,
+
   resetPasswordData,
   resetPasswordError,
 
@@ -43,6 +46,30 @@ import {
 
   getDynamicContentData,
   getDynamicContentError,
+
+  updateLocationData,
+  updateLocationError,
+
+  homeData,
+  homeError,
+
+  filterData,
+  filterError,
+
+  viewdetailsData,
+  viewdetailsError,
+
+  categoryData,
+  categoryError,
+
+  facilityData,
+  facilityError,
+
+  togglefavoriteData,
+  togglefavoriteError,
+
+  favoriteslistData,
+  favoriteslistError,
 
 } from './actions';
 
@@ -62,6 +89,10 @@ export const initialState = {
   sendOtpErr: '',
   verifyOtp: '',
   verifyOtpErr: '',
+
+  forgotPassword: '',
+  forgotPasswordErr: '',
+
   resetPassword: '',
   resetPasswordErr: '',
   socialLogin: '',
@@ -74,7 +105,31 @@ export const initialState = {
   logoutErr: '',
   getDynamicContent: '',
   getDynamicContentErr: '',
-  user:'',
+  updateLocation: '',
+  updateLocationErr: '',
+
+  home: '',
+  homeErr: '',
+
+  filter: '',
+  filterErr: '',
+
+  viewdetails: '',
+  viewdetailsErr: '',
+
+  category: '',
+  categoryErr: '',
+
+  facility: '',
+  facilityErr: '',
+
+  togglefavorite: '',
+  togglefavoriteErr: '',
+
+  favoriteslist: '',
+  favoriteslistErr: '',
+
+  user: '',
 
 };
 
@@ -150,7 +205,7 @@ const authReducer = handleActions(
       console.log('payload send Otp Err', action.payload);
       draft.sendOtpErr = action.payload;
     }),
-   
+
     // payload verifyOtpData
     [verifyOtpData().type]: produce((draft, action) => {
       console.log('payload verify Otp', action.payload);
@@ -159,6 +214,16 @@ const authReducer = handleActions(
     [verifyOtpError().type]: produce((draft, action) => {
       console.log('payload verify Otp Err', action.payload);
       draft.verifyOtpErr = action.payload;
+    }),
+
+    // payload ForgotPasswordData
+    [forgotPasswordData().type]: produce((draft, action) => {
+      console.log('payload forgot Password', action.payload);
+      draft.forgotPassword = action.payload;
+    }),
+    [forgotPasswordError().type]: produce((draft, action) => {
+      console.log('payload forgot Password Err', action.payload);
+      draft.forgotPasswordErr = action.payload;
     }),
 
 
@@ -208,8 +273,6 @@ const authReducer = handleActions(
       draft.logoutErr = action.payload;
     }),
 
-
-
     [getDynamicContentData().type]: produce((draft, action) => {
       console.log('payload getDynamicContent ', action.payload);
       draft.getDynamicContent = action.payload;
@@ -219,41 +282,85 @@ const authReducer = handleActions(
       draft.getDynamicContentErr = action.payload;
     }),
 
-    // [clearReduxStore().type]: produce((draft, action) => {
-    //   draft.loader = false;
-    //   draft.signin = '';
-    //   draft.signinErr = '';
-    //   draft.signup = '';
-    //   draft.signupErr = '';
-    //   draft.resendverifyemail = '';
-    //   draft.resendverifyemailErr = '';
-    //   draft.forgotpassword = '';
-    //   draft.forgotpasswordErr = '';
-    //   draft.resetpassword = '';
-    //   draft.resetpasswordErr = '';
-    //   draft.verifyotp = '';
-    //   draft.verifyotpErr = '';
-    //   draft.resendotp = '';
-    //   draft.resendotpErr = '';
-    //   draft.signupprofile = '';
-    //   draft.signupprofileErr = '';
+    [updateLocationData().type]: produce((draft, action) => {
+      console.log('payload updateLocation ', action.payload);
+      draft.updateLocation = action.payload;
+    }),
+    [updateLocationError().type]: produce((draft, action) => {
+      console.log('payload updateLocationErr Err ', action.payload);
+      draft.updateLocationErr = action.payload;
+    }),
 
-    //   draft.giftCardList= [];
-    // draft.giftCardErr= '';
+    // payload home
+    [homeData().type]: produce((draft, action) => {
+      console.log('payload home', action.payload);
+      draft.home = action.payload;
+    }),
+    [homeError().type]: produce((draft, action) => {
+      console.log('payload home Error', action.payload);
+      draft.homeErr = action.payload;
+    }),
 
-    // draft.myGiftCardList: [];
-    // draft.myGiftCardErr= '';
+     // payload filter
+    [filterData().type]: produce((draft, action) => {
+      console.log('payload filter', action.payload);
+      draft.filter = action.payload;
+    }),
+    [filterError().type]: produce((draft, action) => {
+      console.log('payload filter Error', action.payload);
+      draft.filterErr = action.payload;
+    }),
 
-    // draft.buyGiftCardRes= '';
-    // draft.buyGiftCardErr= '';
+     // payload viewdetails
+    [viewdetailsData().type]: produce((draft, action) => {
+      console.log('payload viewdetails', action.payload);
+      draft.viewdetails = action.payload;
+    }),
+    [viewdetailsError().type]: produce((draft, action) => {
+      console.log('payload viewdetails Error', action.payload);
+      draft.viewdetailsErr = action.payload;
+    }),
 
-    // draft.promoCodeRes= '';
-    // draft.promoCodeErr= '';
-    //   draft.validPromo= '',
-    // draft.promoErr= '',
-    // draft.inviteText= '',
-    // paypalAccessToken
-    // }),
+    // payload category
+    [categoryData().type]: produce((draft, action) => {
+      console.log('payload category', action.payload);
+      draft.category = action.payload;
+    }),
+    [categoryError().type]: produce((draft, action) => {
+      console.log('payload category Error', action.payload);
+      draft.categoryErr = action.payload;
+    }),
+
+    // payload facility
+    [facilityData().type]: produce((draft, action) => {
+      console.log('payload facility', action.payload);
+      draft.facility = action.payload;
+    }),
+    [facilityError().type]: produce((draft, action) => {
+      console.log('payload facility Error', action.payload);
+      draft.facilityErr = action.payload;
+    }),
+
+    // payload togglefavorite
+    [togglefavoriteData().type]: produce((draft, action) => {
+      console.log('payload togglefavorite', action.payload);
+      draft.togglefavorite = action.payload;
+    }),
+    [togglefavoriteError().type]: produce((draft, action) => {
+      console.log('payload togglefavorite Error', action.payload);
+      draft.togglefavoriteErr = action.payload;
+    }),
+
+     // payload favoriteslist
+    [favoriteslistData().type]: produce((draft, action) => {
+      console.log('payload togglefavorite', action.payload);
+      draft.favoriteslist = action.payload;
+    }),
+    [favoriteslistError().type]: produce((draft, action) => {
+      console.log('payload togglefavorite Error', action.payload);
+      draft.favoriteslistErr = action.payload;
+    }),
+    
   },
   initialState,
 );

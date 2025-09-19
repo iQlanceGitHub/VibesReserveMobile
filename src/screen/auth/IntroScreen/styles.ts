@@ -36,7 +36,7 @@ export default StyleSheet.create({
         fontFamily: fonts.BlackerBold,
         alignSelf: 'center',
         textAlign: 'center',
-        marginTop:  appConstant.verticalScale(100),
+        marginTop:  appConstant.verticalScale(60),
         fontWeight: 500,
         lineHeight: appConstant.fontScale(24),
         width: appConstant.fontScale(335),
@@ -92,9 +92,10 @@ export default StyleSheet.create({
       },
       paginationDot: {
         width: appConstant.horizontalScale(8),
-        height: appConstant.horizontalScale(8),
+        height: appConstant.horizontalScale(10),
         borderRadius: 12,
         marginLeft: appConstant.horizontalScale(8),
         marginBottom: appConstant.verticalScale(16),
+        marginTop:appConstant.verticalScale(16),
       },
 });

@@ -1,22 +1,43 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
-import { useColorScheme } from "react-native";
+import {
+  useColorScheme,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 
 import IntroScreen from "../screen/auth/IntroScreen/IntroScreen";
-
+import { useSelector } from "react-redux";
 // import { BackButton } from "../components/BackButton";
 import LinearGradient from "react-native-linear-gradient";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import signupScreen from "../screen/signUpScreen/signUpScreen";
+import SignupScreen from "../screen/signUpScreen/signUpScreen";
 import signInScreen from "../screen/signInScreen/signInScreen";
 import WelcomeScreen from "../screen/welcomeScreen/welcomeScreen";
-// import OTPVerificationScreen from "../screen/auth/OTPVerificationScreen/OTPVerificationScreen";
-// import VerificationSucessScreen from "../screen/auth/VerificationSucessScreen/VerificationSucessScreen";
-// import LocationScreen from "../screen/auth/LocationScreen/LocationScreen";
-// import LocationManuallyScreen from "../screen/auth/LocationManuallyScreen/LocationManuallyScreen";
-// import PasswordChangedSucessScreen from "../screen/auth/PasswordChangedSucessScreen/PasswordChangedSucessScreen";
-// import ForgotPasswordScreen from '../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen';
-// import ResetPasswordScreen from '../screen/auth/ResetPasswordScreen/ResetPasswordScreen';
+import OTPVerificationScreen from "../screen/auth/OTPVerificationScreen/OTPVerificationScreen";
+import VerificationSucessScreen from "../screen/auth/VerificationSucessScreen/VerificationSucessScreen";
+import LocationScreen from "../screen/auth/LocationScreen/LocationScreen";
+import LocationManuallyScreen from "../screen/auth/LocationManuallyScreen/LocationManuallyScreen";
+import PasswordChangedSucessScreen from "../screen/auth/PasswordChangedSucessScreen/PasswordChangedSucessScreen";
+import ForgotPasswordScreen from "../screen/auth/ForgotPasswordScreen/ForgotPasswordScreen";
+import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswordScreen";
+import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
+import ProfileScreen from "../screen/profileScreen/profileScreen";
+import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
+import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
+import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
+import ExploreScreen from "../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen";
+import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIlterListScreen";
+import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
+
+import { colors } from "../utilis/colors";
+import * as appConstant from "../utilis/appConstant";
+import React, { useState } from "react";
+import homeScreen from "../screen/dashboard/user/homeScreen/homeScreen";
+import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
+import AddClubDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
+import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -50,10 +71,73 @@ export type RootStackParamList = {
   FeedQuestionScreen: undefined;
   CongratulationDiscovery: undefined;
   HomeTabs: undefined;
+  LeaveReviewScreen: undefined;
+  ProfileScreen: undefined;
+  AddClubEventDetailScreen: undefined;
 };
+
+function MyTabs() {
+  return (
+    <Tab.Navigator tabBar={(props) => <HomeBottomTabNavigator {...props} />}>
+      <Tab.Screen
+        name="Home"
+        component={homeScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={favouriteScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Match"
+        component={homeScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Chat"
+        component={homeScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Setting"
+        component={homeScreen}
+        options={{ headerShown: false }}
+      />
+    </Tab.Navigator>
+  );
+}
+
+function HostTabs() {
+  return (
+    <Tab.Navigator tabBar={(props) => <HostBottomTabNavigator {...props} />}>
+      <Tab.Screen
+        name="Home"
+        component={homeScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={favouriteScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Match"
+        component={homeScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Chat"
+        component={homeScreen}
+        options={{ headerShown: false }}
+      />
+    </Tab.Navigator>
+  );
+}
 
 const NavigationStack: React.FC = () => {
   const theme = useColorScheme();
+  const loader = useSelector((state: any) => state.auth.loader);
   return (
     <NavigationContainer>
       <LinearGradient
@@ -75,15 +159,15 @@ const NavigationStack: React.FC = () => {
           />
           <Stack.Screen
             options={{ headerShown: false }}
-            name="signupScreen"
-            component={signupScreen}
+            name="SignupScreen"
+            component={SignupScreen}
           />
           <Stack.Screen
             options={{ headerShown: false }}
             name="SignInScreen"
             component={signInScreen}
           />
-          {/* <Stack.Screen
+          <Stack.Screen
             options={{ headerShown: false }}
             name="OTPVerificationScreen"
             component={OTPVerificationScreen}
@@ -108,18 +192,77 @@ const NavigationStack: React.FC = () => {
             name="PasswordChangedSucessScreen"
             component={PasswordChangedSucessScreen}
           />
-           <Stack.Screen
+          <Stack.Screen
             options={{ headerShown: false }}
             name="ForgotPasswordScreen"
             component={ForgotPasswordScreen}
           />
-               <Stack.Screen
+          <Stack.Screen
             options={{ headerShown: false }}
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}
-          />     */}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="LeaveReviewScreen"
+            component={LeaveReviewScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="ProfileScreen"
+            component={ProfileScreen}
+          />
+
+          <Stack.Screen
+            name="HomeTabs"
+            component={MyTabs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HostTabs"
+            component={HostTabs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ExploreScreen"
+            component={ExploreScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FilterListScreen"
+            component={FilterListScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ClubDetailScreen"
+            component={ClubDetailScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </LinearGradient>
+      {loader && (
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            flex: 1,
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.black,
+              justifyContent: "center",
+              alignItems: "center",
+              width: appConstant.horizontalScale(70),
+              height: appConstant.horizontalScale(70),
+              borderRadius: 10,
+              alignSelf: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color={colors.white} />
+          </View>
+        </View>
+      )}
     </NavigationContainer>
   );
 };
