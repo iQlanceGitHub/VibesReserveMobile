@@ -506,9 +506,7 @@ const ExploreScreen = () => {
       longitudeDelta: deltaLng,
     };
 
-    setMapRegion(newRegion);
-    
-    // Animate to the new region
+    // Only animate to the new region without updating state to prevent color changes
     if (mapRef.current) {
       mapRef.current.animateToRegion(newRegion, 1000);
     }
@@ -579,7 +577,6 @@ const ExploreScreen = () => {
         style={styles.fullScreenMap}
         provider={Platform.OS === 'ios' ? undefined : PROVIDER_GOOGLE}
         initialRegion={mapRegion}
-        region={mapRegion}
         customMapStyle={mapStyle}
         onMapReady={() => {
           console.log('Map is ready');
@@ -592,12 +589,15 @@ const ExploreScreen = () => {
         showsMyLocationButton={false}
         showsCompass={false}
         showsScale={false}
+        mapType="standard"
+        loadingEnabled={true}
+        loadingIndicatorColor={colors.violate}
+        loadingBackgroundColor={colors.backgroundColor}
         showsBuildings={true}
         showsTraffic={false}
         showsIndoors={false}
-        loadingEnabled={true}
-        loadingIndicatorColor={colors.violate}
-        loadingBackgroundColor={colors.gradient_dark_purple}
+        userInterfaceStyle="dark"
+        tintColor={colors.violate}
       >
         {/* User Location Marker */}
         <Marker 

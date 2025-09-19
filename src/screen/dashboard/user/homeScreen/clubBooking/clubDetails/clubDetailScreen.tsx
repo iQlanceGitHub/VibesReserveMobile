@@ -156,247 +156,175 @@ const ClubDetailScreen = () => {
   })) || [];
 
 
-  const mapStyle = [
-    {
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#1d2c4d"
-        }
-      ]
-    },
-    {
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#8ec3b9"
-        }
-      ]
-    },
-    {
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#1a3646"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.country",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#4b6878"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.land_parcel",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#64779e"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.province",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#4b6878"
-        }
-      ]
-    },
-    {
-      "featureType": "landscape.man_made",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#334e87"
-        }
-      ]
-    },
-    {
-      "featureType": "landscape.natural",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#023e58"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#283d6a"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#6f9ba5"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#1d2c4d"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "geometry.fill",
-      "stylers": [
-        {
-          "color": "#023e58"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#3C7680"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#304a7d"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#98a5be"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#1d2c4d"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#2c6675"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#255763"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#b0d5ce"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#023e58"
-        }
-      ]
-    },
-    {
-      "featureType": "transit",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#98a5be"
-        }
-      ]
-    },
-    {
-      "featureType": "transit",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#1d2c4d"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.line",
-      "elementType": "geometry.fill",
-      "stylers": [
-        {
-          "color": "#283d6a"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.station",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#3a4762"
-        }
-      ]
-    },
-    {
+const mapStyle = [
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+          "color": "#1a1a2e"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+          "color": "#ffffff"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+          "color": "#1a1a2e"
+      }
+    ]
+  },
+  {
       "featureType": "water",
       "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#0e1626"
+    "stylers": [
+      {
+          "color": "#0e1621"
+      }
+    ]
+  },
+  {
+      "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+          "color": "#ffffff"
         }
       ]
     },
     {
-      "featureType": "water",
-      "elementType": "labels.text.fill",
+      "featureType": "road",
+      "elementType": "geometry",
       "stylers": [
         {
-          "color": "#4e6d70"
-        }
-      ]
-    }
-  ];
+          "color": "#2a2a2a"
+      }
+    ]
+  },
+  {
+      "featureType": "road",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+          "color": "#2a2a2a"
+      }
+    ]
+  },
+  {
+      "featureType": "road",
+      "elementType": "labels.text.fill",
+    "stylers": [
+      {
+          "color": "#ffffff"
+      }
+    ]
+  },
+  {
+      "featureType": "road",
+      "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+          "color": "#2a2a2a"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "geometry",
+    "stylers": [
+      {
+          "color": "#2a2a2a"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+          "color": "#ffffff"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+          "color": "#2a2a2a"
+      }
+    ]
+  },
+  {
+      "featureType": "landscape",
+      "elementType": "geometry",
+    "stylers": [
+      {
+          "color": "#1a1a2e"
+      }
+    ]
+  },
+  {
+      "featureType": "landscape",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+          "color": "#ffffff"
+      }
+    ]
+  },
+  {
+      "featureType": "administrative",
+    "elementType": "geometry",
+    "stylers": [
+      {
+          "color": "#2a2a2a"
+      }
+    ]
+  },
+  {
+      "featureType": "administrative",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+          "color": "#ffffff"
+      }
+    ]
+  },
+  {
+      "featureType": "transit",
+    "elementType": "geometry",
+    "stylers": [
+      {
+          "color": "#2a2a2a"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+          "color": "#ffffff"
+      }
+    ]
+  }
+];
 
   const handleLoungeSelect = (loungeId: string) => {
     setSelectedLounge(loungeId);
   };
 
   const handleFacilityToggle = (facilityId: string) => {
-    setSelectedFacilities(prev =>
-      prev.includes(facilityId)
+    setSelectedFacilities(prev => 
+      prev.includes(facilityId) 
         ? prev.filter(id => id !== facilityId)
         : [...prev, facilityId]
     );
@@ -544,7 +472,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     // Collect all selected values
     const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
     const selectedFacilitiesData = facilities.filter((facility: any) => selectedFacilities.includes(facility.id));
-
+    
     const selectedValues = {
       selectedLounge: selectedLounge,
       selectedLoungeData: selectedLoungeData,
@@ -696,32 +624,32 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                   <View style={styles.loungeContent}>
                     <Text style={styles.loungeName}>{lounge.name}</Text>
                     <Text style={styles.loungeDetails}>
-                      <Text style={styles.loungeTitle}>Booth Type: </Text>
-                      <Text style={styles.loungeDetails}>{lounge.type}</Text>
-                      {'\n'}
-                      <Text style={styles.loungeTitle}>Capacity: </Text>
-                      <Text style={styles.loungeDetails}>{lounge.capacity}</Text>
-                    </Text>
+  <Text style={styles.loungeTitle}>Booth Type: </Text>
+  <Text style={styles.loungeDetails}>{lounge.type}</Text>
+  {'\n'}
+  <Text style={styles.loungeTitle}>Capacity: </Text>
+  <Text style={styles.loungeDetails}>{lounge.capacity}</Text>
+</Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <TouchableOpacity
-                        style={[
-                          styles.selectButton,
-                          selectedLounge === lounge.id && styles.selectButtonSelected
-                        ]}
-                      >
-                        <Text style={[
-                          styles.selectButtonText,
-                          selectedLounge === lounge.id && styles.selectButtonTextSelected
-                        ]}>
-                          {selectedLounge === lounge.id ? 'Selected' : 'Select'}
-                        </Text>
-                      </TouchableOpacity>
-                      <View style={styles.priceContainer}>
-                        <Text style={styles.originalPrice}>${lounge.originalPrice}</Text>
-                        <Text style={styles.discountedPrice}>${lounge.discountedPrice}</Text>
-                      </View>
+                        <TouchableOpacity
+                      style={[
+                        styles.selectButton,
+                        selectedLounge === lounge.id && styles.selectButtonSelected
+                      ]}
+                    >
+                      <Text style={[
+                        styles.selectButtonText,
+                        selectedLounge === lounge.id && styles.selectButtonTextSelected
+                      ]}>
+                        {selectedLounge === lounge.id ? 'Selected' : 'Select'}
+                      </Text>
+                    </TouchableOpacity>
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.originalPrice}>${lounge.originalPrice}</Text>
+                      <Text style={styles.discountedPrice}>${lounge.discountedPrice}</Text>
                     </View>
-
+                    </View>
+                  
                   </View>
                 </TouchableOpacity>
               ))}
@@ -754,17 +682,17 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           {/* Address */}
           <View style={styles.section}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: verticalScale(16) }}>
-              <Text style={styles.sectionTitle}>Address</Text>
+             <Text style={styles.sectionTitle}>Address</Text>
               <TouchableOpacity style={styles.mapButton} onPress={openInMapApp}>
-                <Text style={styles.mapButtonText}>View on Map</Text>
-              </TouchableOpacity></View>
+                   <Text style={styles.mapButtonText}>View on Map</Text>
+                 </TouchableOpacity></View>
 
             <View style={styles.addressRow}>
-              <LocationFavourite size={16} color={colors.violate} />
+                  <LocationFavourite size={16} color={colors.violate} />
               <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
-            </View>
-
-
+                </View>
+                
+            
             <View style={styles.mapContainer}>
               <MapView
                 style={styles.map}
@@ -772,6 +700,16 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                 customMapStyle={mapStyle} // Apply custom styling
                 scrollEnabled={false} // Disable scrolling if you want it to be static
                 zoomEnabled={false} // Disable zoom if you want it to be static
+                userInterfaceStyle="dark"
+                tintColor={colors.violate}
+                mapType="standard"
+                showsUserLocation={false}
+                showsMyLocationButton={false}
+                showsCompass={false}
+                showsScale={false}
+                showsBuildings={true}
+                showsTraffic={false}
+                showsIndoors={false}
               >
                 <Marker
                   coordinate={location}
@@ -784,46 +722,46 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               </MapView>
             </View>
           </View>
-          {/* Facilities */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Facilities</Text>
-            <View style={styles.facilitiesContainer}>
+           {/* Facilities */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Facilities</Text>
+           <View style={styles.facilitiesContainer}>
               {facilities.map((facility: any) => (
-                <TouchableOpacity
-                  key={facility.id}
-                  style={[
-                    styles.facilityButton,
-                    selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
-                  ]}
-                  onPress={() => handleFacilityToggle(facility.id)}
-                >
-                  {/* {facility.icon} */}
-                  <Text style={[
-                    styles.facilityText,
-                    selectedFacilities.includes(facility.id) && styles.facilityTextSelected
-                  ]}>
-                    {facility.title}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+               <TouchableOpacity 
+                 key={facility.id} 
+                 style={[
+                   styles.facilityButton,
+                   selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
+                 ]}
+                 onPress={() => handleFacilityToggle(facility.id)}
+               >
+                 {/* {facility.icon} */}
+                 <Text style={[
+                   styles.facilityText,
+                   selectedFacilities.includes(facility.id) && styles.facilityTextSelected
+                 ]}>
+                   {facility.title}
+                 </Text>
+               </TouchableOpacity>
+             ))}
+           </View>
+        </View>
         </View>
         <View style={{ marginTop: verticalScale(100) }}></View>
-      </ScrollView>
-
+    </ScrollView>
+  
 
       {/* Bottom Booking Bar */}
-      <View style={styles.bottomBar}>
-        <View style={styles.priceSection}>
-          <Text style={styles.totalPriceLabel}>Total Price</Text>
-          <Text style={styles.totalPriceValue}>${getTotalPrice()}</Text>
-        </View>
-        <TouchableOpacity style={styles.bookNowButton}>
-          <Text style={styles.bookNowText}>Book Now</Text>
-        </TouchableOpacity>
+  <View style={styles.bottomBar}>
+    <View style={styles.priceSection}>
+      <Text style={styles.totalPriceLabel}>Total Price</Text>
+      <Text style={styles.totalPriceValue}>${getTotalPrice()}</Text>
+    </View>
+    <TouchableOpacity style={styles.bookNowButton}>
+      <Text style={styles.bookNowText}>Book Now</Text>
+    </TouchableOpacity>
         <View style={{ marginTop: verticalScale(80) }}></View>
-      </View>
+  </View>
     </SafeAreaView >
   );
 };
