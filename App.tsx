@@ -8,6 +8,7 @@ import configureStore from "./src/reduxSaga/configureStore";
 import SplashScreen from "react-native-splash-screen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/utilis/toastUtils.tsx";
+import AppInitializer from "./src/components/AppInitializer";
 
 const initialState = {};
 const store: any = configureStore(initialState);
@@ -30,16 +31,18 @@ function App(): React.JSX.Element {
   return (
     <Provider store={store}>
       <SafeAreaProvider>
-        <View style={{ flex: 1 }}>
-          <StatusBar
-            translucent
-            backgroundColor="transparent"
-            barStyle="dark-content"
-          />
+        <AppInitializer>
+          <View style={{ flex: 1 }}>
+            <StatusBar
+              translucent
+              backgroundColor="transparent"
+              barStyle="dark-content"
+            />
 
-          <NavigationStack />
-          <Toast config={toastConfig} />
-        </View>
+            <NavigationStack />
+            <Toast config={toastConfig} />
+          </View>
+        </AppInitializer>
       </SafeAreaProvider>
     </Provider>
   );

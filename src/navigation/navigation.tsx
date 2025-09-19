@@ -26,10 +26,14 @@ import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
 import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
+import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
+import ExploreScreen from "../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen";
+import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIlterListScreen";
+import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
-import React from "react";
+import React, { useState } from "react";
 import homeScreen from "../screen/dashboard/user/homeScreen/homeScreen";
 import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
 import AddClubDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
@@ -82,7 +86,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Search"
-        component={homeScreen}
+        component={favouriteScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -109,12 +113,12 @@ function HostTabs() {
     <Tab.Navigator tabBar={(props) => <HostBottomTabNavigator {...props} />}>
       <Tab.Screen
         name="Home"
-        component={HostHomeScreen}
+        component={homeScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Bookings"
-        component={HostBookingScreen}
+        name="Search"
+        component={favouriteScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -220,8 +224,18 @@ const NavigationStack: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="AddClubEventDetailScreen"
-            component={AddClubDetailScreen}
+            name="ExploreScreen"
+            component={ExploreScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FilterListScreen"
+            component={FilterListScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ClubDetailScreen"
+            component={ClubDetailScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

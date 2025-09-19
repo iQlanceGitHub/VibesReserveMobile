@@ -50,6 +50,35 @@ import {
   updateLocationData,
   updateLocationError,
 
+  onHome,
+  homeData,
+  homeError,
+
+  onFilter,
+  filterData,
+  filterError,
+
+  onViewdetails,
+  viewdetailsData,
+  viewdetailsError,
+
+  onCategory,
+  categoryData,
+  categoryError,
+
+  onFacility,
+  facilityData,
+  facilityError,
+
+  onTogglefavorite,
+  togglefavoriteData,
+  togglefavoriteError,
+
+  onFavoriteslist,
+  favoriteslistData,
+  favoriteslistError,
+
+
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -528,6 +557,103 @@ function* onUpdateLocationSaga({ payload }: { payload: UpdateLocationPayload }) 
 }
 
 
+interface HomePayload {
+  lat?: string;
+  long?: string;
+  categoryid?: string;
+  userId?: string;
+}
+
+function* HomeSaga({ payload }: { payload: HomePayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      "lat": payload?.lat,
+      "long": payload?.long,
+      categoryid:payload?.categoryid,
+      userId:payload?.userId,
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/home'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/home'}`)
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(homeData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(homeError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(homeError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+
+interface FilterPayload {
+  lat?: string;
+  long?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  date?: string;
+  minDistance?: number;
+  maxDistance?: number;
+  userId?: string;
+}
+
+function* FilterSaga({ payload }: { payload: FilterPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      "lat": payload?.lat,
+      "long": payload?.long,
+      "categoryId": payload?.categoryId,
+      "minPrice": payload?.minPrice,
+      "maxPrice": payload?.maxPrice,
+      "date": payload?.date,
+      "minDistance": payload?.minDistance,
+      "maxDistance": payload?.maxDistance,
+      "userId": payload?.userId,
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/filter'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/filter'}`)
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(homeData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(homeError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(homeError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 interface ProfilePayload { }
 
 function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
@@ -591,6 +717,186 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
   }
 }
 
+
+interface ViewdetailsPayload {
+  id?: string;
+}
+
+function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${`user/viewdetails/${payload?.id}`}`,
+    });
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(viewdetailsData(response));
+    } else {
+      console.log("Errors", response);
+      yield put(viewdetailsError(response));
+    }
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error", error);
+    yield put(viewdetailsError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface CategoryPayload {  
+  page?: number;
+  limit?: number;
+}
+
+function* CategorySaga({ payload }: { payload: CategoryPayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${`user/category?page=${payload?.page}&limit=${payload?.limit}`}`,
+    });
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(categoryData(response));
+    } else {
+      console.log("Errors", response);
+      yield put(categoryError(response));
+    }
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error", error);
+    yield put(categoryError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface FacilityPayload {  
+  page?: number;
+  limit?: number;
+}
+
+function* FacilitySaga({ payload }: { payload: FacilityPayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${`user/facility?page=${payload?.page}&limit=${payload?.limit}`}`,
+    });
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(facilityData(response));
+    } else {
+      console.log("Errors", response);
+      yield put(facilityError(response));
+    }
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error", error);
+    yield put(facilityError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+
+interface TogglefavoritePayload {
+  eventId?: string;
+}
+
+function* TogglefavoriteSaga({ payload }: { payload: TogglefavoritePayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      "eventId": payload?.eventId,
+      
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/togglefavorite'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/togglefavorite'}`)
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(togglefavoriteData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(togglefavoriteError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(togglefavoriteError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+
+interface FavoriteslistPayload {
+  eventId?: string;
+}
+
+function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      "eventId": payload?.eventId,
+      
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${'user/favoriteslist'}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${'user/favoriteslist'}`)
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(favoriteslistData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(favoriteslistError(response));
+    }
+    //yield put(signinData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(favoriteslistError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+
+
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -607,6 +913,13 @@ function* authSaga() {
   yield takeLatest(onLogout().type, LogoutSaga);
   yield takeLatest(onUpdateLocation().type, onUpdateLocationSaga);
 
+  yield takeLatest(onHome().type, HomeSaga);
+  yield takeLatest(onFilter().type, FilterSaga);
+  yield takeLatest(onViewdetails().type, ViewdetailsSaga);
+  yield takeLatest(onCategory().type, CategorySaga);
+  yield takeLatest(onFacility().type, FacilitySaga);
+  yield takeLatest(onTogglefavorite().type, TogglefavoriteSaga);
+  yield takeLatest(onFavoriteslist().type, FavoriteslistSaga);
 
 }
 
