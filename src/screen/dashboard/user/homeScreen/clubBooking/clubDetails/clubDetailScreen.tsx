@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -52,7 +53,7 @@ const ClubDetailScreen = () => {
   const route = useRoute();
   const { locationData } = useLocation();
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [selectedLounge, setSelectedLounge] = useState('crystal');
+  const [selectedLounge, setSelectedLounge] = useState('');
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [viewedMap, setViewedMap] = useState(false);
   const [clubDetails, setClubDetails] = useState(null);
@@ -60,6 +61,23 @@ const ClubDetailScreen = () => {
 
   const dispatch = useDispatch();
   const viewdetails = useSelector((state: any) => state.auth.viewdetails);
+
+  // Disable swipe-back gesture on iOS
+  useFocusEffect(
+    React.useCallback(() => {
+      // Disable gesture when screen is focused
+      navigation.setOptions({
+        gestureEnabled: false,
+      });
+      
+      // Re-enable gesture when screen is unfocused (optional)
+      return () => {
+        navigation.setOptions({
+          gestureEnabled: true,
+        });
+      };
+    }, [navigation])
+  );
   const viewdetailsErr = useSelector((state: any) => state.auth.viewdetailsErr);
   const togglefavorite = useSelector((state: any) => state.auth.togglefavorite);
   const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
@@ -329,7 +347,10 @@ const ClubDetailScreen = () => {
   ];
 
   const handleLoungeSelect = (loungeId: string) => {
-    setSelectedLounge(loungeId);
+    // Toggle selection: if already selected, unselect; otherwise select
+    setSelectedLounge(prevSelected => 
+      prevSelected === loungeId ? '' : loungeId
+    );
   };
 
   const handleFacilityToggle = (facilityId: string) => {
@@ -474,6 +495,11 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const getTotalPrice = () => {
+    // If no lounge is selected, return 0
+    if (!selectedLounge) {
+      return 0;
+    }
+
     // If there are tickets, calculate based on selected ticket
     if (transformedTickets && transformedTickets.length > 0) {
       const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
@@ -488,6 +514,12 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
 
   const handleBookNow = () => {
+    // Check if a lounge/ticket is selected
+    if (!selectedLounge) {
+      Alert.alert('Selection Required', 'Please select a lounge or ticket to proceed with booking.');
+      return;
+    }
+
     // Collect all selected values
     const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
     const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
@@ -709,16 +741,6 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                   </View>
                 </TouchableOpacity>
               ))}
-
-
-              {/* const transformedTickets = (clubDetails as any)?.tickets?.map((ticket: any, index: number) => ({
-    id: ticket._id || `ticket_${index}`,
-    name: ticket.ticketType?.name || 'General Admission',
-    type: ticket.ticketType?.name || 'General',
-    capacity: `${ticket.capacity || 0} People`,
-    price: ticket.ticketPrice || 45,
-  })) || [];
-   */}
 
             </ScrollView>
           </View>

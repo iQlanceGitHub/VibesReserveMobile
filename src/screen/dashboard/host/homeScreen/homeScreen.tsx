@@ -10,11 +10,15 @@ import {
   Modal,
   TouchableOpacity,
   TextInput,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import Header from "../../../../components/Header";
 import RequestCard from "../../../../components/RequestCard";
+import CloseIcon from "../../../../assets/svg/closeIcon";
 import styles from "./styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from 'react-redux';
@@ -42,6 +46,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState<string>('');
   const [customReason, setCustomReason] = useState<string>('');
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const dispatch = useDispatch();
   const bookingrequest = useSelector((state: any) => state.auth.bookingrequest);
@@ -233,6 +238,21 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     fetchBookingRequests();
   }, []);
 
+  // Keyboard event listeners
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -302,9 +322,21 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         animationType="slide"
         onRequestClose={handleRejectCancel}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView 
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Reject Booking Request</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Reject Booking Request</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleRejectCancel}
+              >
+                <CloseIcon size={24} color={colors.white} />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.modalSubtitle}>Please provide a reason for rejection:</Text>
             
             <TextInput
@@ -318,22 +350,37 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
               textAlignVertical="top"
             />
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleRejectCancel}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.rejectButton}
-                onPress={handleRejectConfirm}
-              >
-                <Text style={styles.rejectButtonText}>Reject</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Show Done button when keyboard is visible */}
+            {isKeyboardVisible && (
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.doneButton}
+                  onPress={() => Keyboard.dismiss()}
+                >
+                  <Text style={styles.doneButtonText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Hide buttons when keyboard is visible */}
+            {!isKeyboardVisible && (
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleRejectCancel}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.rejectButton}
+                  onPress={handleRejectConfirm}
+                >
+                  <Text style={styles.rejectButtonText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Custom Accept Modal */}

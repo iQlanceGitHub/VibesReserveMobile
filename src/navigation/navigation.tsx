@@ -216,7 +216,10 @@ const NavigationStack: React.FC = () => {
            <Stack.Screen
             name="ClubDetailScreen"
             component={ClubDetailScreen}
-            options={{ headerShown: false }}
+            options={{ 
+              headerShown: false,
+              gestureEnabled: false // Disable swipe-back gesture on iOS
+            }}
           />  
            <Stack.Screen
             name="NearbyEventsSeeAllScreen"

@@ -6,14 +6,14 @@ import { horizontalScale, verticalScale, fontScale } from '../../../../../utilis
 import { CustomeTextInput } from '../../../../../components/textinput';
 import CustomDropdown from '../../../../../components/CustomDropdown';
 import ImageSelectionBottomSheet from '../../../../../components/ImageSelectionBottomSheet';
+import PlusIcon from '../../../../../assets/svg/plusIcon';
 import GalleryIcon from '../../../../../assets/svg/galleryIcon';
 // import TrashIcon from '../../../../../assets/svg/trashIcon';
 
 interface EventData {
   id: string;
-  eventName: string;
-  eventType: string;
-  eventPrice: string;
+  ticketType: string;
+  ticketPrice: string;
   capacity: string;
 }
 
@@ -23,7 +23,7 @@ interface EventFormProps {
   onUpdate: (id: string, field: keyof EventData, value: string | string[]) => void;
   onRemove: (id: string) => void;
   onImagePicker: (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event", boothIndex: number, eventIndex: number) => void;
-  eventTypes: Array<{ id: string; name: string }>;
+  ticketTypes: Array<{ id: string; name: string }>;
 }
 
 const EventForm: React.FC<EventFormProps> = ({
@@ -32,7 +32,7 @@ const EventForm: React.FC<EventFormProps> = ({
   onUpdate,
   onRemove,
   onImagePicker,
-  eventTypes,
+  ticketTypes,
 }) => {
   const [showImagePicker, setShowImagePicker] = React.useState(false);
   const styles = {
@@ -119,31 +119,21 @@ const EventForm: React.FC<EventFormProps> = ({
   return (
     <View style={styles.eventContainer}>
       <View style={styles.eventHeader}>
-        <Text style={styles.eventTitle}>Event {eventIndex + 1}</Text>
+        <Text style={styles.eventTitle}>Ticket {eventIndex + 1}</Text>
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => onRemove(event.id)}
         >
-          <GalleryIcon size={20} color={colors.red} />
+          <PlusIcon size={20} color={colors.red} />
         </TouchableOpacity>
       </View>
 
-      <CustomeTextInput
-        label="Event Name*"
-        placeholder="Enter event name"
-        value={event.eventName}
-        onChangeText={(text) => onUpdate(event.id, 'eventName', text)}
-        error={false}
-        message=""
-        leftImage=""
-      />
-
       <CustomDropdown
-        label="Event Type*"
-        placeholder="Select event type"
-        options={eventTypes}
-        selectedValue={eventTypes.find(type => type.id === event.eventType)?.name || event.eventType}
-        onSelect={(value: any) => onUpdate(event.id, 'eventType', value.id)}
+        label="Ticket Type*"
+        placeholder="Select ticket type"
+        options={ticketTypes}
+        selectedValue={ticketTypes.find(type => type.id === event.ticketType)?.name || event.ticketType}
+        onSelect={(value: any) => onUpdate(event.id, 'ticketType', value.id)}
         error={false}
         message=""
       />
@@ -151,10 +141,10 @@ const EventForm: React.FC<EventFormProps> = ({
       <View style={styles.inputRow}>
         <View style={styles.inputHalf}>
           <CustomeTextInput
-            label="Event Price*"
+            label="Ticket Price*"
             placeholder="Enter price"
-            value={event.eventPrice}
-            onChangeText={(text) => onUpdate(event.id, 'eventPrice', text)}
+            value={event.ticketPrice}
+            onChangeText={(text) => onUpdate(event.id, 'ticketPrice', text)}
             kType="numeric"
             error={false}
             message=""

@@ -13,6 +13,7 @@ import {
   PermissionsAndroid,
   TextInput,
   TouchableWithoutFeedback,
+  Modal,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
@@ -49,7 +50,6 @@ import { useCategory } from '../../../../hooks/useCategory';
 import { useFacility } from '../../../../hooks/useFacility';
 import LocationIcon from '../../../../assets/svg/locationIcon';
 import GoogleAddressAutocomplete from '../../../../components/GoogleAddressAutocomplete';
-import TicketDisplay from './components/TicketDisplay';
 
 // Google Maps API key
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
@@ -77,9 +77,8 @@ interface BoothData {
 
 interface EventData {
   id: string;
-  eventName: string;
-  eventType: string;
-  eventPrice: string;
+  ticketType: string;
+  ticketPrice: string;
   capacity: string;
 }
 
@@ -125,6 +124,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   // UI state
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [timePickerMode, setTimePickerMode] = useState<"start" | "end">("start");
+  const [selectedTime, setSelectedTime] = useState<Date>(new Date());
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentImageType, setCurrentImageType] = useState<"main" | "booth" | "event">("main");
@@ -271,7 +271,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       // Remove date/time validation since we're using fallback values
       address: !address.trim(),
       // Remove ticket validation - tickets are handled in dynamic forms
-      uploadPhotos: (type === "Club" || type === "Pub") ? uploadPhotos.length === 0 : false, // Only require photos for Club/Pub
+      uploadPhotos: uploadPhotos.length === 0, // Require photos for all types
     };
 
     // Check if type is selected
@@ -327,10 +327,9 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       }
       
       const eventErrors = events.some(event => 
-        !event.eventName.trim() || 
-        !event.eventType.trim() || 
-        !event.eventPrice.trim() || 
-        isNaN(Number(event.eventPrice)) ||
+        !event.ticketType.trim() || 
+        !event.ticketPrice.trim() || 
+        isNaN(Number(event.ticketPrice)) ||
         !event.capacity.trim() || 
         isNaN(Number(event.capacity))
       );
@@ -369,9 +368,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const addNewEvent = () => {
     const newEvent: EventData = {
       id: Date.now().toString(),
-      eventName: "",
-      eventType: "",
-      eventPrice: "",
+      ticketType: "",
+      ticketPrice: "",
       capacity: "",
     };
     setEvents([...events, newEvent]);
@@ -577,35 +575,66 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       platform: Platform.OS 
     });
     
-    // Always hide the picker first
-    setShowTimePicker(false);
-    
-    // Handle the selection
-    if (event.type === 'set' && selectedTime) {
-      const timeString = selectedTime.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-      console.log('Time selected:', timeString, 'for mode:', timePickerMode);
-      
-      if (timePickerMode === "start") {
-        setStartTime(timeString);
-        console.log('Set startTime to:', timeString);
-      } else {
-        setEndTime(timeString);
-        console.log('Set endTime to:', timeString);
-      }
-    } else if (event.type === 'dismissed') {
-      // Handle case where user dismissed without selecting
-      console.log('Time picker dismissed without selection');
+    // Always update the selected time state when time changes
+    if (selectedTime) {
+      setSelectedTime(selectedTime);
+      console.log('Updated selectedTime to:', selectedTime);
     }
+    
+    // For Android, handle immediate selection and close modal
+    if (Platform.OS === "android") {
+      if (event.type === 'set' && selectedTime) {
+        const timeString = selectedTime.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+        console.log('Time selected:', timeString, 'for mode:', timePickerMode);
+        
+        if (timePickerMode === "start") {
+          setStartTime(timeString);
+          console.log('Set startTime to:', timeString);
+        } else {
+          setEndTime(timeString);
+          console.log('Set endTime to:', timeString);
+        }
+        
+        setShowTimePicker(false);
+      } else if (event.type === 'dismissed') {
+        console.log('Time picker dismissed without selection');
+        setShowTimePicker(false);
+      }
+    }
+    // For iOS, we just update the selectedTime state and let the Confirm button handle the final selection
   };
+
   const showTimePickerModal = (mode: "start" | "end") => {
     console.log('showTimePickerModal called with mode:', mode);
     setTimePickerMode(mode);
+    
+    // Set initial time based on current value or default
+    let initialTime = new Date();
+    if (mode === "start" && startTime) {
+      // Parse existing start time
+      const [time, period] = startTime.split(' ');
+      const [hours, minutes] = time.split(':');
+      let hour24 = parseInt(hours);
+      if (period === 'PM' && hour24 !== 12) hour24 += 12;
+      if (period === 'AM' && hour24 === 12) hour24 = 0;
+      initialTime.setHours(hour24, parseInt(minutes), 0, 0);
+    } else if (mode === "end" && endTime) {
+      // Parse existing end time
+      const [time, period] = endTime.split(' ');
+      const [hours, minutes] = time.split(':');
+      let hour24 = parseInt(hours);
+      if (period === 'PM' && hour24 !== 12) hour24 += 12;
+      if (period === 'AM' && hour24 === 12) hour24 = 0;
+      initialTime.setHours(hour24, parseInt(minutes), 0, 0);
+    }
+    
+    setSelectedTime(initialTime);
     setShowTimePicker(true);
-    console.log('Time picker should now be visible');
+    console.log('Time picker should now be visible with time:', initialTime);
   };
 
   // Function to trigger date picker for calendar icons
@@ -823,7 +852,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       endDate: finalEndDate,
       address: address,
       coordinates: coordinates,
-      photos: (type === "Club" || type === "Pub") ? uploadPhotos : [], // Only include photos for Club/Pub
+      photos: uploadPhotos, // Include photos for all types
       facilities: selectedFacilities,
     };
 
@@ -839,8 +868,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       }));
     } else if (type === "Event") {
       eventData.tickets = events.map(event => ({
-        ticketType: event.eventType, // Use dynamic category ID
-        ticketPrice: Number(event.eventPrice),
+        ticketType: event.ticketType, // Pass as string ID
+        ticketPrice: Number(event.ticketPrice),
         capacity: Number(event.capacity)
       }));
     }
@@ -1158,131 +1187,67 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </>
             )}
 
-            {/* Test button for ticket display */}
-            {type === "Event" && (
-              <TouchableOpacity
-                style={[addClubEventDetailStyle.addNewButton, { backgroundColor: colors.green, marginBottom: 10 }]}
-                onPress={() => {
-                  // Test with sample ticket data
-                  const testTickets = [{
-                    _id: "test1",
-                    ticketType: { _id: "cat1", name: "General" },
-                    ticketPrice: 45,
-                    capacity: 150,
-                    soldTickets: 20
-                  }, {
-                    _id: "test2", 
-                    ticketType: { _id: "cat2", name: "VIP" },
-                    ticketPrice: 45,
-                    capacity: 150,
-                    soldTickets: 20
-                  }];
-                  setExistingEventData({ tickets: testTickets });
-                  setIsDisplayMode(true);
-                }}
-              >
-                <Text style={addClubEventDetailStyle.addNewButtonText}>Test Ticket Display</Text>
-              </TouchableOpacity>
-            )}
 
             {/* Dynamic Ticket Forms for Event */}
             {type === "Event" && (
               <>
-                {/* Show ticket display if in display mode and has existing tickets */}
-                {isDisplayMode && existingEventData?.tickets && existingEventData.tickets.length > 0 ? (
-                  <TicketDisplay
-                    tickets={existingEventData.tickets}
-                    onTicketSelect={(ticket) => {
-                      console.log('Ticket selected:', ticket);
-                      // Handle ticket selection if needed
-                    }}
-                    showSelectButton={false} // Don't show select button in display mode
+                {events.map((event, index) => (
+                  <EventForm
+                    key={event.id}
+                    event={event}
+                    eventIndex={index}
+                    onUpdate={updateEvent}
+                    onRemove={removeEvent}
+                    onImagePicker={handleImagePicker}
+                    ticketTypes={eventTypes}
                   />
-                ) : type === "Event" && events.length > 0 ? (
-                  <TicketDisplay
-                    tickets={events.map(event => ({
-                      _id: event.id,
-                      ticketType: {
-                        _id: event.eventType,
-                        name: eventTypes.find(t => t.id === event.eventType)?.name || event.eventType
-                      },
-                      ticketPrice: Number(event.eventPrice),
-                      capacity: Number(event.capacity)
-                    }))}
-                    onTicketSelect={(ticket) => {
-                      console.log('Ticket selected:', ticket);
-                    }}
-                    showSelectButton={true}
-                  />
-                ) : type === "Event" ? (
-                  <View style={{ padding: 20, backgroundColor: colors.vilate20, borderRadius: 10, marginVertical: 10 }}>
-                    <Text style={{ color: colors.white, fontSize: 16, textAlign: 'center' }}>
-                      No tickets added yet. Use the "Add New Ticket" button below to add tickets.
-                    </Text>
-                  </View>
-                ) : (
-                  <>
-                    {events.map((event, index) => (
-                      <EventForm
-                        key={event.id}
-                        event={event}
-                        eventIndex={index}
-                        onUpdate={updateEvent}
-                        onRemove={removeEvent}
-                        onImagePicker={handleImagePicker}
-                        eventTypes={eventTypes}
-                      />
-                    ))}
-                    <TouchableOpacity
-                    style={addClubEventDetailStyle.addNewButton}
-                    onPress={addNewEvent}
-                    >
-                      <PlusIcon />
-                    <Text style={addClubEventDetailStyle.addNewButtonText}>
-                      Add New Ticket
-                      </Text>
-                    </TouchableOpacity>
-                  </>
-                )}
+                ))}
+                <TouchableOpacity
+                  style={addClubEventDetailStyle.addNewButton}
+                  onPress={addNewEvent}
+                >
+                  <PlusIcon />
+                  <Text style={addClubEventDetailStyle.addNewButtonText}>
+                    Add New Ticket
+                  </Text>
+                </TouchableOpacity>
               </>
             )}
 
 
 
 
-            {/* Upload Photos (only for Club/Pub types) */}
-            {(type === "Club" || type === "Pub") && (
-              <View style={addClubEventDetailStyle.formElement}>
-                <Text style={addClubEventDetailStyle.sectionLabel}>
-                  Upload Photos ({uploadPhotos.length}/3)
-                </Text>
-                <View style={addClubEventDetailStyle.uploadPhotosRow}>
-                  {[0, 1, 2].map((index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={addClubEventDetailStyle.imageUploadBox}
-                      onPress={() => {
-                        if (uploadPhotos.length < 3 || uploadPhotos[index]) {
-                          handlePhotoUpload(index);
-                        } else {
-                          showToast('error', 'Maximum 3 images allowed');
-                        }
-                      }}
-                    >
-                      {uploadPhotos[index] ? (
-                        <Image
-                          source={{ uri: uploadPhotos[index] }}
-                          style={addClubEventDetailStyle.uploadedImage}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                      <GalleryIcon />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
+            {/* Upload Photos */}
+            <View style={addClubEventDetailStyle.formElement}>
+              <Text style={addClubEventDetailStyle.sectionLabel}>
+                Upload Photos ({uploadPhotos.length}/3)
+              </Text>
+              <View style={addClubEventDetailStyle.uploadPhotosRow}>
+                {[0, 1, 2].map((index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={addClubEventDetailStyle.imageUploadBox}
+                    onPress={() => {
+                      if (uploadPhotos.length < 3 || uploadPhotos[index]) {
+                        handlePhotoUpload(index);
+                      } else {
+                        showToast('error', 'Maximum 3 images allowed');
+                      }
+                    }}
+                  >
+                    {uploadPhotos[index] ? (
+                      <Image
+                        source={{ uri: uploadPhotos[index] }}
+                        style={addClubEventDetailStyle.uploadedImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                    <GalleryIcon />
+                    )}
+                  </TouchableOpacity>
+                ))}
               </View>
-            )}
+            </View>
 
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.sectionLabel}>
@@ -1333,15 +1298,83 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       </LinearGradient>
 
       {showTimePicker && (
-        <DateTimePicker
-          value={new Date()}
-          mode="time"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={handleTimeChange}
-          textColor={colors.white}
-          is24Hour={false}
-          themeVariant="dark"
-        />
+        <Modal
+          visible={showTimePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowTimePicker(false)}
+        >
+          <View style={addClubEventDetailStyle.timePickerModal}>
+            <View style={addClubEventDetailStyle.timePickerContainer}>
+              <View style={addClubEventDetailStyle.timePickerHeader}>
+                <Text style={addClubEventDetailStyle.timePickerTitle}>
+                  Select {timePickerMode === "start" ? "Opening" : "Closing"} Time
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowTimePicker(false)}
+                  style={addClubEventDetailStyle.timePickerCloseButton}
+                >
+                  <Text style={addClubEventDetailStyle.timePickerCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Display current selected time */}
+              <View style={addClubEventDetailStyle.timeDisplayContainer}>
+                <Text style={addClubEventDetailStyle.timeDisplayText}>
+                  {selectedTime.toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </Text>
+              </View>
+              
+              <DateTimePicker
+                value={selectedTime}
+                mode="time"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={handleTimeChange}
+                textColor={colors.white}
+                is24Hour={false}
+                themeVariant="dark"
+                style={addClubEventDetailStyle.timePicker}
+                minimumDate={new Date(2020, 0, 1)}
+                maximumDate={new Date(2030, 11, 31)}
+              />
+              
+              <View style={addClubEventDetailStyle.timePickerButtons}>
+                <TouchableOpacity
+                  style={addClubEventDetailStyle.timePickerCancelButton}
+                  onPress={() => setShowTimePicker(false)}
+                >
+                  <Text style={addClubEventDetailStyle.timePickerCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={addClubEventDetailStyle.timePickerConfirmButton}
+                  onPress={() => {
+                    console.log('Confirm button pressed, selectedTime:', selectedTime);
+                    const timeString = selectedTime.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    });
+                    console.log('Time string generated:', timeString);
+                    if (timePickerMode === "start") {
+                      setStartTime(timeString);
+                      console.log('Set startTime to:', timeString);
+                    } else {
+                      setEndTime(timeString);
+                      console.log('Set endTime to:', timeString);
+                    }
+                    setShowTimePicker(false);
+                  }}
+                >
+                  <Text style={addClubEventDetailStyle.timePickerConfirmText}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
 
       {showDatePicker && (
