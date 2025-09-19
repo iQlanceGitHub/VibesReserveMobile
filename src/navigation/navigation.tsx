@@ -35,7 +35,6 @@ import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/u
 import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
-import demo from "../screen/dashboard/user/homeScreen/Demo/demo";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -233,11 +232,7 @@ const NavigationStack: React.FC = () => {
             component={AddClubEventDetailScreen}
             options={{ headerShown: false }}
           />  
-           <Stack.Screen
-          name="demo"
-          component={demo}
-          options={{ headerShown: false }}
-          />
+        
           
         </Stack.Navigator>
       </LinearGradient>

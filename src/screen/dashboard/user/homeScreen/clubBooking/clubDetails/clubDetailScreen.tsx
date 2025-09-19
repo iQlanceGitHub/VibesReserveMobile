@@ -156,45 +156,45 @@ const ClubDetailScreen = () => {
   })) || [];
 
 
-const mapStyle = [
-  {
-    "elementType": "geometry",
-    "stylers": [
-      {
+  const mapStyle = [
+    {
+      "elementType": "geometry",
+      "stylers": [
+        {
           "color": "#1a1a2e"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
           "color": "#ffffff"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
           "color": "#1a1a2e"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "water",
       "elementType": "geometry",
-    "stylers": [
-      {
+      "stylers": [
+        {
           "color": "#0e1621"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "water",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
           "color": "#ffffff"
         }
       ]
@@ -205,126 +205,126 @@ const mapStyle = [
       "stylers": [
         {
           "color": "#2a2a2a"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "road",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
+      "elementType": "geometry.stroke",
+      "stylers": [
+        {
           "color": "#2a2a2a"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "road",
       "elementType": "labels.text.fill",
-    "stylers": [
-      {
+      "stylers": [
+        {
           "color": "#ffffff"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "road",
       "elementType": "labels.text.stroke",
-    "stylers": [
-      {
+      "stylers": [
+        {
           "color": "#2a2a2a"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "geometry",
-    "stylers": [
-      {
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "geometry",
+      "stylers": [
+        {
           "color": "#2a2a2a"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
           "color": "#ffffff"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
           "color": "#2a2a2a"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "landscape",
       "elementType": "geometry",
-    "stylers": [
-      {
+      "stylers": [
+        {
           "color": "#1a1a2e"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "landscape",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
           "color": "#ffffff"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "administrative",
-    "elementType": "geometry",
-    "stylers": [
-      {
+      "elementType": "geometry",
+      "stylers": [
+        {
           "color": "#2a2a2a"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "administrative",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
           "color": "#ffffff"
-      }
-    ]
-  },
-  {
+        }
+      ]
+    },
+    {
       "featureType": "transit",
-    "elementType": "geometry",
-    "stylers": [
-      {
+      "elementType": "geometry",
+      "stylers": [
+        {
           "color": "#2a2a2a"
-      }
-    ]
-  },
-  {
-    "featureType": "transit",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
+        }
+      ]
+    },
+    {
+      "featureType": "transit",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
           "color": "#ffffff"
-      }
-    ]
-  }
-];
+        }
+      ]
+    }
+  ];
 
   const handleLoungeSelect = (loungeId: string) => {
     setSelectedLounge(loungeId);
   };
 
   const handleFacilityToggle = (facilityId: string) => {
-    setSelectedFacilities(prev => 
-      prev.includes(facilityId) 
+    setSelectedFacilities(prev =>
+      prev.includes(facilityId)
         ? prev.filter(id => id !== facilityId)
         : [...prev, facilityId]
     );
@@ -472,7 +472,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     // Collect all selected values
     const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
     const selectedFacilitiesData = facilities.filter((facility: any) => selectedFacilities.includes(facility.id));
-    
+
     const selectedValues = {
       selectedLounge: selectedLounge,
       selectedLoungeData: selectedLoungeData,
@@ -516,7 +516,8 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       {/* Header with Club Image */}
       <View style={styles.headerContainer}>
         <Image
-          source={{ uri: (clubDetails as any)?.photos[0]
+          source={{
+            uri: (clubDetails as any)?.photos[0]
           }}
           style={styles.headerImage}
           resizeMode="cover"
@@ -558,7 +559,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               ) : (
                 <FavouriteIcon size={20} color={colors.violate} />
               )}
-              
+
             </TouchableOpacity>
           </View>
         </View>
@@ -624,32 +625,33 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                   <View style={styles.loungeContent}>
                     <Text style={styles.loungeName}>{lounge.name}</Text>
                     <Text style={styles.loungeDetails}>
-  <Text style={styles.loungeTitle}>Booth Type: </Text>
-  <Text style={styles.loungeDetails}>{lounge.type}</Text>
-  {'\n'}
-  <Text style={styles.loungeTitle}>Capacity: </Text>
-  <Text style={styles.loungeDetails}>{lounge.capacity}</Text>
-</Text>
+                      <Text style={styles.loungeTitle}>Booth Type: </Text>
+                      <Text style={styles.loungeDetails}>{lounge.type}</Text>
+                      {'\n'}
+                      <Text style={styles.loungeTitle}>Capacity: </Text>
+                      <Text style={styles.loungeDetails}>{lounge.capacity}</Text>
+                    </Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <TouchableOpacity
-                      style={[
-                        styles.selectButton,
-                        selectedLounge === lounge.id && styles.selectButtonSelected
-                      ]}
-                    >
-                      <Text style={[
-                        styles.selectButtonText,
-                        selectedLounge === lounge.id && styles.selectButtonTextSelected
-                      ]}>
-                        {selectedLounge === lounge.id ? 'Selected' : 'Select'}
-                      </Text>
-                    </TouchableOpacity>
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.originalPrice}>${lounge.originalPrice}</Text>
-                      <Text style={styles.discountedPrice}>${lounge.discountedPrice}</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.selectButton,
+                          selectedLounge === lounge.id && styles.selectButtonSelected
+                        ]}
+                        onPress={() => handleLoungeSelect(lounge.id)}
+                      >
+                        <Text style={[
+                          styles.selectButtonText,
+                          selectedLounge === lounge.id && styles.selectButtonTextSelected
+                        ]}>
+                          {selectedLounge === lounge.id ? 'Selected' : 'Select'}
+                        </Text>
+                      </TouchableOpacity>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.originalPrice}>${lounge.originalPrice}</Text>
+                        <Text style={styles.discountedPrice}>${lounge.discountedPrice}</Text>
+                      </View>
                     </View>
-                    </View>
-                  
+
                   </View>
                 </TouchableOpacity>
               ))}
@@ -682,17 +684,17 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           {/* Address */}
           <View style={styles.section}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: verticalScale(16) }}>
-             <Text style={styles.sectionTitle}>Address</Text>
+              <Text style={styles.sectionTitle}>Address</Text>
               <TouchableOpacity style={styles.mapButton} onPress={openInMapApp}>
-                   <Text style={styles.mapButtonText}>View on Map</Text>
-                 </TouchableOpacity></View>
+                <Text style={styles.mapButtonText}>View on Map</Text>
+              </TouchableOpacity></View>
 
             <View style={styles.addressRow}>
-                  <LocationFavourite size={16} color={colors.violate} />
+              <LocationFavourite size={16} color={colors.violate} />
               <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
-                </View>
-                
-            
+            </View>
+
+
             <View style={styles.mapContainer}>
               <MapView
                 style={styles.map}
@@ -722,46 +724,46 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               </MapView>
             </View>
           </View>
-           {/* Facilities */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Facilities</Text>
-           <View style={styles.facilitiesContainer}>
+          {/* Facilities */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Facilities</Text>
+            <View style={styles.facilitiesContainer}>
               {facilities.map((facility: any) => (
-               <TouchableOpacity 
-                 key={facility.id} 
-                 style={[
-                   styles.facilityButton,
-                   selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
-                 ]}
-                 onPress={() => handleFacilityToggle(facility.id)}
-               >
-                 {/* {facility.icon} */}
-                 <Text style={[
-                   styles.facilityText,
-                   selectedFacilities.includes(facility.id) && styles.facilityTextSelected
-                 ]}>
-                   {facility.title}
-                 </Text>
-               </TouchableOpacity>
-             ))}
-           </View>
-        </View>
+                <TouchableOpacity
+                  key={facility.id}
+                  style={[
+                    styles.facilityButton,
+                    selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
+                  ]}
+                  onPress={() => handleFacilityToggle(facility.id)}
+                >
+                  {/* {facility.icon} */}
+                  <Text style={[
+                    styles.facilityText,
+                    selectedFacilities.includes(facility.id) && styles.facilityTextSelected
+                  ]}>
+                    {facility.title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
         <View style={{ marginTop: verticalScale(100) }}></View>
-    </ScrollView>
-  
+      </ScrollView>
+
 
       {/* Bottom Booking Bar */}
-  <View style={styles.bottomBar}>
-    <View style={styles.priceSection}>
-      <Text style={styles.totalPriceLabel}>Total Price</Text>
-      <Text style={styles.totalPriceValue}>${getTotalPrice()}</Text>
-    </View>
-    <TouchableOpacity style={styles.bookNowButton}>
-      <Text style={styles.bookNowText}>Book Now</Text>
-    </TouchableOpacity>
+      <View style={styles.bottomBar}>
+        <View style={styles.priceSection}>
+          <Text style={styles.totalPriceLabel}>Total Price</Text>
+          <Text style={styles.totalPriceValue}>${getTotalPrice()}</Text>
+        </View>
+        <TouchableOpacity style={styles.bookNowButton}>
+          <Text style={styles.bookNowText}>Next</Text>
+        </TouchableOpacity>
         <View style={{ marginTop: verticalScale(80) }}></View>
-  </View>
+      </View>
     </SafeAreaView >
   );
 };

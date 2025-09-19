@@ -18,6 +18,8 @@ import SearchIcon from '../../../../assets/svg/searchIcon';
 import FilterScreen from './FilterScreen/FilterScreen';
 import { useCategory } from '../../../../hooks/useCategory';
 import { useFacility } from '../../../../hooks/useFacility';
+import { LocationProvider, useLocation } from '../../../../contexts/LocationContext';
+import LocationDisplay from '../../../../components/LocationDisplay';
 
 
 //API
@@ -113,7 +115,7 @@ const sampleEvents = [
  
 ];
 
-const HomeScreen = () => {
+const HomeScreenContent = () => {
   const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [events, setEvents] = useState(sampleEvents);
@@ -124,7 +126,6 @@ const HomeScreen = () => {
   const [nearby, setNearby] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState([]);
   const [userId, setUserId] = useState('');
-  const [shouldNavigateToFilter, setShouldNavigateToFilter] = useState(false);
 
   const dispatch = useDispatch();
   const home = useSelector((state: any) => state.auth.home);
@@ -298,26 +299,9 @@ const HomeScreen = () => {
       console.log("filterErr:+>", filterErr);
       setMsg(filterErr?.message?.toString())
       dispatch(filterError(''));
-      // Reset navigation flag on error
-      setShouldNavigateToFilter(false);
     }
   }, [filter, filterErr, dispatch]);
 
-  // Navigate to FilterListScreen when filter API is successful
-  useEffect(() => {
-    if (
-      shouldNavigateToFilter &&
-      (filter?.status === true ||
-      filter?.status === 'true' ||
-      filter?.status === 1 ||
-      filter?.status === "1")
-    ) {
-      // Navigate to FilterListScreen with filtered data
-      (navigation as any).navigate("FilterListScreen", { filteredData: filteredData });
-      // Reset the flag
-      setShouldNavigateToFilter(false);
-    }
-  }, [filter, filteredData, navigation, shouldNavigateToFilter]);
 
   // Handle Toggle Favorite API response
   useEffect(() => {
@@ -375,11 +359,11 @@ const HomeScreen = () => {
 
     console.log('Filter Payload:', filterPayload);
     
-    // Set flag to navigate when filter response is received
-    setShouldNavigateToFilter(true);
-    
     // Call filter API
     dispatch(onFilter(filterPayload));
+    
+    // Navigate to FilterListScreen immediately (same as explore screen)
+    navigation.navigate("FilterListScreen" as never);
   };
 
   const handleBookNow = (eventId?: string) => {
@@ -403,8 +387,11 @@ const HomeScreen = () => {
       {/* Top Section: Location & Search */}
       <View style={styles.topSection}>
         <View style={styles.locationRow}>
-        <LocationFavouriteWhiteIcon size={18} color={colors.violate} />
-        <Text style={styles.locationText}>Toronto, Canada.</Text>
+        <LocationDisplay 
+          showRefreshButton={true}
+          style={{ flex: 1 }}
+          textStyle={styles.locationText}
+        />
         <TouchableOpacity
           style={styles.mapIcon}
           onPress={() => navigation.navigate("FilterListScreen" as never)}
@@ -490,7 +477,8 @@ const HomeScreen = () => {
             return (
               <EventCard
                 title={(item as any).name}
-                location={(item as any).address}
+                // location={(item as any).address}
+                location={'Clock on overlap on event page overlap Clock on overlap on event page overlap on event page overlap on event page overlap on event page'}
                 date={new Date((item as any).startDate).toLocaleDateString()}
                 price={`$${(item as any).entryFee}`}
                 tag={(item as any).type}
@@ -542,6 +530,14 @@ const HomeScreen = () => {
       
       {/* Bottom navigation is assumed to be handled by your navigator */}
     </View>
+  );
+};
+
+const HomeScreen = () => {
+  return (
+    <LocationProvider>
+      <HomeScreenContent />
+    </LocationProvider>
   );
 };
 

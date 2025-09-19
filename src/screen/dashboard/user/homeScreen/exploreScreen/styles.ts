@@ -37,6 +37,18 @@ export default StyleSheet.create({
     zIndex: 10,
     pointerEvents: 'auto', // Allow touches on search bar
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: verticalScale(12),
+  },
+  locationText: {
+    color: colors.white,
+    fontFamily: fonts.medium,
+    fontSize: fontScale(16),
+    marginLeft: horizontalScale(8),
+    flex: 1,
+  },
   backButton: {
     marginRight: horizontalScale(12),
     padding: horizontalScale(8),

@@ -653,16 +653,16 @@ function* FilterSaga({ payload }: { payload: FilterPayload }) {
       response?.status == "1" ||
       response?.status == "true"
     ) {
-      yield put(homeData(response));
+      yield put(filterData(response));
     } else {
       console.log("Error:===2", response);
-      yield put(homeError(response));
+      yield put(filterError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
     console.log("Error:===", error);
-    yield put(homeError(error));
+    yield put(filterError(error));
     yield put(displayLoading(false));
   }
 }

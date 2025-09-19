@@ -99,6 +99,7 @@ export default StyleSheet.create({
       dateContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginLeft: verticalScale(16),
       },
       detailText: {
         fontSize: fontScale(10),

@@ -21,6 +21,8 @@ import Filtericon from '../../../../../assets/svg/filtericon';
 import Blox from '../../../../../assets/svg/blox';
 import { BackButton } from '../../../../../components/BackButton';
 import { useDispatch, useSelector } from 'react-redux';
+import { LocationProvider, useLocation } from '../../../../../contexts/LocationContext';
+import LocationDisplay from '../../../../../components/LocationDisplay';
 import {
   onHome,
   homeData,
@@ -243,7 +245,7 @@ const mapStyle = [
   }
 ];
 
-const ExploreScreen = () => {
+const ExploreScreenContent = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const mapRef = useRef<MapView>(null);
@@ -616,12 +618,16 @@ const ExploreScreen = () => {
 
       {/* Overlay Content */}
       <View style={styles.overlayContainer}>
-        {/* Top Section - Search Bar */}
+        {/* Top Section - Location & Back Button */}
         <View style={styles.topSection}>
-          
-          <View style={styles.filterButtons}>
+          <View style={styles.locationRow}>
+            <LocationDisplay 
+              showRefreshButton={true}
+              style={{ flex: 1 }}
+              textStyle={styles.locationText}
+            />
             <TouchableOpacity style={styles.filterButton}>
-            <BackButton navigation={navigation} onBackPress={()=> navigation.goBack()} />
+              <BackButton navigation={navigation} onBackPress={()=> navigation.goBack()} />
             </TouchableOpacity>
           </View>
         </View>
@@ -687,6 +693,14 @@ const ExploreScreen = () => {
         onApply={handleFilterApply}
       />
     </View>
+  );
+};
+
+const ExploreScreen = () => {
+  return (
+    <LocationProvider>
+      <ExploreScreenContent />
+    </LocationProvider>
   );
 };
 

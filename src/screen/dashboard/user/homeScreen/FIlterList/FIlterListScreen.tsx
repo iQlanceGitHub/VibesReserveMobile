@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, FlatList, SafeAreaView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import NearbyEventCard from '../card/nearbyEvent/nearbyEvent';
@@ -100,8 +100,11 @@ const FilterListScreen: React.FC<FilterListScreenProps> = () => {
   const route = useRoute();
   const [events, setEvents] = useState<any[]>([]);
   
-  // Get filtered data from navigation params
-  const { filteredData = [] } = (route.params as any) || {};
+  // Memoize filtered data to prevent infinite re-renders
+  const filteredData = useMemo(() => {
+    const params = (route.params as any) || {};
+    return params.filteredData || [];
+  }, [route.params]);
 
   // Set events from filtered data when component mounts or filteredData changes
   useEffect(() => {
