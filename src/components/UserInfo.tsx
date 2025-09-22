@@ -1,14 +1,9 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import { colors } from "../utilis/colors";
-import { fonts } from "../utilis/fonts";
-import {
-  fontScale,
-  horizontalScale,
-  verticalScale,
-} from "../utilis/appConstant";
 import ChatIcon from "../assets/svg/chatIcon";
 import PhoneIconNew from "../assets/svg/phoneIconNew";
+import { userInfoStyles } from "./userInfoStyles";
 
 interface UserInfoProps {
   userName: string;
@@ -24,16 +19,22 @@ const UserInfo: React.FC<UserInfoProps> = ({
   onCallPress,
 }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.sectionTitle}>User</Text>
-      <View style={styles.userContainer}>
-        <Image source={userImage} style={styles.profileImage} />
-        <Text style={styles.userName}>{userName}</Text>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton} onPress={onChatPress}>
+    <View style={userInfoStyles.container}>
+      <Text style={userInfoStyles.sectionTitle}>User</Text>
+      <View style={userInfoStyles.userContainer}>
+        <Image source={userImage} style={userInfoStyles.profileImage} />
+        <Text style={userInfoStyles.userName}>{userName}</Text>
+        <View style={userInfoStyles.actionButtons}>
+          <TouchableOpacity
+            style={userInfoStyles.actionButton}
+            onPress={onChatPress}
+          >
             <ChatIcon size={20} color={colors.white} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={onCallPress}>
+          <TouchableOpacity
+            style={userInfoStyles.actionButton}
+            onPress={onCallPress}
+          >
             <PhoneIconNew size={20} color={colors.white} />
           </TouchableOpacity>
         </View>
@@ -41,47 +42,5 @@ const UserInfo: React.FC<UserInfoProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: verticalScale(20),
-  },
-  sectionTitle: {
-    fontSize: fontScale(16),
-    fontFamily: fonts.Bold,
-    color: colors.white,
-    marginBottom: verticalScale(12),
-  },
-  userContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profileImage: {
-    width: horizontalScale(45.46),
-    height: verticalScale(45.46),
-    borderRadius: verticalScale(25),
-    marginRight: horizontalScale(12),
-    borderWidth: 2,
-    borderColor: colors.violate,
-  },
-  userName: {
-    fontSize: fontScale(16),
-    fontFamily: fonts.Bold,
-    color: colors.white,
-    flex: 1,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: horizontalScale(12),
-  },
-  actionButton: {
-    width: horizontalScale(40),
-    height: verticalScale(40),
-    borderRadius: verticalScale(20),
-    backgroundColor: colors.addButtonBackground,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default UserInfo;

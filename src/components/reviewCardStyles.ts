@@ -9,15 +9,16 @@ import {
 
 export default StyleSheet.create({
   container: {
-    marginBottom: 0,
+    marginBottom: verticalScale(0),
   },
   divider: {
-    width: 337,
-    height: 0,
-    opacity: 0.2,
-    borderWidth: 1,
+    width: horizontalScale(337),
+    height: verticalScale(0),
+    opacity: verticalScale(0.2),
+    borderWidth: verticalScale(1),
     borderColor: colors.whiteLight,
     marginBottom: verticalScale(10),
+    marginTop: verticalScale(10),
   },
   reviewContent: {
     paddingTop: verticalScale(10),
