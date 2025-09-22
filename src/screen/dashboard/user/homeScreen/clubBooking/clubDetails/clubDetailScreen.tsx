@@ -6,19 +6,20 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   FlatList,
   Linking,
   Platform,
   Alert,
   Share,
+  Modal,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import styles from './styles';
 import { colors } from '../../../../../../utilis/colors';
 import { fonts } from '../../../../../../utilis/fonts';
 import { fontScale, horizontalScale, verticalScale } from '../../../../../../utilis/appConstant';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 //API
 import {
@@ -58,6 +59,10 @@ const ClubDetailScreen = () => {
   const [viewedMap, setViewedMap] = useState(false);
   const [clubDetails, setClubDetails] = useState(null);
   const [msg, setMsg] = useState('');
+  const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
+  
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
 
   const dispatch = useDispatch();
   const viewdetails = useSelector((state: any) => state.auth.viewdetails);
@@ -562,9 +567,22 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     // Handle favorite logic here
   };
 
+  const handleNextPress = () => {
+    setShowComingSoonDialog(true);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent 
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === 'android' && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: 'transparent',
+        })}
+      />
 
       {/* Header with Club Image */}
       <View style={styles.headerContainer}>
@@ -846,12 +864,45 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           <Text style={styles.totalPriceLabel}>Total Price</Text>
           <Text style={styles.totalPriceValue}>${getTotalPrice()}</Text>
         </View>
-        <TouchableOpacity style={styles.bookNowButton}>
+        <TouchableOpacity style={styles.bookNowButton} onPress={handleNextPress}>
           <Text style={styles.bookNowText}>Next</Text>
         </TouchableOpacity>
         <View style={{ marginTop: verticalScale(80) }}></View>
       </View>
-    </SafeAreaView >
+      <View style={{ marginBottom: Platform.OS === 'ios' ? verticalScale(0) : verticalScale(45) + insets.bottom }} />
+
+      {/* Coming Soon Dialog */}
+      <Modal
+        visible={showComingSoonDialog}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowComingSoonDialog(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.comingSoonDialog}>
+            <View style={styles.dialogHeader}>
+              <Text style={styles.dialogTitle}>Coming Soon!</Text>
+            </View>
+            
+            <View style={styles.dialogContent}>
+              <Text style={styles.dialogMessage}>
+                We're working on it to bring you an amazing booking experience. 
+                This feature will be available soon!
+              </Text>
+            </View>
+            
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogButton}
+                onPress={() => setShowComingSoonDialog(false)}
+              >
+                <Text style={styles.dialogButtonText}>Got it</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 

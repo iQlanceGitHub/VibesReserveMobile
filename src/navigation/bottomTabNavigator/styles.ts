@@ -4,10 +4,14 @@ import { colors } from "../../utilis/colors";
 
 export default StyleSheet.create({
   mainContainerTab: {
-    width: appConstant.horizontalScale(375),
+    width: '100%', // Use full width to work with horizontal safe areas
     height: appConstant.verticalScale(94),
     position: "absolute",
-    bottom: appConstant.verticalScale(5),
+    bottom: Platform.OS === "ios" ? appConstant.verticalScale(5) : appConstant.verticalScale(25),
+    // Enhanced for Android 15 edge-to-edge support
+    left: 0,
+    right: 0,
+    // Remove fixed width to work with safe area insets
   },
   mainContainer: {
     width: appConstant.horizontalScale(334),
@@ -19,6 +23,7 @@ export default StyleSheet.create({
     justifyContent: "center",
     alignSelf: "center",
     marginBottom: appConstant.verticalScale(30),
+    marginHorizontal: appConstant.horizontalScale(20), // Add horizontal margin for better spacing
     shadowColor: Platform.OS === "ios" ? colors.primary_pinkLight: '',
     shadowOffset: {
       width: appConstant.horizontalScale(2),
@@ -30,6 +35,8 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gray20,
     opacity: 1,
+    // Enhanced for Android 15 edge-to-edge support
+    maxWidth: '90%', // Ensure it doesn't exceed screen bounds
   },
   bottomTabContainer: {
     width: appConstant.horizontalScale(310),

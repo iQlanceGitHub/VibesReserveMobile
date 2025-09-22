@@ -39,16 +39,17 @@ const styles = StyleSheet.create({
     borderRadius: appConstant.verticalScale(99),
     alignSelf: "center",
     alignItems: "center",
-    paddingHorizontal: appConstant.verticalScale(12),
-    paddingVertical: appConstant.verticalScale(12),
+    paddingHorizontal: appConstant.verticalScale(8),
+    paddingVertical: appConstant.verticalScale(8),
   },
   titleText: {
     fontSize: appConstant.fontScale(16),
     fontFamily: fonts.semiBold,
     alignSelf: "center",
     textAlign: "center",
-    fontWeight: 600,
+    fontWeight: '600',
     lineHeight: appConstant.fontScale(24),
     color: colors.white,
+
   },
 });

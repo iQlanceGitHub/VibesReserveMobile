@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { colors } from "../../../../utilis/colors";
 import { fonts } from "../../../../utilis/fonts";
 import {
@@ -17,6 +17,7 @@ const addClubDetailStyle = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    // Remove default padding as we're handling it with useSafeAreaInsets
   },
   header: {
     flexDirection: "row",
@@ -267,10 +268,12 @@ const addClubDetailStyle = StyleSheet.create({
     right: horizontalScale(15),
     top: verticalScale(40),
     zIndex: 1,
-    width: 20,
-    height: 20,
+    width: verticalScale(20),
+    height: verticalScale(20),
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: 'center',
+    marginTop: Platform.OS === 'ios' ? verticalScale(0) : verticalScale(10),
   },
   saveButton: {
     backgroundColor: colors.violate,
@@ -381,7 +384,7 @@ const addClubDetailStyle = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.whiteTransparentMedium,
     paddingHorizontal: horizontalScale(15),
-    paddingVertical: verticalScale(15),
+    paddingVertical: Platform.OS === 'ios' ? verticalScale(15) : verticalScale(0),
     minHeight: verticalScale(50),
   },
   addressInput: {
@@ -396,6 +399,7 @@ const addClubDetailStyle = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingLeft: horizontalScale(5),
+    alignSelf: 'center',
   },
   addressLoading: {
     position: "absolute",

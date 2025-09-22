@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StatusBar,
-  SafeAreaView,
   Platform,
   FlatList,
 } from "react-native";
@@ -24,6 +23,8 @@ import {
 } from '../../redux/auth/actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCategory } from '../../hooks/useCategory';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { verticalScale } from "../../utilis/appConstant";
 
 interface FavouriteScreenProps {
   navigation?: any;
@@ -43,6 +44,9 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
 
   // Use the custom hook for category management
   const { categories: apiCategories, fetchCategories } = useCategory();
+  
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
 
   // Get user ID from AsyncStorage
   const getUserID = async (): Promise<string | null> => {
@@ -153,8 +157,13 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
+        backgroundColor="transparent"
         translucent={true}
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === 'android' && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: 'transparent',
+        })}
       />
       <LinearGradient
         colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
@@ -162,7 +171,7 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { paddingTop: insets.top }]}>
           <View style={styles.header}>
             <View style={styles.statusBar}></View>
             <Text style={styles.title}>Favourite</Text>
@@ -253,8 +262,10 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
               </View>
             )}
           </View>
-        </SafeAreaView>
+          <View style={{ marginBottom: verticalScale(100) }} />
+        </View>
       </LinearGradient>
+     
     </View>
   );
 };

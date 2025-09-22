@@ -8,7 +8,6 @@ import {
   Alert,
   Platform,
   StatusBar,
-  SafeAreaView,
   Image,
   PermissionsAndroid,
   TextInput,
@@ -48,6 +47,7 @@ import BoothForm from './components/BoothForm';
 import EventForm from './components/EventForm';
 import { useCategory } from '../../../../hooks/useCategory';
 import { useFacility } from '../../../../hooks/useFacility';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LocationIcon from '../../../../assets/svg/locationIcon';
 import GoogleAddressAutocomplete from '../../../../components/GoogleAddressAutocomplete';
 
@@ -92,6 +92,9 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const route = useRoute();
   // Hooks for dynamic data
   const { categories, isLoading: categoriesLoading, error: categoriesError, fetchCategories } = useCategory();
+  
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
   const { facilities, isLoading: facilitiesLoading, error: facilitiesError, fetchFacilities } = useFacility();
 
   // Form data
@@ -447,21 +450,63 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const handleImagePicker = (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event" = "main", boothIndex: number = 0, eventIndex: number = 0) => {
     setShowImagePicker(false);
     
+    // Calculate remaining slots to limit selection
+    let currentImages: string[] = [];
+    if (imageType === "main") {
+      currentImages = uploadPhotos || [];
+    } else if (imageType === "booth" && boothIndex >= 0 && boothIndex < booths.length) {
+      currentImages = booths[boothIndex]?.boothImages || [];
+    }
+    
+    const remainingSlots = Math.max(0, 3 - currentImages.length);
+    
+    // Check if user can add more images
+    if (remainingSlots <= 0) {
+      showToast('error', 'Maximum 3 images allowed');
+      return;
+    }
+    
     const options = {
       mediaType: 'photo' as MediaType,
-      quality: 0.8 as any,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      selectionLimit: 0, // Allow multiple selection
+      quality: 0.7 as any, // Reduced quality to prevent memory issues
+      maxWidth: 800, // Reduced size to prevent memory issues
+      maxHeight: 800,
+      selectionLimit: remainingSlots > 0 ? remainingSlots : 1, // Limit selection based on remaining slots
+      includeBase64: false, // Disable base64 to save memory
     };
 
     const callback = (response: ImagePickerResponse) => {
-      if (response.didCancel || response.errorMessage) {
+      if (response.didCancel) {
+        return;
+      }
+
+      if (response.errorMessage) {
+        console.log('Image picker error:', response.errorMessage);
+        showToast('error', 'Failed to select images');
         return;
       }
 
       if (response.assets && response.assets.length > 0) {
-        handleMultipleImageUpload(response.assets, imageType, boothIndex, eventIndex);
+        // Additional validation to prevent crashes
+        const validAssets = response.assets.filter(asset => 
+          asset.uri && 
+          asset.uri.length > 0 && 
+          asset.fileSize && 
+          asset.fileSize < 10 * 1024 * 1024 // Max 10MB per image
+        );
+        
+        if (validAssets.length === 0) {
+          showToast('error', 'No valid images selected');
+          return;
+        }
+        
+        if (validAssets.length < response.assets.length) {
+          showToast('warning', `${response.assets.length - validAssets.length} images were too large and skipped`);
+        }
+        
+        handleMultipleImageUpload(validAssets, imageType, boothIndex, eventIndex);
+      } else {
+        showToast('error', 'No images selected');
       }
     };
 
@@ -495,17 +540,26 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         assetsCount: assets.length
       });
       
+      // Validate input parameters
+      if (!assets || assets.length === 0) {
+        showToast('error', 'No images to upload');
+        return;
+      }
+      
       // Check current image count and limit to 3 total
       let currentImages: string[] = [];
       if (imageType === "main") {
-        currentImages = uploadPhotos;
+        currentImages = uploadPhotos || [];
         console.log('Processing main photos, current count:', currentImages.length);
-      } else if (imageType === "booth" && boothIndex >= 0 && booths[boothIndex]) {
-        currentImages = booths[boothIndex].boothImages || [];
+      } else if (imageType === "booth" && boothIndex >= 0 && boothIndex < booths.length) {
+        currentImages = booths[boothIndex]?.boothImages || [];
         console.log('Processing booth images, booth index:', boothIndex, 'current count:', currentImages.length);
+      } else {
+        showToast('error', 'Invalid image type or booth index');
+        return;
       }
       
-      const remainingSlots = 3 - currentImages.length;
+      const remainingSlots = Math.max(0, 3 - currentImages.length);
       if (remainingSlots <= 0) {
         showToast('error', 'Maximum 3 images allowed');
         return;
@@ -518,21 +572,46 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         showToast('warning', `Only ${assetsToUpload.length} images will be uploaded (max 3 total)`);
       }
       
-      const uploadPromises = assetsToUpload.map(async (asset, index) => {
-        const fileName = `${imageType}_${Date.now()}_${index}.jpg`;
-        return await uploadFileToS3(asset.uri, fileName, 'image/jpeg');
-      });
+      // Upload images one by one to prevent memory issues
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < assetsToUpload.length; i++) {
+        try {
+          const asset = assetsToUpload[i];
+          if (!asset.uri) {
+            console.log('Skipping asset without URI:', i);
+            continue;
+          }
+          
+          const fileName = `${imageType}_${Date.now()}_${i}.jpg`;
+          const uploadedUrl = await uploadFileToS3(asset.uri, fileName, 'image/jpeg');
+          
+          if (uploadedUrl) {
+            uploadedUrls.push(uploadedUrl);
+          }
+        } catch (uploadError) {
+          console.log(`Failed to upload image ${i}:`, uploadError);
+          // Continue with other images even if one fails
+        }
+      }
       
-      const uploadedUrls = await Promise.all(uploadPromises);
+      if (uploadedUrls.length === 0) {
+        showToast('error', 'Failed to upload any images');
+        return;
+      }
       
+      // Update state with uploaded URLs
       if (imageType === "main") {
         console.log('Adding to main photos:', uploadedUrls);
-        setUploadPhotos([...uploadPhotos, ...uploadedUrls]);
-      } else if (imageType === "booth" && boothIndex >= 0 && booths[boothIndex]) {
+        setUploadPhotos(prev => [...(prev || []), ...uploadedUrls]);
+      } else if (imageType === "booth" && boothIndex >= 0 && boothIndex < booths.length) {
         console.log('Adding to booth images, booth index:', boothIndex, 'urls:', uploadedUrls);
-        const updatedBooths = [...booths];
-        updatedBooths[boothIndex].boothImages = [...updatedBooths[boothIndex].boothImages, ...uploadedUrls];
-        setBooths(updatedBooths);
+        setBooths(prevBooths => {
+          const updatedBooths = [...prevBooths];
+          if (updatedBooths[boothIndex]) {
+            updatedBooths[boothIndex].boothImages = [...(updatedBooths[boothIndex].boothImages || []), ...uploadedUrls];
+          }
+          return updatedBooths;
+        });
       }
       
       showToast('success', `${uploadedUrls.length} image(s) uploaded successfully`);
@@ -940,11 +1019,16 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   };
 
   return (
-    <View style={addClubEventDetailStyle.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent={true}
+    <View style={[addClubEventDetailStyle.container, { paddingTop: insets.top }]}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent 
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === 'android' && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: 'transparent',
+        })}
       />
       <LinearGradient
         colors={[colors.hostGradientStart, colors.hostGradientEnd]}
@@ -952,7 +1036,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         end={{ x: 1, y: 1 }}
         style={addClubEventDetailStyle.gradientContainer}
       >
-        <SafeAreaView style={addClubEventDetailStyle.safeArea}>
+        <View style={addClubEventDetailStyle.safeArea}>
           <View style={addClubEventDetailStyle.header}>
             <TouchableOpacity onPress={handleBack}>
               <BackIcon />
@@ -964,7 +1048,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
           <ScrollView
             style={addClubEventDetailStyle.scrollView}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={addClubEventDetailStyle.scrollContent}
+            contentContainerStyle={[addClubEventDetailStyle.scrollContent, { paddingBottom: insets.bottom + 20 }]}
           >
             <CustomDropdown
               label="Type*"
@@ -1294,7 +1378,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               />
             </View>
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </LinearGradient>
 
       {showTimePicker && (

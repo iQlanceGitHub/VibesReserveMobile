@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StatusBar,
-  SafeAreaView,
   Alert,
   RefreshControl,
   Modal,
@@ -23,6 +22,7 @@ import styles from "./styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from 'react-redux';
 import { showToast } from "../../../../utilis/toastUtils";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   onBookingrequest,
   bookingrequestData,
@@ -47,6 +47,9 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const [selectedRequestId, setSelectedRequestId] = useState<string>('');
   const [customReason, setCustomReason] = useState<string>('');
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
 
   const dispatch = useDispatch();
   const bookingrequest = useSelector((state: any) => state.auth.bookingrequest);
@@ -254,11 +257,16 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent={true}
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent 
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === 'android' && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: 'transparent',
+        })}
       />
       <LinearGradient
         colors={[colors.hostGradientStart, colors.hostGradientEnd]}
@@ -266,7 +274,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
           
           <Header userName={UserName} onAddPress={handleAddPress} />
 
@@ -276,7 +284,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
             <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
+              contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -312,7 +320,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
               )}
             </ScrollView>
           </View>
-        </SafeAreaView>
+        </View>
       </LinearGradient>
 
       {/* Custom Rejection Modal */}

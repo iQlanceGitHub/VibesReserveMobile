@@ -497,7 +497,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                   </Text>
                 </View>
               </TouchableOpacity>
-
+              {Platform.OS === 'ios' && (
               <TouchableOpacity
                 style={styles.socialButton}
                 onPress={handleAppleSignIn}
@@ -511,7 +511,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                   </Text>
                 </View>
               </TouchableOpacity>
-
+)}
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>or</Text>

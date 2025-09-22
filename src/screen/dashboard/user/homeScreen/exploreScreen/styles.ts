@@ -40,7 +40,8 @@ export default StyleSheet.create({
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: verticalScale(12),
+    marginBottom: verticalScale(6),
+    marginTop: verticalScale(12),
   },
   locationText: {
     color: colors.white,

@@ -112,7 +112,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
       <View style={styles.contentContainer}>
         {/* Category Tag - Top Right Area */}
         <View style={styles.categoryTag}>
-          <Text style={styles.categoryText}>VIP Clubs</Text>
+          <Text style={styles.categoryText}>{event.type}</Text>
         </View>
 
         {/* Price - Top Right Corner */}

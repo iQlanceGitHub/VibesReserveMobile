@@ -267,6 +267,18 @@ const ExploreScreenContent = () => {
     longitudeDelta: 0.02,
   });
 
+  // Add timeout fallback for map loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!mapReady) {
+        console.log('Map loading timeout - forcing map ready');
+        setMapReady(true);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timer);
+  }, [mapReady]);
+
   const dispatch = useDispatch();
   const home = useSelector((state: any) => state.auth.home);
   const homeErr = useSelector((state: any) => state.auth.homeErr);
@@ -577,7 +589,7 @@ const ExploreScreenContent = () => {
       <MapView
         ref={mapRef}
         style={styles.fullScreenMap}
-        provider={Platform.OS === 'ios' ? undefined : PROVIDER_GOOGLE}
+        provider={undefined}
         initialRegion={mapRegion}
         customMapStyle={mapStyle}
         onMapReady={() => {
@@ -586,6 +598,15 @@ const ExploreScreenContent = () => {
         }}
         onMapLoaded={() => {
           console.log('Map loaded');
+          setMapReady(true);
+        }}
+        onError={(error) => {
+          console.log('Map error:', error);
+          // Set map as ready even if there's an error to hide loading
+          setMapReady(true);
+        }}
+        onPress={() => {
+          console.log('Map pressed');
         }}
         showsUserLocation={true}
         showsMyLocationButton={false}
@@ -621,11 +642,11 @@ const ExploreScreenContent = () => {
         {/* Top Section - Location & Back Button */}
         <View style={styles.topSection}>
           <View style={styles.locationRow}>
-            <LocationDisplay 
+            {/* <LocationDisplay 
               showRefreshButton={true}
               style={{ flex: 1 }}
               textStyle={styles.locationText}
-            />
+            /> */}
             <TouchableOpacity style={styles.filterButton}>
               <BackButton navigation={navigation} onBackPress={()=> navigation.goBack()} />
             </TouchableOpacity>

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StatusBar } from "react-native";
+import { View, StatusBar, Platform } from "react-native";
 import NavigationStack from "./src/navigation/navigation";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -30,13 +30,25 @@ function App(): React.JSX.Element {
 
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
+      <SafeAreaProvider
+        // Enhanced configuration for Android 15 edge-to-edge support
+        initialMetrics={{
+          insets: { top: 0, left: 0, right: 0, bottom: 0 },
+          frame: { x: 0, y: 0, width: 0, height: 0 },
+        }}
+      >
         <AppInitializer>
           <View style={{ flex: 1 }}>
             <StatusBar
               translucent
               backgroundColor="transparent"
               barStyle="dark-content"
+              // Enhanced StatusBar configuration for Android 15
+              {...(Platform.OS === 'android' && {
+                // Ensure proper edge-to-edge handling on Android 15
+                statusBarTranslucent: true,
+                statusBarBackgroundColor: 'transparent',
+              })}
             />
 
             <NavigationStack />

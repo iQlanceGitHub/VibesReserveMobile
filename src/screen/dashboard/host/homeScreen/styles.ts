@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: verticalScale(1),
+    // Remove default padding as we're handling it with useSafeAreaInsets
   },
   contentContainer: {
     flex: verticalScale(1),

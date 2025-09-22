@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { colors } from '../../../../../../utilis/colors';
 import { fonts } from '../../../../../../utilis/fonts';
 import { fontScale, horizontalScale, verticalScale } from '../../../../../../utilis/appConstant';
@@ -43,7 +43,7 @@ export default StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: verticalScale(-90),
+    marginTop: Platform.OS === 'ios' ? verticalScale(-90) : verticalScale(-30),
   },
   rightIcons: {
     flexDirection: 'column',
@@ -376,6 +376,7 @@ export default StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 10, // For Android
+    marginBottom: Platform.OS === 'ios' ? verticalScale(0) : verticalScale(60),
   },
   priceSection: {
     flex: 1,
@@ -427,5 +428,65 @@ export default StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 4,
     elevation: 5,
+  },
+  // Coming Soon Dialog Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: horizontalScale(20),
+  },
+  comingSoonDialog: {
+    backgroundColor: colors.white,
+    borderRadius: verticalScale(16),
+    padding: verticalScale(24),
+    width: '100%',
+    maxWidth: horizontalScale(320),
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  dialogHeader: {
+    alignItems: 'center',
+    marginBottom: verticalScale(16),
+  },
+  dialogTitle: {
+    fontSize: fontScale(24),
+    fontFamily: fonts.bold,
+    color: colors.violate,
+    textAlign: 'center',
+  },
+  dialogContent: {
+    marginBottom: verticalScale(24),
+  },
+  dialogMessage: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.regular,
+    color: colors.black,
+    textAlign: 'center',
+    lineHeight: fontScale(22),
+  },
+  dialogActions: {
+    alignItems: 'center',
+  },
+  dialogButton: {
+    backgroundColor: colors.violate,
+    paddingHorizontal: horizontalScale(32),
+    paddingVertical: verticalScale(12),
+    borderRadius: verticalScale(32),
+    minWidth: horizontalScale(120),
+  },
+  dialogButtonText: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.semiBold,
+    color: colors.white,
+    textAlign: 'center',
+
   },
 });

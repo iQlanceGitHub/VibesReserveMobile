@@ -298,7 +298,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                 </Text>
               </View>
             </TouchableOpacity>
-
+{Platform.OS === 'ios' && (
             <TouchableOpacity
               style={styles.socialButton}
               onPress={handleAppleSignIn}
@@ -310,7 +310,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                 <Text style={styles.socialButtonText}>Continue with Apple</Text>
               </View>
             </TouchableOpacity>
-
+)}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>or</Text>

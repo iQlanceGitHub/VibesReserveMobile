@@ -37,11 +37,11 @@ export default StyleSheet.create({
     paddingHorizontal: horizontalScale(40),
   },
   iconContainer: {
-    marginBottom: verticalScale(40),
+    marginBottom: verticalScale(30),
   },
   iconCircle: {
-    width: horizontalScale(120),
-    height: horizontalScale(120),
+    width: horizontalScale(100),
+    height: horizontalScale(100),
     borderRadius: horizontalScale(60),
     backgroundColor: colors.primary_blue,
     justifyContent: 'center',

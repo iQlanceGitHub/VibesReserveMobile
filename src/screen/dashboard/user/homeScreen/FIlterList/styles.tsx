@@ -15,6 +15,7 @@ export default StyleSheet.create({
     paddingHorizontal: horizontalScale(20),
     paddingVertical: verticalScale(10),
     backgroundColor: colors.gradient_dark_purple,
+    marginTop: Platform.OS !== 'ios' ? verticalScale(22) : verticalScale(10),
   },
   headerTitle: {
     fontSize: fontScale(18),

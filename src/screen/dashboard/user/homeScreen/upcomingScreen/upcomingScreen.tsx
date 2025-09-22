@@ -158,46 +158,6 @@ const UpcomingScreen: React.FC = () => {
           </Text>
         </Animated.View>
 
-        {/* Animated Dots */}
-        <Animated.View 
-          style={[
-            styles.dotsContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: fadeAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [70, 0]
-              })}]
-            }
-          ]}
-        >
-          <View style={styles.dots}>
-            <Animated.View 
-              style={[
-                styles.dot,
-                {
-                  transform: [{ scale: pulseAnim }]
-                }
-              ]} 
-            />
-            <Animated.View 
-              style={[
-                styles.dot,
-                {
-                  transform: [{ scale: pulseAnim }]
-                }
-              ]} 
-            />
-            <Animated.View 
-              style={[
-                styles.dot,
-                {
-                  transform: [{ scale: pulseAnim }]
-                }
-              ]} 
-            />
-          </View>
-        </Animated.View>
 
         {/* Back Button */}
         <Animated.View 

@@ -153,8 +153,9 @@ export default StyleSheet.create({
       },
       bookButtonText: {
         fontSize: fontScale(14),
-        fontWeight: '700',
-        fontFamily: fonts.bold,
+        fontWeight: '500',
+        fontFamily: fonts.medium,
         color: colors.white,
+        lineHeight: fontScale(12),
       },
 });

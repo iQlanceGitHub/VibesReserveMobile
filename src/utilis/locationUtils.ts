@@ -89,6 +89,7 @@ export const requestLocationPermission = async (): Promise<LocationPermissionRes
  */
 export const getCurrentLocation = (): Promise<LocationData> => {
   return new Promise((resolve, reject) => {
+    // First attempt with high accuracy
     Geolocation.getCurrentPosition(
       async (position) => {
         try {
@@ -114,13 +115,58 @@ export const getCurrentLocation = (): Promise<LocationData> => {
         }
       },
       (error) => {
-        console.log('Error getting location:', error);
-        reject(error);
+        console.log('High accuracy location failed, trying fallback:', error);
+        
+        // Fallback with lower accuracy for Android 15 compatibility
+        Geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+              console.log("Fallback location obtained:", latitude, longitude);
+              
+              const addressData = await reverseGeocode(latitude, longitude);
+              
+              const locationData: LocationData = {
+                latitude,
+                longitude,
+                city: addressData.city,
+                country: addressData.country,
+                state: addressData.state,
+                fullAddress: addressData.fullAddress,
+              };
+              
+              resolve(locationData);
+            } catch (fallbackError) {
+              console.log('Error processing fallback location:', fallbackError);
+              reject(fallbackError);
+            }
+          },
+          (fallbackError) => {
+            console.log('Fallback location also failed:', fallbackError);
+            reject(fallbackError);
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 15000,
+            maximumAge: 300000, // 5 minutes
+            ...(Platform.OS === 'android' && {
+              forceRequestLocation: false,
+              forceLocationManager: true,
+              showLocationDialog: false,
+            }),
+          }
+        );
       },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 20000, // Increased timeout for Android 15
         maximumAge: 10000,
+        // Android 15+ specific options
+        ...(Platform.OS === 'android' && {
+          forceRequestLocation: true,
+          forceLocationManager: false,
+          showLocationDialog: true,
+        }),
       }
     );
   });
