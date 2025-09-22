@@ -15,6 +15,7 @@ export default StyleSheet.create({
     paddingHorizontal: horizontalScale(20),
     paddingVertical: verticalScale(10),
     backgroundColor: colors.gradient_dark_purple,
+    marginTop: Platform.OS !== 'ios' ? verticalScale(22) : verticalScale(10),
   },
   headerTitle: {
     fontSize: fontScale(18),
@@ -29,5 +30,31 @@ export default StyleSheet.create({
   eventsList: {
     paddingHorizontal: horizontalScale(20),
     paddingBottom: verticalScale(20),
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: verticalScale(150),
+    paddingHorizontal: horizontalScale(40),
+  },
+  emptyIcon: {
+    fontSize: fontScale(64),
+    marginBottom: verticalScale(20),
+  },
+  emptyTitle: {
+    fontSize: fontScale(24),
+    fontFamily: fonts.Bold,
+    color: colors.white,
+    textAlign: 'center',
+    marginBottom: verticalScale(12),
+  },
+  emptyMessage: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.Regular,
+    color: colors.white,
+    textAlign: 'center',
+    opacity: 0.7,
+    lineHeight: fontScale(24),
   },
 });

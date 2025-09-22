@@ -84,18 +84,18 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -219,18 +219,18 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View
@@ -353,18 +353,18 @@ export const CustomePasswordTextInput: React.FC<
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -517,18 +517,18 @@ export const CustomeSearchTextInput: React.FC<CustomeSearchTextInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -795,12 +795,12 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             marginBottom: 8,
           }}
         >
-          {label.includes("(Optional)") ? (
+          {label && label.includes("(Optional)") ? (
             <>
               {label.replace(" (Optional)", "")}
               <Text style={{ color: "#868C98" }}> (Optional)</Text>
             </>
-          ) : label.includes("*") ? (
+          ) : label && label.includes("*") ? (
             <>
               {label.replace(" *", "")}
               <Text style={{ color: "#868C98" }}> *</Text>
@@ -1006,12 +1006,12 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
             marginBottom: 8,
           }}
         >
-          {label.includes("(Optional)") ? (
+          {label && label.includes("(Optional)") ? (
             <>
               {label.replace(" (Optional)", "")}
               <Text style={{ color: "#868C98" }}> (Optional)</Text>
             </>
-          ) : label.includes("*") ? (
+          ) : label && label.includes("*") ? (
             <>
               {label.replace(" *", "")}
               <Text style={{ color: "#868C98" }}> *</Text>

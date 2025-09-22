@@ -60,6 +60,7 @@ export default StyleSheet.create({
       buttonsContainer: {
         width: appConstant.verticalScale(375),
         marginBottom: appConstant.fontScale(28),
+        alignSelf: 'center',
       },
     
       signUpBtn: {

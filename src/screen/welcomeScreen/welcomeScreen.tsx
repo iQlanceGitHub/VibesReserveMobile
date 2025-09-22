@@ -88,7 +88,57 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     getUserToken();
   }, [])
 
+  // Get token
+  const storeUserToken = async (token: any) => {
+    try {
+      await AsyncStorage.setItem("user_token", token);
+      console.log("User token saved:", token);
+      getUserToken();
+    } catch (e) {
+      console.error("Failed to save the user token.", e);
+    }
+  };
+
+  // Store user ID
+  const storeUserId = async (userId: any) => {
+    try {
+      await AsyncStorage.setItem("user_id", userId);
+      console.log("User ID saved:", userId);
+    } catch (e) {
+      console.error("Failed to save the user ID.", e);
+    }
+  };
+
+ 
+  const getUser = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      if (user !== null) {
+        const parsedUser = JSON.parse(user);
+        console.log("User retrieved:", parsedUser);
+        return parsedUser;
+      }
+    } catch (e) {
+      console.error("Failed to fetch the user.", e);
+    }
+  };
+
   useEffect(() => {
+    getUserToken().then((token) => {
+      console.log('token:===>',token)
+      if(token){
+        getUser().then((user) => {
+          console.log('user::===>',user)
+          console.log('user::===>',user?.currentRole)
+          if(user?.currentRole === 'user'){
+            navigation.navigate('HomeTabs' as never);
+          }else if(user?.currentRole === 'host'){
+            navigation.navigate('HostTabs' as never);
+          }else{
+          }
+        });
+      }
+    });
     if (
       socialLogin?.status === true ||
       socialLogin?.status === 'true' ||
@@ -102,6 +152,12 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
         socialLogin?.message || "Something went wrong. Please try again."
       );
       dispatch(setUser(socialLogin))
+      if (socialLogin?.token) {
+        storeUserToken(socialLogin?.token);
+      }
+      if (socialLogin?.user?.id) {
+        storeUserId(socialLogin.user.id);
+      }
       dispatch(socialLoginData(''));
     }
 
@@ -242,7 +298,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                 </Text>
               </View>
             </TouchableOpacity>
-
+{Platform.OS === 'ios' && (
             <TouchableOpacity
               style={styles.socialButton}
               onPress={handleAppleSignIn}
@@ -254,7 +310,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                 <Text style={styles.socialButtonText}>Continue with Apple</Text>
               </View>
             </TouchableOpacity>
-
+)}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>or</Text>
