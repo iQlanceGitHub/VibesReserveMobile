@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.cardBackground,
     width: horizontalScale(334),
-    height: verticalScale(170),
+    height: verticalScale(200),
     borderRadius: verticalScale(16),
     marginHorizontal: horizontalScale(20),
     marginBottom: verticalScale(15),
@@ -123,6 +123,9 @@ const styles = StyleSheet.create({
     fontSize: fontScale(12),
     fontFamily: fonts.SemiBold,
     color: colors.white,
+    lineHeight: fontScale(14),
+    fontWeight: "500",
+    marginHorizontal: horizontalScale(10),
   },
   rejectButton: {
     borderWidth: 1,
@@ -137,6 +140,9 @@ const styles = StyleSheet.create({
     fontSize: fontScale(12),
     fontFamily: fonts.SemiBold,
     color: colors.red,
+    lineHeight: fontScale(14),
+    fontWeight: "500",
+    marginHorizontal: horizontalScale(10),
   },
 });
 

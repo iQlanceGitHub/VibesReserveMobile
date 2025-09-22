@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useCategory } from '../hooks/useCategory';
+import { useFacility } from '../hooks/useFacility';
 
 
 interface AppInitializerProps {
@@ -8,6 +9,7 @@ interface AppInitializerProps {
 
 const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   const { fetchCategories } = useCategory();
+  const { fetchFacilities } = useFacility();
 
 
   useEffect(() => {
@@ -15,16 +17,17 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
     const initializeApp = async () => {
       console.log('App Initializer: Starting app initialization...');
       
-      // Fetch categories and home data (these will only call API once due to the hook logic)
+      // Fetch categories and facilities data (these will only call API once due to the hook logic)
       await Promise.all([
         fetchCategories(),
+        fetchFacilities(),
       ]);
       
       console.log('App Initializer: App initialization completed');
     };
 
     initializeApp();
-  }, [fetchCategories]);
+  }, [fetchCategories, fetchFacilities]);
 
   return <>{children}</>;
 };

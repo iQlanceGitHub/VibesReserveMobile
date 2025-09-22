@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { colors } from "../../utilis/colors";
 import { fonts } from "../../utilis/fonts";
 import appConstant, {
@@ -52,8 +52,10 @@ export default StyleSheet.create({
     fontWeight: 500,
     lineHeight: fontScale(24),
     width: fontScale(335),
-    height: fontScale(38),
+    height: Platform.OS === 'ios' ? fontScale(38) : fontScale(54),
     color: colors.violate,
+    marginBottom: Platform.OS === 'ios' ? verticalScale(0) : verticalScale(5),
+    
   },
   appName: {
     fontSize: fontScale(36),

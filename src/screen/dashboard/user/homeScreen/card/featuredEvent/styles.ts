@@ -99,6 +99,7 @@ export default StyleSheet.create({
       dateContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginLeft: verticalScale(16),
       },
       detailText: {
         fontSize: fontScale(10),
@@ -106,7 +107,7 @@ export default StyleSheet.create({
         fontFamily: fonts.regular,
         color: colors.primary_lighter,
         marginLeft: horizontalScale(8),
-        height: verticalScale(20),
+        lineHeight: fontScale(14),
         //flex: 1,
       },
       ratingContainer: {
@@ -152,8 +153,9 @@ export default StyleSheet.create({
       },
       bookButtonText: {
         fontSize: fontScale(14),
-        fontWeight: '700',
-        fontFamily: fonts.bold,
+        fontWeight: '500',
+        fontFamily: fonts.medium,
         color: colors.white,
+        lineHeight: fontScale(12),
       },
 });
