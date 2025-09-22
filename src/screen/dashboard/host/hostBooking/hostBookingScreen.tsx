@@ -8,7 +8,7 @@ import LocationFavourite from "../../../../assets/svg/locationFavourite";
 import CloseIcon from "../../../../assets/svg/closeIcon";
 import PhoneIcon from "../../../../assets/svg/phoneIcon";
 import MusicIcon from "../../../../assets/svg/musicIcon";
-import styles from "./styles";
+import styles from "./hostBookingStyles";
 
 interface BookingData {
   id: string;
