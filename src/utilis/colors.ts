@@ -56,4 +56,5 @@ export const colors = {
   backgroundColor: "rgba(18, 1, 40, 1)",
   vilate20: "rgba(141, 52, 255, 0.2)",
   vilate10: "rgba(141, 52, 255, 0.1)",
+  messageTimestamp: "rgba(220, 224, 228, 1)",
 };

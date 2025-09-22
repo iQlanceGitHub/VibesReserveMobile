@@ -2,7 +2,7 @@ import {
   responsiveScreenHeight,
   responsiveScreenWidth,
 } from "react-native-responsive-dimensions";
-import { useColorScheme } from "react-native";
+import { useColorScheme, Dimensions } from "react-native";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export function getHeight(per: number) {
@@ -40,13 +40,7 @@ export const removeEmojis = (string: string | undefined | null): string => {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import {
-  Dimensions,
-  PermissionsAndroid,
-  Platform,
-  Share,
-  StatusBar,
-} from "react-native";
+import { PermissionsAndroid, Platform, Share, StatusBar } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 
 import moment from "moment";
@@ -203,7 +197,6 @@ export const getData = async (key: any) => {
     const retrievedArray = jsonValue != null ? jsonValue : null;
     return retrievedArray;
   } catch (e) {
-   
     return null;
   }
 };
