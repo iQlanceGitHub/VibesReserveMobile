@@ -62,4 +62,72 @@ export default StyleSheet.create({
   reviewsContainer: {
     gap: verticalScale(16),
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: horizontalScale(20),
+  },
+  loadingText: {
+    fontSize: fontScale(16),
+    color: colors.white,
+    marginTop: verticalScale(16),
+    textAlign: "center",
+  },
+  bookingDetailsSection: {
+    marginBottom: verticalScale(20),
+  },
+  sectionTitle: {
+    fontSize: fontScale(20),
+    fontWeight: "700",
+    fontFamily: fonts.Bold,
+    color: colors.white,
+    marginBottom: verticalScale(20),
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: verticalScale(12),
+    paddingHorizontal: horizontalScale(4),
+  },
+  detailLabel: {
+    fontSize: fontScale(16),
+    fontWeight: "500",
+    fontFamily: fonts.medium,
+    color: colors.whiteLight,
+    flex: 1,
+  },
+  detailValue: {
+    fontSize: fontScale(16),
+    fontWeight: "600",
+    fontFamily: fonts.semiBold,
+    color: colors.white,
+    textAlign: "right",
+    flex: 1,
+  },
+  statusText: {
+    color: colors.green,
+    fontWeight: "700",
+  },
+  errorSubText: {
+    fontSize: fontScale(14),
+    color: colors.whiteLight,
+    marginTop: verticalScale(8),
+    textAlign: "center",
+    lineHeight: verticalScale(20),
+  },
+  retryButton: {
+    backgroundColor: colors.addButtonBackground,
+    paddingHorizontal: horizontalScale(24),
+    paddingVertical: verticalScale(12),
+    borderRadius: verticalScale(8),
+    marginTop: verticalScale(20),
+  },
+  retryButtonText: {
+    fontSize: fontScale(16),
+    color: colors.white,
+    fontWeight: "600",
+    textAlign: "center",
+  },
 });
