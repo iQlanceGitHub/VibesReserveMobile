@@ -11,6 +11,7 @@ interface ButtonProps {
   isCap?: boolean;
   style?: object;
   txtStyle?: object;
+  textColor?: string;
 }
 export const Buttons: FC<ButtonProps> = ({
   title,
@@ -19,6 +20,7 @@ export const Buttons: FC<ButtonProps> = ({
   isCap = true,
   style,
   txtStyle,
+  textColor = colors.white,
 }) => {
   return (
     <TouchableOpacity
@@ -26,7 +28,7 @@ export const Buttons: FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={[styles.titleText]}>{title}</Text>
+      <Text style={[styles.titleText, { color: textColor }]}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -39,16 +41,17 @@ const styles = StyleSheet.create({
     borderRadius: appConstant.verticalScale(99),
     alignSelf: "center",
     alignItems: "center",
-    paddingHorizontal: appConstant.verticalScale(12),
-    paddingVertical: appConstant.verticalScale(12),
+    paddingHorizontal: appConstant.verticalScale(8),
+    paddingVertical: appConstant.verticalScale(8),
   },
   titleText: {
     fontSize: appConstant.fontScale(16),
     fontFamily: fonts.semiBold,
     alignSelf: "center",
     textAlign: "center",
-    fontWeight: 600,
+    fontWeight: '600',
     lineHeight: appConstant.fontScale(24),
     color: colors.white,
+
   },
 });

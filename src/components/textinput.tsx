@@ -37,7 +37,6 @@ import {
 import examples from "libphonenumber-js/examples.mobile.json";
 import CloseIcon from "../assets/svg/closeIcon";
 
-
 const getCountryISOFromDialCode = (dialCode: string): string => {
   const match = countryCodes.find((c) => c.dial_code === dialCode);
   return match?.code || "US";
@@ -84,18 +83,18 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -219,18 +218,18 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View
@@ -257,9 +256,7 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
               marginTop: 20,
             }}
           >
-            <Text
-              children={phoneCode}
-            />
+            <Text children={phoneCode} />
           </View>
         </Pressable>
       </View>
@@ -353,18 +350,18 @@ export const CustomePasswordTextInput: React.FC<
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -517,18 +514,18 @@ export const CustomeSearchTextInput: React.FC<CustomeSearchTextInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -548,7 +545,7 @@ export const CustomeSearchTextInput: React.FC<CustomeSearchTextInputProps> = ({
             {leftImage}
           </View>
         )}
-        
+
         {/* Clear button - only show when there's text and no custom rightIcon */}
         {value && value.length > 0 && !rightIcon && (
           <TouchableOpacity
@@ -567,7 +564,7 @@ export const CustomeSearchTextInput: React.FC<CustomeSearchTextInputProps> = ({
             <CloseIcon />
           </TouchableOpacity>
         )}
-        
+
         {/* Custom right icon */}
         {rightIcon && (
           <TouchableOpacity
@@ -586,7 +583,7 @@ export const CustomeSearchTextInput: React.FC<CustomeSearchTextInputProps> = ({
             {rightIcon}
           </TouchableOpacity>
         )}
-        
+
         <TextInput
           theme={{ colors: { text: colors.darkGray } }}
           value={value}
@@ -795,12 +792,12 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             marginBottom: 8,
           }}
         >
-          {label.includes("(Optional)") ? (
+          {label && label.includes("(Optional)") ? (
             <>
               {label.replace(" (Optional)", "")}
               <Text style={{ color: "#868C98" }}> (Optional)</Text>
             </>
-          ) : label.includes("*") ? (
+          ) : label && label.includes("*") ? (
             <>
               {label.replace(" *", "")}
               <Text style={{ color: "#868C98" }}> *</Text>
@@ -1006,12 +1003,12 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
             marginBottom: 8,
           }}
         >
-          {label.includes("(Optional)") ? (
+          {label && label.includes("(Optional)") ? (
             <>
               {label.replace(" (Optional)", "")}
               <Text style={{ color: "#868C98" }}> (Optional)</Text>
             </>
-          ) : label.includes("*") ? (
+          ) : label && label.includes("*") ? (
             <>
               {label.replace(" *", "")}
               <Text style={{ color: "#868C98" }}> *</Text>

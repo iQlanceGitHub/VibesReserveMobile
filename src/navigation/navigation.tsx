@@ -30,6 +30,11 @@ import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
 import ExploreScreen from "../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen";
 import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIlterListScreen";
 import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
+import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearbyEventsSeeAll/nearbyEventsSeeAllScreen";
+import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
+import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
+import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfileScreen";
+// import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -73,7 +78,22 @@ export type RootStackParamList = {
   HomeTabs: undefined;
   LeaveReviewScreen: undefined;
   ProfileScreen: undefined;
+  WelcomeScreen: undefined;
+  SignupScreen: undefined;
+  OTPVerificationScreen: undefined;
+  VerificationSucessScreen: undefined;
+  LocationManuallyScreen: undefined;
+  PasswordChangedSucessScreen: undefined;
+  ForgotPasswordScreen: undefined;
+  ResetPasswordScreen: undefined;
+  HostTabs: undefined;
+  ExploreScreen: undefined;
+  FilterListScreen: { filteredData: any[] };
+  ClubDetailScreen: undefined;
+  NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
+  UpcomingScreen: undefined;
   AddClubEventDetailScreen: undefined;
+  HostProfileScreen: undefined;
 };
 
 function MyTabs() {
@@ -91,17 +111,17 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={homeScreen}
+        component={UpcomingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Chat"
-        component={homeScreen}
+        component={UpcomingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Setting"
-        component={homeScreen}
+        component={UpcomingScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -113,22 +133,22 @@ function HostTabs() {
     <Tab.Navigator tabBar={(props) => <HostBottomTabNavigator {...props} />}>
       <Tab.Screen
         name="Home"
-        component={homeScreen}
+        component={HostHomeScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Search"
-        component={favouriteScreen}
+        component={HostBookingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Match"
-        component={homeScreen}
+        component={UpcomingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Chat"
-        component={homeScreen}
+        component={HostProfileScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -236,6 +256,29 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ClubDetailScreen"
             component={ClubDetailScreen}
+            options={{
+              headerShown: false,
+              gestureEnabled: false, // Disable swipe-back gesture on iOS
+            }}
+          />
+          <Stack.Screen
+            name="NearbyEventsSeeAllScreen"
+            component={NearbyEventsSeeAllScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="UpcomingScreen"
+            component={UpcomingScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AddClubEventDetailScreen"
+            component={AddClubEventDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HostProfileScreen"
+            component={HostProfileScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

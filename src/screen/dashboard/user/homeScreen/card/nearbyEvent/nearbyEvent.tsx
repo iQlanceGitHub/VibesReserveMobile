@@ -100,10 +100,11 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
           onPress={handleFavoritePress}
         >
           {isFavorite ? (
-            <FavouriteIcon size={16} color={colors.violate} />
-          ) : (
-            <HeartIcon size={16} color={colors.white} />
-          )}
+              <HeartIcon size={20} color={colors.white} />
+            ) : (
+              <FavouriteIcon size={20} color={colors.violate} />
+            )}
+          
         </TouchableOpacity>
       </View>
 
@@ -111,7 +112,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
       <View style={styles.contentContainer}>
         {/* Category Tag - Top Right Area */}
         <View style={styles.categoryTag}>
-          <Text style={styles.categoryText}>VIP Clubs</Text>
+          <Text style={styles.categoryText}>{event.type}</Text>
         </View>
 
         {/* Price - Top Right Corner */}

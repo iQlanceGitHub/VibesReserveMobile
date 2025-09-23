@@ -71,6 +71,15 @@ import {
   favoriteslistData,
   favoriteslistError,
 
+  bookingrequestData,
+  bookingrequestError,
+
+  acceptrejectData,
+  acceptrejectError,
+
+  createeventData,
+  createeventError,
+
 } from './actions';
 
 export const initialState = {
@@ -128,6 +137,15 @@ export const initialState = {
 
   favoriteslist: '',
   favoriteslistErr: '',
+
+  bookingrequest: '',
+  bookingrequestErr: '',
+
+  acceptreject: '',
+  acceptrejectErr: '',
+
+  createevent: '',
+  createeventErr: '',
 
   user: '',
 
@@ -359,6 +377,36 @@ const authReducer = handleActions(
     [favoriteslistError().type]: produce((draft, action) => {
       console.log('payload togglefavorite Error', action.payload);
       draft.favoriteslistErr = action.payload;
+    }),
+
+    // payload bookingrequest
+    [bookingrequestData().type]: produce((draft, action) => {
+      console.log('payload bookingrequest', action.payload);
+      draft.bookingrequest = action.payload;
+    }),
+    [bookingrequestError().type]: produce((draft, action) => {
+      console.log('payload bookingrequest Error', action.payload);
+      draft.bookingrequestErr = action.payload;
+    }),
+
+    // payload acceptreject
+    [acceptrejectData().type]: produce((draft, action) => {
+      console.log('payload acceptreject', action.payload);
+      draft.acceptreject = action.payload;
+    }),
+    [acceptrejectError().type]: produce((draft, action) => {
+      console.log('payload acceptreject Error', action.payload);
+      draft.acceptrejectErr = action.payload;
+    }),
+
+    // payload createevent
+    [createeventData().type]: produce((draft, action) => {
+      console.log('payload createevent', action.payload);
+      draft.createevent = action.payload;
+    }),
+    [createeventError().type]: produce((draft, action) => {
+      console.log('payload createevent Error', action.payload);
+      draft.createeventErr = action.payload;
     }),
     
   },

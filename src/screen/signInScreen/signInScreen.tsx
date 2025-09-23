@@ -94,7 +94,8 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     // At least one lowercase letter (a-z)
     // At least one number (0-9)
     // At least one special character (e.g., ! @ # $ % ^ & *)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{7,16}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{7,16}$/;
     return passwordRegex.test(password);
   };
 
@@ -167,6 +168,15 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     }
   };
 
+  const storeUser = async (user: any) => {
+    try {
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+      console.log("User saved:", user);
+    } catch (e) {
+      console.error("Failed to save the user.", e);
+    }
+  };
+
   // Store user ID
   const storeUserId = async (userId: any) => {
     try {
@@ -190,25 +200,41 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     }
   };
 
+  const getUser = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      if (user !== null) {
+        const parsedUser = JSON.parse(user);
+        console.log("User retrieved:", parsedUser);
+        return parsedUser;
+      }
+    } catch (e) {
+      console.error("Failed to fetch the user.", e);
+    }
+  };
+
   useEffect(() => {
     getUserToken();
+    getUser();
   }, []);
-
-  const getNavigation = async () => {
-    try {
-      navigation.navigate('HomeTabs')
-    } catch (e) {
-      console.error("Failed to fetch the user token.", e);
-    }
-  }; 
 
   useEffect(() => {
     getUserToken().then((token) => {
-      console.log('token:===>',token)
-      if(token){
-        getNavigation();
+      console.log("token:===>", token);
+      if (token) {
+        getUser().then((user) => {
+          console.log("user::===>", user);
+          console.log("user::===>", user?.currentRole);
+          if (user?.currentRole === "user") {
+            navigation.navigate("HomeTabs" as never);
+          } else if (user?.currentRole === "host") {
+            navigation.navigate("HostTabs" as never);
+          } else {
+          }
+        });
       }
     });
+
     if (
       signin?.status === true ||
       signin?.status === "true" ||
@@ -231,13 +257,27 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "success",
         signin?.message || "Something went wrong. Please try again."
       );
+
       if (signin?.token) {
         storeUserToken(signin?.token);
+      }
+      if (signin?.user) {
+        storeUser(signin?.user);
       }
       if (signin?.user?.id) {
         storeUserId(signin.user.id);
       }
-      // navigation.navigate('NameScreen')
+
+      // Role-based navigation
+      if (signin?.user?.currentRole === "user") {
+        navigation.navigate("HomeTabs" as never);
+      } else if (signin?.user?.currentRole === "host") {
+        navigation.navigate("HostTabs" as never);
+      } else {
+        // Default fallback to HomeTabs
+        navigation.navigate("HomeTabs" as never);
+      }
+
       dispatch(signinData(""));
     }
 
@@ -249,18 +289,23 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       );
       // if (signinErr?.message == 'Your account is inactive. Please contact support.') {
       //   console.log("=>>", uid)
-      
- 
+
       // }
-      if (signinErr?.message == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
-        console.log("=>>", uid)
-        navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })
+      if (
+        signinErr?.message ==
+        "Your email has not been verified. An OTP has been sent to your registered email address."
+      ) {
+        console.log("=>>", uid);
+        navigation.navigate("OTPVerificationScreen", {
+          email: formData?.email,
+          type: "signup",
+          id: uid,
+        });
         setFormData({
-          email: '',
-          password: '',
+          email: "",
+          password: "",
         });
       } else {
- 
       }
       setUid(signinErr?.user?._id);
       setErrors({
@@ -284,6 +329,23 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         socialLogin?.message || "Something went wrong. Please try again."
       );
       dispatch(setUser(socialLogin));
+      if (socialLogin?.token) {
+        storeUserToken(socialLogin?.token);
+      }
+      if (socialLogin?.user?.id) {
+        storeUserId(socialLogin.user.id);
+      }
+
+      // Role-based navigation
+      if (socialLogin?.user?.currentRole === "user") {
+        navigation.navigate("HomeTabs" as never);
+      } else if (socialLogin?.user?.currentRole === "host") {
+        navigation.navigate("HostTabs" as never);
+      } else {
+        // Default fallback to HomeTabs
+        navigation.navigate("HomeTabs" as never);
+      }
+
       dispatch(socialLoginData(""));
     }
 
@@ -317,7 +379,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       }
       console.log("socialData+>>>>", socialData);
     } catch (error) {
-      console.log('Google Sign-In error:', error);
+      console.log("Google Sign-In error:", error);
     }
   };
 
@@ -331,19 +393,19 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       const {
         identityToken,
         email,
-        fullName: {givenName, familyName},
+        fullName: { givenName, familyName },
       } = appleAuthRequestResponse;
       const userId = appleAuthRequestResponse.user;
 
       // Handle the obtained data as per your requirements
-    
+
       let obj = {
-        "email": email == null ? '' : email,
-        "socialId": userId,
-        "loginType": 'apple',
-        "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-        "currentRole": "user",
-      }
+        email: email == null ? "" : email,
+        socialId: userId,
+        loginType: "apple",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        currentRole: "user",
+      };
 
       if (userId) {
         dispatch(onSocialLogin(obj));
@@ -358,12 +420,11 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         console.error("No identity token received from Apple");
         throw new Error("Apple Sign-In failed - no identity token returned");
       }
-
     } catch (error: any) {
       if (error.code === appleAuth.Error.CANCELED) {
-        console.log('Apple Login: User cancelled the login flow.');
+        console.log("Apple Login: User cancelled the login flow.");
       } else {
-        console.log('Apple Login: Error occurred:', error.message);
+        console.log("Apple Login: Error occurred:", error.message);
       }
     }
   };
@@ -377,7 +438,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   };
 
   const handleSkip = () => {
-    navigation?.navigate("LeaveReviewScreen");
+    navigation?.navigate("PaymentSuccess");
   };
 
   return (
@@ -441,21 +502,21 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                   </Text>
                 </View>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={handleAppleSignIn}
-              >
-                <View style={styles.socialButtonContent}>
-                  <View style={styles.appleIcons}>
-                    <AppleIcon />
+              {Platform.OS === "ios" && (
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={handleAppleSignIn}
+                >
+                  <View style={styles.socialButtonContent}>
+                    <View style={styles.appleIcons}>
+                      <AppleIcon />
+                    </View>
+                    <Text style={styles.socialButtonText}>
+                      Continue with Apple
+                    </Text>
                   </View>
-                  <Text style={styles.socialButtonText}>
-                    Continue with Apple
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
+                </TouchableOpacity>
+              )}
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>or</Text>

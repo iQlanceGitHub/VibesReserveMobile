@@ -18,7 +18,7 @@ export default StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    opacity: 0.25
+    opacity: 0.8
   },
   overlayContainer: {
     position: 'absolute',
@@ -36,6 +36,19 @@ export default StyleSheet.create({
     paddingBottom: verticalScale(16),
     zIndex: 10,
     pointerEvents: 'auto', // Allow touches on search bar
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: verticalScale(6),
+    marginTop: verticalScale(12),
+  },
+  locationText: {
+    color: colors.white,
+    fontFamily: fonts.medium,
+    fontSize: fontScale(16),
+    marginLeft: horizontalScale(8),
+    flex: 1,
   },
   backButton: {
     marginRight: horizontalScale(12),
@@ -129,23 +142,8 @@ export default StyleSheet.create({
     textShadowRadius: 4,
   },
   userLocationMarker: {
-    width: horizontalScale(20),
-    height: horizontalScale(30),
     alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  userLocationInner: {
-    width: horizontalScale(20),
-    height: horizontalScale(20),
-    backgroundColor: colors.violate,
-    borderRadius: horizontalScale(10),
-    borderWidth: 3,
-    borderColor: colors.white,
-    shadowColor: colors.violate,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
+    justifyContent: 'center',
   },
   avatarMarker: {
     alignItems: 'center',
@@ -222,5 +220,34 @@ export default StyleSheet.create({
     fontSize: fontScale(16),
     fontFamily: fonts.medium,
     color: colors.white,
+  },
+  // Event Marker Styles
+  eventMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eventMarkerImage: {
+    width: horizontalScale(50),
+    height: horizontalScale(50),
+    borderRadius: horizontalScale(25),
+    borderWidth: 3,
+    borderColor: colors.violate,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  eventMarkerDistance: {
+    fontSize: fontScale(10),
+    fontFamily: fonts.medium,
+    color: colors.white,
+    backgroundColor: colors.violate,
+    paddingHorizontal: horizontalScale(6),
+    paddingVertical: verticalScale(2),
+    borderRadius: horizontalScale(10),
+    marginTop: verticalScale(4),
+    textAlign: 'center',
+    minWidth: horizontalScale(40),
   },
 });

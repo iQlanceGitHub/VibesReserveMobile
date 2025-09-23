@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { colors } from "../../../../utilis/colors";
 import PeopleIcon from "../../../../assets/svg/peopleIcon";
 import ChatIcon from "../../../../assets/svg/chatIcon";
 import ClockIcon from "../../../../assets/svg/clockIcon";
 import LocationFavourite from "../../../../assets/svg/locationFavourite";
-import CloseIcon from "../../../../assets/svg/closeIcon";
 import PhoneIcon from "../../../../assets/svg/phoneIcon";
 import MusicIcon from "../../../../assets/svg/musicIcon";
+import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import styles from "./hostBookingStyles";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  onBookingrequest,
+  bookingrequestData,
+  bookingrequestError,
+} from "../../../../redux/auth/actions";
+import { showToast } from "../../../../utilis/toastUtils";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface BookingData {
   id: string;
@@ -22,105 +30,185 @@ interface BookingData {
   people: string;
   price: string;
   rejectionReason?: string;
+  status?: string;
 }
 
 const HostBookingScreen: React.FC = () => {
+  const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState<"accepted" | "rejected">(
     "accepted"
   );
+  const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Sample data for accepted bookings
-  const acceptedBookings: BookingData[] = [
-    {
-      id: "1",
-      userName: "Mike Hussey",
-      userImage: {
-        uri: "https://via.placeholder.com/60x60/8D34FF/FFFFFF?text=MH",
-      },
-      category: "Lounge",
-      eventName: "DJ Night Party",
-      location: "Los Angeles, CA",
-      date: "Aug 03 to 06",
-      time: "10:00 PM",
-      people: "4 Person",
-      price: "$2025.00",
-    },
-    {
-      id: "2",
-      userName: "John Miller",
-      userImage: {
-        uri: "https://via.placeholder.com/60x60/8D34FF/FFFFFF?text=JM",
-      },
-      category: "Lounge",
-      eventName: "DJ Night Party",
-      location: "Los Angeles, CA",
-      date: "Aug 03 to 06",
-      time: "10:00 PM",
-      people: "4 Person",
-      price: "$2025.00",
-    },
-  ];
+  // Redux state
+  const {
+    bookingrequest,
+    bookingrequestErr,
+    loading: reduxLoading,
+  } = useSelector((state: any) => ({
+    bookingrequest: state.auth.bookingrequest,
+    bookingrequestErr: state.auth.bookingrequestErr,
+    loading: state.auth.loading,
+  }));
 
-  // Sample data for rejected bookings
-  const rejectedBookings: BookingData[] = [
-    {
-      id: "3",
-      userName: "Eve Leroy",
-      userImage: {
-        uri: "https://via.placeholder.com/60x60/8D34FF/FFFFFF?text=EL",
-      },
-      category: "Lounge",
-      eventName: "DJ Night Party",
-      location: "Los Angeles, CA",
-      date: "Aug 03 to 06",
-      time: "10:00 PM",
-      people: "2 Person",
-      price: "$1025.00",
-      rejectionReason: "No available seats/tables.",
-    },
-    {
-      id: "4",
-      userName: "Lyle Kauffman",
-      userImage: {
-        uri: "https://via.placeholder.com/60x60/8D34FF/FFFFFF?text=LK",
-      },
-      category: "Lounge",
-      eventName: "DJ Night Party",
-      location: "Los Angeles, CA",
-      date: "Aug 07 to 09",
-      time: "11:30 PM",
-      people: "3 Person",
-      price: "$1525.00",
-      rejectionReason: "Selected timing no longer available.",
-    },
-  ];
+  // Get user ID from AsyncStorage
+  const getUserID = async (): Promise<string | null> => {
+    try {
+      const userData = await AsyncStorage.getItem("user_data");
+      if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        const userId = parsedUserData?.id || "";
+        return userId;
+      }
+      return null;
+    } catch (error) {
+      console.log("Error getting user ID:", error);
+      return null;
+    }
+  };
 
-  const currentBookings =
-    selectedTab === "accepted" ? acceptedBookings : rejectedBookings;
+  // Fetch bookings based on status
+  const fetchBookings = async (status: "confirmed" | "cancelled") => {
+    setLoading(true);
+    const userId = await getUserID();
+
+    dispatch(
+      onBookingrequest({
+        page: 1,
+        limit: 20,
+        status: status,
+      })
+    );
+  };
+
+  // Handle API response
+  useEffect(() => {
+    if (
+      bookingrequest?.status === true ||
+      bookingrequest?.status === "true" ||
+      bookingrequest?.status === 1 ||
+      bookingrequest?.status === "1"
+    ) {
+      console.log("Booking requests fetched:", bookingrequest);
+      const transformedBookings = transformBookingData(
+        bookingrequest?.data || []
+      );
+      setBookings(transformedBookings);
+      setLoading(false);
+      dispatch(bookingrequestData(""));
+    }
+
+    if (bookingrequestErr) {
+      console.log("Booking request error:", bookingrequestErr);
+      setLoading(false);
+      showToast("error", "Failed to fetch bookings. Please try again.");
+      dispatch(bookingrequestError(""));
+    }
+  }, [bookingrequest, bookingrequestErr, dispatch]);
+
+  const formatDateAndTime = (
+    bookingStartDate: string,
+    bookingEndDate: string,
+    openingTime: string
+  ) => {
+    try {
+      const startDate = new Date(bookingStartDate);
+      const endDate = new Date(bookingEndDate);
+
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const startMonth = monthNames[startDate.getMonth()];
+      const startDay = startDate.getDate().toString().padStart(2, "0");
+      const endDay = endDate.getDate().toString().padStart(2, "0");
+
+      const formatTime = (timeString: string) => {
+        if (!timeString) return "12:00 AM";
+
+        const [hours, minutes] = timeString.split(":");
+        const hour = parseInt(hours, 10);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12;
+        const displayMinutes = minutes || "00";
+
+        return `${displayHour}:${displayMinutes} ${ampm}`;
+      };
+
+      const formattedTime = formatTime(openingTime);
+
+      return `${startMonth} ${startDay} to ${endDay} - ${formattedTime}`;
+    } catch (error) {
+      console.log("Error formatting date:", error);
+      return "Date not available";
+    }
+  };
+
+  const transformBookingData = (apiData: any[]): BookingData[] => {
+    return apiData.map((item: any) => ({
+      id: item._id || item.id || "",
+      userName: item.userId?.fullName || "Unknown User",
+      userImage: {
+        uri: item.userId?.profileImage,
+      },
+      category: item.eventId?.type,
+      eventName: item.eventId?.name || "Event",
+      location: item.eventId?.address || "Location",
+      date: formatDateAndTime(
+        item.bookingStartDate,
+        item.bookingEndDate,
+        item.eventId?.openingTime
+      ),
+      time: item.eventId?.openingTime || "Time",
+      people: `${item.members || 1} Person`,
+      price: `$${item.totalAmount || "0.00"}`,
+      rejectionReason: item.cancelReason || "No reason provided",
+      status: item.status,
+    }));
+  };
+
+  useEffect(() => {
+    fetchBookings(selectedTab === "accepted" ? "confirmed" : "cancelled");
+  }, [selectedTab]);
+
+  const currentBookings = bookings;
 
   const handleCall = (bookingId: string) => {
     console.log("Call booking:", bookingId);
-    // Implement call functionality
   };
 
   const handleChat = (bookingId: string) => {
     console.log("Chat booking:", bookingId);
-    // Implement chat functionality
   };
 
   const handleAccept = (bookingId: string) => {
     console.log("Accept booking:", bookingId);
-    // Implement accept functionality
   };
 
-  const renderBookingCard = (booking: BookingData) => (
+  const renderBookingCard = (booking: BookingData, index: number) => (
     <View
       key={booking.id}
-      style={
+      style={[
         selectedTab === "rejected"
           ? styles.rejectedBookingCard
-          : styles.bookingCard
-      }
+          : styles.bookingCard,
+        index === currentBookings.length - 1 &&
+          (selectedTab === "rejected"
+            ? styles.lastRejectedBookingCard
+            : styles.lastBookingCard),
+      ]}
     >
       <View style={styles.cardContent}>
         <View style={styles.leftSection}>
@@ -165,9 +253,7 @@ const HostBookingScreen: React.FC = () => {
 
             <View style={styles.detailRow}>
               <ClockIcon size={14} color={colors.white} />
-              <Text style={styles.detailText}>
-                {booking.date} - {booking.time}
-              </Text>
+              <Text style={styles.detailText}>{booking.date}</Text>
             </View>
 
             <View style={styles.detailRow}>
@@ -181,9 +267,8 @@ const HostBookingScreen: React.FC = () => {
 
       {selectedTab === "rejected" && (
         <View style={styles.rejectionRow}>
-          <CloseIcon size={14} color={colors.red} />
           <Text style={styles.rejectionText}>
-            Reason: {booking.rejectionReason || "No reason provided"}
+            ❌ Reason: {booking.rejectionReason || "No reason provided"}
           </Text>
         </View>
       )}
@@ -191,48 +276,65 @@ const HostBookingScreen: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bookings</Text>
-      </View>
+    <SafeAreaWrapper
+      backgroundColor={colors.gradient_dark_purple}
+      statusBarStyle="light-content"
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Bookings</Text>
+        </View>
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === "accepted" && styles.activeTab]}
-          onPress={() => setSelectedTab("accepted")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === "accepted" && styles.activeTabText,
-            ]}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === "accepted" && styles.activeTab]}
+            onPress={() => setSelectedTab("accepted")}
           >
-            Accepted
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === "accepted" && styles.activeTabText,
+              ]}
+            >
+              Accepted
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === "rejected" && styles.activeTab]}
-          onPress={() => setSelectedTab("rejected")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === "rejected" && styles.activeTabText,
-            ]}
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === "rejected" && styles.activeTab]}
+            onPress={() => setSelectedTab("rejected")}
           >
-            Rejected
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === "rejected" && styles.activeTabText,
+              ]}
+            >
+              Rejected
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {currentBookings.map(renderBookingCard)}
-      </ScrollView>
-    </View>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          {loading || reduxLoading ? (
+            <View style={styles.emptyContainer}></View>
+          ) : currentBookings.length > 0 ? (
+            currentBookings.map((booking, index) =>
+              renderBookingCard(booking, index)
+            )
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                No {selectedTab} bookings found
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    </SafeAreaWrapper>
   );
 };
 

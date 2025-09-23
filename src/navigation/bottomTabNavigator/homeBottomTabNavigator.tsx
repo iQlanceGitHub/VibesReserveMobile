@@ -14,10 +14,21 @@ import SelectProfile from "../../assets/svg/selectProfile";
 import styles from "./styles";
 import * as appConstant from "../../utilis/appConstant";
 import { colors } from "../../utilis/colors";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
+  
   return (
-    <View style={styles.mainContainerTab}>
+    <View style={[
+      styles.mainContainerTab, 
+      { 
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+      }
+    ]}>
       <View style={styles.mainContainer}>
         <View style={styles.bottomTabContainer}>
           {props.state.routes.map((route, index) => {
