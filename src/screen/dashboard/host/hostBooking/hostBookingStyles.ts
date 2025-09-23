@@ -13,13 +13,13 @@ export default StyleSheet.create({
     backgroundColor: colors.gradient_dark_purple,
   },
   header: {
-    paddingTop: verticalScale(60),
-    paddingBottom: verticalScale(20),
+    paddingBottom: verticalScale(2),
     paddingHorizontal: horizontalScale(20),
     alignItems: "center",
   },
   headerTitle: {
     fontSize: fontScale(20),
+    marginBottom: verticalScale(23),
     lineHeight: verticalScale(24),
     fontWeight: "600",
     fontFamily: fonts.semiBold,
@@ -84,10 +84,15 @@ export default StyleSheet.create({
     borderColor: colors.red,
     overflow: "hidden",
   },
+  lastBookingCard: {
+    marginBottom: verticalScale(80),
+  },
+  lastRejectedBookingCard: {
+    marginBottom: verticalScale(80),
+  },
   cardContent: {
     flexDirection: "row",
     padding: verticalScale(8),
-    paddingBottom: 0,
     flex: 1,
     width: "100%",
     justifyContent: "space-between",
@@ -201,5 +206,29 @@ export default StyleSheet.create({
     fontSize: fontScale(14),
     fontFamily: fonts.Bold,
     color: colors.white,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: verticalScale(50),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: verticalScale(50),
+  },
+  loadingText: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.medium,
+    color: colors.white,
+    marginTop: verticalScale(10),
+  },
+  emptyText: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.medium,
+    color: colors.whiteLight,
+    textAlign: "center",
   },
 });

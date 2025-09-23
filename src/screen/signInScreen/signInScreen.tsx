@@ -168,6 +168,15 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     }
   };
 
+  const storeUser = async (user: any) => {
+    try {
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+      console.log("User saved:", user);
+    } catch (e) {
+      console.error("Failed to save the user.", e);
+    }
+  };
+
   // Store user ID
   const storeUserId = async (userId: any) => {
     try {
@@ -191,25 +200,41 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    getUserToken();
-  }, []);
-
-  const getNavigation = async () => {
+  const getUser = async () => {
     try {
-      navigation.navigate("HomeTabs");
+      const user = await AsyncStorage.getItem("user");
+      if (user !== null) {
+        const parsedUser = JSON.parse(user);
+        console.log("User retrieved:", parsedUser);
+        return parsedUser;
+      }
     } catch (e) {
-      console.error("Failed to fetch the user token.", e);
+      console.error("Failed to fetch the user.", e);
     }
   };
+
+  useEffect(() => {
+    getUserToken();
+    getUser();
+  }, []);
 
   useEffect(() => {
     getUserToken().then((token) => {
       console.log("token:===>", token);
       if (token) {
-        getNavigation();
+        getUser().then((user) => {
+          console.log("user::===>", user);
+          console.log("user::===>", user?.currentRole);
+          if (user?.currentRole === "user") {
+            navigation.navigate("HomeTabs" as never);
+          } else if (user?.currentRole === "host") {
+            navigation.navigate("HostTabs" as never);
+          } else {
+          }
+        });
       }
     });
+
     if (
       signin?.status === true ||
       signin?.status === "true" ||
@@ -232,13 +257,27 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         "success",
         signin?.message || "Something went wrong. Please try again."
       );
+
       if (signin?.token) {
         storeUserToken(signin?.token);
+      }
+      if (signin?.user) {
+        storeUser(signin?.user);
       }
       if (signin?.user?.id) {
         storeUserId(signin.user.id);
       }
-      // navigation.navigate('NameScreen')
+
+      // Role-based navigation
+      if (signin?.user?.currentRole === "user") {
+        navigation.navigate("HomeTabs" as never);
+      } else if (signin?.user?.currentRole === "host") {
+        navigation.navigate("HostTabs" as never);
+      } else {
+        // Default fallback to HomeTabs
+        navigation.navigate("HomeTabs" as never);
+      }
+
       dispatch(signinData(""));
     }
 
@@ -290,6 +329,23 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         socialLogin?.message || "Something went wrong. Please try again."
       );
       dispatch(setUser(socialLogin));
+      if (socialLogin?.token) {
+        storeUserToken(socialLogin?.token);
+      }
+      if (socialLogin?.user?.id) {
+        storeUserId(socialLogin.user.id);
+      }
+
+      // Role-based navigation
+      if (socialLogin?.user?.currentRole === "user") {
+        navigation.navigate("HomeTabs" as never);
+      } else if (socialLogin?.user?.currentRole === "host") {
+        navigation.navigate("HostTabs" as never);
+      } else {
+        // Default fallback to HomeTabs
+        navigation.navigate("HomeTabs" as never);
+      }
+
       dispatch(socialLoginData(""));
     }
 
@@ -446,21 +502,21 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                   </Text>
                 </View>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={handleAppleSignIn}
-              >
-                <View style={styles.socialButtonContent}>
-                  <View style={styles.appleIcons}>
-                    <AppleIcon />
+              {Platform.OS === "ios" && (
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={handleAppleSignIn}
+                >
+                  <View style={styles.socialButtonContent}>
+                    <View style={styles.appleIcons}>
+                      <AppleIcon />
+                    </View>
+                    <Text style={styles.socialButtonText}>
+                      Continue with Apple
+                    </Text>
                   </View>
-                  <Text style={styles.socialButtonText}>
-                    Continue with Apple
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
+                </TouchableOpacity>
+              )}
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>or</Text>

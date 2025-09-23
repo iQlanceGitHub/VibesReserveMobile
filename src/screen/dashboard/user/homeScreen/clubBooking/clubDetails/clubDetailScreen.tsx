@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
   ScrollView,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   FlatList,
   Linking,
   Platform,
   Alert,
   Share,
+  Modal,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import styles from './styles';
 import { colors } from '../../../../../../utilis/colors';
 import { fonts } from '../../../../../../utilis/fonts';
 import { fontScale, horizontalScale, verticalScale } from '../../../../../../utilis/appConstant';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 //API
 import {
@@ -45,20 +47,42 @@ import MessageIcon from '../../../../../../assets/svg/messageIcon';
 import PhoneIcon from '../../../../../../assets/svg/phoneIcon';
 import CocktailIcon from '../../../../../../assets/svg/cocktailIcon';
 import MapView, { Marker } from 'react-native-maps';
+import { useLocation, LocationProvider } from '../../../../../../contexts/LocationContext';
 
 const ClubDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { locationData } = useLocation();
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [selectedLounge, setSelectedLounge] = useState('crystal');
+  const [selectedLounge, setSelectedLounge] = useState('');
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [viewedMap, setViewedMap] = useState(false);
   const [clubDetails, setClubDetails] = useState(null);
   const [msg, setMsg] = useState('');
+  const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
+  
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
 
   const dispatch = useDispatch();
   const viewdetails = useSelector((state: any) => state.auth.viewdetails);
+
+  // Disable swipe-back gesture on iOS
+  useFocusEffect(
+    React.useCallback(() => {
+      // Disable gesture when screen is focused
+      navigation.setOptions({
+        gestureEnabled: false,
+      });
+      
+      // Re-enable gesture when screen is unfocused (optional)
+      return () => {
+        navigation.setOptions({
+          gestureEnabled: true,
+        });
+      };
+    }, [navigation])
+  );
   const viewdetailsErr = useSelector((state: any) => state.auth.viewdetailsErr);
   const togglefavorite = useSelector((state: any) => state.auth.togglefavorite);
   const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
@@ -84,12 +108,12 @@ const ClubDetailScreen = () => {
     ) {
       console.log("viewdetails response:+>", viewdetails);
       setClubDetails(viewdetails?.data);
-      
+
       // Initialize bookmark state based on club details
       if (viewdetails?.data?.isFavorite !== undefined) {
         setIsBookmarked(viewdetails.data.isFavorite);
       }
-      
+
       dispatch(viewdetailsData(''));
     }
 
@@ -109,7 +133,7 @@ const ClubDetailScreen = () => {
       togglefavorite?.status === "1"
     ) {
       console.log("togglefavorite response:+>", togglefavorite);
-      
+
       // Update bookmark state based on server response
       if (togglefavorite?.data?.isFavorite !== undefined) {
         setIsBookmarked(togglefavorite.data.isFavorite);
@@ -117,7 +141,7 @@ const ClubDetailScreen = () => {
         // Fallback: toggle current state
         setIsBookmarked((prev: boolean) => !prev);
       }
-      
+
       dispatch(togglefavoriteData(''));
     }
 
@@ -134,13 +158,13 @@ const ClubDetailScreen = () => {
     title: facility.name || 'Facility',
     icon: <CocktailIcon size={16} color={colors.white} />
   })) || [
-    
-  ];
 
-  // Get coordinates from API data or use default
+    ];
+
+  // Get coordinates from API data or use user's current location
   const location = {
-    latitude: (clubDetails as any)?.coordinates?.coordinates?.[1] || 43.6532,
-    longitude: (clubDetails as any)?.coordinates?.coordinates?.[0] || -79.3832,
+    latitude: (clubDetails as any)?.coordinates?.coordinates?.[1] || locationData?.latitude || 23.012649201096547,
+    longitude: (clubDetails as any)?.coordinates?.coordinates?.[0] || locationData?.longitude || 72.51123340677258,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
@@ -156,13 +180,21 @@ const ClubDetailScreen = () => {
     image: booth.boothImage?.[0] || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
   })) || [];
 
+  const transformedTickets = (clubDetails as any)?.tickets?.map((ticket: any, index: number) => ({
+    id: ticket._id || `ticket_${index}`,
+    name: ticket.ticketType?.name || 'General Admission',
+    type: ticket.ticketType?.name || 'General',
+    capacity: `${ticket.capacity || 0} People`,
+    price: ticket.ticketPrice || 45,
+  })) || [];
+
 
   const mapStyle = [
     {
       "elementType": "geometry",
       "stylers": [
         {
-          "color": "#1d2c4d"
+          "color": "#1a1a2e"
         }
       ]
     },
@@ -170,7 +202,7 @@ const ClubDetailScreen = () => {
       "elementType": "labels.text.fill",
       "stylers": [
         {
-          "color": "#8ec3b9"
+          "color": "#ffffff"
         }
       ]
     },
@@ -178,196 +210,7 @@ const ClubDetailScreen = () => {
       "elementType": "labels.text.stroke",
       "stylers": [
         {
-          "color": "#1a3646"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.country",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#4b6878"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.land_parcel",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#64779e"
-        }
-      ]
-    },
-    {
-      "featureType": "administrative.province",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#4b6878"
-        }
-      ]
-    },
-    {
-      "featureType": "landscape.man_made",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#334e87"
-        }
-      ]
-    },
-    {
-      "featureType": "landscape.natural",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#023e58"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#283d6a"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#6f9ba5"
-        }
-      ]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#1d2c4d"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "geometry.fill",
-      "stylers": [
-        {
-          "color": "#023e58"
-        }
-      ]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#3C7680"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#304a7d"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#98a5be"
-        }
-      ]
-    },
-    {
-      "featureType": "road",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#1d2c4d"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#2c6675"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry.stroke",
-      "stylers": [
-        {
-          "color": "#255763"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#b0d5ce"
-        }
-      ]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#023e58"
-        }
-      ]
-    },
-    {
-      "featureType": "transit",
-      "elementType": "labels.text.fill",
-      "stylers": [
-        {
-          "color": "#98a5be"
-        }
-      ]
-    },
-    {
-      "featureType": "transit",
-      "elementType": "labels.text.stroke",
-      "stylers": [
-        {
-          "color": "#1d2c4d"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.line",
-      "elementType": "geometry.fill",
-      "stylers": [
-        {
-          "color": "#283d6a"
-        }
-      ]
-    },
-    {
-      "featureType": "transit.station",
-      "elementType": "geometry",
-      "stylers": [
-        {
-          "color": "#3a4762"
+          "color": "#1a1a2e"
         }
       ]
     },
@@ -376,7 +219,7 @@ const ClubDetailScreen = () => {
       "elementType": "geometry",
       "stylers": [
         {
-          "color": "#0e1626"
+          "color": "#0e1621"
         }
       ]
     },
@@ -385,14 +228,134 @@ const ClubDetailScreen = () => {
       "elementType": "labels.text.fill",
       "stylers": [
         {
-          "color": "#4e6d70"
+          "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry.stroke",
+      "stylers": [
+        {
+          "color": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
+          "color": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
+          "color": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "featureType": "landscape",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#1a1a2e"
+        }
+      ]
+    },
+    {
+      "featureType": "landscape",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#ffffff"
+        }
+      ]
+    },
+    {
+      "featureType": "transit",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "featureType": "transit",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#ffffff"
         }
       ]
     }
   ];
 
   const handleLoungeSelect = (loungeId: string) => {
-    setSelectedLounge(loungeId);
+    // Toggle selection: if already selected, unselect; otherwise select
+    setSelectedLounge(prevSelected => 
+      prevSelected === loungeId ? '' : loungeId
+    );
   };
 
   const handleFacilityToggle = (facilityId: string) => {
@@ -514,7 +477,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       console.log('user_token length:', userToken?.length);
       console.log('signin data (raw):', signinData);
       console.log('eventId:', eventId);
-      
+
       // Test if token is valid JWT format
       if (userToken && userToken.includes('.')) {
         const parts = userToken.split('.');
@@ -537,26 +500,47 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const getTotalPrice = () => {
+    // If no lounge is selected, return 0
+    if (!selectedLounge) {
+      return 0;
+    }
+
+    // If there are tickets, calculate based on selected ticket
+    if (transformedTickets && transformedTickets.length > 0) {
+      const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
+      return selectedTicketData ? selectedTicketData.price : 0;
+    }
+
+    // Otherwise, calculate based on selected lounge/booth
     const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
     return selectedLoungeData ? selectedLoungeData.discountedPrice + 100 : 0; // +100 for base event price
   };
 
+
+
   const handleBookNow = () => {
+    // Check if a lounge/ticket is selected
+    if (!selectedLounge) {
+      Alert.alert('Selection Required', 'Please select a lounge or ticket to proceed with booking.');
+      return;
+    }
+
     // Collect all selected values
     const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+    const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
     const selectedFacilitiesData = facilities.filter((facility: any) => selectedFacilities.includes(facility.id));
 
     const selectedValues = {
       selectedLounge: selectedLounge,
       selectedLoungeData: selectedLoungeData,
+      selectedTicketData: selectedTicketData,
       isBookmarked: isBookmarked,
-      isLiked: isLiked,
       totalPrice: getTotalPrice(),
       eventDetails: {
         title: (clubDetails as any)?.name || 'Club Event',
         location: (clubDetails as any)?.address || 'Location',
-        date: clubDetails ? 
-          `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` : 
+        date: clubDetails ?
+          `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
           'Date',
         rating: '4.8',
         category: (clubDetails as any)?.type || 'Club'
@@ -571,7 +555,6 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       userInteractions: {
         viewedMap: viewedMap,
         bookmarked: isBookmarked,
-        liked: isLiked
       }
     };
 
@@ -584,14 +567,29 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     // Handle favorite logic here
   };
 
+  const handleNextPress = () => {
+    setShowComingSoonDialog(true);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent 
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === 'android' && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: 'transparent',
+        })}
+      />
 
       {/* Header with Club Image */}
       <View style={styles.headerContainer}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop' }}
+          source={{
+            uri: (clubDetails as any)?.photos[0]
+          }}
           style={styles.headerImage}
           resizeMode="cover"
         />
@@ -617,16 +615,11 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               onPress={handleToggleFavorite}
             >
               {isBookmarked ? (
-                <FavouriteIcon size={20} color={colors.violate} />
-              ) : (
                 <HeartIcon size={20} color={colors.white} />
+              ) : (
+                <FavouriteIcon size={20} color={colors.violate} />
               )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => setIsLiked(!isLiked)}
-            >
-              <HeartIcon size={20} color={isLiked ? colors.violate : colors.white} />
+
             </TouchableOpacity>
           </View>
         </View>
@@ -657,8 +650,8 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
             <View style={styles.detailRow}>
               <ClockIcon size={16} color={colors.violate} />
               <Text style={styles.detailText}>
-                {clubDetails ? 
-                  `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` : 
+                {clubDetails ?
+                  `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
                   'Loading...'
                 }
               </Text>
@@ -704,6 +697,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                           styles.selectButton,
                           selectedLounge === lounge.id && styles.selectButtonSelected
                         ]}
+                        onPress={() => handleLoungeSelect(lounge.id)}
                       >
                         <Text style={[
                           styles.selectButtonText,
@@ -721,6 +715,51 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                   </View>
                 </TouchableOpacity>
               ))}
+
+              {transformedTickets.map((ticket: any) => (
+                <TouchableOpacity
+                  key={ticket.id}
+                  style={[
+                    styles.ticketCard,
+                    selectedLounge === ticket.id && styles.loungeCardSelected
+                  ]}
+                  onPress={() => handleLoungeSelect(ticket.id)}
+                >
+
+                  <View style={styles.loungeContent}>
+
+                    <Text style={styles.loungeDetails}>
+                      <Text style={styles.loungeTitle}>Ticket Type: </Text>
+                      <Text style={styles.loungeDetails}>{ticket.type}</Text>
+                      {'\n'}
+                      <Text style={styles.loungeTitle}>Capacity: </Text>
+                      <Text style={styles.loungeDetails}>{ticket.capacity}</Text>
+                    </Text>
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.discountedPrice}>${ticket.price}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <TouchableOpacity
+                        style={[
+                          styles.selectButton,
+                          selectedLounge === ticket.id && styles.selectButtonSelected
+                        ]}
+                        onPress={() => handleLoungeSelect(ticket.id)}
+                      >
+                        <Text style={[
+                          styles.selectButtonText,
+                          selectedLounge === ticket.id && styles.selectButtonTextSelected
+                        ]}>
+                          {selectedLounge === ticket.id ? 'Selected' : 'Select'}
+                        </Text>
+                      </TouchableOpacity>
+
+                    </View>
+
+                  </View>
+                </TouchableOpacity>
+              ))}
+
             </ScrollView>
           </View>
 
@@ -755,10 +794,10 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                 <Text style={styles.mapButtonText}>View on Map</Text>
               </TouchableOpacity></View>
 
-             <View style={styles.addressRow}>
-               <LocationFavourite size={16} color={colors.violate} />
-               <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
-             </View>
+            <View style={styles.addressRow}>
+              <LocationFavourite size={16} color={colors.violate} />
+              <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
+            </View>
 
 
             <View style={styles.mapContainer}>
@@ -768,6 +807,16 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                 customMapStyle={mapStyle} // Apply custom styling
                 scrollEnabled={false} // Disable scrolling if you want it to be static
                 zoomEnabled={false} // Disable zoom if you want it to be static
+                userInterfaceStyle="dark"
+                tintColor={colors.violate}
+                mapType="standard"
+                showsUserLocation={false}
+                showsMyLocationButton={false}
+                showsCompass={false}
+                showsScale={false}
+                showsBuildings={true}
+                showsTraffic={false}
+                showsIndoors={false}
               >
                 <Marker
                   coordinate={location}
@@ -784,7 +833,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Facilities</Text>
             <View style={styles.facilitiesContainer}>
-               {facilities.map((facility: any) => (
+              {facilities.map((facility: any) => (
                 <TouchableOpacity
                   key={facility.id}
                   style={[
@@ -815,13 +864,54 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           <Text style={styles.totalPriceLabel}>Total Price</Text>
           <Text style={styles.totalPriceValue}>${getTotalPrice()}</Text>
         </View>
-        <TouchableOpacity style={styles.bookNowButton}>
-          <Text style={styles.bookNowText}>Book Now</Text>
+        <TouchableOpacity style={styles.bookNowButton} onPress={handleNextPress}>
+          <Text style={styles.bookNowText}>Next</Text>
         </TouchableOpacity>
         <View style={{ marginTop: verticalScale(80) }}></View>
       </View>
-    </SafeAreaView >
+      <View style={{ marginBottom: Platform.OS === 'ios' ? verticalScale(0) : verticalScale(45) + insets.bottom }} />
+
+      {/* Coming Soon Dialog */}
+      <Modal
+        visible={showComingSoonDialog}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowComingSoonDialog(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.comingSoonDialog}>
+            <View style={styles.dialogHeader}>
+              <Text style={styles.dialogTitle}>Coming Soon!</Text>
+            </View>
+            
+            <View style={styles.dialogContent}>
+              <Text style={styles.dialogMessage}>
+                We're working on it to bring you an amazing booking experience. 
+                This feature will be available soon!
+              </Text>
+            </View>
+            
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogButton}
+                onPress={() => setShowComingSoonDialog(false)}
+              >
+                <Text style={styles.dialogButtonText}>Got it</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
-export default ClubDetailScreen;
+const ClubDetailScreenWithLocation = () => {
+  return (
+    <LocationProvider>
+      <ClubDetailScreen />
+    </LocationProvider>
+  );
+};
+
+export default ClubDetailScreenWithLocation;

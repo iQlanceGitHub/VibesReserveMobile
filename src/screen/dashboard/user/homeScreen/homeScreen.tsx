@@ -17,6 +17,10 @@ import Blox from '../../../../assets/svg/blox';
 import SearchIcon from '../../../../assets/svg/searchIcon';
 import FilterScreen from './FilterScreen/FilterScreen';
 import { useCategory } from '../../../../hooks/useCategory';
+import { useFacility } from '../../../../hooks/useFacility';
+import { LocationProvider, useLocation } from '../../../../contexts/LocationContext';
+import LocationDisplay from '../../../../components/LocationDisplay';
+
 
 //API
 import {
@@ -35,7 +39,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CustomAlertSingleBtn } from '../../../../components/CustomeAlertDialog';
 
 const categories = [
-  { id: "all", name: "🔥 All" },
+  { id: "all", name: "All" },
   { id: "vip", name: "🥂 VIP Clubs" },
   { id: "dj", name: "🎧 DJ Nights" },
   { id: "events", name: "🎟️ Events" },
@@ -111,7 +115,7 @@ const sampleEvents = [
  
 ];
 
-const HomeScreen = () => {
+const HomeScreenContent = () => {
   const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [events, setEvents] = useState(sampleEvents);
@@ -134,42 +138,86 @@ const HomeScreen = () => {
 
   // Use the custom hook for category management
   const { categories: apiCategories, fetchCategories } = useCategory();
+  const { facilities, isLoading, error, fetchFacilities, refreshFacilities } = useFacility();
+
   
   // Use the custom hook for home data management
-  // Default location coordinates
-  const defaultLat = "23.012649201096547";
-  const defaultLong = "72.51123340677258";
+  // Get location data from context
+  const { locationData } = useLocation();
+  
+  // Use dynamic location or fallback to default
+  const defaultLat = locationData?.latitude?.toString() || "23.012649201096547";
+  const defaultLong = locationData?.longitude?.toString() || "72.51123340677258";
+
+  // Refresh home data when location changes
+  useEffect(() => {
+    if (locationData?.latitude && locationData?.longitude) {
+      console.log('Location updated, refreshing home data with new coordinates:', {
+        lat: locationData.latitude,
+        lng: locationData.longitude
+      });
+      const refreshHomeData = async () => {
+        const userId = await getUser();
+        dispatch(onHome({
+          lat: defaultLat,
+          long: defaultLong,
+          userId: userId,
+        }));
+      };
+      refreshHomeData();
+    }
+  }, [locationData?.latitude, locationData?.longitude]);
 
   // Get user ID from AsyncStorage
-  const getUserID = async (): Promise<string | null> => {
+  // const getUserID = async (): Promise<string | null> => {
+  //   try {
+  //     const userData = await AsyncStorage.getItem('user_data');
+  //     if (userData) {
+  //       const parsedUserData = JSON.parse(userData);
+  //       const userId = parsedUserData?.id || '';
+  //       setUserId(userId);
+  //       return userId;
+  //     }
+  //     return null;
+  //   } catch (error) {
+  //     console.log('Error getting user ID:', error);
+  //     return null;
+  //   }
+  // };
+  const getUser = async () => {
     try {
-      const userData = await AsyncStorage.getItem('user_data');
-      if (userData) {
-        const parsedUserData = JSON.parse(userData);
-        const userId = parsedUserData?.id || '';
+      const user = await AsyncStorage.getItem("user");
+      if (user !== null) {
+        const parsedUser = JSON.parse(user);
+        console.log("User retrieved:", parsedUser);
+        const userId = parsedUser?.id || '';
         setUserId(userId);
+
         return userId;
       }
-      return null;
-    } catch (error) {
-      console.log('Error getting user ID:', error);
-      return null;
+    } catch (e) {
+      console.error("Failed to fetch the user.", e);
     }
   };
 
   // Fetch categories and home data when component mounts
   useEffect(() => {
     fetchCategories();
-    getUserID();
+    getUser();
   }, [fetchCategories]);
 
   useEffect(() => {
+    fetchFacilities();
+    console.log("facilities:->", facilities);
+  }, [fetchFacilities]);
+
+  useEffect(() => {
     const callHomeAPI = async () => {
-      const userId = await getUserID();
+      const userId = await getUser();
       dispatch(onHome({
-        lat: defaultLong,
-        long: defaultLat,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
       }));
     };
     callHomeAPI();
@@ -177,7 +225,7 @@ const HomeScreen = () => {
 
   // Use API categories if available, otherwise fallback to static categories
   const allCategories = apiCategories.length > 0 ? [
-    { _id: "all", name: "🔥 All" },
+    { _id: "all", name: "All" },
     ...apiCategories
   ] : categories;
 
@@ -185,23 +233,23 @@ const HomeScreen = () => {
   const handleCategoryPress = async (categoryId: string) => {
     setSelectedCategory(categoryId);
     
-    const userId = await getUserID();
+    const userId = await getUser();
     
     // Refresh home data with new category filter
     if (categoryId !== 'all') {
       const homeParams = {
-        lat: defaultLong,
-        long: defaultLat,
+        lat: defaultLat,
+        long: defaultLong,
         categoryid: categoryId,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        userId: userId, // fallback userId
       };
       dispatch(onHome(homeParams));
     } else {
       // If "All" is selected, fetch without category filter
       const homeParams = {
-        lat: defaultLong,
-        long: defaultLat,
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
       };
       dispatch(onHome(homeParams));
     }
@@ -209,6 +257,38 @@ const HomeScreen = () => {
   
   const onSearchClose = () => {
     setSearchVal('');
+    // Reset to original data when search is cleared
+    const callHomeAPI = async () => {
+      const userId = await getUser();
+      dispatch(onHome({
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
+      }));
+    };
+    callHomeAPI();
+  };
+
+  const handleSearch = async (searchText: string) => {
+    setSearchVal(searchText);
+    
+    if (searchText.trim().length > 0) {
+      const userId = await getUser();
+      dispatch(onHome({
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
+        search_keyword: searchText.trim(),
+      }));
+    } else {
+      // If search is empty, fetch original data
+      const userId = await getUser();
+      dispatch(onHome({
+        lat: defaultLat,
+        long: defaultLong,
+        userId: userId, // fallback userId
+      }));
+    }
   };
 
 
@@ -259,6 +339,7 @@ const HomeScreen = () => {
     }
   }, [filter, filterErr, dispatch]);
 
+
   // Handle Toggle Favorite API response
   useEffect(() => {
     const handleToggleFavoriteResponse = async () => {
@@ -269,11 +350,11 @@ const HomeScreen = () => {
         togglefavorite?.status === "1"
       ) {
         console.log("togglefavorite response in home:+>", togglefavorite);
-        const userId = await getUserID();
+        const userId = await getUser();
         dispatch(onHome({
           lat: defaultLong,
           long: defaultLat,
-          userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+          userId: userId, // fallback userId
         }));
         dispatch(togglefavoriteData(''));
       }
@@ -310,7 +391,7 @@ const HomeScreen = () => {
       date: filterValues?.selectedDate?.formattedDate || new Date().toISOString().split('T')[0],
       minDistance: filterValues?.distanceRange?.min || 0,
       maxDistance: filterValues?.distanceRange?.max || 20,
-      userId: userId || "68c147b05f4b76754d914383" // fallback user ID
+      userId: userId, // fallback user ID
     };
 
     console.log('Filter Payload:', filterPayload);
@@ -318,7 +399,7 @@ const HomeScreen = () => {
     // Call filter API
     dispatch(onFilter(filterPayload));
     
-    // Navigate to FilterListScreen
+    // Navigate to FilterListScreen immediately (same as explore screen)
     navigation.navigate("FilterListScreen" as never);
   };
 
@@ -343,8 +424,11 @@ const HomeScreen = () => {
       {/* Top Section: Location & Search */}
       <View style={styles.topSection}>
         <View style={styles.locationRow}>
-        <LocationFavouriteWhiteIcon size={18} color={colors.violate} />
-        <Text style={styles.locationText}>Toronto, Canada.</Text>
+        <LocationDisplay 
+          showRefreshButton={true}
+          style={{ flex: 1 }}
+          textStyle={styles.locationText}
+        />
         <TouchableOpacity
           style={styles.mapIcon}
           onPress={() => navigation.navigate("FilterListScreen" as never)}
@@ -369,7 +453,7 @@ const HomeScreen = () => {
             <SearchIcon size={18} color={colors.violate} />
             <TextInput
               value={searchVal}
-              onChangeText={setSearchVal}
+              onChangeText={handleSearch}
               style={styles.input}
               placeholder="Search clubs, events, Bars,..."
               placeholderTextColor={'#9CA3AF'}
@@ -385,7 +469,7 @@ const HomeScreen = () => {
             <TouchableOpacity style={styles.filterButton} onPress={handleFilterPress}>
               <Filtericon/>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton} onPress={()=> navigation.navigate("ExploreScreen" as never)}>
+            <TouchableOpacity style={styles.filterButton} onPress={()=> (navigation as any).navigate("ExploreScreen", { nearbyEvents: nearby, featuredEvents: featured })}>
              <LocationFavouriteWhiteIcon />
             </TouchableOpacity>
           </View>
@@ -430,7 +514,8 @@ const HomeScreen = () => {
             return (
               <EventCard
                 title={(item as any).name}
-                location={(item as any).address}
+                // location={(item as any).address}
+                location={'Clock on overlap on event page overlap Clock on overlap on event page overlap on event page overlap on event page overlap on event page'}
                 date={new Date((item as any).startDate).toLocaleDateString()}
                 price={`$${(item as any).entryFee}`}
                 tag={(item as any).type}
@@ -438,7 +523,8 @@ const HomeScreen = () => {
                 rating={4.5}
                 isFavorite={(item as any).isFavorite}
                 onBookNow={() => handleBookNow((item as any)._id)}
-                onFavoritePress={() => handleFavorite((item as any)._id)}
+                onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
+                _id={(item as any)._id || (item as any).id}
               />
             );
           }}
@@ -447,21 +533,29 @@ const HomeScreen = () => {
         {/* Nearby Events */}
         <View style={styles.nearbyHeaderRow}>
           <Text style={styles.sectionTitle}>Nearby</Text>
-          <TouchableOpacity><Text style={styles.seeAllText}>See All</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => (navigation as any).navigate("NearbyEventsSeeAllScreen", { nearbyEvents: nearby })}>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
         </View>
-        <FlatList
-          data={nearby.length > 0 ? nearby : sampleEvents}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.nearbyEventsContainer}
-          keyExtractor={(item, index) => (item as any)._id || (item as any).id || index.toString()}
-          renderItem={({ item }) => (
-            <NearbyEventCard
-              event={item}
-              onPress={() => handleBookNow((item as any)._id || (item as any).id)}
-              onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
-            />
-          )}
-        />
+        {nearby.length > 0 ? (
+          <FlatList
+            data={nearby}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.nearbyEventsContainer}
+            keyExtractor={(item, index) => (item as any)._id || (item as any).id || index.toString()}
+            renderItem={({ item }) => (
+              <NearbyEventCard
+                event={item}
+                onPress={() => handleBookNow((item as any)._id || (item as any).id)}
+                onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
+              />
+            )}
+          />
+        ) : (
+          <View style={styles.emptyStateContainer}>
+            <Text style={styles.emptyStateText}>No nearby events found</Text>
+          </View>
+        )}
       </ScrollView>
       
       {/* Filter Modal */}
@@ -473,6 +567,14 @@ const HomeScreen = () => {
       
       {/* Bottom navigation is assumed to be handled by your navigator */}
     </View>
+  );
+};
+
+const HomeScreen = () => {
+  return (
+    <LocationProvider>
+      <HomeScreenContent />
+    </LocationProvider>
   );
 };
 

@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
+import { colors } from '../../../../../utilis/colors';
 import CategoryButton from '../../../../../components/CategoryButton';
 import PriceRangeSlider from './components/PriceRangeSlider';
 import DistanceSlider from './components/DistanceSlider';
@@ -33,7 +34,7 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
 
   // Add "All" category at the beginning and fallback to static categories
   const allCategories = [
-    { _id: "all", name: "🔥 All" },
+    { _id: "all", name: "All" },
     ...(categories.length > 0 ? categories : [
     ])
   ];
@@ -147,6 +148,9 @@ const dates = generateDates();
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.overlayTouchable} />
+        </TouchableWithoutFeedback>
         <View style={styles.filterContainer}>
           {/* Drag Handle */}
           <View style={styles.dragHandle} />
@@ -154,6 +158,23 @@ const dates = generateDates();
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Filter</Text>
+            <TouchableOpacity 
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }} 
+              onPress={onClose}
+            >
+              <Text style={{
+                fontSize: 18,
+                color: colors.white,
+                fontWeight: 'bold',
+              }}>✕</Text>
+            </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

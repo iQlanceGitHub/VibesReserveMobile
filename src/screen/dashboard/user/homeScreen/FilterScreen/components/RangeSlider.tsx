@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, PanResponder, Dimensions } from 'react-native';
 import styles from './styles';
 import { colors } from '../../../../../../utilis/colors';
@@ -27,55 +27,81 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   const [minValue, setMinValue] = useState(value[0]);
   const [maxValue, setMaxValue] = useState(value[1]);
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
-  const sliderWidth = Dimensions.get('window').width - horizontalScale(60);
-  const thumbSize = horizontalScale(20);
+  const sliderWidth = Dimensions.get('window').width - horizontalScale(80);
+  const thumbSize = horizontalScale(24);
+  const trackRef = useRef<View>(null);
+  const [trackLayout, setTrackLayout] = useState({ x: 0, width: 0 });
+
+  // Update local state when prop value changes
+  useEffect(() => {
+    setMinValue(value[0]);
+    setMaxValue(value[1]);
+  }, [value]);
 
   const getPositionFromValue = (val: number) => {
-    return ((val - min) / (max - min)) * (sliderWidth - thumbSize);
+    const percentage = (val - min) / (max - min);
+    return percentage * (trackLayout.width - thumbSize);
   };
 
   const getValueFromPosition = (pos: number) => {
-    const percentage = pos / (sliderWidth - thumbSize);
+    const percentage = pos / (trackLayout.width - thumbSize);
     const rawValue = min + percentage * (max - min);
-    return Math.round(rawValue / step) * step;
+    return Math.max(min, Math.min(max, Math.round(rawValue / step) * step));
+  };
+
+  const handleTrackLayout = (event: any) => {
+    const { x, width } = event.nativeEvent.layout;
+    setTrackLayout({ x, width });
+  };
+
+  const handleTouchStart = (evt: any, thumbType: 'min' | 'max') => {
+    setIsDragging(thumbType);
+  };
+
+  const handleTouchMove = (evt: any, gestureState: any) => {
+    if (!isDragging || trackLayout.width === 0) return;
+
+    // Get the absolute X position of the touch
+    const absoluteX = gestureState.moveX;
+    // Calculate position relative to the track
+    const trackX = trackLayout.x;
+    const relativeX = absoluteX - trackX - (thumbSize / 2);
+    
+    // Ensure we stay within track bounds
+    const boundedX = Math.max(0, Math.min(trackLayout.width - thumbSize, relativeX));
+    const newValue = getValueFromPosition(boundedX);
+
+    if (isDragging === 'min') {
+      const clampedValue = Math.max(min, Math.min(maxValue - step, newValue));
+      setMinValue(clampedValue);
+      onValueChange([clampedValue, maxValue]);
+    } else if (isDragging === 'max') {
+      const clampedValue = Math.max(minValue + step, Math.min(max, newValue));
+      setMaxValue(clampedValue);
+      onValueChange([minValue, clampedValue]);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(null);
   };
 
   const minPanResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => {
-      setIsDragging('min');
-    },
-    onPanResponderMove: (evt) => {
-      if (isDragging === 'min') {
-        const newPosition = Math.max(0, Math.min(getPositionFromValue(maxValue) - thumbSize, evt.nativeEvent.locationX));
-        const newValue = Math.max(min, Math.min(maxValue - step, getValueFromPosition(newPosition)));
-        setMinValue(newValue);
-        onValueChange([newValue, maxValue]);
-      }
-    },
-    onPanResponderRelease: () => {
-      setIsDragging(null);
-    },
+    onPanResponderGrant: (evt, gestureState) => handleTouchStart(evt, 'min'),
+    onPanResponderMove: (evt, gestureState) => handleTouchMove(evt, gestureState),
+    onPanResponderRelease: handleTouchEnd,
+    onPanResponderTerminate: handleTouchEnd,
   });
 
   const maxPanResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => {
-      setIsDragging('max');
-    },
-    onPanResponderMove: (evt) => {
-      if (isDragging === 'max') {
-        const newPosition = Math.max(getPositionFromValue(minValue) + thumbSize, Math.min(sliderWidth - thumbSize, evt.nativeEvent.locationX));
-        const newValue = Math.max(minValue + step, Math.min(max, getValueFromPosition(newPosition)));
-        setMaxValue(newValue);
-        onValueChange([minValue, newValue]);
-      }
-    },
-    onPanResponderRelease: () => {
-      setIsDragging(null);
-    },
+    onPanResponderGrant: (evt, gestureState) => handleTouchStart(evt, 'max'),
+    onPanResponderMove: (evt, gestureState) => handleTouchMove(evt, gestureState),
+    onPanResponderRelease: handleTouchEnd,
+    onPanResponderTerminate: handleTouchEnd,
   });
 
   const minPosition = getPositionFromValue(minValue);
@@ -83,7 +109,11 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
 
   return (
     <View style={styles.rangeSliderContainer}>
-      <View style={styles.rangeSliderTrack}>
+      <View 
+        ref={trackRef}
+        style={styles.rangeSliderTrack}
+        onLayout={handleTrackLayout}
+      >
         <View style={styles.rangeSliderRail} />
         <View 
           style={[
@@ -95,11 +125,25 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           ]} 
         />
         <View
-          style={[styles.rangeSliderThumb, { left: minPosition }]}
+          style={[
+            styles.rangeSliderThumb, 
+            { 
+              left: minPosition,
+              zIndex: isDragging === 'min' ? 10 : 1,
+              transform: [{ scale: isDragging === 'min' ? 1.2 : 1 }]
+            }
+          ]}
           {...minPanResponder.panHandlers}
         />
         <View
-          style={[styles.rangeSliderThumb, { left: maxPosition }]}
+          style={[
+            styles.rangeSliderThumb, 
+            { 
+              left: maxPosition,
+              zIndex: isDragging === 'max' ? 10 : 1,
+              transform: [{ scale: isDragging === 'max' ? 1.2 : 1 }]
+            }
+          ]}
           {...maxPanResponder.panHandlers}
         />
       </View>

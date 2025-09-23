@@ -50,7 +50,7 @@ export const colors = {
   addButtonBackground: "rgba(141, 52, 255, 0.15)",
   overlayBackground: "rgba(0, 0, 0, 0.5)",
   transparent: "transparent",
-  rejectionRowBackground: "rgba(223, 28, 65, 1)",
+  rejectionRowBackground: "rgba(223, 28, 65, 0.15)",
   yellow: "#FFD700",
 
   backgroundColor: "rgba(18, 1, 40, 1)",
