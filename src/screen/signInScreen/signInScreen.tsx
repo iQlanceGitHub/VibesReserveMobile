@@ -94,7 +94,8 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     // At least one lowercase letter (a-z)
     // At least one number (0-9)
     // At least one special character (e.g., ! @ # $ % ^ & *)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{7,16}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{7,16}$/;
     return passwordRegex.test(password);
   };
 
@@ -196,16 +197,16 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
   const getNavigation = async () => {
     try {
-      navigation.navigate('HomeTabs')
+      navigation.navigate("HomeTabs");
     } catch (e) {
       console.error("Failed to fetch the user token.", e);
     }
-  }; 
+  };
 
   useEffect(() => {
     getUserToken().then((token) => {
-      console.log('token:===>',token)
-      if(token){
+      console.log("token:===>", token);
+      if (token) {
         getNavigation();
       }
     });
@@ -249,18 +250,23 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       );
       // if (signinErr?.message == 'Your account is inactive. Please contact support.') {
       //   console.log("=>>", uid)
-      
- 
+
       // }
-      if (signinErr?.message == 'Your email has not been verified. An OTP has been sent to your registered email address.') {
-        console.log("=>>", uid)
-        navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: uid })
+      if (
+        signinErr?.message ==
+        "Your email has not been verified. An OTP has been sent to your registered email address."
+      ) {
+        console.log("=>>", uid);
+        navigation.navigate("OTPVerificationScreen", {
+          email: formData?.email,
+          type: "signup",
+          id: uid,
+        });
         setFormData({
-          email: '',
-          password: '',
+          email: "",
+          password: "",
         });
       } else {
- 
       }
       setUid(signinErr?.user?._id);
       setErrors({
@@ -317,7 +323,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       }
       console.log("socialData+>>>>", socialData);
     } catch (error) {
-      console.log('Google Sign-In error:', error);
+      console.log("Google Sign-In error:", error);
     }
   };
 
@@ -331,19 +337,19 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       const {
         identityToken,
         email,
-        fullName: {givenName, familyName},
+        fullName: { givenName, familyName },
       } = appleAuthRequestResponse;
       const userId = appleAuthRequestResponse.user;
 
       // Handle the obtained data as per your requirements
-    
+
       let obj = {
-        "email": email == null ? '' : email,
-        "socialId": userId,
-        "loginType": 'apple',
-        "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-        "currentRole": "user",
-      }
+        email: email == null ? "" : email,
+        socialId: userId,
+        loginType: "apple",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        currentRole: "user",
+      };
 
       if (userId) {
         dispatch(onSocialLogin(obj));
@@ -358,12 +364,11 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         console.error("No identity token received from Apple");
         throw new Error("Apple Sign-In failed - no identity token returned");
       }
-
     } catch (error: any) {
       if (error.code === appleAuth.Error.CANCELED) {
-        console.log('Apple Login: User cancelled the login flow.');
+        console.log("Apple Login: User cancelled the login flow.");
       } else {
-        console.log('Apple Login: Error occurred:', error.message);
+        console.log("Apple Login: Error occurred:", error.message);
       }
     }
   };
@@ -377,7 +382,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   };
 
   const handleSkip = () => {
-    navigation?.navigate("LeaveReviewScreen");
+    navigation?.navigate("PaymentSuccess");
   };
 
   return (
