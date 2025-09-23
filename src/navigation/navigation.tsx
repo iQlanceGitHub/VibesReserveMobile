@@ -33,6 +33,7 @@ import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/cl
 import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearbyEventsSeeAll/nearbyEventsSeeAllScreen";
 import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
 import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
+import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfileScreen";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import { colors } from "../utilis/colors";
@@ -92,6 +93,7 @@ export type RootStackParamList = {
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
   UpcomingScreen: undefined;
   AddClubEventDetailScreen: undefined;
+  HostProfileScreen: undefined;
 };
 
 function MyTabs() {
@@ -146,7 +148,7 @@ function HostTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={UpcomingScreen}
+        component={HostProfileScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -272,6 +274,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="AddClubEventDetailScreen"
             component={AddClubEventDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HostProfileScreen"
+            component={HostProfileScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
