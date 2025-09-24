@@ -309,6 +309,9 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="HelpSupport"
             component={HelpSupport}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="BookingDetailScreen"
             component={BookingDetailScreen}
             options={{ headerShown: false }}
