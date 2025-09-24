@@ -27,7 +27,7 @@ const PromotionalCode: React.FC<PromotionalCodeProps> = ({ navigation }) => {
     {
       id: "1",
       code: "PARTY15",
-      description: "15% OFF on all club event tickets",
+      description: "15% OFF on all club event tickets ",
       discount: "15%",
       status: "active",
       usageCount: 25,
