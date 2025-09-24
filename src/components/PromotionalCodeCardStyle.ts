@@ -31,11 +31,17 @@ export const styles = StyleSheet.create({
     borderColor: colors.purpleBorder,
   },
   cardContent: {
-    flexDirection: "column",
+    flexDirection: "row",
     paddingHorizontal: horizontalScale(14),
     paddingTop: verticalScale(19),
     paddingBottom: verticalScale(19),
     height: verticalScale(90),
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  textContainer: {
+    flex: 1,
+    marginRight: horizontalScale(10),
   },
   codeText: {
     fontSize: fontScale(16),
@@ -54,9 +60,10 @@ export const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
+    justifyContent: "flex-end",
   },
   actionButton: {
     padding: horizontalScale(4),
+    marginLeft: horizontalScale(8),
   },
 });

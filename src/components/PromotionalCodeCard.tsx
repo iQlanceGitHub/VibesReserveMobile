@@ -35,7 +35,7 @@ const PromotionalCodeCard: React.FC<PromotionalCodeCardProps> = ({
         style={styles.cardGradient}
       >
         <View style={styles.cardContent}>
-          <View>
+          <View style={styles.textContainer}>
             <Text style={styles.codeText}>{promotionalCode.code}</Text>
             <Text style={styles.descriptionText}>
               {promotionalCode.description}
