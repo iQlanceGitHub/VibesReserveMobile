@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { colors } from "../utilis/colors";
 import {
   fontScale,
@@ -19,8 +19,10 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.cardBackground,
     borderTopLeftRadius: horizontalScale(30),
     borderTopRightRadius: horizontalScale(30),
-    borderBottomLeftRadius: horizontalScale(60),
-    borderBottomRightRadius: horizontalScale(60),
+    borderBottomLeftRadius:
+      Platform.OS === "android" ? horizontalScale(0) : horizontalScale(60),
+    borderBottomRightRadius:
+      Platform.OS === "android" ? horizontalScale(0) : horizontalScale(60),
     borderWidth: verticalScale(1),
     borderColor: colors.BtnBackground,
     paddingHorizontal: horizontalScale(24),

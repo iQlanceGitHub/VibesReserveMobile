@@ -59,17 +59,6 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
         uri: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop",
       },
     },
-    {
-      id: "4",
-      name: "Midnight Madness",
-      category: "Club",
-      description: "Turn your night into a wild dance party.",
-      date: "Aug 29",
-      time: "10:00 PM",
-      image: {
-        uri: "https://images.unsplash.com/photo-1571266028243-e68c76670109?w=400&h=300&fit=crop",
-      },
-    },
   ]);
 
   const handleBackPress = () => {
