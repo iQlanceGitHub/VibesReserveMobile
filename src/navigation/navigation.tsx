@@ -37,6 +37,7 @@ import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfil
 import ManageAvailability from "../screen/dashboard/host/profileScreen/manageAvailability";
 import PromotionalCode from "../screen/dashboard/host/profileScreen/promotionalCode";
 import AddPromotionalCode from "../screen/dashboard/host/profileScreen/addPromotionalCode";
+import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import { colors } from "../utilis/colors";
@@ -100,6 +101,7 @@ export type RootStackParamList = {
   ManageAvailability: undefined;
   PromotionalCode: undefined;
   AddPromotionalCode: undefined;
+  HelpSupport: undefined;
 };
 
 function MyTabs() {
@@ -300,6 +302,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="AddPromotionalCode"
             component={AddPromotionalCode}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HelpSupport"
+            component={HelpSupport}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

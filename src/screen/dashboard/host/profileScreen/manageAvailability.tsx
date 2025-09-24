@@ -30,7 +30,7 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
       name: "Neon Nights",
       category: "DJ Nights",
       description:
-        "Experience electrifying beats and vibrant lights at Neon Nights.",
+        "Experience electrifying beats and vibrant lights at Neon Nights enjoying the Montreal sunset.",
       date: "Aug 29",
       time: "10:00 PM",
       image: {
@@ -109,7 +109,13 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
 
                 <Text style={styles.eventName}>{event.name}</Text>
 
-                <Text style={styles.eventDescription}>{event.description}</Text>
+                <Text
+                  style={styles.eventDescription}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  {event.description}
+                </Text>
               </View>
 
               <View style={styles.timeContainer}>

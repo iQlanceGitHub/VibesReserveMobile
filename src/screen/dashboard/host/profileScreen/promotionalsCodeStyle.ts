@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
   },
   addButton: {
     width: horizontalScale(44),
-    height: verticalScale(44),
-    borderRadius: horizontalScale(22),
+    height: verticalScale(45),
+    borderRadius: horizontalScale(90),
     backgroundColor: colors.addButtonBackground,
     flexDirection: "row",
     alignItems: "center",
