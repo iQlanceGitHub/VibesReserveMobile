@@ -16,7 +16,6 @@ export default StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingTop: verticalScale(60),
-    paddingBottom: verticalScale(20),
     paddingHorizontal: horizontalScale(20),
   },
   backButton: {
@@ -50,14 +49,14 @@ export default StyleSheet.create({
     marginVertical: verticalScale(20),
   },
   reviewsSection: {
-    marginBottom: verticalScale(20),
+    marginBottom: verticalScale(15),
   },
   reviewsTitle: {
     fontSize: fontScale(20),
     fontWeight: "700",
     fontFamily: fonts.Bold,
     color: colors.white,
-    marginBottom: verticalScale(20),
+    marginBottom: verticalScale(15),
   },
   reviewsContainer: {
     gap: verticalScale(16),
@@ -129,5 +128,23 @@ export default StyleSheet.create({
     color: colors.white,
     fontWeight: "600",
     textAlign: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: horizontalScale(24),
+  },
+  emptyText: {
+    fontSize: fontScale(18),
+    fontWeight: "bold",
+    color: colors.whiteLight,
+    marginBottom: verticalScale(8),
+  },
+  emptySubText: {
+    fontSize: fontScale(14),
+    color: colors.whiteLight,
+    textAlign: "center",
+    marginBottom: verticalScale(16),
   },
 });
