@@ -92,31 +92,7 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
     }
   }, [updateLocation, updateLocationErr]);
 
-  // Auto-request permission on component mount
-  useEffect(() => {
-    const autoRequestPermission = async () => {
-      try {
-        const hasPermission = await LocationPermissionManager.checkLocationPermission();
-        
-        if (!hasPermission.granted) {
-          // Automatically request permission when screen loads
-          const permissionResult = await LocationPermissionManager.requestLocationPermission();
-          
-          if (permissionResult.granted) {
-            // Permission granted, automatically get location
-            handleGetCurrentLocation();
-          }
-        } else {
-          // Permission already granted, automatically get location
-          handleGetCurrentLocation();
-        }
-      } catch (error) {
-        console.log('Error in auto-request permission:', error);
-      }
-    };
-
-    autoRequestPermission();
-  }, [uid]);
+  // Removed auto-request permission - now only triggered by user button tap
 
   const getAddressFromCoordinates = async (latitude: number, longitude: number) => {
     try {

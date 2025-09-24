@@ -532,12 +532,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
         >
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollViewContent}
-          >
+          
             <View style={styles.header}>
               <View style={styles.statusBar}>
                 <BackButton
@@ -559,7 +554,12 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                 Sign in to unlock your ultimate night out.
               </Text>
             </View>
-
+            <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.scrollViewContent}
+          >
             <View style={styles.socialSection}>
               <TouchableOpacity
                 style={styles.socialButton}

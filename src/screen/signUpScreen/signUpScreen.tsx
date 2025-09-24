@@ -894,6 +894,12 @@ const storeUser = async (user: any) => {
               <Text style={styles.subtitle}>Join us and start exploring</Text>
             </View>
 
+            <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.socialSection}>
               <TouchableOpacity
                 style={styles.socialButton}
@@ -930,12 +936,7 @@ const storeUser = async (user: any) => {
               </View>
             </View>
 
-            <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+            
 
             <View style={styles.roleSection}>
               <Text style={styles.sectionTitle}>Choose Role</Text>

@@ -257,7 +257,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <StatusBar 
         barStyle="light-content" 
         backgroundColor="transparent" 
@@ -272,7 +272,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         colors={[colors.hostGradientStart, colors.hostGradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.gradientContainer}
+        style={[styles.gradientContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
       >
         <View style={styles.safeArea}>
           
@@ -284,7 +284,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
             <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+              contentContainerStyle={styles.scrollContent}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
