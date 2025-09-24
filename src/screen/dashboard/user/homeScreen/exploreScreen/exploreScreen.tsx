@@ -35,6 +35,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CurrentLocationIcon from '../../../../../assets/svg/currentLocationIcon';
 import FilterScreen from '../FilterScreen/FilterScreen';
+import { handleRestrictedAction } from '../../../../../utilis/userPermissionUtils';
+import CustomAlert from '../../../../../components/CustomAlert';
 
 // Sample data for floating avatars (people/events)
 const nearbyPeople = [
@@ -253,8 +255,8 @@ const ExploreScreenContent = () => {
   const [currentLocation, setCurrentLocation] = useState({
     latitude: 23.012649201096547, // Default coordinates from home screen
     longitude: 72.51123340677258,
-    latitudeDelta: 0.02,
-    longitudeDelta: 0.02,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
   });
   const [mapReady, setMapReady] = useState(false);
   const [nearbyEvents, setNearbyEvents] = useState<any[]>([]);
@@ -263,8 +265,8 @@ const ExploreScreenContent = () => {
   const [mapRegion, setMapRegion] = useState({
     latitude: 23.012649201096547,
     longitude: 72.51123340677258,
-    latitudeDelta: 0.02,
-    longitudeDelta: 0.02,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
   });
 
   // Add timeout fallback for map loading
@@ -274,10 +276,28 @@ const ExploreScreenContent = () => {
         console.log('Map loading timeout - forcing map ready');
         setMapReady(true);
       }
-    }, 10000); // 10 second timeout
+    }, 5000); // 5 second timeout
 
     return () => clearTimeout(timer);
   }, [mapReady]);
+
+  // Force map ready after 3 seconds regardless
+  useEffect(() => {
+    const forceReady = setTimeout(() => {
+      console.log('Forcing map ready after 3 seconds');
+      setMapReady(true);
+    }, 3000);
+
+    return () => clearTimeout(forceReady);
+  }, []);
+
+  // Force map to center on correct region when map is ready
+  useEffect(() => {
+    if (mapReady && mapRef.current) {
+      console.log('Forcing map to center on correct region:', mapRegion);
+      mapRef.current.animateToRegion(mapRegion, 1000);
+    }
+  }, [mapReady, mapRegion]);
 
   const dispatch = useDispatch();
   const home = useSelector((state: any) => state.auth.home);
@@ -285,6 +305,15 @@ const ExploreScreenContent = () => {
   const togglefavorite = useSelector((state: any) => state.auth.togglefavorite);
   const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
 
   const handleFilterPress = () => {
     setIsFilterVisible(true);
@@ -358,15 +387,15 @@ const ExploreScreenContent = () => {
     }
   };
 
-  // Fetch nearby data
-  const fetchNearbyData = async () => {
-    const userId = await getUserID();
-    dispatch(onHome({
-      lat: currentLocation.longitude.toString(),
-      long: currentLocation.latitude.toString(),
-      userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
-    }));
-  };
+   // Fetch nearby data
+   const fetchNearbyData = async () => {
+     const userId = await getUserID();
+     dispatch(onHome({
+       lat: currentLocation.latitude.toString(),
+       long: currentLocation.longitude.toString(),
+       userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+     }));
+   };
 
   // Handle API response
   useEffect(() => {
@@ -378,6 +407,8 @@ const ExploreScreenContent = () => {
     ) {
       console.log("home data in explore screen:", home);
       if (home?.data?.nearby) {
+        console.log("Setting nearby events from home API:", home.data.nearby);
+        console.log("First event coordinates:", home.data.nearby[0]?.coordinates);
         setNearbyEvents(home.data.nearby);
         // Calculate map bounds to show all nearby events
         setTimeout(() => {
@@ -385,6 +416,7 @@ const ExploreScreenContent = () => {
         }, 500); // Small delay to ensure map is ready
       }
       if (home?.data?.featured) {
+        console.log("Setting featured events from home API:", home.data.featured);
         setFeaturedEvents(home.data.featured);
       }
       dispatch(homeData(''));
@@ -455,9 +487,31 @@ const ExploreScreenContent = () => {
     }
   };
 
-  const handleFavoritePress = (eventId: string) => {
+  const handleFavoritePress = async (eventId: string) => {
     console.log('Toggling favorite for event ID:', eventId);
-    dispatch(onTogglefavorite({ eventId }));
+    
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
+    
+    if (hasPermission) {
+      dispatch(onTogglefavorite({ eventId }));
+    } else {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+    }
   };
 
   const onSearchClose = () => {
@@ -469,23 +523,30 @@ const ExploreScreenContent = () => {
   const handleSearch = async (searchText: string) => {
     setSearchVal(searchText);
     
-    if (searchText.trim().length > 0) {
-      const userId = await getUserID();
-      dispatch(onHome({
-        lat: currentLocation.longitude.toString(),
-        long: currentLocation.latitude.toString(),
-        userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
-        search_keyword: searchText.trim(),
-      }));
-    } else {
-      // If search is empty, fetch original data
-      fetchNearbyData();
-    }
+     if (searchText.trim().length > 0) {
+       const userId = await getUserID();
+       dispatch(onHome({
+         lat: currentLocation.latitude.toString(),
+         long: currentLocation.longitude.toString(),
+         userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+         search_keyword: searchText.trim(),
+       }));
+     } else {
+       // If search is empty, fetch original data
+       fetchNearbyData();
+     }
   };
 
-  const handleRefresh = () => {
-    fetchNearbyData();
-  };
+   const handleRefresh = () => {
+     fetchNearbyData();
+   };
+
+   const centerMapOnIndia = () => {
+     console.log('Manually centering map on India');
+     if (mapRef.current) {
+       mapRef.current.animateToRegion(mapRegion, 1000);
+     }
+   };
 
   // Calculate map bounds to show all markers
   const calculateMapBounds = (events: any[]) => {
@@ -526,41 +587,45 @@ const ExploreScreenContent = () => {
     }
   };
 
-  // Render nearby event markers
-  const renderEventMarker = (event: any) => {
-    if (!event.coordinates || !event.coordinates.coordinates) {
-      return null;
-    }
+   // Render nearby event markers
+   const renderEventMarker = (event: any) => {
+     if (!event.coordinates || !event.coordinates.coordinates) {
+       console.log('Event missing coordinates:', event.name);
+       return null;
+     }
 
-    const [longitude, latitude] = event.coordinates.coordinates;
-    
-    return (
-      <Marker
-        key={event._id || event.id}
-        coordinate={{
-          latitude: latitude,
-          longitude: longitude,
-        }}
-        onPress={() => {
-          console.log('Event pressed:', event.name);
-          // Navigate to event details
-          (navigation as any).navigate("ClubDetailScreen", { clubId: event._id || event.id });
-        }}
-      >
-        <View style={styles.eventMarker}>
-          <Image 
-            source={{ 
-              uri: event.photos?.[0] || 'https://via.placeholder.com/60x60/2D014D/8D34FF?text=Event' 
-            }} 
-            style={styles.eventMarkerImage} 
-          />
-          <Text style={styles.eventMarkerDistance}>
-            {event.distance || '0.0 km'}
-          </Text>
-        </View>
-      </Marker>
-    );
-  };
+     const [longitude, latitude] = event.coordinates.coordinates;
+     console.log(`Rendering marker for ${event.name}: lat=${latitude}, lng=${longitude}`);
+     
+     return (
+       <Marker
+         key={event._id || event.id}
+         coordinate={{
+          //  latitude: latitude,
+          //  longitude: longitude,
+          latitude: longitude,
+          longitude: latitude,
+         }}
+         onPress={() => {
+           console.log('Event pressed:', event.name);
+           // Navigate to event details
+           (navigation as any).navigate("ClubDetailScreen", { clubId: event._id || event.id });
+         }}
+       >
+         <View style={styles.eventMarker}>
+           <Image 
+             source={{ 
+               uri: event.photos?.[0] || 'https://via.placeholder.com/60x60/2D014D/8D34FF?text=Event' 
+             }} 
+             style={styles.eventMarkerImage} 
+           />
+           <Text style={styles.eventMarkerDistance}>
+             {event.distance || '0.0 km'}
+           </Text>
+         </View>
+       </Marker>
+     );
+   };
 
   const renderAvatarMarker = (person: any) => (
     <Marker
@@ -580,64 +645,183 @@ const ExploreScreenContent = () => {
 
   return (
     <View style={styles.mainContainer}>
-      {/* Full Screen Map */}
-      {!mapReady && (
-        <View style={styles.mapLoadingContainer}>
-          <Text style={styles.mapLoadingText}>Loading Map...</Text>
-        </View>
-      )}
-      <MapView
-        ref={mapRef}
-        style={styles.fullScreenMap}
-        provider={undefined}
-        initialRegion={mapRegion}
-        customMapStyle={mapStyle}
-        onMapReady={() => {
-          console.log('Map is ready');
-          setMapReady(true);
-        }}
-        onMapLoaded={() => {
-          console.log('Map loaded');
-          setMapReady(true);
-        }}
-        onError={(error) => {
-          console.log('Map error:', error);
-          // Set map as ready even if there's an error to hide loading
-          setMapReady(true);
-        }}
-        onPress={() => {
-          console.log('Map pressed');
-        }}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-        showsCompass={false}
-        showsScale={false}
-        mapType="standard"
-        loadingEnabled={true}
-        loadingIndicatorColor={colors.violate}
-        loadingBackgroundColor={colors.backgroundColor}
-        showsBuildings={true}
-        showsTraffic={false}
-        showsIndoors={false}
-        userInterfaceStyle="dark"
-        tintColor={colors.violate}
-      >
-        {/* User Location Marker */}
-        <Marker 
-          coordinate={currentLocation} 
-          title="Your Location"
-          description="You are here"
-        >
-          <View style={styles.userLocationMarker}>
-            <CurrentLocationIcon size={32} color={colors.violate} />
-          </View>
-        </Marker>
-        
-        {/* Nearby Event Markers */}
-        {nearbyEvents.length > 0 ? nearbyEvents.map(renderEventMarker) : null}
-      </MapView>
+       {/* Full Screen Map */}
+       {!mapReady && (
+         <View style={styles.mapLoadingContainer}>
+           <Text style={styles.mapLoadingText}>Loading Map...</Text>
+         </View>
+       )}
+       
+       {/* Fallback view if map fails to load */}
+       {mapReady && (
+         <View style={{
+           position: 'absolute',
+           top: 0,
+           left: 0,
+           right: 0,
+           bottom: 0,
+           backgroundColor: '#e0e0e0',
+           justifyContent: 'center',
+           alignItems: 'center',
+           zIndex: -1
+         }}>
+           <Text style={{ fontSize: 16, color: '#666' }}>Map Loading...</Text>
+         </View>
+       )}
+       
+       <MapView
+         ref={mapRef}
+         style={[styles.fullScreenMap, { backgroundColor: '#f0f0f0' }]}
+         provider={undefined}
+         initialRegion={mapRegion}
+         onMapReady={() => {
+           console.log('Map is ready - centering on India');
+           setMapReady(true);
+           // Force center on correct region
+           setTimeout(() => {
+             if (mapRef.current) {
+               mapRef.current.animateToRegion(mapRegion, 1000);
+             }
+           }, 500);
+         }}
+         onMapLoaded={() => {
+           console.log('Map loaded - ensuring correct region');
+           setMapReady(true);
+         }}
+         onPress={() => {
+           console.log('Map pressed');
+         }}
+         showsUserLocation={true}
+         showsMyLocationButton={false}
+         showsCompass={false}
+         showsScale={false}
+         mapType="standard"
+         loadingEnabled={true}
+         loadingIndicatorColor={colors.violate}
+         loadingBackgroundColor="#f0f0f0"
+         showsBuildings={true}
+         showsTraffic={false}
+         showsIndoors={false}
+         userInterfaceStyle="light"
+         tintColor={colors.violate}
+       >
+         {/* User Location Marker */}
+         <Marker 
+           coordinate={currentLocation} 
+           title="Your Location"
+           description="You are here"
+         >
+           <View style={styles.userLocationMarker}>
+             <CurrentLocationIcon size={32} color={colors.violate} />
+           </View>
+         </Marker>
+         
+         {/* Test Marker at Center */}
+         <Marker
+           coordinate={{
+             latitude: 23.012649201096547,
+             longitude: 72.51123340677258,
+           }}
+           title="Center Test Marker"
+           description="This should be at the center of the map"
+         >
 
-      {/* Overlay Content */}
+<Marker
+ 
+ coordinate={{
+  latitude: 23.012649201096547,
+             longitude: 72.51123340677258,
+ }}
+ title="Center Test Marker"
+ // description={'This is a description of the marker'}
+>
+ {/* <FastImage
+   style={styles.markerImg}
+   source={{uri: it?.activityImage}}
+   resizeMode={'stretch'}
+ /> */}
+</Marker>
+
+           <View style={{
+             width: 20,
+             height: 20,
+             backgroundColor: 'red',
+             borderRadius: 10,
+             borderWidth: 2,
+             borderColor: 'white'
+           }} />
+         </Marker>
+         
+         {/* Nearby Event Markers */}
+         {nearbyEvents.length > 0 ? nearbyEvents.map(renderEventMarker) : null}
+       </MapView>
+
+       {/* Debug Info - Remove in production */}
+       {/* {__DEV__ && (
+         <View style={{
+           position: 'absolute',
+           top: 100,
+           left: 10,
+           right: 10,
+           backgroundColor: 'rgba(0,0,0,0.8)',
+           padding: 10,
+           borderRadius: 5,
+           zIndex: 1000
+         }}>
+           <Text style={{color: 'white', fontSize: 12}}>
+             Debug: Events: {nearbyEvents.length}, Map Ready: {mapReady ? 'Yes' : 'No'}
+           </Text>
+           <Text style={{color: 'white', fontSize: 12}}>
+             Region: {mapRegion.latitude.toFixed(4)}, {mapRegion.longitude.toFixed(4)}
+           </Text>
+           <Text style={{color: 'white', fontSize: 12}}>
+             Current: {currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)}
+           </Text>
+           {nearbyEvents.length > 0 && (
+             <Text style={{color: 'white', fontSize: 12}}>
+               First Event: {nearbyEvents[0]?.name} - {nearbyEvents[0]?.coordinates?.coordinates?.join(', ')}
+             </Text>
+           )}
+           <TouchableOpacity 
+             onPress={centerMapOnIndia}
+             style={{
+               backgroundColor: colors.violate,
+               padding: 8,
+               borderRadius: 4,
+               marginTop: 5
+             }}
+           >
+             <Text style={{color: 'white', fontSize: 12, textAlign: 'center'}}>
+               Center Map on India
+             </Text>
+           </TouchableOpacity>
+           <TouchableOpacity 
+             onPress={() => {
+               console.log('Testing map ref:', mapRef.current);
+               if (mapRef.current) {
+                 mapRef.current.animateToRegion({
+                   latitude: 23.012649201096547,
+                   longitude: 72.51123340677258,
+                   latitudeDelta: 0.01,
+                   longitudeDelta: 0.01,
+                 }, 1000);
+               }
+             }}
+             style={{
+               backgroundColor: 'green',
+               padding: 8,
+               borderRadius: 4,
+               marginTop: 5
+             }}
+           >
+             <Text style={{color: 'white', fontSize: 12, textAlign: 'center'}}>
+               Test Map Center
+             </Text>
+           </TouchableOpacity>
+         </View>
+       )} */}
+
+       {/* Overlay Content */}
       <View style={styles.overlayContainer}>
         {/* Top Section - Location & Back Button */}
         <View style={styles.topSection}>
@@ -713,6 +897,17 @@ const ExploreScreenContent = () => {
         onClose={handleFilterClose}
         onApply={handleFilterApply}
       />
+      
+      <CustomAlert
+        visible={showCustomAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        primaryButtonText={alertConfig.primaryButtonText}
+        secondaryButtonText={alertConfig.secondaryButtonText}
+        onPrimaryPress={alertConfig.onPrimaryPress}
+        onSecondaryPress={alertConfig.onSecondaryPress}
+        onClose={() => setShowCustomAlert(false)}
+      />
     </View>
   );
 };
@@ -726,3 +921,49 @@ const ExploreScreen = () => {
 };
 
 export default ExploreScreen;
+
+// import React, { useRef, useState } from 'react';
+// import { View, Text, Alert, Platform } from 'react-native';
+// import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+
+// const ExploreScreen = () => {
+//   const mapRef = useRef<MapView>(null);
+//   const [mapReady, setMapReady] = useState(false);
+
+//   // Very simple region
+//   const initialRegion = {
+//     latitude: 23.0126,
+//     longitude: 72.5112,
+//     latitudeDelta: 0.01,
+//     longitudeDelta: 0.01,
+//   };
+
+//   return (
+//     <View style={{ flex: 1 }}>
+//       {/* Map with forced Google provider */}
+//       <MapView
+//         ref={mapRef}
+//         style={{ flex: 1 }}
+//         provider={PROVIDER_GOOGLE} // Force Google Maps
+//         initialRegion={initialRegion}
+//         onMapReady={() => {
+//           console.log('✅ Map is ready!');
+//           setMapReady(true);
+//           Alert.alert('Map Ready', 'Map should show markers now');
+//         }}
+//       >
+//         {/* Simple default marker (no custom view) */}
+//         <Marker
+//           coordinate={{
+//             latitude: 23.0126,
+//             longitude: 72.5112,
+//           }}
+//           title="Default Marker"
+//           description="This uses default Google Maps marker"
+//         />
+//       </MapView>
+//     </View>
+//   );
+// };
+
+// export default ExploreScreen;

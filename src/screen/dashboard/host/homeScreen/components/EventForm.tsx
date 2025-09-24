@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { colors } from '../../../../../utilis/colors';
 import { fonts } from '../../../../../utilis/fonts';
 import { horizontalScale, verticalScale, fontScale } from '../../../../../utilis/appConstant';
@@ -7,6 +7,7 @@ import { CustomeTextInput } from '../../../../../components/textinput';
 import CustomDropdown from '../../../../../components/CustomDropdown';
 import ImageSelectionBottomSheet from '../../../../../components/ImageSelectionBottomSheet';
 import PlusIcon from '../../../../../assets/svg/plusIcon';
+import CloseIcon from "../../../../../assets/svg/closeIcon";
 import GalleryIcon from '../../../../../assets/svg/galleryIcon';
 // import TrashIcon from '../../../../../assets/svg/trashIcon';
 
@@ -114,6 +115,51 @@ const EventForm: React.FC<EventFormProps> = ({
       color: colors.textColor,
       textAlign: 'center' as const,
     },
+    // Category Selection Styles
+    categorySection: {
+      marginBottom: verticalScale(12),
+    },
+    categoryLabel: {
+      fontSize: fontScale(14),
+      fontFamily: fonts.Medium,
+      color: colors.white,
+      marginBottom: verticalScale(8),
+    },
+    categoryScrollView: {
+      maxHeight: verticalScale(50),
+    },
+    categoryContainer: {
+      paddingRight: horizontalScale(16),
+    },
+    categoryButton: {
+      backgroundColor: colors.inputBackground,
+      paddingVertical: verticalScale(8),
+      paddingHorizontal: horizontalScale(16),
+      borderRadius: horizontalScale(20),
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      marginRight: horizontalScale(8),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    categoryButtonSelected: {
+      backgroundColor: colors.violate,
+      borderColor: colors.violate,
+      shadowColor: colors.violate,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    categoryButtonText: {
+      fontSize: fontScale(12),
+      fontFamily: fonts.Medium,
+      color: colors.textColor,
+    },
+    categoryButtonTextSelected: {
+      color: colors.white,
+      fontFamily: fonts.SemiBold,
+    },
   };
 
   return (
@@ -124,19 +170,38 @@ const EventForm: React.FC<EventFormProps> = ({
           style={styles.removeButton}
           onPress={() => onRemove(event.id)}
         >
-          <PlusIcon size={20} color={colors.red} />
+          <CloseIcon size={20} color={colors.red} />
         </TouchableOpacity>
       </View>
 
-      <CustomDropdown
-        label="Ticket Type*"
-        placeholder="Select ticket type"
-        options={ticketTypes}
-        selectedValue={ticketTypes.find(type => type.id === event.ticketType)?.name || event.ticketType}
-        onSelect={(value: any) => onUpdate(event.id, 'ticketType', value.id)}
-        error={false}
-        message=""
-      />
+      <View style={styles.categorySection}>
+        <Text style={styles.categoryLabel}>Ticket Type*</Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryScrollView}
+          contentContainerStyle={styles.categoryContainer}
+        >
+          {ticketTypes.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              style={[
+                styles.categoryButton,
+                event.ticketType === category.id && styles.categoryButtonSelected
+              ]}
+              onPress={() => onUpdate(event.id, 'ticketType', category.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.categoryButtonText,
+                event.ticketType === category.id && styles.categoryButtonTextSelected
+              ]}>
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <View style={styles.inputRow}>
         <View style={styles.inputHalf}>

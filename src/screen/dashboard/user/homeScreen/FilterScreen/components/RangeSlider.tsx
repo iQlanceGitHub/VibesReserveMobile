@@ -13,6 +13,7 @@ interface RangeSliderProps {
   step?: number;
   labels?: string[];
   unit?: string;
+  priceValues?: number[];
 }
 
 const RangeSlider: React.FC<RangeSliderProps> = ({ 
@@ -22,7 +23,8 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   max, 
   step = 1,
   labels = [],
-  unit = ''
+  unit = '',
+  priceValues = []
 }) => {
   const [minValue, setMinValue] = useState(value[0]);
   const [maxValue, setMaxValue] = useState(value[1]);
@@ -38,15 +40,65 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
     setMaxValue(value[1]);
   }, [value]);
 
+  // Snap initial values to price values if provided
+  useEffect(() => {
+    if (priceValues.length > 0) {
+      const snappedMin = snapToNearestValue(value[0]);
+      const snappedMax = snapToNearestValue(value[1]);
+      
+      console.log('RangeSlider - Snapping values:', {
+        original: value,
+        snapped: [snappedMin, snappedMax],
+        priceValues: priceValues
+      });
+      
+      // Update local state with snapped values
+      setMinValue(snappedMin);
+      setMaxValue(snappedMax);
+      
+      // Only call onValueChange if the values actually changed
+      if (snappedMin !== value[0] || snappedMax !== value[1]) {
+        onValueChange([snappedMin, snappedMax]);
+      }
+    }
+  }, [priceValues, value[0], value[1]]);
+
   const getPositionFromValue = (val: number) => {
     const percentage = (val - min) / (max - min);
     return percentage * (trackLayout.width - thumbSize);
   };
 
+  const snapToNearestValue = (val: number) => {
+    if (priceValues.length === 0) {
+      return Math.max(min, Math.min(max, Math.round(val / step) * step));
+    }
+    
+    // Find the closest value in priceValues
+    let closest = priceValues[0];
+    let minDiff = Math.abs(val - closest);
+    
+    for (let i = 1; i < priceValues.length; i++) {
+      const diff = Math.abs(val - priceValues[i]);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = priceValues[i];
+      }
+    }
+    
+    return closest;
+  };
+
   const getValueFromPosition = (pos: number) => {
     const percentage = pos / (trackLayout.width - thumbSize);
     const rawValue = min + percentage * (max - min);
-    return Math.max(min, Math.min(max, Math.round(rawValue / step) * step));
+    const steppedValue = Math.max(min, Math.min(max, Math.round(rawValue / step) * step));
+    
+    // If priceValues are provided, snap to the nearest one
+    if (priceValues.length > 0) {
+      return snapToNearestValue(steppedValue);
+    }
+    
+    return steppedValue;
   };
 
   const handleTrackLayout = (event: any) => {

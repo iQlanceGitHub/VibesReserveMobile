@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, ScrollView, Modal } from 'react-native';
 import styles from './styles';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 // import { Ionicons, MaterialIcons } from '@expo/vector-icons'; // or your icon lib
 import AppleIcon from "../../../../assets/svg/appleIcon";
 import CategoryButton from '../../../../components/CategoryButton';
@@ -37,6 +37,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CustomAlertSingleBtn } from '../../../../components/CustomeAlertDialog';
+import { handleRestrictedAction } from '../../../../utilis/userPermissionUtils';
+import CustomAlert from '../../../../components/CustomAlert';
 
 const categories = [
   { id: "all", name: "All" },
@@ -135,6 +137,16 @@ const HomeScreenContent = () => {
   const togglefavorite = useSelector((state: any) => state.auth.togglefavorite);
   const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
   const [msg, setMsg] = useState('');
+  const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
 
   // Use the custom hook for category management
   const { categories: apiCategories, fetchCategories } = useCategory();
@@ -143,11 +155,16 @@ const HomeScreenContent = () => {
   
   // Use the custom hook for home data management
   // Get location data from context
-  const { locationData } = useLocation();
+  const { locationData, error: locationError } = useLocation();
   
   // Use dynamic location or fallback to default
   const defaultLat = locationData?.latitude?.toString() || "23.012649201096547";
   const defaultLong = locationData?.longitude?.toString() || "72.51123340677258";
+
+  const handleNextPress = () => {
+    setShowComingSoonDialog(true);
+  };
+
 
   // Refresh home data when location changes
   useEffect(() => {
@@ -165,8 +182,10 @@ const HomeScreenContent = () => {
         }));
       };
       refreshHomeData();
+    } else if (locationError) {
+      console.log('Location error detected:', locationError);
     }
-  }, [locationData?.latitude, locationData?.longitude]);
+  }, [locationData?.latitude, locationData?.longitude, locationError]);
 
   // Get user ID from AsyncStorage
   // const getUserID = async (): Promise<string | null> => {
@@ -329,7 +348,7 @@ const HomeScreenContent = () => {
     ) {
       console.log("filter response:+>", filter);
       setFilteredData(filter?.data || []);
-      dispatch(filterData(''));
+      // dispatch(filterData(''));
     }
 
     if (filterErr) {
@@ -352,8 +371,8 @@ const HomeScreenContent = () => {
         console.log("togglefavorite response in home:+>", togglefavorite);
         const userId = await getUser();
         dispatch(onHome({
-          lat: defaultLong,
-          long: defaultLat,
+          lat: defaultLat,
+          long: defaultLong,
           userId: userId, // fallback userId
         }));
         dispatch(togglefavoriteData(''));
@@ -409,14 +428,58 @@ const HomeScreenContent = () => {
     (navigation as any).navigate("ClubDetailScreen", { clubId: eventId || '68b6eceba9ae1fc590695248' });
   };
 
-  const handleFavorite = (eventId: string) => {
+  const handleFavorite = async (eventId: string) => {
     console.log('Toggling favorite for event ID:', eventId);
-    dispatch(onTogglefavorite({ eventId }));
+    
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
+    
+    if (hasPermission) {
+      dispatch(onTogglefavorite({ eventId }));
+    } else {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+    }
   };
 
-  const handleFavoritePress = (eventId: string) => {
+  const handleFavoritePress = async (eventId: string) => {
     console.log('Toggling favorite for event ID:', eventId);
-    dispatch(onTogglefavorite({ eventId }));
+    
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
+    
+    if (hasPermission) {
+      dispatch(onTogglefavorite({ eventId }));
+    } else {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+    }
   };
 
   return (
@@ -431,19 +494,12 @@ const HomeScreenContent = () => {
         />
         <TouchableOpacity
           style={styles.mapIcon}
-          onPress={() => navigation.navigate("FilterListScreen" as never)}
+          onPress={() => handleNextPress()}
         >
           <NotificationUnFillIcon />
         </TouchableOpacity>
         </View>
-        {/* <View style={styles.searchBar}>
-          <AppleIcon />
-          <TextInput
-            placeholder="Search clubs, events, Bars..."
-            placeholderTextColor="#B983FF"
-            style={styles.searchInput}
-          />
-        </View> */}
+      
        
         
       </View>
@@ -563,6 +619,48 @@ const HomeScreenContent = () => {
         visible={isFilterVisible}
         onClose={handleFilterClose}
         onApply={handleFilterApply}
+      />
+      
+      <Modal
+        visible={showComingSoonDialog}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowComingSoonDialog(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.comingSoonDialog}>
+            <View style={styles.dialogHeader}>
+              <Text style={styles.dialogTitle}>Coming Soon!</Text>
+            </View>
+
+            <View style={styles.dialogContent}>
+              <Text style={styles.dialogMessage}>
+                We're working on it to bring you an amazing booking experience.
+                This feature will be available soon!
+              </Text>
+            </View>
+
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogButton}
+                onPress={() => setShowComingSoonDialog(false)}
+              >
+                <Text style={styles.dialogButtonText}>Got it</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      
+      <CustomAlert
+        visible={showCustomAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        primaryButtonText={alertConfig.primaryButtonText}
+        secondaryButtonText={alertConfig.secondaryButtonText}
+        onPrimaryPress={alertConfig.onPrimaryPress}
+        onSecondaryPress={alertConfig.onSecondaryPress}
+        onClose={() => setShowCustomAlert(false)}
       />
       
       {/* Bottom navigation is assumed to be handled by your navigator */}

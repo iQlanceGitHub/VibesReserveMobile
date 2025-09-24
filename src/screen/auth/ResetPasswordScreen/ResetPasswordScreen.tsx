@@ -332,7 +332,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
             </View>
 
             <View style={styles.formSection}>
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <CustomePasswordTextInput
                   label="Current Password *"
                   value={formData.currentPassword}
@@ -345,7 +345,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
                   leftImage={<LockIcon />}
                   style={styles.customInput}
                 />
-              </View>
+              </View> */}
               
               <View style={styles.inputContainer}>
                 <CustomePasswordTextInput
@@ -412,7 +412,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
                   </View>
                 )}
 
-              <View style={styles.optionsSection}>
+              {/* <View style={styles.optionsSection}>
                 <View style={styles.rememberMeContainer}>
                   <TouchableOpacity
                     style={styles.checkboxContainer}
@@ -421,7 +421,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
                     <Text style={styles.rememberMeText}>Password must contain</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </View> */}
             </View>
 
             <View style={styles.buttonSection}>

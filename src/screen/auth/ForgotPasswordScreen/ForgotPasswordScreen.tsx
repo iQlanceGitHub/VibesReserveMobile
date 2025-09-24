@@ -76,15 +76,17 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Convert email to lowercase
+    const processedValue = field === "email" ? value.toLowerCase() : value;
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
 
     // Validate field in real-time
     if (field === "email") {
-      const isValid = validateEmail(value);
+      const isValid = validateEmail(processedValue);
       setErrors((prev) => ({ ...prev, email: !isValid }));
       setErrorMessages((prev) => ({
         ...prev,
-        email: value && !isValid ? "Please enter a valid email address" : ""
+        email: processedValue && !isValid ? "Please enter a valid email address" : ""
       }));
     }
 

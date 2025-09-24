@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
   Image,
   Switch,
 } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import EditIcon from "../../assets/svg/editIcon";
 import RightArrow from "../../assets/svg/rightArrow";
 import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
+import { getUserStatus } from "../../utilis/userPermissionUtils";
 import styles from "./styles";
 
 interface ProfileScreenProps {
@@ -25,6 +27,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [exploreNightLife, setExploreNightLife] = useState(true);
   const [notifications, setNotifications] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const [userStatus, setUserStatus] = useState<'logged_in' | 'skipped' | 'guest' | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkUserStatus();
+  }, []);
+
+  // Refresh user status when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      checkUserStatus();
+    }, [])
+  );
+
+  const checkUserStatus = async () => {
+    try {
+      const status = await getUserStatus();
+      setUserStatus(status);
+    } catch (error) {
+      console.error('Error checking user status:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = () => {
+    navigation?.navigate('SignInScreen');
+  };
 
   const handleExploreNightLifeToggle = () => {
     setExploreNightLife(!exploreNightLife);
@@ -146,46 +176,54 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               </View>
             </View>
             <View style={styles.menuSection}>
-              {renderMenuOption(
-                "Explore Night Life",
-                handleExploreNightLifeToggle,
-                <TouchableOpacity
-                  style={[
-                    styles.switchButton,
-                    {
-                      backgroundColor: exploreNightLife
-                        ? colors.BtnBackground
-                        : colors.disableGray,
-                    },
-                  ]}
-                  onPress={handleExploreNightLifeToggle}
-                >
-                  <Text style={styles.switchButtonText}>Switch</Text>
-                </TouchableOpacity>
-              )}
+              {userStatus === 'skipped' ? (
+                // Show Login option for skipped users
+                renderMenuOption("Sign In", handleLogin, <RightArrow />, true)
+              ) : (
+                // Show normal menu for logged in users
+                <>
+                  {renderMenuOption(
+                    "Explore Night Life",
+                    handleExploreNightLifeToggle,
+                    <TouchableOpacity
+                      style={[
+                        styles.switchButton,
+                        {
+                          backgroundColor: exploreNightLife
+                            ? colors.BtnBackground
+                            : colors.disableGray,
+                        },
+                      ]}
+                      onPress={handleExploreNightLifeToggle}
+                    >
+                      <Text style={styles.switchButtonText}>Switch</Text>
+                    </TouchableOpacity>
+                  )}
 
-              {renderMenuOption(
-                "Notifications",
-                handleNotificationsToggle,
-                <Switch
-                  value={notifications}
-                  onValueChange={handleNotificationsToggle}
-                  trackColor={{
-                    false: colors.disableGray,
-                    true: colors.BtnBackground,
-                  }}
-                  thumbColor={colors.white}
-                />
-              )}
+                  {renderMenuOption(
+                    "Notifications",
+                    handleNotificationsToggle,
+                    <Switch
+                      value={notifications}
+                      onValueChange={handleNotificationsToggle}
+                      trackColor={{
+                        false: colors.disableGray,
+                        true: colors.BtnBackground,
+                      }}
+                      thumbColor={colors.white}
+                    />
+                  )}
 
-              {renderMenuOption(
-                "Share with Friends",
-                handleShareWithFriends,
-                <View style={styles.shareIconsContainer}></View>,
-                true
-              )}
+                  {renderMenuOption(
+                    "Share with Friends",
+                    handleShareWithFriends,
+                    <View style={styles.shareIconsContainer}></View>,
+                    true
+                  )}
 
-              {renderMenuOption("Logout", handleLogout, <View />, true)}
+                  {renderMenuOption("Logout", handleLogout, <View />, true)}
+                </>
+              )}
             </View>
           </ScrollView>
         </SafeAreaView>

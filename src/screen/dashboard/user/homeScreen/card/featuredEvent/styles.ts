@@ -149,10 +149,10 @@ export default StyleSheet.create({
         elevation: 6,
         width: horizontalScale(180),
         height: verticalScale(40),
-        marginBottom: horizontalScale(8)
+        marginBottom: horizontalScale(8),
       },
       bookButtonText: {
-        fontSize: fontScale(14),
+        fontSize: fontScale(12),
         fontWeight: '500',
         fontFamily: fonts.medium,
         color: colors.white,

@@ -92,7 +92,7 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
         ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
-            <Text style={{ color: "#868C98" }}> *</Text>
+            <Text style={{ color: "#868C98" }}> </Text>
           </>
         ) : (
           label || ""
@@ -942,6 +942,9 @@ interface DatePickerInputProps {
   message?: string;
   style?: object;
   leftImage?: React.ReactNode;
+  allowFutureDates?: boolean; // New prop to allow future dates
+  maxDate?: Date; // New prop to set custom max date
+  minDate?: Date; // New prop to set custom min date
 }
 
 export const DatePickerInput: React.FC<DatePickerInputProps> = ({
@@ -953,10 +956,17 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   message = "",
   style,
   leftImage,
+  allowFutureDates = false, // Default to false for backward compatibility
+  maxDate: customMaxDate,
+  minDate: customMinDate,
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // Set date constraints based on props
+  const maxDate = customMaxDate || (allowFutureDates ? new Date(2035, 11, 31) : new Date());
+  const minDate = customMinDate || new Date(1900, 0, 1);
 
   const formatDate = (date: Date) => {
     const day = date.getDate().toString().padStart(2, "0");
@@ -971,6 +981,30 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     }
 
     if (selectedDate) {
+      // Validate that the selected date is within the allowed range
+      if (selectedDate > maxDate) {
+        Alert.alert(
+          "Invalid Date",
+          allowFutureDates 
+            ? "Please select a date within the allowed range."
+            : "Please select a date that is not in the future.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+      
+      // Validate that the selected date is not too old
+      if (selectedDate < minDate) {
+        Alert.alert(
+          "Invalid Date",
+          allowFutureDates 
+            ? "Please select a valid date."
+            : "Please select a valid birth date.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+      
       setSelectedDate(selectedDate);
       const formattedDate = formatDate(selectedDate);
       onChangeText(formattedDate);
@@ -986,6 +1020,30 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   };
 
   const handleConfirm = () => {
+    // Validate that the selected date is within the allowed range
+    if (selectedDate > maxDate) {
+      Alert.alert(
+        "Invalid Date",
+        allowFutureDates 
+          ? "Please select a date within the allowed range."
+          : "Please select a date that is not in the future.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    
+    // Validate that the selected date is not too old
+    if (selectedDate < minDate) {
+      Alert.alert(
+        "Invalid Date",
+        allowFutureDates 
+          ? "Please select a valid date."
+          : "Please select a valid birth date.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    
     const formattedDate = formatDate(selectedDate);
     onChangeText(formattedDate);
     setShowModal(false);
@@ -1079,8 +1137,8 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           mode="date"
           display="default"
           onChange={handleDateChange}
-          maximumDate={new Date()}
-          minimumDate={new Date(1900, 0, 1)}
+          maximumDate={maxDate} // Prevent future dates
+          minimumDate={minDate} // Prevent dates before 1900
         />
       )}
 
@@ -1161,8 +1219,8 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                     setSelectedDate(date);
                   }
                 }}
-                maximumDate={new Date()}
-                minimumDate={new Date(1900, 0, 1)}
+                maximumDate={maxDate} // Prevent future dates
+                minimumDate={minDate} // Prevent dates before 1900
                 style={{ backgroundColor: "white" }}
               />
             </View>

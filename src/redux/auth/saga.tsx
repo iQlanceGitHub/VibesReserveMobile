@@ -112,7 +112,7 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
     yield put(displayLoading(true));
     const params = {
       //"currentRole": "user",
-      "email": payload?.email,
+      "email": payload?.email?.toLowerCase(),
       "password": payload?.password,
       "deviceToken": 'abcd',
       "deviceType": "ios",
@@ -165,7 +165,7 @@ function* onSignupSaga({ payload }: { payload: SignupPayload }) {
     const params = {
       "currentRole": payload?.currentRole,  //user,host <- U need small
       "fullName": payload?.fullName,
-      "email": payload?.email,
+      "email": payload?.email?.toLowerCase(),
       "countrycode": payload?.countrycode,
       "phone": payload?.phone,
       "dateOfBirth": payload?.dateOfBirth,
@@ -212,7 +212,7 @@ function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
     const params = {
       //"currentRole": "user",
       "type": "email",
-      "typevalue": payload?.email,
+      "typevalue": payload?.email?.toLowerCase(),
       "deviceToken": 'abcd',
       "deviceType": "ios",
       "usingtype": "forgot_password"//forgot_password,signup
@@ -733,35 +733,76 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
 
 interface ViewdetailsPayload {
   id?: string;
+  userId?: string;
 }
 
 function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
   try {
     yield put(displayLoading(true));
-
-    const response = yield call(fetchGet, {
+    
+    const params = {
+      "userId": payload?.userId
+    };
+    
+    const response = yield call(fetchPost, {
       url: `${baseurl}${`user/viewdetails/${payload?.id}`}`,
+      params,
     });
-
-    console.log("response:->", response);
+    
+    console.log("ViewdetailsSaga response:", response);
+    
     if (
-      response?.status == 1 ||
-      response?.status == true ||
-      response?.status == "1" ||
-      response?.status == "true"
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
     ) {
       yield put(viewdetailsData(response));
     } else {
-      console.log("Errors", response);
+      console.log("Error:===2", response);
       yield put(viewdetailsError(response));
     }
+    
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error", error);
+    console.log("Error:===", error);
     yield put(viewdetailsError(error));
     yield put(displayLoading(false));
   }
 }
+
+// function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
+//   try {
+//     yield put(displayLoading(true));
+
+//     const params = {
+//       "userId": payload?.userId,
+//     };
+
+//     const response = yield call(fetchPost, {
+//       url: `${baseurl}${`user/viewdetails/${payload?.id}`}`,
+//       params,
+//     });
+
+//     console.log("response:->", response);
+//     if (
+//       response?.status == 1 ||
+//       response?.status == true ||
+//       response?.status == "1" ||
+//       response?.status == "true"
+//     ) {
+//       yield put(viewdetailsData(response));
+//     } else {
+//       console.log("Errors", response);
+//       yield put(viewdetailsError(response));
+//     }
+//     yield put(displayLoading(false));
+//   } catch (error) {
+//     console.log("Error", error);
+//     yield put(viewdetailsError(error));
+//     yield put(displayLoading(false));
+//   }
+// }
 
 interface CategoryPayload {  
   page?: number;

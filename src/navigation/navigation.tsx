@@ -32,6 +32,7 @@ import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIl
 import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
 import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearbyEventsSeeAll/nearbyEventsSeeAllScreen";
 import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
+import LogoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
@@ -98,8 +99,8 @@ function MyTabs() {
       <Tab.Screen name="Home" component={homeScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Search" component={favouriteScreen}options={{ headerShown: false }} />
       <Tab.Screen name="Match" component={UpcomingScreen} options={{ headerShown: false }}/>
-      <Tab.Screen name="Chat" component={UpcomingScreen}options={{ headerShown: false }} />
-      <Tab.Screen name="Setting" component={UpcomingScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Chat" component={UpcomingScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Setting" component={LogoutScreen}options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }
@@ -110,7 +111,7 @@ function HostTabs() {
       <Tab.Screen name="Home" component={HostHomeScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Search" component={UpcomingScreen}options={{ headerShown: false }} />
       <Tab.Screen name="Match" component={UpcomingScreen} options={{ headerShown: false }}/>
-      <Tab.Screen name="Chat" component={UpcomingScreen}options={{ headerShown: false }} />
+      <Tab.Screen name="Chat" component={LogoutScreen}options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }
@@ -126,7 +127,9 @@ const NavigationStack: React.FC = () => {
         }
         style={{ flex: 1 }} // Takes full screen
       >
-        <Stack.Navigator>
+        <Stack.Navigator screenOptions={{
+        gestureEnabled: false,
+      }}>
           <Stack.Screen
             options={{ headerShown: false }}
             name="IntroScreen"

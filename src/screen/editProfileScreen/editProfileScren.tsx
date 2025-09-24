@@ -26,6 +26,7 @@ import NameIcon from "../../assets/svg/nameIcon";
 import CalendarIcon from "../../assets/svg/calendarIcon";
 import EditIcon from "../../assets/svg/editIcon";
 import ProfileIcon from "../../assets/svg/profileIcon";
+import DeleteIconNew from "../../assets/svg/deleteIconNew";
 import { styles } from "./styles";
 
 interface EditProfileScreenProps {
@@ -54,6 +55,48 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
   const handleDocumentUpload = () => {
     console.log("Document upload pressed");
+  };
+
+  const handleDeleteProfileImage = () => {
+    Alert.alert(
+      "Delete Profile Image",
+      "Are you sure you want to delete this profile image?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setProfileImage(null);
+            Alert.alert("Success", "Profile image deleted successfully!");
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteDocumentImage = () => {
+    Alert.alert(
+      "Delete Document",
+      "Are you sure you want to delete this document?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setDocumentImage(null);
+            Alert.alert("Success", "Document deleted successfully!");
+          }
+        }
+      ]
+    );
   };
 
   const handleSaveAndUpdate = () => {
@@ -125,10 +168,18 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
             <View style={styles.profileSection}>
               <View style={styles.profileImageContainer}>
                 {profileImage ? (
-                  <Image
-                    source={{ uri: profileImage }}
-                    style={styles.profileImage}
-                  />
+                  <View style={styles.profileImageWrapper}>
+                    <Image
+                      source={{ uri: profileImage }}
+                      style={styles.profileImage}
+                    />
+                    <TouchableOpacity
+                      style={styles.deleteProfileButton}
+                      onPress={handleDeleteProfileImage}
+                    >
+                      <DeleteIconNew width={20} height={20} />
+                    </TouchableOpacity>
+                  </View>
                 ) : (
                   <View style={styles.defaultProfileContainer}>
                     <ProfileIcon width={60} height={60} />
@@ -185,11 +236,19 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                 <View style={styles.documentThumbnail}>
                   <View style={styles.documentImage}>
                     {documentImage ? (
-                      <Image
-                        source={{ uri: documentImage }}
-                        style={styles.documentImageStyle}
-                        resizeMode="cover"
-                      />
+                      <View style={styles.documentImageWrapper}>
+                        <Image
+                          source={{ uri: documentImage }}
+                          style={styles.documentImageStyle}
+                          resizeMode="cover"
+                        />
+                        <TouchableOpacity
+                          style={styles.deleteDocumentButton}
+                          onPress={handleDeleteDocumentImage}
+                        >
+                          <DeleteIconNew width={20} height={20} />
+                        </TouchableOpacity>
+                      </View>
                     ) : (
                       <Text style={styles.noDocumentText}>
                         No Document{"\n"}Selected

@@ -78,7 +78,7 @@ export default StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: horizontalScale(16),
     paddingVertical: verticalScale(12),
-    borderRadius: verticalScale(8),
+    borderRadius: verticalScale(22),
     borderWidth: 1,
     borderColor: colors.violate,
   },
@@ -87,6 +87,11 @@ export default StyleSheet.create({
     fontFamily: fonts.Medium,
     color: colors.white,
     opacity: 0.7,
+    flex: 1,
+  },
+  locationIcon: {
+    fontSize: fontScale(16),
+    marginLeft: horizontalScale(8),
   },
   categoriesContainer: {
     paddingRight: horizontalScale(20),

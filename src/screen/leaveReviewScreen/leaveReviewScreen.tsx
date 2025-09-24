@@ -21,6 +21,8 @@ import LocationFavourite from "../../assets/svg/locationFavourite";
 import ClockIcon from "../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../assets/svg/arrowRightIcon";
 import StarRating from "../../components/StarRating";
+import { handleRestrictedAction } from "../../utilis/userPermissionUtils";
+import CustomAlert from "../../components/CustomAlert";
 
 interface LeaveReviewScreenProps {
   navigation?: any;
@@ -46,14 +48,47 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
 }) => {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
 
   const handleSubmit = () => {
     navigation?.goBack();
   };
 
-  const handleFavoritePress = () => {
+  const handleFavoritePress = async () => {
     // Handle favorite toggle
     console.log("Toggle favorite");
+    
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
+    
+    if (hasPermission) {
+      // Handle favorite toggle logic here
+      console.log("User has permission to like");
+    } else {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+    }
   };
 
   const handleEventPress = () => {
@@ -189,6 +224,17 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
           </View>
         </SafeAreaView>
       </LinearGradient>
+      
+      <CustomAlert
+        visible={showCustomAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        primaryButtonText={alertConfig.primaryButtonText}
+        secondaryButtonText={alertConfig.secondaryButtonText}
+        onPrimaryPress={alertConfig.onPrimaryPress}
+        onSecondaryPress={alertConfig.onSecondaryPress}
+        onClose={() => setShowCustomAlert(false)}
+      />
     </View>
   );
 };

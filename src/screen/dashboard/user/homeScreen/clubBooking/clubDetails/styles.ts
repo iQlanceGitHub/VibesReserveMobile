@@ -366,6 +366,7 @@ export default StyleSheet.create({
     backgroundColor: colors.cardBackground,
     paddingHorizontal: horizontalScale(20),
     paddingVertical: verticalScale(16),
+    marginHorizontal: Platform.OS === 'ios' ? horizontalScale(0) : horizontalScale(15),
     borderTopWidth: 1,
     borderRadius: verticalScale(60),
     shadowColor: colors.violate,
@@ -376,7 +377,7 @@ export default StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 10, // For Android
-    marginBottom: Platform.OS === 'ios' ? verticalScale(0) : verticalScale(60),
+    marginBottom: Platform.OS === 'ios' ? verticalScale(0) : verticalScale(15),
   },
   priceSection: {
     flex: 1,

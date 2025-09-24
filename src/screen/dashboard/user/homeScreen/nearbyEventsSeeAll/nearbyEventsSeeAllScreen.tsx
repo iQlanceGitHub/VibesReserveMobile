@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, StatusBar, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors } from '../../../../../utilis/colors';
@@ -13,6 +13,8 @@ import { BackButton } from '../../../../../components/BackButton';
 import { useDispatch } from 'react-redux';
 import { onTogglefavorite } from '../../../../../redux/auth/actions';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { handleRestrictedAction } from '../../../../../utilis/userPermissionUtils';
+import CustomAlert from '../../../../../components/CustomAlert';
 
 interface NearbyEventsSeeAllScreenProps {
   route: {
@@ -28,6 +30,15 @@ const NearbyEventsSeeAllScreen: React.FC<NearbyEventsSeeAllScreenProps> = () => 
   const dispatch = useDispatch();
   
   const { nearbyEvents = [] } = (route.params as any) || {};
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
   
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
@@ -37,9 +48,31 @@ const NearbyEventsSeeAllScreen: React.FC<NearbyEventsSeeAllScreenProps> = () => 
     (navigation as any).navigate("ClubDetailScreen", { clubId: eventId || '68b6eceba9ae1fc590695248' });
   };
 
-  const handleFavoritePress = (eventId: string) => {
+  const handleFavoritePress = async (eventId: string) => {
     console.log('Toggling favorite for event ID:', eventId);
-    dispatch(onTogglefavorite({ eventId }));
+    
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
+    
+    if (hasPermission) {
+      dispatch(onTogglefavorite({ eventId }));
+    } else {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+    }
   };
 
   const renderEventItem = ({ item }: { item: any }) => (
@@ -85,6 +118,17 @@ const NearbyEventsSeeAllScreen: React.FC<NearbyEventsSeeAllScreenProps> = () => 
             <Text style={styles.emptyText}>No nearby events found</Text>
           </View>
         }
+      />
+      
+      <CustomAlert
+        visible={showCustomAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        primaryButtonText={alertConfig.primaryButtonText}
+        secondaryButtonText={alertConfig.secondaryButtonText}
+        onPrimaryPress={alertConfig.onPrimaryPress}
+        onSecondaryPress={alertConfig.onSecondaryPress}
+        onClose={() => setShowCustomAlert(false)}
       />
     </View>
   );

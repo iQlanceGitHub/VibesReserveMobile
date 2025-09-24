@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
     borderRadius: appConstant.verticalScale(99),
     alignSelf: "center",
     alignItems: "center",
-    paddingHorizontal: appConstant.verticalScale(8),
-    paddingVertical: appConstant.verticalScale(8),
+    paddingHorizontal: appConstant.verticalScale(12),
+    paddingVertical: appConstant.verticalScale(12),
   },
   titleText: {
     fontSize: appConstant.fontScale(16),

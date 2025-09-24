@@ -25,6 +25,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCategory } from '../../hooks/useCategory';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { verticalScale } from "../../utilis/appConstant";
+import { handleRestrictedAction } from '../../utilis/userPermissionUtils';
+import CustomAlert from '../../components/CustomAlert';
 
 interface FavouriteScreenProps {
   navigation?: any;
@@ -34,6 +36,15 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [events, setEvents] = useState<any[]>([]);
   const [userId, setUserId] = useState('');
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
   // Remove local loading state since global loader handles it
 
   const dispatch = useDispatch();
@@ -137,9 +148,31 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
     (navigation as any).navigate("ClubDetailScreen", { clubId: eventId || '68b6eceba9ae1fc590695248' });
   };
 
-  const handleFavoritePress = (eventId: string) => {
+  const handleFavoritePress = async (eventId: string) => {
     console.log('Toggling favorite for event ID:', eventId);
-    dispatch(onTogglefavorite({ eventId }));
+    
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
+    
+    if (hasPermission) {
+      dispatch(onTogglefavorite({ eventId }));
+    } else {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+    }
   };
 
   // Use API categories if available, otherwise fallback to static categories
@@ -177,7 +210,7 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
             <Text style={styles.title}>Favourite</Text>
           </View>
 
-          <View style={styles.categoriesSection}>
+          {/* <View style={styles.categoriesSection}>
             <Text style={styles.categoriesTitle}>Categories</Text>
             <ScrollView
               horizontal
@@ -197,11 +230,11 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
                 );
               })}
             </ScrollView>
-          </View>
+          </View> */}
 
           <View style={styles.eventsContainer}>
             {/* Favorites Section */}
-            <Text style={styles.sectionTitle}>Favorites ({filteredEvents.length})</Text>
+            <Text style={styles.sectionTitle}>Favorited Events</Text>
             
             {filteredEvents.length > 0 ? (
               <FlatList
@@ -265,6 +298,17 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
           <View style={{ marginBottom: verticalScale(100) }} />
         </View>
       </LinearGradient>
+      
+      <CustomAlert
+        visible={showCustomAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        primaryButtonText={alertConfig.primaryButtonText}
+        secondaryButtonText={alertConfig.secondaryButtonText}
+        onPrimaryPress={alertConfig.onPrimaryPress}
+        onSecondaryPress={alertConfig.onSecondaryPress}
+        onClose={() => setShowCustomAlert(false)}
+      />
      
     </View>
   );

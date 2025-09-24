@@ -38,6 +38,11 @@ import { showToast } from "../../../utilis/toastUtils.tsx";
 import { useDispatch, useSelector } from 'react-redux';
 import { CustomAlertSingleBtn } from '../../../components/CustomeAlertDialog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocationPermission } from '../../../hooks/useLocationPermission';
+import Geocoder from 'react-native-geocoding';
+
+// Initialize Geocoder
+Geocoder.init('AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y');
 // Define types for location data
 interface LocationResult {
   id: string;
@@ -76,6 +81,9 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
   const [isLoadingCurrentLocation, setIsLoadingCurrentLocation] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [uid, setUid] = useState(route?.params?.id);
+
+  // Use location permission hook
+  const { hasPermission, isLoading: isLocationLoading, getCurrentLocation } = useLocationPermission();
 
   const dispatch = useDispatch();
   const updateLocation = useSelector((state: any) => state.auth.updateLocation);
@@ -177,67 +185,75 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
     }
   };
 
-  // Function to get current location using browser's geolocation API
-  const getCurrentLocation = () => {
+  // Function to get current location using React Native geolocation
+  const handleGetCurrentLocation = async () => {
     setIsLoadingCurrentLocation(true);
 
-    if (navigator && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
+    try {
+      const locationData = await getCurrentLocation();
+      
+      if (locationData) {
+        const { latitude, longitude } = locationData;
+        console.log("Location obtained:", latitude, longitude);
 
-          try {
-            // Reverse geocode to get address from coordinates
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
-            );
+        try {
+          // Reverse geocode to get address using Geocoder
+          const response = await Geocoder.from(latitude, longitude);
+          
+          if (response.results.length > 0) {
+            const address = response.results[0].formatted_address;
+            setFormData({ location: address });
 
-            const data = await response.json();
+            // Update location data
+            const locationInfo = {
+              address,
+              latitude,
+              longitude
+            };
 
-            if (data.status === 'OK' && data.results.length > 0) {
-              const address = data.results[0].formatted_address;
-              setFormData({ location: address });
-
-              // You can pass this data to the next screen
-              const locationData = {
-                address,
-                latitude,
-                longitude
-              };
-
-              // Navigate with the location data
-              const obj = {
-                "userId": uid,
-                "longitude": latitude,
-                "latitude": longitude,
-              }
-              dispatch(onUpdateLocation(obj))
-            } else {
-              Alert.alert("Error", "Could not get address for your location");
-            }
-          } catch (error) {
-            console.log('Error reverse geocoding:', error);
-            Alert.alert("Error", "Failed to get your location address");
-          } finally {
-            setIsLoadingCurrentLocation(false);
+            // Dispatch location update
+            const obj = {
+              "userId": uid,
+              "longitude": longitude,
+              "latitude": latitude,
+            };
+            dispatch(onUpdateLocation(obj));
+            
+            showToast('success', 'Location obtained successfully');
+          } else {
+            // Fallback if geocoding fails
+            setFormData({ location: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}` });
+            
+            const obj = {
+              "userId": uid,
+              "longitude": longitude,
+              "latitude": latitude,
+            };
+            dispatch(onUpdateLocation(obj));
+            
+            showToast('success', 'Location obtained (coordinates only)');
           }
-        },
-        (error) => {
-          console.log('Error getting location:', error);
-          Alert.alert(
-            "Location Access Required",
-            "Please enable location services to use this feature",
-            [
-              { text: "Cancel", style: "cancel" },
-              { text: "Open Settings", onPress: () => Linking.openSettings() }
-            ]
-          );
-          setIsLoadingCurrentLocation(false);
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-      );
-    } else {
-      Alert.alert("Error", "Geolocation is not supported by this browser");
+        } catch (geocodingError) {
+          console.log('Error reverse geocoding:', geocodingError);
+          // Fallback with coordinates
+          setFormData({ location: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}` });
+          
+          const obj = {
+            "userId": uid,
+            "longitude": longitude,
+            "latitude": latitude,
+          };
+          dispatch(onUpdateLocation(obj));
+          
+          showToast('success', 'Location obtained (coordinates only)');
+        }
+      } else {
+        showToast('error', 'Failed to get current location');
+      }
+    } catch (error) {
+      console.log('Error getting current location:', error);
+      showToast('error', 'Failed to get current location');
+    } finally {
       setIsLoadingCurrentLocation(false);
     }
   };
@@ -294,14 +310,14 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
     console.log('Selected location:==', locationData);
     const obj = {
       "userId": uid,
-      "longitude": location.latitude,
-      "latitude": location.longitude,
+      "longitude": location.longitude,
+      "latitude": location.latitude,
     }
     dispatch(onUpdateLocation(obj))
   };
 
   const handleUseCurrentLocation = () => {
-    getCurrentLocation();
+    handleGetCurrentLocation();
   };
 
   const handleSubmit = async () => {
@@ -338,8 +354,8 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
           console.log("locationData:==>", locationData);
           const obj = {
             "userId": uid,
-            "longitude": lat,
-            "latitude": lng,
+            "longitude": lng,
+            "latitude": lat,
           }
           dispatch(onUpdateLocation(obj))
          
@@ -415,15 +431,15 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
               <TouchableOpacity
                 style={styles.currentLocationButton}
                 onPress={handleUseCurrentLocation}
-                disabled={isLoadingCurrentLocation}
+                disabled={isLoadingCurrentLocation || isLocationLoading}
               >
-                {isLoadingCurrentLocation ? (
+                {(isLoadingCurrentLocation || isLocationLoading) ? (
                   <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <CurrentLocationIcon />
                 )}
                 <Text style={styles.currentLocationText}>
-                  {isLoadingCurrentLocation ? "Getting location..." : "Use my current location"}
+                  {(isLoadingCurrentLocation || isLocationLoading) ? "Getting location..." : "Use my current location"}
                 </Text>
               </TouchableOpacity>
 

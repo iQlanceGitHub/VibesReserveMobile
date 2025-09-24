@@ -46,6 +46,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { CustomAlertSingleBtn } from "../../components/CustomeAlertDialog";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CommonActions } from "@react-navigation/native";
+import CustomAlert from "../../components/CustomAlert";
+import { UserPermissions } from "../../utilis/userPermissionUtils";
 interface SignInScreenProps {
   navigation?: any;
 }
@@ -73,6 +75,15 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
 
   const dispatch = useDispatch();
   const signin = useSelector((state: any) => state.auth.signin);
@@ -107,25 +118,27 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Convert email to lowercase
+    const processedValue = field === "email" ? value.toLowerCase() : value;
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
 
     // Validate field in real-time
     if (field === "email") {
-      const isValid = validateEmail(value);
+      const isValid = validateEmail(processedValue);
       setErrors((prev) => ({ ...prev, email: !isValid }));
       setErrorMessages((prev) => ({
         ...prev,
-        email: value && !isValid ? "Please enter a valid email address" : "",
+        email: processedValue && !isValid ? "Please enter a valid email address" : "",
       }));
     }
 
     if (field === "password") {
-      const isValid = validatePassword(value);
+      const isValid = validatePassword(processedValue);
       setErrors((prev) => ({ ...prev, password: !isValid }));
       setErrorMessages((prev) => ({
         ...prev,
         password:
-          value && !isValid ? "Password must meet all requirements" : "",
+          processedValue && !isValid ? "Password must meet all requirements" : "",
       }));
     }
 
@@ -164,6 +177,44 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         getUserToken();
       } catch (e) {
         console.error("Failed to save the user token.", e);
+      }
+    };
+
+    const storeUserStatus = async (status: 'logged_in' | 'skipped' | 'guest') => {
+      try {
+        // Clear all stored preferences first
+        await AsyncStorage.multiRemove([
+          'user_status',
+          'user_permissions',
+          'skip_timestamp',
+        ]);
+        
+        await AsyncStorage.setItem("user_status", status);
+        console.log("User status saved:", status);
+
+        // Store additional metadata based on status
+        if (status === 'skipped') {
+          await AsyncStorage.setItem("skip_timestamp", Date.now().toString());
+          await AsyncStorage.setItem("user_permissions", JSON.stringify({
+            canLike: false,
+            canDislike: false,
+            canBookmark: false,
+            canReview: false,
+            canBook: false
+          }));
+        } else if (status === 'logged_in') {
+          // Clear any skip-related data when user logs in
+          await AsyncStorage.multiRemove(['skip_timestamp']);
+          await AsyncStorage.setItem("user_permissions", JSON.stringify({
+            canLike: true,
+            canDislike: true,
+            canBookmark: true,
+            canReview: true,
+            canBook: true
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to save the user status.", e);
       }
     };
 
@@ -218,6 +269,57 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
+    const handleLoginSuccess = async () => {
+      if (
+        signin?.status === true ||
+        signin?.status === "true" ||
+        signin?.status === 1 ||
+        signin?.status === "1"
+      ) {
+        console.log("signin:+>", signin);
+        setFormData({
+          email: "",
+          password: "",
+        });
+        setErrors({
+          email: false,
+          password: false,
+          terms: false,
+        });
+        dispatch(setUser(signin));
+        // setMsg(signin?.message?.toString())
+        showToast(
+          "success",
+          signin?.message || "Something went wrong. Please try again."
+        );
+        
+        if (signin?.token) {
+          storeUserToken(signin?.token);
+        }
+        if (signin?.user) {
+          storeUser(signin?.user); 
+        }
+        if (signin?.user?.id) {
+          storeUserId(signin.user.id);
+        }
+        
+        // Store user status as logged in
+        await storeUserStatus('logged_in');
+        
+        // Role-based navigation
+        if (signin?.user?.currentRole === 'user') {
+          navigation.navigate('HomeTabs' as never);
+        } else if (signin?.user?.currentRole === 'host') {
+          navigation.navigate('HostTabs' as never);
+        } else {
+          // Default fallback to HomeTabs
+          navigation.navigate('HomeTabs' as never);
+        }
+        
+        dispatch(signinData(""));
+      }
+    };
+
     getUserToken().then((token) => {
       console.log('token:===>',token)
       if(token){
@@ -234,51 +336,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       }
     });
    
-    if (
-      signin?.status === true ||
-      signin?.status === "true" ||
-      signin?.status === 1 ||
-      signin?.status === "1"
-    ) {
-      console.log("signin:+>", signin);
-      setFormData({
-        email: "",
-        password: "",
-      });
-      setErrors({
-        email: false,
-        password: false,
-        terms: false,
-      });
-      dispatch(setUser(signin));
-      // setMsg(signin?.message?.toString())
-      showToast(
-        "success",
-        signin?.message || "Something went wrong. Please try again."
-      );
-      
-      if (signin?.token) {
-        storeUserToken(signin?.token);
-      }
-      if (signin?.user) {
-        storeUser(signin?.user); 
-      }
-      if (signin?.user?.id) {
-        storeUserId(signin.user.id);
-      }
-      
-      // Role-based navigation
-      if (signin?.user?.currentRole === 'user') {
-        navigation.navigate('HomeTabs' as never);
-      } else if (signin?.user?.currentRole === 'host') {
-        navigation.navigate('HostTabs' as never);
-      } else {
-        // Default fallback to HomeTabs
-        navigation.navigate('HomeTabs' as never);
-      }
-      
-      dispatch(signinData(""));
-    }
+    handleLoginSuccess();
 
     if (signinErr) {
       console.log("signinErr:+>", signinErr);
@@ -310,38 +368,45 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       dispatch(signinError(""));
     }
 
-    if (
-      socialLogin?.status === true ||
-      socialLogin?.status === "true" ||
-      socialLogin?.status === 1 ||
-      socialLogin?.status === "1"
-    ) {
-      console.log("socialLogin:+>", socialLogin);
-      //  setMsg(socialLogin?.message?.toString());
-      showToast(
-        "success",
-        socialLogin?.message || "Something went wrong. Please try again."
-      );
-      dispatch(setUser(socialLogin));
-      if (socialLogin?.token) {
-        storeUserToken(socialLogin?.token);
+    const handleSocialLoginSuccess = async () => {
+      if (
+        socialLogin?.status === true ||
+        socialLogin?.status === "true" ||
+        socialLogin?.status === 1 ||
+        socialLogin?.status === "1"
+      ) {
+        console.log("socialLogin:+>", socialLogin);
+        //  setMsg(socialLogin?.message?.toString());
+        showToast(
+          "success",
+          socialLogin?.message || "Something went wrong. Please try again."
+        );
+        dispatch(setUser(socialLogin));
+        if (socialLogin?.token) {
+          storeUserToken(socialLogin?.token);
+        }
+        if (socialLogin?.user?.id) {
+          storeUserId(socialLogin.user.id);
+        }
+        
+        // Store user status as logged in
+        await storeUserStatus('logged_in');
+        
+        // Role-based navigation
+        if (socialLogin?.user?.currentRole === 'user') {
+          navigation.navigate('HomeTabs' as never);
+        } else if (socialLogin?.user?.currentRole === 'host') {
+          navigation.navigate('HostTabs' as never);
+        } else {
+          // Default fallback to HomeTabs
+          navigation.navigate('HomeTabs' as never);
+        }
+        
+        dispatch(socialLoginData(""));
       }
-      if (socialLogin?.user?.id) {
-        storeUserId(socialLogin.user.id);
-      }
-      
-      // Role-based navigation
-      if (socialLogin?.user?.currentRole === 'user') {
-        navigation.navigate('HomeTabs' as never);
-      } else if (socialLogin?.user?.currentRole === 'host') {
-        navigation.navigate('HostTabs' as never);
-      } else {
-        // Default fallback to HomeTabs
-        navigation.navigate('HomeTabs' as never);
-      }
-      
-      dispatch(socialLoginData(""));
-    }
+    };
+
+    handleSocialLoginSuccess();
 
     if (socialLoginErr) {
       console.log("signinErr:+>", socialLoginErr);
@@ -432,8 +497,20 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     navigation?.navigate("ForgotPasswordScreen");
   };
 
-  const handleSkip = () => {
-    navigation?.navigate("LeaveReviewScreen");
+  const handleSkip = async () => {
+    try {
+      // Store skip status
+      await storeUserStatus('skipped');
+      
+      // Navigate to HomeTabs
+      navigation?.navigate("HomeTabs" as never);
+      
+      // Show toast message
+      showToast("info", "You can explore the app. Sign in to access all features!");
+    } catch (error) {
+      console.error("Error handling skip:", error);
+      showToast("error", "Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -678,6 +755,17 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
               }
             }}
             title={"Curiouzz"}
+          />
+          
+          <CustomAlert
+            visible={showCustomAlert}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            primaryButtonText={alertConfig.primaryButtonText}
+            secondaryButtonText={alertConfig.secondaryButtonText}
+            onPrimaryPress={alertConfig.onPrimaryPress}
+            onSecondaryPress={alertConfig.onSecondaryPress}
+            onClose={() => setShowCustomAlert(false)}
           />
         </KeyboardAvoidingView>
       </LinearGradient>

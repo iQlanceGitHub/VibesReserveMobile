@@ -151,14 +151,65 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
         "success",
         socialLogin?.message || "Something went wrong. Please try again."
       );
-      dispatch(setUser(socialLogin))
+      dispatch(setUser(socialLogin));
       if (socialLogin?.token) {
         storeUserToken(socialLogin?.token);
       }
       if (socialLogin?.user?.id) {
         storeUserId(socialLogin.user.id);
       }
-      dispatch(socialLoginData(''));
+
+      const handleSocialLoginSuccess = async () => {
+        if (
+          socialLogin?.status === true ||
+          socialLogin?.status === "true" ||
+          socialLogin?.status === 1 ||
+          socialLogin?.status === "1"
+        ) {
+          console.log("socialLogin:+>", socialLogin);
+          //  setMsg(socialLogin?.message?.toString());
+          showToast(
+            "success",
+            socialLogin?.message || "Something went wrong. Please try again."
+          );
+          dispatch(setUser(socialLogin));
+          if (socialLogin?.token) {
+            storeUserToken(socialLogin?.token);
+          }
+          if (socialLogin?.user?.id) {
+            storeUserId(socialLogin.user.id);
+          }
+          
+          // Store user status as logged in
+          await storeUserStatus('logged_in');
+          
+          // Role-based navigation
+          if (socialLogin?.user?.currentRole === 'user') {
+            navigation.navigate('HomeTabs' as never);
+          } else if (socialLogin?.user?.currentRole === 'host') {
+            navigation.navigate('HostTabs' as never);
+          } else {
+            // Default fallback to HomeTabs
+            navigation.navigate('HomeTabs' as never);
+          }
+          
+          dispatch(socialLoginData(""));
+        }
+      };
+  
+      handleSocialLoginSuccess();
+      
+      // Role-based navigation
+      if (socialLogin?.user?.currentRole === 'user') {
+        navigation.navigate('HomeTabs' as never);
+      } else if (socialLogin?.user?.currentRole === 'host') {
+        navigation.navigate('HostTabs' as never);
+      } else {
+        // Default fallback to HomeTabs
+        navigation.navigate('HomeTabs' as never);
+      }
+      
+      dispatch(socialLoginData(""));
     }
 
     if (socialLoginErr) {
@@ -238,9 +289,58 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   };
 
 
-  const handleSkip = () => {
-    // Handle skip - navigate to main app
-    console.log("Skip welcome");
+  const handleSkip = async () => {
+    try {
+      // Store skip status
+      await storeUserStatus('skipped');
+      
+      // Navigate to HomeTabs
+      navigation?.navigate("HomeTabs" as never);
+      
+      // Show toast message
+      showToast("info", "You can explore the app. Sign in to access all features!");
+    } catch (error) {
+      console.error("Error handling skip:", error);
+      showToast("error", "Something went wrong. Please try again.");
+    }
+  };
+
+  const storeUserStatus = async (status: 'logged_in' | 'skipped' | 'guest') => {
+    try {
+      // Clear all stored preferences first
+      await AsyncStorage.multiRemove([
+        'user_status',
+        'user_permissions',
+        'skip_timestamp',
+      ]);
+      
+      await AsyncStorage.setItem("user_status", status);
+      console.log("User status saved:", status);
+
+      // Store additional metadata based on status
+      if (status === 'skipped') {
+        await AsyncStorage.setItem("skip_timestamp", Date.now().toString());
+        await AsyncStorage.setItem("user_permissions", JSON.stringify({
+          canLike: false,
+          canDislike: false,
+          canBookmark: false,
+          canReview: false,
+          canBook: false
+        }));
+      } else if (status === 'logged_in') {
+        // Clear any skip-related data when user logs in
+        await AsyncStorage.multiRemove(['skip_timestamp']);
+        await AsyncStorage.setItem("user_permissions", JSON.stringify({
+          canLike: true,
+          canDislike: true,
+          canBookmark: true,
+          canReview: true,
+          canBook: true
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to save the user status.", e);
+    }
   };
 
 

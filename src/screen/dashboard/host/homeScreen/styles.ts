@@ -11,6 +11,7 @@ const styles = StyleSheet.create({
   container: {
     flex: verticalScale(1),
     backgroundColor: colors.hostGradientStart,
+   
   },
   gradientContainer: {
     flex: verticalScale(1),

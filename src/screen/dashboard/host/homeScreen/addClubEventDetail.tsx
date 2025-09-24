@@ -32,6 +32,7 @@ import ArrowDownIcon from "../../../../assets/svg/arrowDownIcon";
 import PlusIcon from "../../../../assets/svg/plusIcon";
 import GalleryIcon from "../../../../assets/svg/galleryIcon";
 import BackIcon from "../../../../assets/svg/backIcon";
+import DeleteIconNew from "../../../../assets/svg/deleteIconNew";
 import LinearGradient from "react-native-linear-gradient";
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -43,6 +44,7 @@ import { showToast } from '../../../../utilis/toastUtils';
 import { uploadFileToS3 } from '../../../../utilis/s3Upload';
 import { launchCamera, launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { fetchGet } from '../../../../redux/services';
+import PermissionManager from '../../../../utilis/permissionUtils';
 import BoothForm from './components/BoothForm';
 import EventForm from './components/EventForm';
 import { useCategory } from '../../../../hooks/useCategory';
@@ -144,6 +146,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     // Remove date/time error fields since we're using fallback values
     address: false,
     uploadPhotos: false,
+    startDate: false,
+    endDate: false,
   });
 
   // Redux
@@ -275,6 +279,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       address: !address.trim(),
       // Remove ticket validation - tickets are handled in dynamic forms
       uploadPhotos: uploadPhotos.length === 0, // Require photos for all types
+      startDate: false, // Will be validated separately
+      endDate: false, // Will be validated separately
     };
 
     // Check if type is selected
@@ -293,60 +299,71 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     if (!startDate.trim()) missingFields.push("Start Date");
     if (!endDate.trim()) missingFields.push("End Date");
     if (!address.trim()) missingFields.push("Address");
+    if (uploadPhotos.length === 0) missingFields.push("Upload Photos");
+
+    // Validate date constraints
+    if (startDate.trim() && endDate.trim() && !validateDates(startDate, endDate)) {
+      showToast("error", "End date must be same or after start date");
+      setErrors(prev => ({ ...prev, endDate: true }));
+      return false;
+    }
+
+    // Check for missing booths/tickets based on type
+    if (type === "Club" || type === "Pub") {
+      if (booths.length === 0) missingFields.push("Booths");
+    }
+    if (type === "Event") {
+      if (events.length === 0) missingFields.push("Tickets");
+    }
 
     if (missingFields.length > 0) {
       showToast("error", `Please fill in: ${missingFields.join(", ")}`);
-      setErrors(newErrors);
+      setErrors(prev => ({ ...prev, ...newErrors }));
       return false;
     }
 
-    // Validate booths if type is Club or Pub
+    // Validate booth fields if type is Club or Pub and booths exist
     if (type === "Club" || type === "Pub") {
-      if (booths.length === 0) {
-        showToast("error", "Please add at least one booth");
-        return false;
-      }
-      
-      const boothErrors = booths.some(booth => 
-        !booth.boothName.trim() || 
-        !booth.boothType.trim() || 
-        !booth.boothPrice.trim() || 
-        isNaN(Number(booth.boothPrice)) ||
-        !booth.capacity.trim() || 
-        isNaN(Number(booth.capacity)) ||
-        booth.boothImages.length === 0
-      );
-      if (boothErrors) {
-        showToast("error", "Please fill all booth fields and add at least one image for each booth");
-        return false;
+      // Check each booth individually for specific missing fields
+      for (let i = 0; i < booths.length; i++) {
+        const booth = booths[i];
+        const boothNumber = i + 1;
+        const missingBoothFields = [];
+        
+        if (!booth.boothName.trim()) missingBoothFields.push("Booth Name");
+        if (!booth.boothType.trim()) missingBoothFields.push("Booth Type");
+        if (!booth.boothPrice.trim() || isNaN(Number(booth.boothPrice))) missingBoothFields.push("Booth Price");
+        if (!booth.discountedPrice.trim() || isNaN(Number(booth.discountedPrice))) missingBoothFields.push("Discounted Price");
+        if (!booth.capacity.trim() || isNaN(Number(booth.capacity))) missingBoothFields.push("Capacity");
+        if (booth.boothImages.length === 0) missingBoothFields.push("Booth Images");
+        
+        if (missingBoothFields.length > 0) {
+          showToast("error", `Booth ${boothNumber}: Please fill in ${missingBoothFields.join(", ")}`);
+          return false;
+        }
       }
     }
 
-    // Validate tickets if type is Event
+    // Validate ticket fields if type is Event and tickets exist
     if (type === "Event") {
-      if (events.length === 0) {
-        showToast("error", "Please add at least one ticket");
-        return false;
-      }
-      
-      const eventErrors = events.some(event => 
-        !event.ticketType.trim() || 
-        !event.ticketPrice.trim() || 
-        isNaN(Number(event.ticketPrice)) ||
-        !event.capacity.trim() || 
-        isNaN(Number(event.capacity))
-      );
-      if (eventErrors) {
-        showToast("error", "Please fill all ticket fields");
-        return false;
+      // Check each ticket individually for specific missing fields
+      for (let i = 0; i < events.length; i++) {
+        const event = events[i];
+        const ticketNumber = i + 1;
+        const missingTicketFields = [];
+        
+        if (!event.ticketType.trim()) missingTicketFields.push("Ticket Type");
+        if (!event.ticketPrice.trim() || isNaN(Number(event.ticketPrice))) missingTicketFields.push("Ticket Price");
+        if (!event.capacity.trim() || isNaN(Number(event.capacity))) missingTicketFields.push("Capacity");
+        
+        if (missingTicketFields.length > 0) {
+          showToast("error", `Ticket ${ticketNumber}: Please fill in ${missingTicketFields.join(", ")}`);
+          return false;
+        }
       }
     }
 
-    // Check main photos
-    if (uploadPhotos.length === 0) {
-      showToast("error", "Please upload at least one main photo");
-      return false;
-    }
+    // Photos are already validated in the main fields check above
 
     console.log('Validation errors:', newErrors);
     setErrors(newErrors);
@@ -404,47 +421,23 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
   // Image handling functions
   const requestCameraPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          {
-            title: 'Camera Permission',
-            message: 'App needs camera permission to take photos',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
+    try {
+      const result = await PermissionManager.requestCameraPermission();
+      return result.granted;
+    } catch (error) {
+      console.log('Error requesting camera permission:', error);
+      return false;
     }
-    return true;
   };
 
   const requestStoragePermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs storage permission to access photos',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
+    try {
+      const result = await PermissionManager.requestStoragePermission();
+      return result.granted;
+    } catch (error) {
+      console.log('Error requesting storage permission:', error);
+      return false;
     }
-    return true;
   };
 
   const handleImagePicker = (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event" = "main", boothIndex: number = 0, eventIndex: number = 0) => {
@@ -511,21 +504,29 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     };
 
     if (type === 'camera') {
-      requestCameraPermission().then(hasPermission => {
-        if (hasPermission) {
+      // Use the new permission flow with proper alerts
+      PermissionManager.requestPermissionWithFlow(
+        'camera',
+        () => {
           launchCamera(options, callback);
-        } else {
+        },
+        (error) => {
+          console.log('Camera permission error:', error);
           showToast('error', 'Camera permission denied');
         }
-      });
+      );
     } else {
-      requestStoragePermission().then(hasPermission => {
-        if (hasPermission) {
+      // Use the new permission flow with proper alerts
+      PermissionManager.requestPermissionWithFlow(
+        'storage',
+        () => {
           launchImageLibrary(options, callback);
-        } else {
+        },
+        (error) => {
+          console.log('Storage permission error:', error);
           showToast('error', 'Storage permission denied');
         }
-      });
+      );
     }
   };
 
@@ -660,23 +661,22 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       console.log('Updated selectedTime to:', selectedTime);
     }
     
-    // For Android, handle immediate selection and close modal
+    // For Android, handle immediate selection and close picker
     if (Platform.OS === "android") {
       if (event.type === 'set' && selectedTime) {
-        const timeString = selectedTime.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        });
+        const timeString = formatTimeString(selectedTime);
         console.log('Time selected:', timeString, 'for mode:', timePickerMode);
         
-        if (timePickerMode === "start") {
-          setStartTime(timeString);
-          console.log('Set startTime to:', timeString);
-        } else {
-          setEndTime(timeString);
-          console.log('Set endTime to:', timeString);
-        }
+        // Use setTimeout to ensure state updates are processed
+        setTimeout(() => {
+          if (timePickerMode === "start") {
+            setStartTime(timeString);
+            console.log('Set startTime to:', timeString);
+          } else {
+            setEndTime(timeString);
+            console.log('Set endTime to:', timeString);
+          }
+        }, 100);
         
         setShowTimePicker(false);
       } else if (event.type === 'dismissed') {
@@ -695,25 +695,76 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     let initialTime = new Date();
     if (mode === "start" && startTime) {
       // Parse existing start time
-      const [time, period] = startTime.split(' ');
-      const [hours, minutes] = time.split(':');
-      let hour24 = parseInt(hours);
-      if (period === 'PM' && hour24 !== 12) hour24 += 12;
-      if (period === 'AM' && hour24 === 12) hour24 = 0;
-      initialTime.setHours(hour24, parseInt(minutes), 0, 0);
+      try {
+        const [time, period] = startTime.split(' ');
+        const [hours, minutes] = time.split(':');
+        let hour24 = parseInt(hours);
+        if (period === 'PM' && hour24 !== 12) hour24 += 12;
+        if (period === 'AM' && hour24 === 12) hour24 = 0;
+        initialTime.setHours(hour24, parseInt(minutes), 0, 0);
+        console.log('Parsed start time:', initialTime);
+      } catch (error) {
+        console.log('Error parsing start time, using default:', error);
+      }
     } else if (mode === "end" && endTime) {
       // Parse existing end time
-      const [time, period] = endTime.split(' ');
-      const [hours, minutes] = time.split(':');
-      let hour24 = parseInt(hours);
-      if (period === 'PM' && hour24 !== 12) hour24 += 12;
-      if (period === 'AM' && hour24 === 12) hour24 = 0;
-      initialTime.setHours(hour24, parseInt(minutes), 0, 0);
+      try {
+        const [time, period] = endTime.split(' ');
+        const [hours, minutes] = time.split(':');
+        let hour24 = parseInt(hours);
+        if (period === 'PM' && hour24 !== 12) hour24 += 12;
+        if (period === 'AM' && hour24 === 12) hour24 = 0;
+        initialTime.setHours(hour24, parseInt(minutes), 0, 0);
+        console.log('Parsed end time:', initialTime);
+      } catch (error) {
+        console.log('Error parsing end time, using default:', error);
+      }
     }
     
     setSelectedTime(initialTime);
     setShowTimePicker(true);
     console.log('Time picker should now be visible with time:', initialTime);
+  };
+
+  // Helper function to format time consistently
+  const formatTimeString = (date: Date): string => {
+    try {
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      console.log('Error formatting time:', error);
+      return '12:00 PM'; // Fallback
+    }
+  };
+
+  // Helper function to validate dates
+  const validateDates = (startDateStr: string, endDateStr: string) => {
+    if (!startDateStr || !endDateStr) return true; // Allow empty dates initially
+    
+    try {
+      // Parse dates from DD/MM/YYYY format
+      const parseDate = (dateStr: string) => {
+        const [day, month, year] = dateStr.split('/');
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      };
+      
+      const startDate = parseDate(startDateStr);
+      const endDate = parseDate(endDateStr);
+      
+      // Check if dates are valid
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return false;
+      }
+      
+      // Check if end date is same or after start date
+      return endDate >= startDate;
+    } catch (error) {
+      console.log('Error validating dates:', error);
+      return false;
+    }
   };
 
   // Function to trigger date picker for calendar icons
@@ -737,8 +788,25 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       
       if (datePickerMode === "start") {
         setStartDate(formattedDate);
+        // Clear end date error when start date changes
+        if (errors.endDate) {
+          setErrors(prev => ({ ...prev, endDate: false }));
+        }
+        // Validate dates if end date is already set
+        if (endDate && !validateDates(formattedDate, endDate)) {
+          setErrors(prev => ({ ...prev, endDate: true }));
+          showToast('error', 'End date must be same or after start date');
+        }
       } else {
         setEndDate(formattedDate);
+        // Validate dates if start date is already set
+        if (startDate && !validateDates(startDate, formattedDate)) {
+          setErrors(prev => ({ ...prev, endDate: true }));
+          showToast('error', 'End date must be same or after start date');
+        } else {
+          // Clear error if validation passes
+          setErrors(prev => ({ ...prev, endDate: false }));
+        }
       }
     }
   };
@@ -1018,6 +1086,41 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     console.log('Set currentImageType to main, boothIndex to -1, eventIndex to -1');
   };
 
+  const handleDeleteImage = (index: number, imageType: "main" | "booth" | "event", boothIndex?: number) => {
+    Alert.alert(
+      "Delete Image",
+      "Are you sure you want to delete this image?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            if (imageType === "main") {
+              const newPhotos = [...uploadPhotos];
+              newPhotos.splice(index, 1);
+              setUploadPhotos(newPhotos);
+            } else if (imageType === "booth" && boothIndex !== undefined) {
+              setBooths(prevBooths => {
+                const updatedBooths = [...prevBooths];
+                if (updatedBooths[boothIndex]) {
+                  const newBoothImages = [...updatedBooths[boothIndex].boothImages];
+                  newBoothImages.splice(index, 1);
+                  updatedBooths[boothIndex].boothImages = newBoothImages;
+                }
+                return updatedBooths;
+              });
+            }
+            showToast('success', 'Image deleted successfully');
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={[addClubEventDetailStyle.container, { paddingTop: insets.top }]}>
       <StatusBar 
@@ -1123,11 +1226,23 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 onChangeText={(text) => {
                   console.log('Start date selected:', text);
                   setStartDate(text);
+                  // Clear errors when user types
+                  if (errors.startDate) {
+                    setErrors(prev => ({ ...prev, startDate: false }));
+                  }
+                  // Validate dates if end date is set
+                  if (endDate && !validateDates(text, endDate)) {
+                    setErrors(prev => ({ ...prev, endDate: true }));
+                    showToast('error', 'End date must be same or after start date');
+                  }
                 }}
-                error={false}
-                message=""
+                error={errors.startDate}
+                message={errors.startDate ? "Start date is required" : ""}
                 leftImage=""
                 style={addClubEventDetailStyle.datePickerWrapper}
+                allowFutureDates={true}
+                minDate={new Date()}
+                maxDate={new Date(2035, 11, 31)}
               />
               <TouchableOpacity 
                 style={addClubEventDetailStyle.datePickerRightIcon}
@@ -1144,11 +1259,30 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 onChangeText={(text) => {
                   console.log('End date selected:', text);
                   setEndDate(text);
+                  // Clear errors when user types
+                  if (errors.endDate) {
+                    setErrors(prev => ({ ...prev, endDate: false }));
+                  }
+                  // Validate dates if start date is set
+                  if (startDate && !validateDates(startDate, text)) {
+                    setErrors(prev => ({ ...prev, endDate: true }));
+                    showToast('error', 'End date must be same or after start date');
+                  }
                 }}
-                error={false}
-                message=""
+                error={errors.endDate}
+                message={errors.endDate ? "End date must be same or after start date" : ""}
                 leftImage=""
                 style={addClubEventDetailStyle.datePickerWrapper}
+                allowFutureDates={true}
+                minDate={startDate ? (() => {
+                  try {
+                    const [day, month, year] = startDate.split('/');
+                    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                  } catch (error) {
+                    return new Date();
+                  }
+                })() : new Date()}
+                maxDate={new Date(2035, 11, 31)}
               />
               <TouchableOpacity 
                 style={addClubEventDetailStyle.datePickerRightIcon}
@@ -1221,6 +1355,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               <TouchableOpacity
                 style={addClubEventDetailStyle.addressContainer}
                 onPress={() => setShowAddressModal(true)}
+                activeOpacity={0.7}
               >
                 <View style={addClubEventDetailStyle.addressInputContainer}>
                   <TextInput
@@ -1233,6 +1368,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     value={address}
                     editable={false}
                     multiline={true}
+                    pointerEvents="none"
                   />
                   <View style={addClubEventDetailStyle.locationIconContainer}>
                     <LocationIcon width={20} height={20} color={colors.violate} />
@@ -1256,6 +1392,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     onUpdate={updateBooth}
                     onRemove={removeBooth}
                     onImagePicker={handleImagePicker}
+                    onDeleteImage={(boothIndex, imageIndex) => handleDeleteImage(imageIndex, "booth", boothIndex)}
                     boothTypes={boothTypes}
                   />
                 ))}
@@ -1308,27 +1445,36 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </Text>
               <View style={addClubEventDetailStyle.uploadPhotosRow}>
                 {[0, 1, 2].map((index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={addClubEventDetailStyle.imageUploadBox}
-                    onPress={() => {
-                      if (uploadPhotos.length < 3 || uploadPhotos[index]) {
-                        handlePhotoUpload(index);
-                      } else {
-                        showToast('error', 'Maximum 3 images allowed');
-                      }
-                    }}
-                  >
-                    {uploadPhotos[index] ? (
-                      <Image
-                        source={{ uri: uploadPhotos[index] }}
-                        style={addClubEventDetailStyle.uploadedImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                    <GalleryIcon />
+                  <View key={index} style={addClubEventDetailStyle.imageContainer}>
+                    <TouchableOpacity
+                      style={addClubEventDetailStyle.imageUploadBox}
+                      onPress={() => {
+                        if (uploadPhotos.length < 3 || uploadPhotos[index]) {
+                          handlePhotoUpload(index);
+                        } else {
+                          showToast('error', 'Maximum 3 images allowed');
+                        }
+                      }}
+                    >
+                      {uploadPhotos[index] ? (
+                        <Image
+                          source={{ uri: uploadPhotos[index] }}
+                          style={addClubEventDetailStyle.uploadedImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                      <GalleryIcon />
+                      )}
+                    </TouchableOpacity>
+                    {uploadPhotos[index] && (
+                      <TouchableOpacity
+                        style={addClubEventDetailStyle.deleteButton}
+                        onPress={() => handleDeleteImage(index, "main")}
+                      >
+                        <DeleteIconNew width={20} height={20} />
+                      </TouchableOpacity>
                     )}
-                  </TouchableOpacity>
+                  </View>
                 ))}
               </View>
             </View>
@@ -1381,7 +1527,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         </View>
       </LinearGradient>
 
-      {showTimePicker && (
+      {/* iOS Custom Modal Time Picker */}
+      {showTimePicker && Platform.OS === "ios" && (
         <Modal
           visible={showTimePicker}
           transparent={true}
@@ -1405,25 +1552,19 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               {/* Display current selected time */}
               <View style={addClubEventDetailStyle.timeDisplayContainer}>
                 <Text style={addClubEventDetailStyle.timeDisplayText}>
-                  {selectedTime.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  {formatTimeString(selectedTime)}
                 </Text>
               </View>
               
               <DateTimePicker
                 value={selectedTime}
                 mode="time"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
+                display="spinner"
                 onChange={handleTimeChange}
                 textColor={colors.white}
                 is24Hour={false}
                 themeVariant="dark"
                 style={addClubEventDetailStyle.timePicker}
-                minimumDate={new Date(2020, 0, 1)}
-                maximumDate={new Date(2030, 11, 31)}
               />
               
               <View style={addClubEventDetailStyle.timePickerButtons}>
@@ -1437,19 +1578,20 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                   style={addClubEventDetailStyle.timePickerConfirmButton}
                   onPress={() => {
                     console.log('Confirm button pressed, selectedTime:', selectedTime);
-                    const timeString = selectedTime.toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    });
+                    const timeString = formatTimeString(selectedTime);
                     console.log('Time string generated:', timeString);
-                    if (timePickerMode === "start") {
-                      setStartTime(timeString);
-                      console.log('Set startTime to:', timeString);
-                    } else {
-                      setEndTime(timeString);
-                      console.log('Set endTime to:', timeString);
-                    }
+                    
+                    // Use setTimeout to ensure state updates are processed
+                    setTimeout(() => {
+                      if (timePickerMode === "start") {
+                        setStartTime(timeString);
+                        console.log('Set startTime to:', timeString);
+                      } else {
+                        setEndTime(timeString);
+                        console.log('Set endTime to:', timeString);
+                      }
+                    }, 100);
+                    
                     setShowTimePicker(false);
                   }}
                 >
@@ -1461,17 +1603,50 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         </Modal>
       )}
 
+      {/* Android Native Time Picker */}
+      {showTimePicker && Platform.OS === "android" && (
+        <DateTimePicker
+          value={selectedTime}
+          mode="time"
+          display="default"
+          onChange={handleTimeChange}
+          is24Hour={false}
+        />
+      )}
+
       {showDatePicker && (
         <DateTimePicker
-          value={datePickerMode === "start" ? 
-            (startDate ? new Date(startDate.split('/').reverse().join('-')) : new Date()) : 
-            (endDate ? new Date(endDate.split('/').reverse().join('-')) : new Date())
-          }
+          value={(() => {
+            try {
+              if (datePickerMode === "start" && startDate) {
+                const [day, month, year] = startDate.split('/');
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+              } else if (datePickerMode === "end" && endDate) {
+                const [day, month, year] = endDate.split('/');
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+              }
+              return new Date();
+            } catch (error) {
+              return new Date();
+            }
+          })()}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={handleDateChange}
           textColor={colors.white}
           themeVariant="dark"
+          minimumDate={(() => {
+            try {
+              if (datePickerMode === "end" && startDate) {
+                const [day, month, year] = startDate.split('/');
+                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+              }
+              return new Date();
+            } catch (error) {
+              return new Date();
+            }
+          })()}
+          maximumDate={new Date(2035, 11, 31)} // Allow dates up to 2035
         />
       )}
 

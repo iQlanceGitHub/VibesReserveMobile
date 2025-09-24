@@ -315,4 +315,65 @@ emptyStateText: {
   fontSize: fontScale(16),
   textAlign: 'center',
 },
+
+modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: horizontalScale(20),
+},
+comingSoonDialog: {
+  backgroundColor: colors.white,
+  borderRadius: verticalScale(16),
+  padding: verticalScale(24),
+  width: '100%',
+  maxWidth: horizontalScale(320),
+  shadowColor: colors.black,
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.3,
+  shadowRadius: 8,
+  elevation: 8,
+},
+dialogHeader: {
+  alignItems: 'center',
+  marginBottom: verticalScale(16),
+},
+dialogTitle: {
+  fontSize: fontScale(24),
+  fontFamily: fonts.bold,
+  color: colors.violate,
+  textAlign: 'center',
+},
+dialogContent: {
+  marginBottom: verticalScale(24),
+},
+dialogMessage: {
+  fontSize: fontScale(16),
+  fontFamily: fonts.regular,
+  color: colors.black,
+  textAlign: 'center',
+  lineHeight: fontScale(22),
+},
+dialogActions: {
+  alignItems: 'center',
+},
+dialogButton: {
+  backgroundColor: colors.violate,
+  paddingHorizontal: horizontalScale(32),
+  paddingVertical: verticalScale(12),
+  borderRadius: verticalScale(32),
+  minWidth: horizontalScale(120),
+},
+dialogButtonText: {
+  fontSize: fontScale(16),
+  fontFamily: fonts.semiBold,
+  color: colors.white,
+  textAlign: 'center',
+
+},
+
 });

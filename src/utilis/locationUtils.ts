@@ -1,7 +1,7 @@
 import Geolocation from 'react-native-geolocation-service';
 import { Platform, Alert } from 'react-native';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Geocoder from 'react-native-geocoding';
+import LocationPermissionManager from './locationPermissionUtils';
 
 // Initialize Geocoder with API key
 Geocoder.init('AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y');
@@ -25,26 +25,11 @@ export interface LocationPermissionResult {
  */
 export const checkLocationPermission = async (): Promise<LocationPermissionResult> => {
   try {
-    let permissionStatus;
-    
-    if (Platform.OS === 'ios') {
-      permissionStatus = await check(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-    } else if (Platform.OS === 'android') {
-      permissionStatus = await check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-    }
-    
-    if (permissionStatus === RESULTS.GRANTED) {
-      return { granted: true };
-    } else if (permissionStatus === RESULTS.DENIED) {
-      // Request permission
-      const requestResult = await requestLocationPermission();
-      return requestResult;
-    } else {
-      return { 
-        granted: false, 
-        message: 'Location permission denied. Please enable location access in settings.' 
-      };
-    }
+    const result = await LocationPermissionManager.checkLocationPermission();
+    return {
+      granted: result.granted,
+      message: result.error
+    };
   } catch (error) {
     console.log('Error checking location permission:', error);
     return { 
@@ -59,22 +44,11 @@ export const checkLocationPermission = async (): Promise<LocationPermissionResul
  */
 export const requestLocationPermission = async (): Promise<LocationPermissionResult> => {
   try {
-    let permissionStatus;
-    
-    if (Platform.OS === 'ios') {
-      permissionStatus = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
-    } else if (Platform.OS === 'android') {
-      permissionStatus = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-    }
-    
-    if (permissionStatus === RESULTS.GRANTED) {
-      return { granted: true };
-    } else {
-      return { 
-        granted: false, 
-        message: 'Location permission denied. Please enable location access in settings.' 
-      };
-    }
+    const result = await LocationPermissionManager.requestLocationPermission();
+    return {
+      granted: result.granted,
+      message: result.error
+    };
   } catch (error) {
     console.log('Error requesting location permission:', error);
     return { 
@@ -87,89 +61,39 @@ export const requestLocationPermission = async (): Promise<LocationPermissionRes
 /**
  * Get current location with reverse geocoding
  */
-export const getCurrentLocation = (): Promise<LocationData> => {
-  return new Promise((resolve, reject) => {
-    // First attempt with high accuracy
-    Geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          console.log("Location obtained:", latitude, longitude);
-          
-          // Reverse geocode to get address
-          const addressData = await reverseGeocode(latitude, longitude);
-          
-          const locationData: LocationData = {
-            latitude,
-            longitude,
-            city: addressData.city,
-            country: addressData.country,
-            state: addressData.state,
-            fullAddress: addressData.fullAddress,
-          };
-          
-          resolve(locationData);
-        } catch (error) {
-          console.log('Error processing location:', error);
-          reject(error);
-        }
-      },
-      (error) => {
-        console.log('High accuracy location failed, trying fallback:', error);
-        
-        // Fallback with lower accuracy for Android 15 compatibility
-        Geolocation.getCurrentPosition(
-          async (position) => {
-            try {
-              const { latitude, longitude } = position.coords;
-              console.log("Fallback location obtained:", latitude, longitude);
-              
-              const addressData = await reverseGeocode(latitude, longitude);
-              
-              const locationData: LocationData = {
-                latitude,
-                longitude,
-                city: addressData.city,
-                country: addressData.country,
-                state: addressData.state,
-                fullAddress: addressData.fullAddress,
-              };
-              
-              resolve(locationData);
-            } catch (fallbackError) {
-              console.log('Error processing fallback location:', fallbackError);
-              reject(fallbackError);
-            }
-          },
-          (fallbackError) => {
-            console.log('Fallback location also failed:', fallbackError);
-            reject(fallbackError);
-          },
-          {
-            enableHighAccuracy: false,
-            timeout: 15000,
-            maximumAge: 300000, // 5 minutes
-            ...(Platform.OS === 'android' && {
-              forceRequestLocation: false,
-              forceLocationManager: true,
-              showLocationDialog: false,
-            }),
-          }
-        );
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000, // Increased timeout for Android 15
-        maximumAge: 10000,
-        // Android 15+ specific options
-        ...(Platform.OS === 'android' && {
-          forceRequestLocation: true,
-          forceLocationManager: false,
-          showLocationDialog: true,
-        }),
-      }
-    );
-  });
+export const getCurrentLocation = async (): Promise<LocationData> => {
+  try {
+    // Use the new permission manager
+    const result = await LocationPermissionManager.getCurrentLocation({
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 10000
+    });
+
+    if (!result.success || !result.data) {
+      throw new Error(result.error || 'Failed to get location');
+    }
+
+    const { latitude, longitude } = result.data;
+    console.log("Location obtained:", latitude, longitude);
+    
+    // Reverse geocode to get address
+    const addressData = await reverseGeocode(latitude, longitude);
+    
+    const locationData: LocationData = {
+      latitude,
+      longitude,
+      city: addressData.city,
+      country: addressData.country,
+      state: addressData.state,
+      fullAddress: addressData.fullAddress,
+    };
+    
+    return locationData;
+  } catch (error) {
+    console.log('Error getting current location:', error);
+    throw error;
+  }
 };
 
 /**

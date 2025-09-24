@@ -16,7 +16,7 @@ const store: any = configureStore(initialState);
 function App(): React.JSX.Element {
   GoogleSignin.configure({
     webClientId:
-      "233362513415-5ipa4s95r3ir23vgrh5f4t210tfpijrv.apps.googleusercontent.com",
+    Platform.OS === "ios" ? "233362513415-5ipa4s95r3ir23vgrh5f4t210tfpijrv.apps.googleusercontent.com" : "581614872749-kjh1qf6gi879cuheh0gc0dkslekvrmu8.apps.googleusercontent.com",
     offlineAccess: true,
     iosClientId:
       "233362513415-dlq70usscn8n825h5njp9osp4l6im5c7.apps.googleusercontent.com", // From Google Console
