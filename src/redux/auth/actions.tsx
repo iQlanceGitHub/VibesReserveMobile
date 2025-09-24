@@ -106,6 +106,10 @@ export const {
   createeventData,
   createeventError,
 
+  onBookingDetail,
+  bookingDetailData,
+  bookingDetailError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -214,6 +218,10 @@ export const {
   "ON_CREATEEVENT",
   "CREATEEVENT_DATA",
   "CREATEEVENT_ERROR",
+
+  "ON_BOOKING_DETAIL",
+  "BOOKING_DETAIL_DATA",
+  "BOOKING_DETAIL_ERROR",
 
   "SET_LOGIN_TOKEN",
 

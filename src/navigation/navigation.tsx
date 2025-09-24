@@ -47,6 +47,7 @@ import homeScreen from "../screen/dashboard/user/homeScreen/homeScreen";
 import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
 import AddClubDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingScreen";
+import BookingDetailScreen from "../screen/dashboard/host/hostBooking/bookingDetailScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -102,6 +103,7 @@ export type RootStackParamList = {
   PromotionalCode: undefined;
   AddPromotionalCode: undefined;
   HelpSupport: undefined;
+  BookingDetailScreen: { bookingId: string };
 };
 
 function MyTabs() {
@@ -307,6 +309,8 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="HelpSupport"
             component={HelpSupport}
+            name="BookingDetailScreen"
+            component={BookingDetailScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

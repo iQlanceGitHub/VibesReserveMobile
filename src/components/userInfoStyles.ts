@@ -37,7 +37,7 @@ export const userInfoStyles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: "row",
-    gap: horizontalScale(12),
+    gap: horizontalScale(6),
   },
   actionButton: {
     width: horizontalScale(40),

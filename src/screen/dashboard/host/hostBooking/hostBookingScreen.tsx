@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  RefreshControl,
+} from "react-native";
 import { colors } from "../../../../utilis/colors";
 import PeopleIcon from "../../../../assets/svg/peopleIcon";
 import ChatIcon from "../../../../assets/svg/chatIcon";
@@ -33,13 +40,20 @@ interface BookingData {
   status?: string;
 }
 
-const HostBookingScreen: React.FC = () => {
+interface HostBookingScreenProps {
+  navigation: any;
+}
+
+const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
+  navigation,
+}) => {
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState<"accepted" | "rejected">(
     "accepted"
   );
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Redux state
   const {
@@ -82,6 +96,12 @@ const HostBookingScreen: React.FC = () => {
     );
   };
 
+  // Handle pull to refresh
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchBookings(selectedTab === "accepted" ? "confirmed" : "cancelled");
+  };
+
   // Handle API response
   useEffect(() => {
     if (
@@ -96,12 +116,14 @@ const HostBookingScreen: React.FC = () => {
       );
       setBookings(transformedBookings);
       setLoading(false);
+      setRefreshing(false);
       dispatch(bookingrequestData(""));
     }
 
     if (bookingrequestErr) {
       console.log("Booking request error:", bookingrequestErr);
       setLoading(false);
+      setRefreshing(false);
       showToast("error", "Failed to fetch bookings. Please try again.");
       dispatch(bookingrequestError(""));
     }
@@ -197,8 +219,17 @@ const HostBookingScreen: React.FC = () => {
     console.log("Accept booking:", bookingId);
   };
 
+  const handleCardPress = (bookingId: string) => {
+    console.log("Navigate to booking detail:", bookingId);
+    try {
+      navigation.navigate("BookingDetailScreen", { bookingId });
+    } catch (error) {
+      console.log("Navigation error:", error);
+    }
+  };
+
   const renderBookingCard = (booking: BookingData, index: number) => (
-    <View
+    <TouchableOpacity
       key={booking.id}
       style={[
         selectedTab === "rejected"
@@ -209,6 +240,8 @@ const HostBookingScreen: React.FC = () => {
             ? styles.lastRejectedBookingCard
             : styles.lastBookingCard),
       ]}
+      onPress={() => handleCardPress(booking.id)}
+      activeOpacity={0.7}
     >
       <View style={styles.cardContent}>
         <View style={styles.leftSection}>
@@ -272,7 +305,7 @@ const HostBookingScreen: React.FC = () => {
           </Text>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -318,6 +351,16 @@ const HostBookingScreen: React.FC = () => {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.violate]} // Android
+              tintColor={colors.violate} // iOS
+              title="Pull to refresh"
+              titleColor={colors.white}
+            />
+          }
         >
           {loading || reduxLoading ? (
             <View style={styles.emptyContainer}></View>
