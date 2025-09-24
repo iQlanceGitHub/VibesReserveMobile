@@ -39,7 +39,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   };
 
   const handlePromotionalCodes = () => {
-    console.log("Promotional Codes pressed");
+    navigation?.navigate("PromotionalCode");
   };
 
   const handleHelpSupport = () => {

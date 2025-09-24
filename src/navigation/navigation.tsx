@@ -35,6 +35,7 @@ import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/u
 import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfileScreen";
 import ManageAvailability from "../screen/dashboard/host/profileScreen/manageAvailability";
+import PromotionalCode from "../screen/dashboard/host/profileScreen/promotionalCode";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import { colors } from "../utilis/colors";
@@ -96,6 +97,7 @@ export type RootStackParamList = {
   AddClubEventDetailScreen: undefined;
   HostProfileScreen: undefined;
   ManageAvailability: undefined;
+  PromotionalCode: undefined;
 };
 
 function MyTabs() {
@@ -286,6 +288,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ManageAvailability"
             component={ManageAvailability}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PromotionalCode"
+            component={PromotionalCode}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
