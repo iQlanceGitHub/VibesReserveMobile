@@ -75,28 +75,30 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
 }) => {
   return (
     <View style={{ flex: 1 }}>
-      <Text
-        style={{
-          color: colors.white,
-          fontSize: 14,
-          fontFamily: fonts.medium,
-          marginBottom: 8,
-        }}
-      >
-        {label && label.includes("(Optional)") ? (
-          <>
-            {label.replace(" (Optional)", "")}
-            <Text style={{ color: "#868C98" }}> (Optional)</Text>
-          </>
-        ) : label && label.includes("*") ? (
-          <>
-            {label.replace(" *", "")}
-            <Text style={{ color: "#868C98" }}> *</Text>
-          </>
-        ) : (
-          label || ""
-        )}
-      </Text>
+      {label && (
+        <Text
+          style={{
+            color: colors.white,
+            fontSize: 14,
+            fontFamily: fonts.medium,
+            marginBottom: 8,
+          }}
+        >
+          {label.includes("(Optional)") ? (
+            <>
+              {label.replace(" (Optional)", "")}
+              <Text style={{ color: "#868C98" }}> (Optional)</Text>
+            </>
+          ) : label.includes("*") ? (
+            <>
+              {label.replace(" *", "")}
+              <Text style={{ color: "#868C98" }}> *</Text>
+            </>
+          ) : (
+            label
+          )}
+        </Text>
+      )}
       <View style={{ position: "relative" }}>
         {leftImage && typeof leftImage !== "string" && (
           <View

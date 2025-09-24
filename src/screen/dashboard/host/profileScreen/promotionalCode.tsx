@@ -67,7 +67,7 @@ const PromotionalCode: React.FC<PromotionalCodeProps> = ({ navigation }) => {
   };
 
   const handleAddPress = () => {
-    console.log("Add promotional code pressed");
+    navigation?.navigate("AddPromotionalCode");
   };
 
   const handleEditPress = (code: PromotionalCode) => {
