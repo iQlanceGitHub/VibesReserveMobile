@@ -43,7 +43,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   };
 
   const handleHelpSupport = () => {
-    console.log("Help and Support pressed");
+    navigation?.navigate("HelpSupport");
   };
 
   const handleLogout = () => {
