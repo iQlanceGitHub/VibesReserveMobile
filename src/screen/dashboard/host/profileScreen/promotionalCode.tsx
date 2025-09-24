@@ -71,7 +71,7 @@ const PromotionalCode: React.FC<PromotionalCodeProps> = ({ navigation }) => {
   };
 
   const handleEditPress = (code: PromotionalCode) => {
-    console.log("Edit promotional code:", code.code);
+    navigation?.navigate("EditPromotionalCode");
   };
 
   const handleDeletePress = (code: PromotionalCode) => {

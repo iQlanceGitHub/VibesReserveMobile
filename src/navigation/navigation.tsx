@@ -37,6 +37,7 @@ import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfil
 import ManageAvailability from "../screen/dashboard/host/profileScreen/manageAvailability";
 import PromotionalCode from "../screen/dashboard/host/profileScreen/promotionalCode";
 import AddPromotionalCode from "../screen/dashboard/host/profileScreen/addPromotionalCode";
+import EditPromotionalCode from "../screen/dashboard/host/profileScreen/editPromotionalCode";
 import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
@@ -102,6 +103,7 @@ export type RootStackParamList = {
   ManageAvailability: undefined;
   PromotionalCode: undefined;
   AddPromotionalCode: undefined;
+  EditPromotionalCode: undefined;
   HelpSupport: undefined;
   BookingDetailScreen: { bookingId: string };
 };
@@ -304,6 +306,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="AddPromotionalCode"
             component={AddPromotionalCode}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="EditPromotionalCode"
+            component={EditPromotionalCode}
             options={{ headerShown: false }}
           />
           <Stack.Screen
