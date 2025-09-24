@@ -49,7 +49,7 @@ const DetailsInput: React.FC<DetailsInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: verticalScale(16),
+    marginBottom: verticalScale(10),
   },
   label: {
     color: colors.white,
