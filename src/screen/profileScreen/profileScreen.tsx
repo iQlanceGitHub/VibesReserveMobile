@@ -54,7 +54,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const handleEditProfile = () => {
-    console.log("Edit profile pressed");
+    navigation?.navigate("EditProfileScreen");
   };
 
   const renderMenuOption = (

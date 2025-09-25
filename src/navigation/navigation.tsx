@@ -24,6 +24,7 @@ import ForgotPasswordScreen from "../screen/auth/ForgotPasswordScreen/ForgotPass
 import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswordScreen";
 import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
+import EditProfileScreen from "../screen/editProfileScreen/editProfileScren";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
 import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
 import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
@@ -34,6 +35,10 @@ import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearby
 import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
 import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfileScreen";
+import ManageAvailability from "../screen/dashboard/host/profileScreen/manageAvailability";
+import PromotionalCode from "../screen/dashboard/host/profileScreen/promotionalCode";
+import AddPromotionalCode from "../screen/dashboard/host/profileScreen/addPromotionalCode";
+import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import { colors } from "../utilis/colors";
@@ -43,6 +48,8 @@ import homeScreen from "../screen/dashboard/user/homeScreen/homeScreen";
 import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
 import AddClubDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingScreen";
+import BookingDetailScreen from "../screen/dashboard/host/hostBooking/bookingDetailScreen";
+import BookingScreen from "../screen/bookingScreen/bookingScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -78,6 +85,7 @@ export type RootStackParamList = {
   HomeTabs: undefined;
   LeaveReviewScreen: undefined;
   ProfileScreen: undefined;
+  EditProfileScreen: undefined;
   WelcomeScreen: undefined;
   SignupScreen: undefined;
   OTPVerificationScreen: undefined;
@@ -94,6 +102,11 @@ export type RootStackParamList = {
   UpcomingScreen: undefined;
   AddClubEventDetailScreen: undefined;
   HostProfileScreen: undefined;
+  ManageAvailability: undefined;
+  PromotionalCode: undefined;
+  AddPromotionalCode: undefined;
+  HelpSupport: undefined;
+  BookingDetailScreen: { bookingId: string };
 };
 
 function MyTabs() {
@@ -111,7 +124,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={UpcomingScreen}
+        component={BookingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -121,7 +134,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Setting"
-        component={UpcomingScreen}
+        component={ProfileScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -232,6 +245,11 @@ const NavigationStack: React.FC = () => {
             name="ProfileScreen"
             component={ProfileScreen}
           />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="EditProfileScreen"
+            component={EditProfileScreen}
+          />
 
           <Stack.Screen
             name="HomeTabs"
@@ -279,6 +297,31 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="HostProfileScreen"
             component={HostProfileScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ManageAvailability"
+            component={ManageAvailability}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PromotionalCode"
+            component={PromotionalCode}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AddPromotionalCode"
+            component={AddPromotionalCode}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HelpSupport"
+            component={HelpSupport}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BookingDetailScreen"
+            component={BookingDetailScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

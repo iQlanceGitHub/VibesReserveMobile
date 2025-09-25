@@ -8,6 +8,7 @@ import {
   Platform,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from "react-native";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -146,12 +147,23 @@ const BookingCard: React.FC<{
 
 const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState("upcoming");
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
   };
 
   const handleCancelBooking = (bookingId: string) => {};
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    // Simulate API call delay
+    setTimeout(() => {
+      // Here you would typically fetch fresh data from your API
+      // For now, we'll just reset the refreshing state
+      setRefreshing(false);
+    }, 2000);
+  };
 
   const getBookingsForTab = () => {
     switch (selectedTab) {
@@ -219,6 +231,16 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
             style={styles.bookingsContainer}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.bookingsContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[colors.violate]} // Android
+                tintColor={colors.violate} // iOS
+                title="Pull to refresh"
+                titleColor={colors.white}
+              />
+            }
           >
             {currentBookings.map((booking) => (
               <BookingCard

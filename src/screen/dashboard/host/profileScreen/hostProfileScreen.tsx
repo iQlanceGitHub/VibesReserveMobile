@@ -35,15 +35,15 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   };
 
   const handleManageAvailability = () => {
-    console.log("Manage Availability pressed");
+    navigation?.navigate("ManageAvailability");
   };
 
   const handlePromotionalCodes = () => {
-    console.log("Promotional Codes pressed");
+    navigation?.navigate("PromotionalCode");
   };
 
   const handleHelpSupport = () => {
-    console.log("Help and Support pressed");
+    navigation?.navigate("HelpSupport");
   };
 
   const handleLogout = () => {
