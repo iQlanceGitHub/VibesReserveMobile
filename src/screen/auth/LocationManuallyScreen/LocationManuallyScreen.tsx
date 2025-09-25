@@ -2,12 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   StatusBar,
   SafeAreaView,
   Platform,
-  TextInput,
   Alert,
   ScrollView,
   KeyboardAvoidingView,
@@ -15,7 +13,6 @@ import {
   Linking
 } from "react-native";
 import { colors } from "../../../utilis/colors";
-import { fonts } from "../../../utilis/fonts";
 import { BackButton } from "../../../components/BackButton";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
@@ -36,8 +33,6 @@ import {
 import { showToast } from "../../../utilis/toastUtils.tsx";
 
 import { useDispatch, useSelector } from 'react-redux';
-import { CustomAlertSingleBtn } from '../../../components/CustomeAlertDialog';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 // Define types for location data
 interface LocationResult {
   id: string;

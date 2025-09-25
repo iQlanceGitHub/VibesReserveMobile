@@ -1,19 +1,14 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef,  useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  Image,
   Dimensions,
-  useColorScheme,
   Platform,
 } from "react-native";
 import Carousel from "react-native-snap-carousel";
 import { Buttons } from "../../../components/buttons";
-import { getHeight, getWidth } from "../../../utilis/appConstant";
+import {  getWidth } from "../../../utilis/appConstant";
 import { colors } from "../../../utilis/colors";
-import { fonts } from "../../../utilis/fonts";
-
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
