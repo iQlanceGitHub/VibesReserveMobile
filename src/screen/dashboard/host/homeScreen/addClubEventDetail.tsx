@@ -52,6 +52,7 @@ import { useFacility } from '../../../../hooks/useFacility';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LocationIcon from '../../../../assets/svg/locationIcon';
 import GoogleAddressAutocomplete from '../../../../components/GoogleAddressAutocomplete';
+import CustomTimePicker from '../../../../components/CustomTimePicker';
 
 // Google Maps API key
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
@@ -652,13 +653,16 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       event: event.type, 
       selectedTime, 
       timePickerMode,
-      platform: Platform.OS 
+      platform: Platform.OS,
+      eventType: event.type,
+      hasSelectedTime: !!selectedTime
     });
     
     // Always update the selected time state when time changes
     if (selectedTime) {
       setSelectedTime(selectedTime);
       console.log('Updated selectedTime to:', selectedTime);
+      console.log('Formatted time string:', formatTimeString(selectedTime));
     }
     
     // For Android, handle immediate selection and close picker
@@ -693,31 +697,30 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     
     // Set initial time based on current value or default
     let initialTime = new Date();
-    if (mode === "start" && startTime) {
-      // Parse existing start time
+    
+    // Set default times based on mode
+    if (mode === "start") {
+      // Default start time: 10:00 AM
+      initialTime.setHours(10, 0, 0, 0);
+    } else {
+      // Default end time: 11:00 PM
+      initialTime.setHours(23, 0, 0, 0);
+    }
+    
+    // Try to parse existing time if available
+    const currentTime = mode === "start" ? startTime : endTime;
+    if (currentTime && currentTime.trim() !== "") {
       try {
-        const [time, period] = startTime.split(' ');
+        const [time, period] = currentTime.split(' ');
         const [hours, minutes] = time.split(':');
         let hour24 = parseInt(hours);
         if (period === 'PM' && hour24 !== 12) hour24 += 12;
         if (period === 'AM' && hour24 === 12) hour24 = 0;
         initialTime.setHours(hour24, parseInt(minutes), 0, 0);
-        console.log('Parsed start time:', initialTime);
+        console.log('Parsed existing time:', initialTime);
       } catch (error) {
-        console.log('Error parsing start time, using default:', error);
-      }
-    } else if (mode === "end" && endTime) {
-      // Parse existing end time
-      try {
-        const [time, period] = endTime.split(' ');
-        const [hours, minutes] = time.split(':');
-        let hour24 = parseInt(hours);
-        if (period === 'PM' && hour24 !== 12) hour24 += 12;
-        if (period === 'AM' && hour24 === 12) hour24 = 0;
-        initialTime.setHours(hour24, parseInt(minutes), 0, 0);
-        console.log('Parsed end time:', initialTime);
-      } catch (error) {
-        console.log('Error parsing end time, using default:', error);
+        console.log('Error parsing existing time, using default:', error);
+        // Keep the default time set above
       }
     }
     
@@ -788,6 +791,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       
       if (datePickerMode === "start") {
         setStartDate(formattedDate);
+        // Reset start time when start date changes
+        setStartTime("");
         // Clear end date error when start date changes
         if (errors.endDate) {
           setErrors(prev => ({ ...prev, endDate: false }));
@@ -799,6 +804,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         }
       } else {
         setEndDate(formattedDate);
+        // Reset end time when end date changes
+        setEndTime("");
         // Validate dates if start date is already set
         if (startDate && !validateDates(startDate, formattedDate)) {
           setErrors(prev => ({ ...prev, endDate: true }));
@@ -1069,6 +1076,13 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   useEffect(() => {
     console.log('Time picker state changed - showTimePicker:', showTimePicker, 'timePickerMode:', timePickerMode);
   }, [showTimePicker, timePickerMode]);
+
+  // Reset times when dates change
+  useEffect(() => {
+    // This effect will run when startDate or endDate changes
+    // The actual reset is handled in handleDateChange function
+    console.log('Date changed - startDate:', startDate, 'endDate:', endDate);
+  }, [startDate, endDate]);
 
   // Update image upload handlers
   const handlePhotoUpload = (index: number) => {
@@ -1556,15 +1570,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 </Text>
               </View>
               
-              <DateTimePicker
-                value={selectedTime}
-                mode="time"
-                display="spinner"
-                onChange={handleTimeChange}
-                textColor={colors.white}
-                is24Hour={false}
-                themeVariant="dark"
-                style={addClubEventDetailStyle.timePicker}
+              <CustomTimePicker
+                initialTime={selectedTime}
+                onTimeChange={setSelectedTime}
+                mode={timePickerMode}
               />
               
               <View style={addClubEventDetailStyle.timePickerButtons}>
@@ -1603,15 +1612,75 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         </Modal>
       )}
 
-      {/* Android Native Time Picker */}
+      {/* Android Custom Time Picker */}
       {showTimePicker && Platform.OS === "android" && (
-        <DateTimePicker
-          value={selectedTime}
-          mode="time"
-          display="default"
-          onChange={handleTimeChange}
-          is24Hour={false}
-        />
+        <Modal
+          visible={showTimePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowTimePicker(false)}
+        >
+          <View style={addClubEventDetailStyle.timePickerModal}>
+            <View style={addClubEventDetailStyle.timePickerContainer}>
+              <View style={addClubEventDetailStyle.timePickerHeader}>
+                <Text style={addClubEventDetailStyle.timePickerTitle}>
+                  Select {timePickerMode === "start" ? "Opening" : "Closing"} Time
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowTimePicker(false)}
+                  style={addClubEventDetailStyle.timePickerCloseButton}
+                >
+                  <Text style={addClubEventDetailStyle.timePickerCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Display current selected time */}
+              <View style={addClubEventDetailStyle.timeDisplayContainer}>
+                <Text style={addClubEventDetailStyle.timeDisplayText}>
+                  {formatTimeString(selectedTime)}
+                </Text>
+              </View>
+              
+              <CustomTimePicker
+                initialTime={selectedTime}
+                onTimeChange={setSelectedTime}
+                mode={timePickerMode}
+              />
+              
+              <View style={addClubEventDetailStyle.timePickerButtons}>
+                <TouchableOpacity
+                  style={addClubEventDetailStyle.timePickerCancelButton}
+                  onPress={() => setShowTimePicker(false)}
+                >
+                  <Text style={addClubEventDetailStyle.timePickerCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={addClubEventDetailStyle.timePickerConfirmButton}
+                  onPress={() => {
+                    console.log('Confirm button pressed, selectedTime:', selectedTime);
+                    const timeString = formatTimeString(selectedTime);
+                    console.log('Time string generated:', timeString);
+                    
+                    // Use setTimeout to ensure state updates are processed
+                    setTimeout(() => {
+                      if (timePickerMode === "start") {
+                        setStartTime(timeString);
+                        console.log('Set startTime to:', timeString);
+                      } else {
+                        setEndTime(timeString);
+                        console.log('Set endTime to:', timeString);
+                      }
+                    }, 100);
+                    
+                    setShowTimePicker(false);
+                  }}
+                >
+                  <Text style={addClubEventDetailStyle.timePickerConfirmText}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
 
       {showDatePicker && (
