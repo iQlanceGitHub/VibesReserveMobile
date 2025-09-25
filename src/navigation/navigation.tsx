@@ -130,7 +130,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={ReviewSummary}
+        component={UpcomingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen

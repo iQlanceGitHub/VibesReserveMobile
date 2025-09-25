@@ -1100,7 +1100,7 @@ function* ReviewSummarySaga({ payload }: { payload: ReviewSummaryPayload }) {
     };
 
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"user/review-summary"}`,
+      url: `${baseurl}${"user/reviewsummary"}`,
       params,
     });
 

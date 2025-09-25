@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 import LinearGradient from "react-native-linear-gradient";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import { Buttons } from "../../../../components/buttons";
@@ -19,6 +20,7 @@ import ClockIcon from "../../../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../../../assets/svg/arrowRightIcon";
 import DottedLine from "../../../../assets/svg/dottedLine";
 import { styles } from "./reviewSummeryStyle";
+import { onReviewSummary } from "../../../../redux/auth/actions";
 
 interface ReviewSummaryProps {
   navigation: any;
@@ -29,15 +31,34 @@ interface ReviewSummaryProps {
 }
 
 interface EventData {
-  id: string;
+  _id: string;
+  type: string;
+  userId: {
+    _id: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    countrycode: string;
+  };
   name: string;
-  category: string;
-  location: string;
-  date: string;
-  time: string;
-  price: string;
-  image: any;
-  isFavorite: boolean;
+  entryFee: number;
+  openingTime: string;
+  startDate: string;
+  address: string;
+  booths: Array<{
+    boothName: string;
+    boothType: {
+      _id: string;
+      name: string;
+    };
+    boothPrice: number;
+    capacity: number;
+    discountedPrice: number;
+    boothImage: string[];
+    _id: string;
+  }>;
+  tickets: any[];
+  photos: string[];
 }
 
 interface UserData {
@@ -48,10 +69,10 @@ interface UserData {
 }
 
 interface PriceBreakdown {
-  members: { count: number; price: number };
-  vipBooth: number;
-  discount: number;
-  fees: number;
+  memberCost: number;
+  boothCost: number;
+  discount: string;
+  fees: string;
   total: number;
 }
 
@@ -62,35 +83,47 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   onEventPress,
   onPaymentMethodChange,
 }) => {
+  const dispatch = useDispatch();
+  const { reviewSummary, reviewSummaryErr, loader } = useSelector(
+    (state: any) => state.auth
+  );
+
   const [promoCode, setPromoCode] = useState("");
-  const eventData: EventData = {
-    id: "1",
-    name: "Gala Night of Hilarious Comedy at The Club",
-    category: "DJ Nights",
-    location: "New York, USA",
-    date: "Sep 4",
-    time: "10:00 PM",
-    price: "$500",
-    image: {
-      uri: "https://via.placeholder.com/100x80/8D34FF/FFFFFF?text=Event",
-    },
-    isFavorite: false,
-  };
+  const [eventData, setEventData] = useState<EventData | null>(null);
+  const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(
+    null
+  );
 
-  const userData: UserData = {
-    fullName: "Mike Hussey",
-    phoneNumber: "+62703-701-9964",
-    email: "mike.hussey@gmail.com",
-    boothName: "Crystal Lounge",
-  };
+  const [userData, setUserData] = useState<UserData | null>(null);
 
-  const priceBreakdown: PriceBreakdown = {
-    members: { count: 4, price: 500.0 },
-    vipBooth: 650.0,
-    discount: 15.0,
-    fees: 25.0,
-    total: 2665.0,
-  };
+  useEffect(() => {
+    const staticPayload = {
+      eventid: "68d2413a82858961d66eb53b",
+      members: 4,
+      days: 4,
+    };
+
+    dispatch(onReviewSummary(staticPayload));
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (reviewSummary && reviewSummary.status === 1) {
+      setEventData(reviewSummary.data);
+      setPriceBreakdown(reviewSummary.summary);
+
+      if (reviewSummary.data && reviewSummary.data.userId) {
+        setUserData({
+          fullName: reviewSummary.data.userId.fullName || "N/A",
+          phoneNumber: reviewSummary.data.userId.phone || "N/A",
+          email: reviewSummary.data.userId.email || "N/A",
+          boothName:
+            reviewSummary.data.booths && reviewSummary.data.booths[0]
+              ? reviewSummary.data.booths[0].boothName
+              : "N/A",
+        });
+      }
+    }
+  }, [reviewSummary]);
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -122,7 +155,6 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
   const handleApplyPromoCode = () => {
     // Handle promo code application logic here
-    console.log("Applying promo code:", promoCode);
   };
 
   return (
@@ -152,102 +184,155 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             <View style={styles.headerSpacer} />
           </View>
 
-          <TouchableOpacity style={styles.eventCard} onPress={handleEventPress}>
-            <View style={styles.eventImageContainer}>
-              <Image source={eventData.image} style={styles.eventImage} />
-              <TouchableOpacity style={styles.favoriteButton}>
-                <HeartIcon color={colors.white} filled={eventData.isFavorite} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.eventContent}>
-              <View style={styles.eventHeader}>
-                <View style={styles.categoryTag}>
-                  <Text style={styles.categoryText}>{eventData.category}</Text>
-                </View>
-                <Text style={styles.eventPrice}>{eventData.price}</Text>
+          {eventData ? (
+            <TouchableOpacity
+              style={styles.eventCard}
+              onPress={handleEventPress}
+            >
+              <View style={styles.eventImageContainer}>
+                <Image
+                  source={{
+                    uri:
+                      eventData.photos[0] ||
+                      "https://via.placeholder.com/100x80/8D34FF/FFFFFF?text=Event",
+                  }}
+                  style={styles.eventImage}
+                />
+                <TouchableOpacity style={styles.favoriteButton}>
+                  <HeartIcon color={colors.white} filled={false} />
+                </TouchableOpacity>
               </View>
 
-              <Text style={styles.eventTitle}>{eventData.name}</Text>
+              <View style={styles.eventContent}>
+                <View style={styles.eventHeader}>
+                  <View style={styles.categoryTag}>
+                    <Text style={styles.categoryText}>{eventData.type}</Text>
+                  </View>
+                  <Text style={styles.eventPrice}>${eventData.entryFee}</Text>
+                </View>
 
-              <View style={styles.eventDetails}>
-                <View style={styles.detailRow}>
-                  <LocationFavourite color={colors.violate} />
-                  <Text style={styles.detailText}>{eventData.location}</Text>
+                <Text style={styles.eventTitle}>{eventData.name}</Text>
+
+                <View style={styles.eventDetails}>
+                  <View style={styles.detailRow}>
+                    <LocationFavourite color={colors.violate} />
+                    <Text style={styles.detailText}>{eventData.address}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <ClockIcon color={colors.violate} />
+                    <Text style={styles.detailText}>
+                      {new Date(eventData.startDate).toLocaleDateString()} -{" "}
+                      {eventData.openingTime}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.detailRow}>
-                  <ClockIcon color={colors.violate} />
-                  <Text style={styles.detailText}>
-                    {eventData.date} - {eventData.time}
-                  </Text>
-                </View>
+
+                <TouchableOpacity style={styles.eventActionButton}>
+                  <ArrowRightIcon color={colors.white} />
+                </TouchableOpacity>
               </View>
-
-              <TouchableOpacity style={styles.eventActionButton}>
-                <ArrowRightIcon color={colors.white} />
-              </TouchableOpacity>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.eventCard}>
+              <View
+                style={[
+                  styles.eventContent,
+                  {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    padding: 20,
+                  },
+                ]}
+              >
+                <Text style={[styles.eventTitle, { color: colors.white }]}>
+                  {loader ? "Loading..." : "No event data available"}
+                </Text>
+              </View>
             </View>
-          </TouchableOpacity>
+          )}
 
           <View style={styles.sectionContainer}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Full Name</Text>
-              <Text style={styles.infoValue}>{userData.fullName}</Text>
+              <Text style={styles.infoValue}>
+                {userData ? userData.fullName : loader ? "Loading..." : "N/A"}
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Phone Number</Text>
-              <Text style={styles.infoValue}>{userData.phoneNumber}</Text>
+              <Text style={styles.infoValue}>
+                {userData
+                  ? userData.phoneNumber
+                  : loader
+                  ? "Loading..."
+                  : "N/A"}
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{userData.email}</Text>
+              <Text style={styles.infoValue}>
+                {userData ? userData.email : loader ? "Loading..." : "N/A"}
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Booth Name</Text>
-              <Text style={styles.infoValue}>{userData.boothName}</Text>
+              <Text style={styles.infoValue}>
+                {userData ? userData.boothName : loader ? "Loading..." : "N/A"}
+              </Text>
             </View>
           </View>
 
           <View style={styles.sectionDivider} />
 
-          <View style={styles.sectionContainerNoBorderReduced}>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>
-                {priceBreakdown.members.count} Member
-              </Text>
-              <Text style={styles.priceValue}>
-                ${priceBreakdown.members.price.toFixed(2)}
-              </Text>
+          {priceBreakdown ? (
+            <View style={styles.sectionContainerNoBorderReduced}>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Member Cost</Text>
+                <Text style={styles.priceValue}>
+                  ${priceBreakdown.memberCost.toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Booth Cost</Text>
+                <Text style={styles.priceValue}>
+                  ${priceBreakdown.boothCost.toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Discount</Text>
+                <Text style={styles.priceValue}>
+                  -${priceBreakdown.discount}
+                </Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Fees</Text>
+                <Text style={styles.priceValue}>${priceBreakdown.fees}</Text>
+              </View>
+              <View style={styles.dottedLineContainer}>
+                <DottedLine />
+              </View>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>
+                  ${priceBreakdown.total.toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.divider} />
             </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>VIP Booth</Text>
-              <Text style={styles.priceValue}>
-                ${priceBreakdown.vipBooth.toFixed(2)}
-              </Text>
+          ) : (
+            <View style={styles.sectionContainerNoBorderReduced}>
+              <View
+                style={[
+                  styles.priceRow,
+                  { justifyContent: "center", padding: 20 },
+                ]}
+              >
+                <Text style={[styles.priceLabel, { color: colors.white }]}>
+                  {loader ? "Loading pricing..." : "No pricing data available"}
+                </Text>
+              </View>
             </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Discount</Text>
-              <Text style={styles.priceValue}>
-                -${priceBreakdown.discount.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Fees</Text>
-              <Text style={styles.priceValue}>
-                ${priceBreakdown.fees.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.dottedLineContainer}>
-              <DottedLine />
-            </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>
-                ${priceBreakdown.total.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.divider} />
-          </View>
+          )}
 
           <View style={styles.sectionContainer}>
             <View style={styles.paymentMethodRow}>
