@@ -12,7 +12,6 @@ import {
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
-import locationFavourite from "../../assets/svg/locationFavourite";
 import ClockIcon from "../../assets/svg/clockIcon";
 import LocationFavourite from "../../assets/svg/locationFavourite";
 
