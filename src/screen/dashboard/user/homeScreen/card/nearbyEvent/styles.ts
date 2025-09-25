@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import * as appConstant from "../../../../../../utilis/appConstant";
 import { colors } from "../../../../../../utilis/colors";
 import { fonts } from "../../../../../../utilis/fonts";
@@ -14,7 +14,7 @@ export default StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.cardBackground,
     width: horizontalScale(334),
-    height: verticalScale(130),
+    height: Platform.OS === 'ios' ? verticalScale(130) : verticalScale(140),
     borderRadius: horizontalScale(16),
     alignSelf: 'center',
     marginBottom: verticalScale(12),
@@ -87,7 +87,7 @@ export default StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.white,
     marginBottom: verticalScale(8),
-    marginTop: verticalScale(20),
+    marginTop: Platform.OS === 'ios' ? verticalScale(20) : verticalScale(25), 
   },
   detailsRow: {
     flexDirection: "row",

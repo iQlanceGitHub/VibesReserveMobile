@@ -105,11 +105,11 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
     yield put(displayLoading(true));
     const params = {
       //"currentRole": "user",
-      email: payload?.email,
-      password: payload?.password,
-      deviceToken: "abcd",
-      deviceType: "ios",
-      timeZone: payload?.timeZone,
+      "email": payload?.email?.toLowerCase(),
+      "password": payload?.password,
+      "deviceToken": 'abcd',
+      "deviceType": "ios",
+      "timeZone": payload?.timeZone,
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/signIn"}`,
@@ -156,18 +156,18 @@ function* onSignupSaga({ payload }: { payload: SignupPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      currentRole: payload?.currentRole, //user,host <- U need small
-      fullName: payload?.fullName,
-      email: payload?.email,
-      countrycode: payload?.countrycode,
-      phone: payload?.phone,
-      dateOfBirth: payload?.dateOfBirth,
-      password: payload?.password,
-      confirmPassword: payload?.confirmPassword,
-      userDocument: payload?.userDocument,
-      timeZone: payload?.timeZone,
-      loginType: payload?.loginType,
-    };
+      "currentRole": payload?.currentRole,  //user,host <- U need small
+      "fullName": payload?.fullName,
+      "email": payload?.email?.toLowerCase(),
+      "countrycode": payload?.countrycode,
+      "phone": payload?.phone,
+      "dateOfBirth": payload?.dateOfBirth,
+      "password": payload?.password,
+      "confirmPassword": payload?.confirmPassword,
+      "userDocument": payload?.userDocument,
+      "timeZone": payload?.timeZone,
+      "loginType": payload?.loginType,
+    }
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/signUp"}`,
       params,
@@ -204,11 +204,11 @@ function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
     yield put(displayLoading(true));
     const params = {
       //"currentRole": "user",
-      type: "email",
-      typevalue: payload?.email,
-      deviceToken: "abcd",
-      deviceType: "ios",
-      usingtype: "forgot_password", //forgot_password,signup
+      "type": "email",
+      "typevalue": payload?.email?.toLowerCase(),
+      "deviceToken": 'abcd',
+      "deviceType": "ios",
+      "usingtype": "forgot_password"//forgot_password,signup
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/forgotPassword"}`,
@@ -730,37 +730,45 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
 
 interface ViewdetailsPayload {
   id?: string;
+  userId?: string;
 }
 
 function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
   try {
     yield put(displayLoading(true));
-
-    const response = yield call(fetchGet, {
+    
+    const params = {
+      "userId": payload?.userId
+    };
+    
+    const response = yield call(fetchPost, {
       url: `${baseurl}${`user/viewdetails/${payload?.id}`}`,
+      params,
     });
-
-    console.log("response:->", response);
+    
+    console.log("ViewdetailsSaga response:", response);
+    
     if (
-      response?.status == 1 ||
-      response?.status == true ||
-      response?.status == "1" ||
-      response?.status == "true"
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
     ) {
       yield put(viewdetailsData(response));
     } else {
-      console.log("Errors", response);
+      console.log("Error:===2", response);
       yield put(viewdetailsError(response));
     }
+    
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error", error);
+    console.log("Error:===", error);
     yield put(viewdetailsError(error));
     yield put(displayLoading(false));
   }
 }
 
-interface CategoryPayload {
+interface CategoryPayload {  
   page?: number;
   limit?: number;
 }

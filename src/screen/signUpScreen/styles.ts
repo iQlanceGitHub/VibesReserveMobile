@@ -210,7 +210,7 @@ export default StyleSheet.create({
   },
   documentUpload: {
     width: horizontalScale(335),
-    height: verticalScale(138),
+    height: verticalScale(200),
     borderWidth: 1,
     borderColor: colors.whiteTransparent,
     borderStyle: "solid",
@@ -325,8 +325,33 @@ export default StyleSheet.create({
   },
   selectedFileContainer: {
     alignItems: "center",
+    justifyContent: "flex-start",
+    paddingVertical: verticalScale(16),
+    position: "relative",
+    minHeight: verticalScale(10),
+    marginBottom: verticalScale(-70)
+  },
+  documentIconContainer: {
+    marginBottom: verticalScale(12),
+    padding: verticalScale(12),
+    backgroundColor: colors.violate,
+    borderRadius: horizontalScale(12),
+    alignItems: "center",
     justifyContent: "center",
-    paddingVertical: verticalScale(10),
+    width: horizontalScale(48),
+    height: verticalScale(48),
+  },
+  deleteDocumentButton: {
+    position: "absolute",
+    top: verticalScale(8),
+    right: horizontalScale(8),
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: horizontalScale(12),
+    width: horizontalScale(24),
+    height: verticalScale(24),
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
   },
   selectedFileName: {
     fontSize: fontScale(14),

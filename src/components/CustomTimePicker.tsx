@@ -1,202 +1,228 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Modal,
   StyleSheet,
   ScrollView,
 } from 'react-native';
 import { colors } from '../utilis/colors';
 import { fonts } from '../utilis/fonts';
-import { horizontalScale, verticalScale, fontScale } from '../utilis/appConstant';
+import { fontScale, horizontalScale, verticalScale } from '../utilis/appConstant';
 
 interface CustomTimePickerProps {
-  visible: boolean;
-  onClose: () => void;
-  onTimeSelect: (time: string) => void;
-  selectedTime?: string;
+  initialTime?: Date;
+  onTimeChange: (time: Date) => void;
+  mode: 'start' | 'end';
 }
 
 const CustomTimePicker: React.FC<CustomTimePickerProps> = ({
-  visible,
-  onClose,
-  onTimeSelect,
-  selectedTime,
+  initialTime = new Date(),
+  onTimeChange,
+  mode,
 }) => {
-  const [selectedHour, setSelectedHour] = useState(9);
+  const [selectedHour, setSelectedHour] = useState(10);
   const [selectedMinute, setSelectedMinute] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
 
-  const hours = Array.from({ length: 24 }, (_, i) => i);
+  // Initialize with provided time
+  useEffect(() => {
+    if (initialTime) {
+      let hour = initialTime.getHours();
+      const minute = initialTime.getMinutes();
+      
+      // Convert to 12-hour format
+      if (hour === 0) {
+        hour = 12;
+        setSelectedPeriod('AM');
+      } else if (hour < 12) {
+        setSelectedPeriod('AM');
+      } else if (hour === 12) {
+        setSelectedPeriod('PM');
+      } else {
+        hour = hour - 12;
+        setSelectedPeriod('PM');
+      }
+      
+      setSelectedHour(hour);
+      setSelectedMinute(minute);
+    }
+  }, [initialTime]);
+
+  // Generate arrays for picker options
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
+  const periods: ('AM' | 'PM')[] = ['AM', 'PM'];
 
-  const handleConfirm = () => {
-    const timeString = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
-    onTimeSelect(timeString);
-    onClose();
+  // Notify parent component when time changes
+  const notifyTimeChange = (hour: number, minute: number, period: 'AM' | 'PM') => {
+    const newTime = new Date();
+    let hour24 = hour;
+    
+    if (period === 'AM' && hour === 12) {
+      hour24 = 0;
+    } else if (period === 'PM' && hour !== 12) {
+      hour24 = hour + 12;
+    }
+    
+    newTime.setHours(hour24, minute, 0, 0);
+    onTimeChange(newTime);
   };
 
-  const renderTimeWheel = (items: number[], selectedValue: number, onSelect: (value: number) => void) => (
-    <ScrollView
-      style={styles.timeWheel}
-      showsVerticalScrollIndicator={false}
-      snapToInterval={verticalScale(50)}
-      decelerationRate="fast"
+  const handleHourChange = (hour: number) => {
+    setSelectedHour(hour);
+    notifyTimeChange(hour, selectedMinute, selectedPeriod);
+  };
+
+  const handleMinuteChange = (minute: number) => {
+    setSelectedMinute(minute);
+    notifyTimeChange(selectedHour, minute, selectedPeriod);
+  };
+
+  const handlePeriodChange = (period: 'AM' | 'PM') => {
+    setSelectedPeriod(period);
+    notifyTimeChange(selectedHour, selectedMinute, period);
+  };
+
+  const renderSelectionButton = (
+    value: number | string,
+    isSelected: boolean,
+    onPress: () => void
+  ) => (
+    <TouchableOpacity
+      style={[styles.selectionButton, isSelected && styles.selectedButton]}
+      onPress={onPress}
     >
-      {items.map((item) => (
-        <TouchableOpacity
-          key={item}
-          style={[
-            styles.timeItem,
-            selectedValue === item && styles.selectedTimeItem,
-          ]}
-          onPress={() => onSelect(item)}
-        >
-          <Text
-            style={[
-              styles.timeText,
-              selectedValue === item && styles.selectedTimeText,
-            ]}
-          >
-            {item.toString().padStart(2, '0')}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+      <Text style={[styles.selectionText, isSelected && styles.selectedText]}>
+        {typeof value === 'number' ? value.toString().padStart(2, '0') : value}
+      </Text>
+    </TouchableOpacity>
   );
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.title}>Select Time</Text>
-            <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
-              <Text style={styles.confirmText}>Done</Text>
-            </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Hours Selection */}
+      <View style={styles.selectionColumn}>
+        <Text style={styles.selectionLabel}>Hour</Text>
+        <ScrollView 
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.selectionGrid}>
+            {hours.map((hour) => 
+              renderSelectionButton(
+                hour, 
+                hour === selectedHour, 
+                () => handleHourChange(hour)
+              )
+            )}
           </View>
+        </ScrollView>
+      </View>
 
-          <View style={styles.timeContainer}>
-            <View style={styles.timeColumn}>
-              <Text style={styles.timeLabel}>Hour</Text>
-              {renderTimeWheel(hours, selectedHour, setSelectedHour)}
-            </View>
-            <Text style={styles.separator}>:</Text>
-            <View style={styles.timeColumn}>
-              <Text style={styles.timeLabel}>Minute</Text>
-              {renderTimeWheel(minutes, selectedMinute, setSelectedMinute)}
-            </View>
+      {/* Minutes Selection */}
+      <View style={styles.selectionColumn}>
+        <Text style={styles.selectionLabel}>Min</Text>
+        <ScrollView 
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.selectionGrid}>
+            {minutes.map((minute) => 
+              renderSelectionButton(
+                minute, 
+                minute === selectedMinute, 
+                () => handleMinuteChange(minute)
+              )
+            )}
           </View>
+        </ScrollView>
+      </View>
+
+      {/* AM/PM Selection */}
+      <View style={styles.selectionColumn}>
+        <Text style={styles.selectionLabel}>Period</Text>
+        <View style={styles.periodContainer}>
+          {periods.map((period) => 
+            renderSelectionButton(
+              period, 
+              period === selectedPeriod, 
+              () => handlePeriodChange(period)
+            )
+          )}
         </View>
       </View>
-    </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
   container: {
-    backgroundColor: colors.gradient_dark_purple,
-    borderTopLeftRadius: horizontalScale(20),
-    borderTopRightRadius: horizontalScale(20),
-    paddingBottom: verticalScale(40),
-  },
-  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: horizontalScale(20),
-    paddingVertical: verticalScale(15),
-    borderBottomWidth: 1,
-    borderBottomColor: colors.BtnBackground,
-  },
-  cancelButton: {
-    paddingVertical: verticalScale(8),
-    paddingHorizontal: horizontalScale(16),
-  },
-  cancelText: {
-    color: colors.gray,
-    fontSize: fontScale(16),
-    fontFamily: fonts.regular,
-  },
-  title: {
-    color: colors.white,
-    fontSize: fontScale(18),
-    fontFamily: fonts.semiBold,
-    fontWeight: '600',
-  },
-  confirmButton: {
-    paddingVertical: verticalScale(8),
-    paddingHorizontal: horizontalScale(16),
-  },
-  confirmText: {
-    color: colors.BtnBackground,
-    fontSize: fontScale(16),
-    fontFamily: fonts.semiBold,
-    fontWeight: '600',
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
+    alignItems: 'flex-start',
     paddingHorizontal: horizontalScale(20),
     paddingVertical: verticalScale(20),
+    height: verticalScale(250),
   },
-  timeColumn: {
+  selectionColumn: {
     flex: 1,
     alignItems: 'center',
+    marginHorizontal: horizontalScale(5),
   },
-  timeLabel: {
-    color: colors.gray,
+  selectionLabel: {
     fontSize: fontScale(14),
-    fontFamily: fonts.medium,
+    fontFamily: fonts.Medium,
+    color: colors.white,
     marginBottom: verticalScale(10),
+    opacity: 0.8,
   },
-  timeWheel: {
-    height: verticalScale(200),
+  scrollContainer: {
+    maxHeight: verticalScale(200),
     width: '100%',
   },
-  timeItem: {
-    height: verticalScale(50),
+  scrollContent: {
+    paddingVertical: verticalScale(5),
+  },
+  selectionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: horizontalScale(8),
+  },
+  periodContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: horizontalScale(10),
+  },
+  selectionButton: {
+    width: verticalScale(40),
+    height: verticalScale(40),
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: verticalScale(20),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     marginVertical: verticalScale(2),
+    marginHorizontal: horizontalScale(2),
   },
-  selectedTimeItem: {
-    backgroundColor: colors.BtnBackground,
-    borderRadius: horizontalScale(8),
-    marginHorizontal: horizontalScale(10),
+  selectedButton: {
+    backgroundColor: colors.violate,
+    transform: [{ scale: 1.1 }],
   },
-  timeText: {
+  selectionText: {
+    fontSize: fontScale(14),
+    fontFamily: fonts.Medium,
     color: colors.white,
-    fontSize: fontScale(18),
-    fontFamily: fonts.regular,
+    opacity: 0.7,
   },
-  selectedTimeText: {
+  selectedText: {
     color: colors.white,
-    fontSize: fontScale(20),
-    fontFamily: fonts.semiBold,
+    opacity: 1,
+    fontFamily: fonts.SemiBold,
     fontWeight: '600',
-  },
-  separator: {
-    color: colors.white,
-    fontSize: fontScale(24),
-    fontFamily: fonts.bold,
-    marginHorizontal: horizontalScale(20),
   },
 });
 
 export default CustomTimePicker;
-

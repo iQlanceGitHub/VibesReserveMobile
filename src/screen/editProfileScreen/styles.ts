@@ -51,12 +51,27 @@ export const styles = StyleSheet.create({
   profileImageContainer: {
     position: "relative",
   },
+  profileImageWrapper: {
+    position: "relative",
+  },
   profileImage: {
     width: horizontalScale(94),
     height: horizontalScale(94),
     borderRadius: horizontalScale(47),
     borderWidth: horizontalScale(4),
     borderColor: colors.violate,
+  },
+  deleteProfileButton: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
   },
   defaultProfileContainer: {
     width: horizontalScale(94),
@@ -153,10 +168,27 @@ export const styles = StyleSheet.create({
     width: "100%",
     marginBottom: verticalScale(0),
   },
+  documentImageWrapper: {
+    position: "relative",
+    width: "100%",
+    height: "100%",
+  },
   documentImageStyle: {
     width: "100%",
     height: "100%",
     borderRadius: 13.41,
+  },
+  deleteDocumentButton: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
   },
   noDocumentText: {
     color: colors.gray,

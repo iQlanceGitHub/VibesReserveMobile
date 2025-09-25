@@ -11,6 +11,10 @@ import {
 export default StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.gradient_dark_purple,
+  },
+  gradientContainer: {
+    flex: 1,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -20,9 +24,12 @@ export default StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
+    paddingBottom: verticalScale(20),
+  },
+  scrollViewContentKeyboardVisible: {
+    paddingBottom: verticalScale(10),
   },
   header: {
-    paddingTop: verticalScale(50),
     paddingHorizontal: horizontalScale(20),
   },
   statusBar: {

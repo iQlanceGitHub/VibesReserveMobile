@@ -7,7 +7,9 @@ import { CustomeTextInput } from '../../../../../components/textinput';
 import CustomDropdown from '../../../../../components/CustomDropdown';
 import ImageSelectionBottomSheet from '../../../../../components/ImageSelectionBottomSheet';
 import PlusIcon from '../../../../../assets/svg/plusIcon';
+import CloseIcon from "../../../../../assets/svg/closeIcon";
 import GalleryIcon from '../../../../../assets/svg/galleryIcon';
+import DeleteIconNew from '../../../../../assets/svg/deleteIconNew';
 // import TrashIcon from '../../../../../assets/svg/trashIcon';
 
 interface BoothData {
@@ -26,6 +28,7 @@ interface BoothFormProps {
   onUpdate: (id: string, field: keyof BoothData, value: string | string[]) => void;
   onRemove: (id: string) => void;
   onImagePicker: (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event", boothIndex: number, eventIndex: number) => void;
+  onDeleteImage: (boothIndex: number, imageIndex: number) => void;
   boothTypes: Array<{ id: string; name: string }>;
 }
 
@@ -35,6 +38,7 @@ const BoothForm: React.FC<BoothFormProps> = ({
   onUpdate,
   onRemove,
   onImagePicker,
+  onDeleteImage,
   boothTypes,
 }) => {
   const [showImagePicker, setShowImagePicker] = React.useState(false);
@@ -82,6 +86,7 @@ const BoothForm: React.FC<BoothFormProps> = ({
       flexDirection: 'row' as const,
       flexWrap: 'wrap' as const,
       gap: horizontalScale(8),
+      marginTop: verticalScale(10),
     },
     imageContainer: {
       width: horizontalScale(80),
@@ -93,6 +98,19 @@ const BoothForm: React.FC<BoothFormProps> = ({
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
       marginBottom: verticalScale(8),
+      position: 'relative' as const,
+    },
+    deleteButton: {
+      position: 'absolute' as const,
+      top: -8,
+      right: -8,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      borderRadius: 12,
+      width: 24,
+      height: 24,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      zIndex: 1,
     },
     image: {
       width: '100%' as any,
@@ -117,6 +135,52 @@ const BoothForm: React.FC<BoothFormProps> = ({
       color: colors.textColor,
       textAlign: 'center' as const,
     },
+    // Category Selection Styles
+    categorySection: {
+      marginBottom: verticalScale(12),
+    },
+    categoryLabel: {
+      fontSize: fontScale(14),
+      fontFamily: fonts.Medium,
+      color: colors.white,
+      marginBottom: verticalScale(8),
+      marginTop: verticalScale(10),
+    },
+    categoryScrollView: {
+      maxHeight: verticalScale(50),
+    },
+    categoryContainer: {
+      paddingRight: horizontalScale(16),
+    },
+    categoryButton: {
+      backgroundColor: colors.transparent,
+      paddingVertical: verticalScale(8),
+      paddingHorizontal: horizontalScale(16),
+      borderRadius: horizontalScale(20),
+      borderWidth: 1,
+      borderColor: colors.white,
+      marginRight: horizontalScale(8),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    categoryButtonSelected: {
+      backgroundColor: colors.violate,
+      borderColor: colors.violate,
+      shadowColor: colors.violate,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 4,
+    },
+    categoryButtonText: {
+      fontSize: fontScale(12),
+      fontFamily: fonts.Medium,
+      color: colors.textColor,
+    },
+    categoryButtonTextSelected: {
+      color: colors.white,
+      fontFamily: fonts.SemiBold,
+    },
   };
 
   return (
@@ -127,7 +191,7 @@ const BoothForm: React.FC<BoothFormProps> = ({
           style={styles.removeButton}
           onPress={() => onRemove(booth.id)}
         >
-          <PlusIcon size={20} color={colors.red} />
+          <CloseIcon size={20} color={colors.red} />
         </TouchableOpacity>
       </View>
 
@@ -141,15 +205,34 @@ const BoothForm: React.FC<BoothFormProps> = ({
         leftImage=""
       />
 
-      <CustomDropdown
-        label="Booth Type*"
-        placeholder="Select booth type"
-        options={boothTypes}
-        selectedValue={boothTypes.find(type => type.id === booth.boothType)?.name || booth.boothType}
-        onSelect={(value: any) => onUpdate(booth.id, 'boothType', value.id)}
-        error={false}
-        message=""
-      />
+      <View style={styles.categorySection}>
+        <Text style={styles.categoryLabel}>Booth Type*</Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryScrollView}
+          contentContainerStyle={styles.categoryContainer}
+        >
+          {boothTypes.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              style={[
+                styles.categoryButton,
+                booth.boothType === category.id && styles.categoryButtonSelected
+              ]}
+              onPress={() => onUpdate(booth.id, 'boothType', category.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.categoryButtonText,
+                booth.boothType === category.id && styles.categoryButtonTextSelected
+              ]}>
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <View style={styles.inputRow}>
         <View style={styles.inputHalf}>
@@ -197,6 +280,12 @@ const BoothForm: React.FC<BoothFormProps> = ({
           {booth.boothImages.map((image, index) => (
             <View key={index} style={styles.imageContainer}>
               <Image source={{ uri: image }} style={styles.image} />
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => onDeleteImage(boothIndex, index)}
+              >
+                <DeleteIconNew width={20} height={20} />
+              </TouchableOpacity>
             </View>
           ))}
           {booth.boothImages.length < 3 && (

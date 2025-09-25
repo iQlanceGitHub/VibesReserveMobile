@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Platform,
   KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
 import { colors } from "../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -21,6 +22,7 @@ import {
 import { BackButton } from "../../../components/BackButton";
 import LockIcon from "../../../assets/svg/lockIcon";
 import styles from "./styles";
+import { verticalScale } from "../../../utilis/appConstant";
 
 //API
 import {
@@ -31,6 +33,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { CustomAlertSingleBtn } from '../../../components/CustomeAlertDialog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CommonActions } from "@react-navigation/native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ResetPasswordScreenProps {
   navigation?: any;
@@ -48,28 +52,30 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   route,
 }) => {
   const userId = route?.params?.id || "";
+  const insets = useSafeAreaInsets();
   const [formData, setFormData] = useState({
-    currentPassword: "",
+    
     newPassword: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({
-    currentPassword: false,
+    
     newPassword: false,
     confirmPassword: false,
   });
   const [errorMessages, setErrorMessages] = useState({
-    currentPassword: "",
+   
     newPassword: "",
     confirmPassword: "",
   });
   const [touched, setTouched] = useState({
-    currentPassword: false,
+    
     newPassword: false,
     confirmPassword: false,
   });
   const [isFormValid, setIsFormValid] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const dispatch = useDispatch();
   const resetPassword = useSelector((state: any) => state.auth.resetPassword);
@@ -108,17 +114,6 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     const newErrors = { ...errors };
     const newErrorMessages = { ...errorMessages };
 
-    // Validate current password (only if touched)
-    if (touched.currentPassword) {
-      if (!formData.currentPassword.trim()) {
-        newErrors.currentPassword = true;
-        newErrorMessages.currentPassword = "Current password is required";
-      } else {
-        newErrors.currentPassword = false;
-        newErrorMessages.currentPassword = "";
-      }
-    }
-
     // Validate new password (only if touched)
     if (touched.newPassword) {
       if (!formData.newPassword.trim()) {
@@ -149,7 +144,6 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
 
     // Check for overall form validity
     const isOverallValid = 
-      formData.currentPassword.trim() !== "" &&
       formData.newPassword.trim() !== "" &&
       formData.confirmPassword.trim() !== "" &&
       isPasswordValid(formData.newPassword) &&
@@ -177,6 +171,11 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
       ...prev, 
       [field]: value 
     }));
+    
+    // Mark field as touched when user starts typing
+    if (!touched[field as keyof typeof touched]) {
+      setTouched((prev) => ({ ...prev, [field]: true }));
+    }
   };
 
   const handleInputBlur = (field: string) => {
@@ -199,15 +198,6 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     const newErrorMessages = { ...errorMessages };
 
     switch (field) {
-      case "currentPassword":
-        if (!formData.currentPassword.trim()) {
-          newErrors.currentPassword = true;
-          newErrorMessages.currentPassword = "Current password is required";
-        } else {
-          newErrors.currentPassword = false;
-          newErrorMessages.currentPassword = "";
-        }
-        break;
 
       case "newPassword":
         if (!formData.newPassword.trim()) {
@@ -246,6 +236,21 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
       validateField("confirmPassword");
     }
   }, [formData.newPassword, formData.confirmPassword, touched.confirmPassword]);
+
+  // Keyboard event listeners
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
 
   const handleSavePassword = () => {
     // Mark all fields as touched when user tries to submit
@@ -290,167 +295,157 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
 
   const requirements = getPasswordRequirements();
 
-  return (
-    <View
-      style={[styles.container, { paddingTop: Platform.OS === "ios" ? 0 : 0 }]}
+  const renderScrollView = () => (
+    <ScrollView
+      style={styles.scrollView}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={[
+        styles.scrollViewContent,
+        isKeyboardVisible && styles.scrollViewContentKeyboardVisible
+      ]}
+      bounces={false}
+      overScrollMode="never"
+      scrollEventThrottle={16}
+      removeClippedSubviews={false}
     >
+      <View style={[styles.header, { paddingTop: insets.top + verticalScale(20) }]}>
+        <View style={styles.statusBar}>
+          <BackButton
+            navigation={navigation}
+            onBackPress={() => 
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: "SignInScreen" }],
+                })
+              )
+            }
+          />
+        </View>
+      </View>
+
+      <View style={styles.titleSection}>
+        <Text style={styles.title}>Reset Your Password</Text>
+        <Text style={styles.subtitle}>
+          The password must be different than before
+        </Text>
+      </View>
+
+      <View style={styles.formSection}>
+        <View style={styles.inputContainer}>
+          <CustomePasswordTextInput
+            label="New Password *"
+            value={formData.newPassword}
+            placeholder="Enter your new password"
+            onChangeText={(text) => handleInputChange("newPassword", text)}
+            error={touched.newPassword && errors.newPassword}
+            message={touched.newPassword ? errorMessages.newPassword : ""}
+            leftImage={<LockIcon />}
+            style={styles.customInput}
+          />
+          
+          {/* Password requirements hint - always show when user starts typing */}
+          {formData.newPassword && (
+            <View style={styles.passwordRequirements}>
+              <Text style={styles.requirementsTitle}>Password must contain:</Text>
+              <Text style={[styles.requirement, requirements.hasValidLength && styles.requirementMet]}>
+                • 8-16 characters
+              </Text>
+              <Text style={[styles.requirement, requirements.hasUpperCase && styles.requirementMet]}>
+                • At least one uppercase letter (A-Z)
+              </Text>
+              <Text style={[styles.requirement, requirements.hasLowerCase && styles.requirementMet]}>
+                • At least one lowercase letter (a-z)
+              </Text>
+              <Text style={[styles.requirement, requirements.hasNumber && styles.requirementMet]}>
+                • At least one number (0-9)
+              </Text>
+              <Text style={[styles.requirement, requirements.hasSpecialChar && styles.requirementMet]}>
+                • At least one special character (!@#$%^&*)
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.inputContainer}>
+          <CustomePasswordTextInput
+            label="Confirm Password *"
+            value={formData.confirmPassword}
+            placeholder="Confirm your new password"
+            onChangeText={(text) => handleInputChange("confirmPassword", text)}
+            error={touched.confirmPassword && errors.confirmPassword}
+            message={touched.confirmPassword ? errorMessages.confirmPassword : ""}
+            leftImage={<LockIcon />}
+            style={styles.customInput}
+          />
+        </View>
+        
+        {formData.confirmPassword !== formData.newPassword && (
+          <View style={styles.passwordRequirements}>
+            <Text style={styles.requirementsTitle}>Password not match:</Text>
+            <Text style={[styles.requirement]}>
+              • New password & confirm password does not metch.
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.buttonSection}>
+        <Buttons
+          title="Save Password"
+          onPress={handleSavePassword}
+          style={[styles.handleSavePasswordButton, !isFormValid && styles.disabledButton]}
+          isCap={false}
+          disabled={!isFormValid}
+        />
+      </View>
+      
+      <CustomAlertSingleBtn
+        isVisible={msg != ''}
+        message={msg}
+        button2Text={'Ok'}
+        onButton2Press={() => {
+          setMsg('');
+          if (msg == 'OTP request limit reached for today. Try again tomorrow.') {
+            // Handle specific case
+          } else {
+            // navigation.navigate('VerificationSucessScreen')
+          }
+        }}
+        title={'Vibes'}
+        name={''}
+        button1Text={''}
+        onButton1Press={() => {}}
+      />
+    </ScrollView>
+  );
+
+  return (
+    <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
+        backgroundColor="transparent"
         translucent={true}
       />
       <LinearGradient
         colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.container, { backgroundColor: colors.primary_blue }]}
+        style={styles.gradientContainer}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.keyboardAvoidingView}
-        >
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollViewContent}
+        {Platform.OS === "ios" ? (
+          <KeyboardAvoidingView
+            behavior="padding"
+            style={styles.keyboardAvoidingView}
+            keyboardVerticalOffset={0}
+            enabled={true}
           >
-            <View style={styles.header}>
-              <View style={styles.statusBar}>
-                <BackButton
-                  navigation={navigation}
-                  onBackPress={() => navigation?.goBack()}
-                />
-              </View>
-            </View>
-
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>Reset Your Password</Text>
-              <Text style={styles.subtitle}>
-                The password must be different than before
-              </Text>
-            </View>
-
-            <View style={styles.formSection}>
-              <View style={styles.inputContainer}>
-                <CustomePasswordTextInput
-                  label="Current Password *"
-                  value={formData.currentPassword}
-                  placeholder="Enter your current password"
-                  onChangeText={(text) => handleInputChange("currentPassword", text)}
-                  onBlur={() => handleInputBlur("currentPassword")}
-                  onFocus={() => handleInputFocus("currentPassword")}
-                  error={touched.currentPassword && errors.currentPassword}
-                  message={touched.currentPassword ? errorMessages.currentPassword : ""}
-                  leftImage={<LockIcon />}
-                  style={styles.customInput}
-                />
-              </View>
-              
-              <View style={styles.inputContainer}>
-                <CustomePasswordTextInput
-                  label="New Password *"
-                  value={formData.newPassword}
-                  placeholder="Enter your new password"
-                  onChangeText={(text) => handleInputChange("newPassword", text)}
-                  onBlur={() => handleInputBlur("newPassword")}
-                  onFocus={() => handleInputFocus("newPassword")}
-                  error={touched.newPassword && errors.newPassword}
-                  message={touched.newPassword ? errorMessages.newPassword : ""}
-                  leftImage={<LockIcon />}
-                  style={styles.customInput}
-                />
-                
-                {/* Password requirements hint - always show when user starts typing */}
-                {formData.newPassword && (
-                  <View style={styles.passwordRequirements}>
-                    <Text style={styles.requirementsTitle}>Password must contain:</Text>
-                    <Text style={[styles.requirement, requirements.hasValidLength && styles.requirementMet]}>
-                      • 8-16 characters
-                    </Text>
-                    <Text style={[styles.requirement, requirements.hasUpperCase && styles.requirementMet]}>
-                      • At least one uppercase letter (A-Z)
-                    </Text>
-                    <Text style={[styles.requirement, requirements.hasLowerCase && styles.requirementMet]}>
-                      • At least one lowercase letter (a-z)
-                    </Text>
-                    <Text style={[styles.requirement, requirements.hasNumber && styles.requirementMet]}>
-                      • At least one number (0-9)
-                    </Text>
-                    <Text style={[styles.requirement, requirements.hasSpecialChar && styles.requirementMet]}>
-                      • At least one special character (!@#$%^&*)
-                    </Text>
-                  </View>
-                )}
-              </View>
-              
-              <View style={styles.inputContainer}>
-                <CustomePasswordTextInput
-                  label="Confirm Password *"
-                  value={formData.confirmPassword}
-                  placeholder="Confirm your new password"
-                  onChangeText={(text) => handleInputChange("confirmPassword", text)}
-                  onBlur={() => handleInputBlur("confirmPassword")}
-                  onFocus={() => handleInputFocus("confirmPassword")}
-                  error={touched.confirmPassword && errors.confirmPassword}
-                  message={touched.confirmPassword ? errorMessages.confirmPassword : ""}
-                  leftImage={<LockIcon />}
-                  style={styles.customInput}
-                />
-              </View>
-              {/* {touched.confirmPassword && formData.confirmPassword && formData.newPassword && formData.confirmPassword !== formData.newPassword && (
-                  <Text style={styles.passwordMismatchError}>
-                    Passwords do not match
-                  </Text>
-                )} */}
-                {formData.confirmPassword !== formData.newPassword && (
-                  <View style={styles.passwordRequirements}>
-                    <Text style={styles.requirementsTitle}>Password not match:</Text>
-                    <Text style={[styles.requirement]}>
-                      • New password & confirm password does not metch.
-                    </Text>
-                  </View>
-                )}
-
-              <View style={styles.optionsSection}>
-                <View style={styles.rememberMeContainer}>
-                  <TouchableOpacity
-                    style={styles.checkboxContainer}
-                    onPress={handleRememberMe}
-                  >
-                    <Text style={styles.rememberMeText}>Password must contain</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.buttonSection}>
-              <Buttons
-                title="Save Password"
-                onPress={handleSavePassword}
-                style={[styles.handleSavePasswordButton, !isFormValid && styles.disabledButton]}
-                isCap={false}
-                disabled={!isFormValid}
-              />
-            </View>
-            
-            <CustomAlertSingleBtn
-              btn1Style={{ backgroundColor: colors.violate }}
-              isVisible={msg != ''}
-              message={msg}
-              button2Text={'Ok'}
-              onButton2Press={() => {
-                setMsg('');
-                if (msg == 'OTP request limit reached for today. Try again tomorrow.') {
-                  // Handle specific case
-                } else {
-                  // navigation.navigate('VerificationSucessScreen')
-                }
-              }}
-              title={'Vibes'}
-            />
-          </ScrollView>
-        </KeyboardAvoidingView>
+            {renderScrollView()}
+          </KeyboardAvoidingView>
+        ) : (
+          renderScrollView()
+        )}
       </LinearGradient>
     </View>
   );

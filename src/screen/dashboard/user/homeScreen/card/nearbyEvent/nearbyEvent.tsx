@@ -119,7 +119,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
         <Text style={styles.priceText}>${(event as any).entryFee || event.price}</Text>
 
         {/* Event Title */}
-        <Text style={styles.eventName}>{event.name}</Text>
+        <Text numberOfLines={1} style={styles.eventName}>{event.name}</Text>
 
         {/* Location */}
         <View style={styles.detailsRow}>

@@ -7,7 +7,7 @@ export default StyleSheet.create({
     width: '100%', // Use full width to work with horizontal safe areas
     height: appConstant.verticalScale(94),
     position: "absolute",
-    bottom: Platform.OS === "ios" ? appConstant.verticalScale(5) : appConstant.verticalScale(25),
+    bottom: appConstant.verticalScale(5),
     // Enhanced for Android 15 edge-to-edge support
     left: 0,
     right: 0,
@@ -16,8 +16,6 @@ export default StyleSheet.create({
   mainContainer: {
     width: appConstant.horizontalScale(334),
     height: appConstant.verticalScale(58),
-    //backgroundColor: colors.bottomTabBackground,
-
     backgroundColor: colors.profileCardBackground,
     borderRadius: appConstant.verticalScale(90),
     justifyContent: "center",

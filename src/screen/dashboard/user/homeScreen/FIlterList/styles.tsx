@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { colors } from '../../../../../utilis/colors';
 import { fonts } from '../../../../../utilis/fonts';
 import { fontScale, horizontalScale, verticalScale } from '../../../../../utilis/appConstant';
@@ -6,28 +6,28 @@ import { fontScale, horizontalScale, verticalScale } from '../../../../../utilis
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gradient_dark_purple,
+    backgroundColor: colors.backgroundColor,
+    // Remove default padding as we're handling it with useSafeAreaInsets
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: horizontalScale(20),
-    paddingVertical: verticalScale(10),
-    backgroundColor: colors.gradient_dark_purple,
-    marginTop: Platform.OS !== 'ios' ? verticalScale(22) : verticalScale(10),
+    paddingTop: verticalScale(20), // Reduced since we're adding paddingTop to container
+    paddingBottom: verticalScale(20),
+    backgroundColor: colors.backgroundColor,
   },
   headerTitle: {
     fontSize: fontScale(18),
     fontFamily: fonts.Bold,
     color: colors.white,
-    flex: 1,
-    fontWeight: '700'
+    textAlign: 'center',
   },
-  headerSpacer: {
-    width: horizontalScale(40), // Same width as back button to center the title
+  placeholder: {
+    width: horizontalScale(24), // Same width as back button for centering
   },
-  eventsList: {
+  listContainer: {
     paddingHorizontal: horizontalScale(20),
     paddingBottom: verticalScale(20),
   },
@@ -35,8 +35,7 @@ export default StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: verticalScale(150),
-    paddingHorizontal: horizontalScale(40),
+    paddingTop: verticalScale(100),
   },
   emptyIcon: {
     fontSize: fontScale(64),

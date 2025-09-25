@@ -43,6 +43,8 @@ import {
 import GoogleIcon from "../../assets/svg/googleIcon";
 import AppleIcon from "../../assets/svg/appleIcon";
 import ProfileIcon from "../../assets/svg/profile";
+import DeleteIconNew from "../../assets/svg/deleteIconNew";
+import DocumentIcon from "../../assets/svg/documentIcon";
 import MicroPhoneIcon from "../../assets/svg/microPhone";
 import { BackButton } from "../../components/BackButton";
 import NameIcon from "../../assets/svg/nameIcon";
@@ -51,6 +53,7 @@ import CalendarIcon from "../../assets/svg/calendarIcon";
 import LockIcon from "../../assets/svg/lockIcon";
 import { showToast } from "../../utilis/toastUtils.tsx";
 import { uploadFileToS3 } from "../../utilis/s3Upload";
+import PermissionManager from "../../utilis/permissionUtils";
 import styles from "./styles";
 import RNFS from 'react-native-fs'; // You'll need to install this package
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -58,6 +61,7 @@ import {
   appleAuth,
   AppleButton,
 } from '@invertase/react-native-apple-authentication';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 interface SignupScreenProps {
   navigation?: any;
 }
@@ -106,6 +110,50 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [showFilePicker, setShowFilePicker] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
+
+  // Get token
+  const storeUserToken = async (token: any) => {
+    try {
+      await AsyncStorage.setItem("user_token", token);
+      console.log("User token saved:", token);
+      getUserToken();
+    } catch (e) {
+      console.error("Failed to save the user token.", e);
+    }
+  };
+
+const storeUser = async (user: any) => {
+  try {
+    await AsyncStorage.setItem("user", JSON.stringify(user));
+    console.log("User saved:", user);
+  } catch (e) {
+    console.error("Failed to save the user.", e);
+  }
+};
+
+  // Get token
+  const getUserToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem("user_token");
+      if (token !== null) {
+        console.log("User token retrieved:", token);
+        return token;
+      }
+    } catch (e) {
+      console.error("Failed to fetch the user token.", e);
+    }
+  };
+
+  // Store user ID
+  const storeUserId = async (userId: any) => {
+    try {
+      await AsyncStorage.setItem("user_id", userId);
+      console.log("User ID saved:", userId);
+    } catch (e) {
+      console.error("Failed to save the user ID.", e);
+    }
+  };
+
   useEffect(() => {
     if (signup?.status === true ||
       signup?.status === "true" ||
@@ -127,6 +175,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   }, [signup, signupErr]);
 
 
+
   useEffect(() => {
     if (
       socialLogin?.status === true ||
@@ -135,12 +184,71 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
       socialLogin?.status === "1"
     ) {
       console.log("socialLogin:+>", socialLogin);
+      //  setMsg(socialLogin?.message?.toString());
       showToast(
         "success",
         socialLogin?.message || "Something went wrong. Please try again."
       );
-      dispatch(setUser(socialLogin))
-      dispatch(socialLoginData(''));
+
+      
+      dispatch(setUser(socialLogin));
+      if (socialLogin?.token) {
+        storeUserToken(socialLogin?.token);
+      }
+      if (socialLogin?.user?.id) {
+        storeUserId(socialLogin.user.id);
+      }
+
+      const handleSocialLoginSuccess = async () => {
+        if (
+          socialLogin?.status === true ||
+          socialLogin?.status === "true" ||
+          socialLogin?.status === 1 ||
+          socialLogin?.status === "1"
+        ) {
+          console.log("socialLogin:+>", socialLogin);
+          //  setMsg(socialLogin?.message?.toString());
+          showToast(
+            "success",
+            socialLogin?.message || "Something went wrong. Please try again."
+          );
+          dispatch(setUser(socialLogin));
+          if (socialLogin?.token) {
+            storeUserToken(socialLogin?.token);
+          }
+          if (socialLogin?.user?.id) {
+            storeUserId(socialLogin.user.id);
+          }
+          
+          // Store user status as logged in
+          await storeUserStatus('logged_in');
+          
+          // Role-based navigation
+          if (socialLogin?.user?.currentRole === 'user') {
+            navigation.navigate('HomeTabs' as never);
+          } else if (socialLogin?.user?.currentRole === 'host') {
+            navigation.navigate('HostTabs' as never);
+          } else {
+            // Default fallback to HomeTabs
+            navigation.navigate('HomeTabs' as never);
+          }
+          
+          dispatch(socialLoginData(""));
+        }
+      };
+  
+      handleSocialLoginSuccess();
+      
+      // Role-based navigation
+      if (socialLogin?.user?.currentRole === 'user') {
+        navigation.navigate('HomeTabs' as never);
+      } else if (socialLogin?.user?.currentRole === 'host') {
+        navigation.navigate('HostTabs' as never);
+      } else {
+        // Default fallback to HomeTabs
+        navigation.navigate('HomeTabs' as never);
+      }
+      dispatch(socialLoginData(""));
     }
 
     if (socialLoginErr) {
@@ -154,19 +262,21 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   }, [socialLogin, socialLoginErr]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (value.length === 0) {
+    // Convert email to lowercase
+    const processedValue = field === "email" ? value.toLowerCase() : value;
+    setFormData((prev) => ({ ...prev, [field]: processedValue }));
+    if (processedValue.length === 0) {
       setErrors((prev) => ({ ...prev, [field]: false }));
       setErrorMessages((prev) => ({ ...prev, [field]: "" }));
     }
     if (field === "password") {
-      validatePasswordRequirements(value);
+      validatePasswordRequirements(processedValue);
       if (formData.confirmPassword.length > 0) {
-        validatePasswordMatch(value, formData.confirmPassword);
+        validatePasswordMatch(processedValue, formData.confirmPassword);
       }
     }
     if (field === "confirmPassword") {
-      validatePasswordMatch(formData.password, value);
+      validatePasswordMatch(formData.password, processedValue);
     }
   };
 
@@ -413,65 +523,78 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   };
 
   const requestCameraPermission = async () => {
-    if (Platform.OS === "android") {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-          {
-            title: "Camera Permission",
-            message: "App needs access to camera to take photos",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
-          }
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        return false;
-      }
-    } else if (Platform.OS === "ios") {
-      try {
-        const result = await request(PERMISSIONS.IOS.CAMERA);
-        return result === RESULTS.GRANTED;
-      } catch (err) {
-        return false;
-      }
+    try {
+      const result = await PermissionManager.requestCameraPermission();
+      return result.granted;
+    } catch (error) {
+      console.log('Error requesting camera permission:', error);
+      return false;
     }
-    return true;
+  };
+
+  
+  const handleSkip = async () => {
+    try {
+      // Store skip status
+      await storeUserStatus('skipped');
+      
+      // Navigate to HomeTabs
+      navigation?.navigate("HomeTabs" as never);
+      
+      // Show toast message
+      showToast("info", "You can explore the app. Sign in to access all features!");
+    } catch (error) {
+      console.error("Error handling skip:", error);
+      showToast("error", "Something went wrong. Please try again.");
+    }
+  };
+
+  const storeUserStatus = async (status: 'logged_in' | 'skipped' | 'guest') => {
+    try {
+      // Clear all stored preferences first
+      await AsyncStorage.multiRemove([
+        'user_status',
+        'user_permissions',
+        'skip_timestamp',
+      ]);
+      
+      await AsyncStorage.setItem("user_status", status);
+      console.log("User status saved:", status);
+
+      // Store additional metadata based on status
+      if (status === 'skipped') {
+        await AsyncStorage.setItem("skip_timestamp", Date.now().toString());
+        await AsyncStorage.setItem("user_permissions", JSON.stringify({
+          canLike: false,
+          canDislike: false,
+          canBookmark: false,
+          canReview: false,
+          canBook: false
+        }));
+      } else if (status === 'logged_in') {
+        // Clear any skip-related data when user logs in
+        await AsyncStorage.multiRemove(['skip_timestamp']);
+        await AsyncStorage.setItem("user_permissions", JSON.stringify({
+          canLike: true,
+          canDislike: true,
+          canBookmark: true,
+          canReview: true,
+          canBook: true
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to save the user status.", e);
+    }
   };
 
   const requestStoragePermission = async () => {
-    if (Platform.OS === "android") {
-      try {
-        const androidVersion = Platform.Version;
-
-        let permission;
-        if (androidVersion >= 33) {
-          permission = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
-        } else {
-          permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-        }
-
-        const granted = await PermissionsAndroid.request(permission, {
-          title: "Storage Permission",
-          message: "App needs access to storage to select images",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK",
-        });
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        return false;
-      }
-    } else if (Platform.OS === "ios") {
-      try {
-        const result = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
-        return result === RESULTS.GRANTED;
-      } catch (err) {
-        return false;
-      }
+    try {
+      const result = await PermissionManager.requestStoragePermission();
+      return result.granted;
+    } catch (error) {
+      console.log('Error requesting storage permission:', error);
+      return false;
     }
-    return true;
   };
 
   const reatePermanentFileCopy = async (file: any) => {
@@ -500,26 +623,21 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   };
 
   const handleCameraCapture = async () => {
-    const hasPermission = await requestCameraPermission();
-    if (!hasPermission) {
-      showToast("error", "Camera permission is required to take photos");
-      Alert.alert(
-        'Permission Required',
-        'Camera permission is required to take photos. Please enable it in your device settings.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Open Settings',
-            onPress: async () => await openSettings(),
-          },
-        ],
-        { cancelable: false }
-      );
-      return;
-    }
+    // Use the new permission flow with persistent requests
+    PermissionManager.requestPermissionWithFlow(
+      'camera',
+      () => {
+        // Permission granted, proceed with camera capture
+        openCamera();
+      },
+      (error) => {
+        console.log('Camera permission error:', error);
+        showToast('error', 'Camera permission denied');
+      }
+    );
+  };
+
+  const openCamera = () => {
     const options = {
       mediaType: "photo" as MediaType,
       quality: 0.8 as const,
@@ -553,31 +671,21 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   };
 
   const handleGallerySelection = async () => {
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      showToast(
-        "error",
-        "Photo library permission is required to select images"
-      );
-      Alert.alert(
-        'Permission Required',
-        'Photo library permission is required to select images. Please enable it in your device settings.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Open Settings',
-            onPress: async () => await openSettings()
-          },
-        ],
-        { cancelable: false }
-      );
-      return;
-    }
+    // Use the new permission flow with persistent requests
+    PermissionManager.requestPermissionWithFlow(
+      'storage',
+      () => {
+        // Permission granted, proceed with gallery selection
+        openGallery();
+      },
+      (error) => {
+        console.log('Storage permission error:', error);
+        showToast('error', 'Storage permission denied');
+      }
+    );
+  };
 
-
+  const openGallery = () => {
     const options = {
       mediaType: "photo" as MediaType,
       quality: 0.8 as const,
@@ -708,6 +816,47 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     setShowFilePicker(true);
   };
 
+  const handleDeleteDocument = () => {
+    Alert.alert(
+      "Delete Document",
+      "Are you sure you want to delete this document?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setSelectedDocument(null);
+            showToast("success", "Document deleted successfully!");
+          }
+        }
+      ]
+    );
+  };
+
+  const getDocumentIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    
+    switch (extension) {
+      case 'pdf':
+        return <DocumentIcon />;
+      case 'doc':
+      case 'docx':
+        return <DocumentIcon />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'webp':
+        return <DocumentIcon />;
+      default:
+        return <DocumentIcon />;
+    }
+  };
+
   return (
     <View
       style={[styles.container, { paddingTop: Platform.OS === "ios" ? 0 : 0 }]}
@@ -727,21 +876,16 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
         >
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+         
             <View style={styles.header}>
               <View style={styles.statusBar}>
                 <BackButton
                   navigation={navigation}
                   onBackPress={() => navigation?.goBack()}
                 />
-                <View style={styles.statusIcons}>
+                <TouchableOpacity style={styles.statusIcons} onPress={handleSkip}>
                   <Text style={styles.skipText}>Skip</Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -750,6 +894,12 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
               <Text style={styles.subtitle}>Join us and start exploring</Text>
             </View>
 
+            <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.socialSection}>
               <TouchableOpacity
                 style={styles.socialButton}
@@ -785,6 +935,8 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                 <View style={styles.dividerLine} />
               </View>
             </View>
+
+            
 
             <View style={styles.roleSection}>
               <Text style={styles.sectionTitle}>Choose Role</Text>
@@ -1028,14 +1180,29 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
             </View>
 
             <View style={styles.documentSection}>
+              <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
               <Text style={styles.sectionTitle}>Upload Document</Text>
+              {selectedDocument ?  (
+                    <View style={styles.selectedFileContainer}>
+                      <TouchableOpacity
+                        style={styles.deleteDocumentButton}
+                        onPress={handleDeleteDocument}
+                      >
+                        <DeleteIconNew width={20} height={20} />
+                      </TouchableOpacity></View>):(<></>)}
+              </View>
               <TouchableOpacity
                 style={styles.documentUpload}
                 onPress={handleDocumentUpload}
               >
+
+
                 <View style={styles.documentContent}>
                   {selectedDocument ? (
                     <View style={styles.selectedFileContainer}>
+                      <View style={styles.documentIconContainer}>
+                        {getDocumentIcon(selectedDocument.name)}
+                      </View>
                       <Text style={styles.selectedFileName}>
                         {selectedDocument.name}
                       </Text>
@@ -1053,6 +1220,9 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
                     </View>
                   ) : (
                     <>
+                      <View style={styles.documentIconContainer}>
+                        <DocumentIcon />
+                      </View>
                       <Text style={styles.documentText}>
                         Choose a file or document
                       </Text>

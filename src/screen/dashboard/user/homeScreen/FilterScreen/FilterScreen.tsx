@@ -1,13 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './styles';
 import { colors } from '../../../../../utilis/colors';
 import CategoryButton from '../../../../../components/CategoryButton';
 import PriceRangeSlider from './components/PriceRangeSlider';
 import DistanceSlider from './components/DistanceSlider';
 import DateButton from './components/DateButton';
-import LocationDropdown from './components/LocationDropdown';
+import GoogleAddressAutocomplete from '../../../../../components/GoogleAddressAutocomplete';
 import { useCategory } from '../../../../../hooks/useCategory';
 
 interface FilterScreenProps {
@@ -20,9 +21,16 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
   const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDate, setSelectedDate] = useState('today');
-  const [priceRange, setPriceRange] = useState([0, 3000]);
+  const [priceRange, setPriceRange] = useState([1, 5000]);
   const [distanceRange, setDistanceRange] = useState([0, 20]);
-  const [selectedLocation, setSelectedLocation] = useState('New York, USA');
+  const [selectedLocation, setSelectedLocation] = useState('Search Location');
+  const [address, setAddress] = useState('Search Location');
+  const [coordinates, setCoordinates] = useState({
+    type: "Point",
+    coordinates: [0, 0]
+  });
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [userId, setUserId] = useState('');
 
   // Use the custom hook for category management
   const { categories, isLoading, error, fetchCategories } = useCategory();
@@ -31,6 +39,22 @@ const FilterScreen: React.FC<FilterScreenProps> = ({ visible, onClose, onApply }
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  // Fetch userId from AsyncStorage
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const user = await AsyncStorage.getItem("user");
+        if (user !== null) {
+          const parsedUser = JSON.parse(user);
+          setUserId(parsedUser.id || '');
+        }
+      } catch (e) {
+        console.error("Failed to fetch the user.", e);
+      }
+    };
+    getUser();
+  }, []);
 
   // Add "All" category at the beginning and fallback to static categories
   const allCategories = [
@@ -89,19 +113,48 @@ const dates = generateDates();
     setDistanceRange(value);
   }, []);
 
+  const handleAddressSelect = useCallback((selectedAddress: any) => {
+    setAddress(selectedAddress.formatted_address);
+    setSelectedLocation(selectedAddress.formatted_address);
+    setCoordinates({
+      type: "Point",
+      coordinates: [selectedAddress.geometry.location.lat, selectedAddress.geometry.location.lng]
+    });
+    setShowAddressModal(false);
+  }, []);
+
   const handleReset = useCallback(() => {
     setSelectedCategory('all');
     setSelectedDate('today');
-    setPriceRange([0, 3000]);
+    setPriceRange([1, 5000]);
     setDistanceRange([0, 20]);
-    setSelectedLocation('New York, USA');
+    setSelectedLocation('Search Location');
+    setAddress('Search Location');
+    setCoordinates({
+      type: "Point",
+      coordinates: [0, 0]
+    });
   }, []);
 
   const handleApply = useCallback(() => {
     // Collect all selected filter values
-        const selectedCategoryData = allCategories.find(cat => (cat as any).id === selectedCategory || (cat as any)._id === selectedCategory);
+    const selectedCategoryData = allCategories.find(cat => (cat as any).id === selectedCategory || (cat as any)._id === selectedCategory);
     const selectedDateData = dates.find(date => date.id === selectedDate);
     
+    // Format data according to API requirements
+    const apiFilterData = {
+      lat: coordinates.coordinates[0]?.toString() || "23.0126", // Default coordinates if not selected
+      long: coordinates.coordinates[1]?.toString() || "72.5112",
+      categoryId: selectedCategory === 'all' ? '' : selectedCategory,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      date: selectedDateData?.formattedDate || new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+      minDistance: distanceRange[0],
+      maxDistance: distanceRange[1],
+      userId: userId
+    };
+
+    // Also keep the original format for backward compatibility
     const filterValues = {
       selectedCategory: {
         id: selectedCategory,
@@ -110,7 +163,7 @@ const dates = generateDates();
       selectedDate: {
         id: selectedDate,
         data: selectedDateData,
-        formattedDate: selectedDateData?.formattedDate || new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+        formattedDate: selectedDateData?.formattedDate || new Date().toISOString().split('T')[0]
       },
       priceRange: {
         min: priceRange[0],
@@ -123,22 +176,30 @@ const dates = generateDates();
         range: distanceRange
       },
       selectedLocation: selectedLocation,
+      address: address,
+      coordinates: coordinates,
+      userId: userId,
+      apiData: apiFilterData, // Include the API-formatted data
       timestamp: new Date().toISOString()
     };
 
     console.log('=== FILTER SCREEN - APPLIED VALUES ===');
     console.log('Filter Applied at:', filterValues.timestamp);
+    console.log('API Data Format:', apiFilterData);
     console.log('Selected Category:', filterValues.selectedCategory);
     console.log('Selected Date:', filterValues.selectedDate);
     console.log('Formatted Date (YYYY-MM-DD):', filterValues.selectedDate.formattedDate);
     console.log('Price Range:', filterValues.priceRange);
     console.log('Distance Range:', filterValues.distanceRange);
     console.log('Selected Location:', filterValues.selectedLocation);
+    console.log('Address:', filterValues.address);
+    console.log('Coordinates:', filterValues.coordinates);
+    console.log('User ID:', filterValues.userId);
     console.log('=====================================');
 
     onApply(filterValues);
     onClose();
-  }, [onApply, onClose]);
+  }, [onApply, onClose, selectedCategory, selectedDate, priceRange, distanceRange, selectedLocation, address, coordinates, userId]);
 
   return (
     <Modal
@@ -181,10 +242,14 @@ const dates = generateDates();
             {/* Location Filter */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Location</Text>
-              <LocationDropdown
-                selectedLocation={selectedLocation}
-                onLocationSelect={setSelectedLocation}
-              />
+              <TouchableOpacity
+                style={styles.locationButton}
+                onPress={() => setShowAddressModal(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.locationText}>{address}</Text>
+                <Text style={styles.locationIcon}>📍</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Categories Filter */}
@@ -256,6 +321,13 @@ const dates = generateDates();
           </View>
         </View>
       </View>
+
+      {/* Address Selection Modal */}
+      <GoogleAddressAutocomplete
+        visible={showAddressModal}
+        onClose={() => setShowAddressModal(false)}
+        onSelect={handleAddressSelect}
+      />
     </Modal>
   );
 };

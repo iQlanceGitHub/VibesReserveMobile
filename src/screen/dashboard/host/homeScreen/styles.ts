@@ -9,18 +9,18 @@ import {
 
 const styles = StyleSheet.create({
   container: {
-    flex: verticalScale(1),
+    flex: 1,
     backgroundColor: colors.hostGradientStart,
   },
   gradientContainer: {
-    flex: verticalScale(1),
+    flex: 1,
   },
   safeArea: {
-    flex: verticalScale(1),
+    flex: 1,
     // Remove default padding as we're handling it with useSafeAreaInsets
   },
   contentContainer: {
-    flex: verticalScale(1),
+    flex: 1,
   },
   sectionTitle: {
     fontSize: fontScale(14),
@@ -31,13 +31,14 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(15),
   },
   scrollView: {
-    flex: verticalScale(1),
+    flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingBottom: verticalScale(20),
   },
   emptyContainer: {
-    flex: verticalScale(1),
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: horizontalScale(40),

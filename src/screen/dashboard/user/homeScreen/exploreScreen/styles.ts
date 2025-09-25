@@ -12,13 +12,13 @@ const { width, height } = Dimensions.get('window');
 export default StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: colors.gradient_dark_purple,
+    backgroundColor: 'transparent',
   },
   fullScreenMap: {
     flex: 1,
     width: '100%',
     height: '100%',
-    opacity: 0.8
+    opacity: 1
   },
   overlayContainer: {
     position: 'absolute',
@@ -26,7 +26,7 @@ export default StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'transparent',
-    paddingTop: Platform.OS === 'ios' ? verticalScale(50) : verticalScale(20),
+    paddingTop: Platform.OS === 'ios' ? verticalScale(10) : verticalScale(20),
     pointerEvents: 'box-none', // Allow touches to pass through to map
   },
   topSection: {

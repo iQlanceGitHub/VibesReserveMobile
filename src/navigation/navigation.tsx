@@ -33,6 +33,7 @@ import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIl
 import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
 import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearbyEventsSeeAll/nearbyEventsSeeAllScreen";
 import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
+import LogoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfileScreen";
 import ManageAvailability from "../screen/dashboard/host/profileScreen/manageAvailability";
@@ -125,7 +126,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={BookingScreen}
+        component={UpcomingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -135,7 +136,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Setting"
-        component={ProfileScreen}
+        component={LogoutScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -152,7 +153,7 @@ function HostTabs() {
       />
       <Tab.Screen
         name="Search"
-        component={HostBookingScreen}
+        component={UpcomingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -162,7 +163,7 @@ function HostTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={HostProfileScreen}
+        component={LogoutScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -180,7 +181,11 @@ const NavigationStack: React.FC = () => {
         }
         style={{ flex: 1 }} // Takes full screen
       >
-        <Stack.Navigator>
+        <Stack.Navigator
+          screenOptions={{
+            gestureEnabled: false,
+          }}
+        >
           <Stack.Screen
             options={{ headerShown: false }}
             name="IntroScreen"

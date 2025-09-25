@@ -33,6 +33,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { CustomAlertSingleBtn } from '../../../../../../components/CustomeAlertDialog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { handleRestrictedAction } from '../../../../../../utilis/userPermissionUtils';
+import CustomAlert from '../../../../../../components/CustomAlert';
 
 // SVG Icons
 import BackArrowIcon from '../../../../../../assets/svg/backIcon';
@@ -54,13 +56,24 @@ const ClubDetailScreen = () => {
   const route = useRoute();
   const { locationData } = useLocation();
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [selectedLounge, setSelectedLounge] = useState('');
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [viewedMap, setViewedMap] = useState(false);
   const [clubDetails, setClubDetails] = useState(null);
   const [msg, setMsg] = useState('');
   const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
-  
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
+
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
 
@@ -74,7 +87,7 @@ const ClubDetailScreen = () => {
       navigation.setOptions({
         gestureEnabled: false,
       });
-      
+
       // Re-enable gesture when screen is unfocused (optional)
       return () => {
         navigation.setOptions({
@@ -90,12 +103,119 @@ const ClubDetailScreen = () => {
   // Get club ID from route params
   const clubId = (route?.params as any)?.clubId || '68b6eceba9ae1fc590695248'; // fallback ID
 
+  // Bookmark storage key
+  const BOOKMARKS_STORAGE_KEY = 'user_bookmarks';
+
+  // Load bookmarks from storage on component mount
+  useEffect(() => {
+    loadBookmarks();
+  }, []);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('State updated:', {
+      clubId,
+      isLiked,
+      isBookmarked,
+      allBookmarks: Array.from(bookmarks),
+      isClubBookmarked: isClubBookmarked(clubId)
+    });
+  }, [isLiked, isBookmarked, bookmarks, clubId]);
+
+  // Load bookmarks from AsyncStorage
+  const loadBookmarks = async () => {
+    try {
+      const storedBookmarks = await AsyncStorage.getItem(BOOKMARKS_STORAGE_KEY);
+      if (storedBookmarks) {
+        const bookmarkArray = JSON.parse(storedBookmarks);
+        setBookmarks(new Set(bookmarkArray));
+        console.log('Loaded bookmarks:', bookmarkArray);
+      }
+    } catch (error) {
+      console.log('Error loading bookmarks:', error);
+    }
+  };
+
+  // Save bookmarks to AsyncStorage
+  const saveBookmarks = async (newBookmarks: Set<string>) => {
+    try {
+      const bookmarkArray = Array.from(newBookmarks);
+      await AsyncStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarkArray));
+      console.log('Saved bookmarks:', bookmarkArray);
+    } catch (error) {
+      console.log('Error saving bookmarks:', error);
+    }
+  };
+
+  // Check if club is bookmarked
+  const isClubBookmarked = (clubId: string) => {
+    return bookmarks.has(clubId);
+  };
+
+  // Toggle bookmark for a club
+  const toggleBookmark = async (clubId: string) => {
+    const newBookmarks = new Set(bookmarks);
+    if (newBookmarks.has(clubId)) {
+      newBookmarks.delete(clubId);
+      console.log('Removed bookmark for club:', clubId);
+    } else {
+      newBookmarks.add(clubId);
+      console.log('Added bookmark for club:', clubId);
+    }
+    setBookmarks(newBookmarks);
+    await saveBookmarks(newBookmarks);
+    return newBookmarks.has(clubId);
+  };
+
+  // Get all bookmarked club IDs
+  const getAllBookmarkedClubs = () => {
+    return Array.from(bookmarks);
+  };
+
+  // Clear all bookmarks (useful for testing or user preference)
+  const clearAllBookmarks = async () => {
+    setBookmarks(new Set());
+    await saveBookmarks(new Set());
+    console.log('Cleared all bookmarks');
+  };
+
   // Call Viewdetails API when component mounts
   useEffect(() => {
-    if (clubId) {
-      console.log('Calling Viewdetails API with ID:', clubId);
-      dispatch(onViewdetails({ id: clubId }));
-    }
+    const getUser = async () => {
+      try {
+        const user = await AsyncStorage.getItem("user");
+        if (user !== null) {
+          const parsedUser = JSON.parse(user);
+          console.log("User retrieved:", parsedUser);
+          return parsedUser;
+        }
+        return null;
+      } catch (e) {
+        console.error("Failed to fetch the user.", e);
+        return null;
+      }
+    };
+
+    const fetchClubDetails = async () => {
+      if (clubId) {
+        console.log('Calling Viewdetails API with ID:', clubId);
+        try {
+          const user = await getUser();
+          console.log('user::===>', user);
+          console.log('user::===>', user?.currentRole);
+          console.log('user::===>', { id: clubId, userId: user?.id });
+          
+          // Call API with user ID, fallback to clubId if user not found
+          dispatch(onViewdetails({ id: clubId, userId: user?.id  }));
+        } catch (error) {
+          console.error('Error fetching user or calling API:', error);
+          // Fallback: call API without userId
+          dispatch(onViewdetails({ id: clubId }));
+        }
+      }
+    };
+
+    fetchClubDetails();
   }, [clubId, dispatch]);
 
   // Handle Viewdetails API response
@@ -109,10 +229,13 @@ const ClubDetailScreen = () => {
       console.log("viewdetails response:+>", viewdetails);
       setClubDetails(viewdetails?.data);
 
-      // Initialize bookmark state based on club details
-      if (viewdetails?.data?.isFavorite !== undefined) {
-        setIsBookmarked(viewdetails.data.isFavorite);
-      }
+      // Set like state from server response using isFavorite field
+      const serverLike = viewdetails?.data?.isFavorite || false;
+      setIsLiked(serverLike);
+
+      // Check local bookmarks
+      const localBookmark = isClubBookmarked(clubId);
+      setIsBookmarked(localBookmark);
 
       dispatch(viewdetailsData(''));
     }
@@ -122,9 +245,9 @@ const ClubDetailScreen = () => {
       setMsg(viewdetailsErr?.message?.toString());
       dispatch(viewdetailsError(''));
     }
-  }, [viewdetails, viewdetailsErr, dispatch]);
+  }, [viewdetails, viewdetailsErr, dispatch, clubId, bookmarks]);
 
-  // Handle Toggle Favorite API response
+  // Handle Toggle Favorite API response (if using server sync)
   useEffect(() => {
     if (
       togglefavorite?.status === true ||
@@ -134,12 +257,11 @@ const ClubDetailScreen = () => {
     ) {
       console.log("togglefavorite response:+>", togglefavorite);
 
-      // Update bookmark state based on server response
+      // Update like state based on server response
       if (togglefavorite?.data?.isFavorite !== undefined) {
-        setIsBookmarked(togglefavorite.data.isFavorite);
-      } else {
-        // Fallback: toggle current state
-        setIsBookmarked((prev: boolean) => !prev);
+        const newLikeState = togglefavorite.data.isFavorite;
+        setIsLiked(newLikeState);
+        console.log('Like state updated from server:', newLikeState);
       }
 
       dispatch(togglefavoriteData(''));
@@ -150,7 +272,7 @@ const ClubDetailScreen = () => {
       setMsg(togglefavoriteErr?.message?.toString());
       dispatch(togglefavoriteError(''));
     }
-  }, [togglefavorite, togglefavoriteErr, dispatch]);
+  }, [togglefavorite, togglefavoriteErr, dispatch, clubId, bookmarks]);
 
   // Get facilities from API data or use default facilities
   const facilities = (clubDetails as any)?.facilities?.map((facility: any, index: number) => ({
@@ -353,7 +475,7 @@ const ClubDetailScreen = () => {
 
   const handleLoungeSelect = (loungeId: string) => {
     // Toggle selection: if already selected, unselect; otherwise select
-    setSelectedLounge(prevSelected => 
+    setSelectedLounge(prevSelected =>
       prevSelected === loungeId ? '' : loungeId
     );
   };
@@ -377,8 +499,8 @@ const ClubDetailScreen = () => {
       return;
     }
 
-    const latitude = (clubDetails as any)?.coordinates?.coordinates?.[1];
-    const longitude = (clubDetails as any)?.coordinates?.coordinates?.[0];
+    const latitude = (clubDetails as any)?.coordinates?.coordinates?.[0];
+    const longitude = (clubDetails as any)?.coordinates?.coordinates?.[1];
     const address = (clubDetails as any)?.address;
 
     if (!latitude || !longitude) {
@@ -455,7 +577,8 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     }
   };
 
-  const handleToggleFavorite = async () => {
+  // Handle Like/Favorite toggle (server-based)
+  const handleToggleLike = async () => {
     if (!clubDetails) {
       Alert.alert('Error', 'Club details not available');
       return;
@@ -467,36 +590,94 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       return;
     }
 
-    // Debug: Check token before making API call
-    try {
-      const userToken = await AsyncStorage.getItem("user_token");
-      const signinData = await AsyncStorage.getItem("signin");
-      console.log('=== CLUB DETAIL TOKEN DEBUG ===');
-      console.log('user_token (raw):', userToken);
-      console.log('user_token type:', typeof userToken);
-      console.log('user_token length:', userToken?.length);
-      console.log('signin data (raw):', signinData);
-      console.log('eventId:', eventId);
-
-      // Test if token is valid JWT format
-      if (userToken && userToken.includes('.')) {
-        const parts = userToken.split('.');
-        console.log('JWT parts count:', parts.length);
-        if (parts.length === 3) {
-          console.log('Token appears to be valid JWT format');
-        } else {
-          console.log('Token does not appear to be valid JWT format');
-        }
-      } else {
-        console.log('Token does not contain dots - not JWT format');
-      }
-      console.log('================================');
-    } catch (error) {
-      console.log('Error retrieving token:', error);
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this club');
+    
+    if (!hasPermission) {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this club. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+      return;
     }
 
-    console.log('Toggling favorite for event ID:', eventId);
-    dispatch(onTogglefavorite({ eventId }));
+    try {
+      console.log('Toggling like for event ID:', eventId);
+
+      // Update local state immediately for better UX
+      setIsLiked(!isLiked);
+
+      // Update clubDetails to reflect the change
+      setClubDetails((prevDetails: any) => ({
+        ...prevDetails,
+        isFavorite: !isLiked
+      }));
+
+      // Then sync with server
+      dispatch(onTogglefavorite({ eventId }));
+    } catch (error) {
+      console.log('Error toggling like:', error);
+      Alert.alert('Error', 'Failed to update like status');
+    }
+  };
+
+  // Handle Bookmark toggle (local storage-based)
+  const handleToggleBookmark = async () => {
+    if (!clubDetails) {
+      Alert.alert('Error', 'Club details not available');
+      return;
+    }
+
+    const eventId = (clubDetails as any)?._id;
+    if (!eventId) {
+      Alert.alert('Error', 'Event ID not available');
+      return;
+    }
+
+    // Check if user has permission to bookmark
+    const hasPermission = await handleRestrictedAction('canBookmark', navigation, 'bookmark this club');
+    
+    if (!hasPermission) {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to bookmark this club. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+      return;
+    }
+
+    try {
+      // Toggle local bookmark state immediately for better UX
+      const newBookmarkState = await toggleBookmark(eventId);
+      setIsBookmarked(newBookmarkState);
+
+      console.log('Bookmark toggled locally. New state:', newBookmarkState);
+
+    } catch (error) {
+      console.log('Error toggling bookmark:', error);
+      Alert.alert('Error', 'Failed to update bookmark');
+    }
   };
 
   const getTotalPrice = () => {
@@ -573,10 +754,10 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar 
-        barStyle="light-content" 
-        backgroundColor="transparent" 
-        translucent 
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
         // Enhanced StatusBar configuration for Android 15
         {...(Platform.OS === 'android' && {
           statusBarTranslucent: true,
@@ -610,16 +791,28 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
             <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
               <ShareIcon size={20} color={colors.white} />
             </TouchableOpacity>
+
+            {/* Heart Icon for Likes/Favorites (Server-based) */}
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={handleToggleFavorite}
+              onPress={handleToggleLike}
             >
-              {isBookmarked ? (
+              {isLiked ? (
                 <HeartIcon size={20} color={colors.white} />
               ) : (
                 <FavouriteIcon size={20} color={colors.violate} />
               )}
+            </TouchableOpacity>
 
+            {/* Bookmark Icon (Local storage-based) */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={handleToggleBookmark}
+            >
+              <BookmarkIcon
+                size={20}
+                color={isBookmarked ? colors.violate : colors.white}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -883,14 +1076,14 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
             <View style={styles.dialogHeader}>
               <Text style={styles.dialogTitle}>Coming Soon!</Text>
             </View>
-            
+
             <View style={styles.dialogContent}>
               <Text style={styles.dialogMessage}>
-                We're working on it to bring you an amazing booking experience. 
+                We're working on it to bring you an amazing booking experience.
                 This feature will be available soon!
               </Text>
             </View>
-            
+
             <View style={styles.dialogActions}>
               <TouchableOpacity
                 style={styles.dialogButton}
@@ -902,6 +1095,17 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           </View>
         </View>
       </Modal>
+      
+      <CustomAlert
+        visible={showCustomAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        primaryButtonText={alertConfig.primaryButtonText}
+        secondaryButtonText={alertConfig.secondaryButtonText}
+        onPrimaryPress={alertConfig.onPrimaryPress}
+        onSecondaryPress={alertConfig.onSecondaryPress}
+        onClose={() => setShowCustomAlert(false)}
+      />
     </View>
   );
 };

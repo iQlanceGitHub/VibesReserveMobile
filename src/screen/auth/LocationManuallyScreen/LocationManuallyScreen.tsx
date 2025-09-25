@@ -10,7 +10,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   ActivityIndicator,
-  Linking
+  Linking,
 } from "react-native";
 import { colors } from "../../../utilis/colors";
 import { BackButton } from "../../../components/BackButton";
@@ -29,10 +29,17 @@ import {
   onUpdateLocation,
   updateLocationData,
   updateLocationError,
-} from '../../../redux/auth/actions';
+} from "../../../redux/auth/actions";
 import { showToast } from "../../../utilis/toastUtils.tsx";
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
+import { CustomAlertSingleBtn } from "../../../components/CustomeAlertDialog";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocationPermission } from "../../../hooks/useLocationPermission";
+import Geocoder from "react-native-geocoding";
+
+// Initialize Geocoder
+Geocoder.init("AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y");
 // Define types for location data
 interface LocationResult {
   id: string;
@@ -68,16 +75,28 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
   const [searchResults, setSearchResults] = useState<LocationResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingCurrentLocation, setIsLoadingCurrentLocation] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isLoadingCurrentLocation, setIsLoadingCurrentLocation] =
+    useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const [uid, setUid] = useState(route?.params?.id);
+
+  // Use location permission hook
+  const {
+    hasPermission,
+    isLoading: isLocationLoading,
+    getCurrentLocation,
+  } = useLocationPermission();
 
   const dispatch = useDispatch();
   const updateLocation = useSelector((state: any) => state.auth.updateLocation);
-  const updateLocationErr = useSelector((state: any) => state.auth.updateLocationErr);
+  const updateLocationErr = useSelector(
+    (state: any) => state.auth.updateLocationErr
+  );
 
   // Google Maps API key (store this securely in your app configuration)
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
+  const GOOGLE_MAPS_API_KEY = "AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY";
 
   // Function to search locations using Google Maps API
   const searchLocations = async (query: string) => {
@@ -96,25 +115,30 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
 
       const data = await response.json();
 
-      if (data.status === 'OK') {
-        const results: LocationResult[] = data.predictions.map((prediction: any, index: number) => {
-          return {
-            id: prediction.place_id || String(index),
-            name: prediction.structured_formatting.main_text,
-            address: prediction.structured_formatting.secondary_text,
-            fullAddress: prediction.description,
-            latitude: 0, // Will be fetched when selected
-            longitude: 0 // Will be fetched when selected
-          };
-        });
+      if (data.status === "OK") {
+        const results: LocationResult[] = data.predictions.map(
+          (prediction: any, index: number) => {
+            return {
+              id: prediction.place_id || String(index),
+              name: prediction.structured_formatting.main_text,
+              address: prediction.structured_formatting.secondary_text,
+              fullAddress: prediction.description,
+              latitude: 0, // Will be fetched when selected
+              longitude: 0, // Will be fetched when selected
+            };
+          }
+        );
 
         setSearchResults(results);
       } else {
         setSearchResults([]);
       }
     } catch (error) {
-      console.log('Error searching locations:', error);
-      Alert.alert('Error', 'Failed to search locations. Please check your connection.');
+      console.log("Error searching locations:", error);
+      Alert.alert(
+        "Error",
+        "Failed to search locations. Please check your connection."
+      );
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -124,18 +148,18 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
   useEffect(() => {
     if (
       updateLocation?.status === true ||
-      updateLocation?.status === 'true' ||
+      updateLocation?.status === "true" ||
       updateLocation?.status === 1 ||
       updateLocation?.status === "1"
     ) {
       console.log("updateLocation:+>", updateLocation);
-      navigation.navigate('VerificationSucessScreen',  { id: uid });
+      navigation.navigate("VerificationSucessScreen", { id: uid });
       //  setMsg(updateLocation?.message?.toString());
       showToast(
         "success",
         updateLocation?.message || "Something went wrong. Please try again."
       );
-      dispatch(updateLocationData(''));
+      dispatch(updateLocationData(""));
     }
 
     if (updateLocationErr) {
@@ -144,7 +168,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
         "error",
         updateLocationErr?.message || "Something went wrong. Please try again."
       );
-      dispatch(updateLocationError(''));
+      dispatch(updateLocationError(""));
     }
   }, [updateLocation, updateLocationErr]);
 
@@ -157,82 +181,98 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
 
       const data = await response.json();
 
-      if (data.status === 'OK') {
+      if (data.status === "OK") {
         const { lat, lng } = data.result.geometry.location;
         return {
           latitude: lat,
           longitude: lng,
-          fullAddress: data.result.formatted_address
+          fullAddress: data.result.formatted_address,
         };
       }
       return null;
     } catch (error) {
-      console.log('Error getting place details:', error);
+      console.log("Error getting place details:", error);
       return null;
     }
   };
 
-  // Function to get current location using browser's geolocation API
-  const getCurrentLocation = () => {
+  // Function to get current location using React Native geolocation
+  const handleGetCurrentLocation = async () => {
     setIsLoadingCurrentLocation(true);
 
-    if (navigator && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
+    try {
+      const locationData = await getCurrentLocation();
 
-          try {
-            // Reverse geocode to get address from coordinates
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
-            );
+      if (locationData) {
+        const { latitude, longitude } = locationData;
+        console.log("Location obtained:", latitude, longitude);
 
-            const data = await response.json();
+        try {
+          // Reverse geocode to get address using Geocoder
+          const response = await Geocoder.from(latitude, longitude);
 
-            if (data.status === 'OK' && data.results.length > 0) {
-              const address = data.results[0].formatted_address;
-              setFormData({ location: address });
+          if (response.results.length > 0) {
+            const address = response.results[0].formatted_address;
+            setFormData({ location: address });
 
-              // You can pass this data to the next screen
-              const locationData = {
-                address,
-                latitude,
-                longitude
-              };
+            // Update location data
+            const locationInfo = {
+              address,
+              latitude,
+              longitude,
+            };
 
-              // Navigate with the location data
-              const obj = {
-                "userId": uid,
-                "longitude": latitude,
-                "latitude": longitude,
-              }
-              dispatch(onUpdateLocation(obj))
-            } else {
-              Alert.alert("Error", "Could not get address for your location");
-            }
-          } catch (error) {
-            console.log('Error reverse geocoding:', error);
-            Alert.alert("Error", "Failed to get your location address");
-          } finally {
-            setIsLoadingCurrentLocation(false);
+            // Dispatch location update
+            const obj = {
+              userId: uid,
+              longitude: longitude,
+              latitude: latitude,
+            };
+            dispatch(onUpdateLocation(obj));
+
+            showToast("success", "Location obtained successfully");
+          } else {
+            // Fallback if geocoding fails
+            setFormData({
+              location: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(
+                6
+              )}`,
+            });
+
+            const obj = {
+              userId: uid,
+              longitude: longitude,
+              latitude: latitude,
+            };
+            dispatch(onUpdateLocation(obj));
+
+            showToast("success", "Location obtained (coordinates only)");
           }
-        },
-        (error) => {
-          console.log('Error getting location:', error);
-          Alert.alert(
-            "Location Access Required",
-            "Please enable location services to use this feature",
-            [
-              { text: "Cancel", style: "cancel" },
-              { text: "Open Settings", onPress: () => Linking.openSettings() }
-            ]
-          );
-          setIsLoadingCurrentLocation(false);
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-      );
-    } else {
-      Alert.alert("Error", "Geolocation is not supported by this browser");
+        } catch (geocodingError) {
+          console.log("Error reverse geocoding:", geocodingError);
+          // Fallback with coordinates
+          setFormData({
+            location: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(
+              6
+            )}`,
+          });
+
+          const obj = {
+            userId: uid,
+            longitude: longitude,
+            latitude: latitude,
+          };
+          dispatch(onUpdateLocation(obj));
+
+          showToast("success", "Location obtained (coordinates only)");
+        }
+      } else {
+        showToast("error", "Failed to get current location");
+      }
+    } catch (error) {
+      console.log("Error getting current location:", error);
+      showToast("error", "Failed to get current location");
+    } finally {
       setIsLoadingCurrentLocation(false);
     }
   };
@@ -283,20 +323,20 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
     const locationData = {
       address: location.fullAddress,
       latitude: location.latitude,
-      longitude: location.longitude
+      longitude: location.longitude,
     };
 
-    console.log('Selected location:==', locationData);
+    console.log("Selected location:==", locationData);
     const obj = {
-      "userId": uid,
-      "longitude": location.latitude,
-      "latitude": location.longitude,
-    }
-    dispatch(onUpdateLocation(obj))
+      userId: uid,
+      longitude: location.longitude,
+      latitude: location.latitude,
+    };
+    dispatch(onUpdateLocation(obj));
   };
 
   const handleUseCurrentLocation = () => {
-    getCurrentLocation();
+    handleGetCurrentLocation();
   };
 
   const handleSubmit = async () => {
@@ -308,9 +348,10 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
 
     // If user typed manually without selecting from suggestions,
     // we need to geocode the address to get lat/lng
-    if (searchResults.length === 0 || !searchResults.some(result =>
-      result.fullAddress === formData.location)) {
-
+    if (
+      searchResults.length === 0 ||
+      !searchResults.some((result) => result.fullAddress === formData.location)
+    ) {
       setIsLoading(true);
       try {
         const response = await fetch(
@@ -321,45 +362,43 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
 
         const data = await response.json();
 
-        if (data.status === 'OK' && data.results.length > 0) {
+        if (data.status === "OK" && data.results.length > 0) {
           const { lat, lng } = data.results[0].geometry.location;
           const address = data.results[0].formatted_address;
 
           const locationData = {
             address,
             latitude: lat,
-            longitude: lng
+            longitude: lng,
           };
           console.log("locationData:==>", locationData);
           const obj = {
-            "userId": uid,
-            "longitude": lat,
-            "latitude": lng,
-          }
-          dispatch(onUpdateLocation(obj))
-         
+            userId: uid,
+            longitude: lng,
+            latitude: lat,
+          };
+          dispatch(onUpdateLocation(obj));
         } else {
           Alert.alert("Error", "Could not find the specified location");
         }
       } catch (error) {
-        console.log('Error geocoding address:', error);
+        console.log("Error geocoding address:", error);
         Alert.alert("Error", "Failed to validate the location");
       } finally {
         setIsLoading(false);
       }
     } else {
       // If we already have the data from search results
-      const selectedLocation = searchResults.find(result =>
-        result.fullAddress === formData.location);
+      const selectedLocation = searchResults.find(
+        (result) => result.fullAddress === formData.location
+      );
 
       if (selectedLocation) {
         const locationData = {
           address: selectedLocation.fullAddress,
           latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude
+          longitude: selectedLocation.longitude,
         };
-
-
       }
     }
   };
@@ -410,15 +449,17 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
               <TouchableOpacity
                 style={styles.currentLocationButton}
                 onPress={handleUseCurrentLocation}
-                disabled={isLoadingCurrentLocation}
+                disabled={isLoadingCurrentLocation || isLocationLoading}
               >
-                {isLoadingCurrentLocation ? (
+                {isLoadingCurrentLocation || isLocationLoading ? (
                   <ActivityIndicator size="small" color={colors.white} />
                 ) : (
                   <CurrentLocationIcon />
                 )}
                 <Text style={styles.currentLocationText}>
-                  {isLoadingCurrentLocation ? "Getting location..." : "Use my current location"}
+                  {isLoadingCurrentLocation || isLocationLoading
+                    ? "Getting location..."
+                    : "Use my current location"}
                 </Text>
               </TouchableOpacity>
 
@@ -438,11 +479,15 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
                       style={styles.resultItem}
                       onPress={() => handleSelectLocation(result)}
                     >
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
                         <LocationIcon />
                         <View style={styles.resultTextContainer}>
                           <Text style={styles.resultName}>{result.name}</Text>
-                          <Text style={styles.resultAddress}>{result.address}</Text>
+                          <Text style={styles.resultAddress}>
+                            {result.address}
+                          </Text>
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -458,7 +503,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
             </ScrollView>
 
             <View style={styles.buttonContainer}>
-
               <Buttons
                 title={isLoading ? "Getting Location..." : "Next"}
                 onPress={handleSubmit} // Remove the arrow function wrapper

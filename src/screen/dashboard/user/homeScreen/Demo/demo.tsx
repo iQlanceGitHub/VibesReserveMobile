@@ -28,6 +28,7 @@ import ArrowDownIcon from "../../../../../assets/svg/arrowDownIcon";
 import PlusIcon from "../../../../../assets/svg/plusIcon";
 import GalleryIcon from "../../../../../assets/svg/galleryIcon";
 import BackIcon from "../../../../../assets/svg/backIcon";
+import DeleteIconNew from "../../../../../assets/svg/deleteIconNew";
 import LinearGradient from "react-native-linear-gradient";
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -38,6 +39,7 @@ import {
 import { showToast } from '../../../../../utilis/toastUtils';
 import { uploadFileToS3 } from '../../../../../utilis/s3Upload';
 import { launchCamera, launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+import PermissionManager from '../../../../../utilis/permissionUtils';
 import addClubEventDetailStyle from "../../../host/homeScreen/addClubEventDetailStyle";
 
 interface BoothType {
@@ -178,25 +180,13 @@ const demo: React.FC<demoProps> = ({
   };
 
   const requestStoragePermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs storage permission to access photos',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
+    try {
+      const result = await PermissionManager.requestStoragePermission();
+      return result.granted;
+    } catch (error) {
+      console.log('Error requesting storage permission:', error);
+      return false;
     }
-    return true;
   };
 
   const handleImagePicker = (type: 'camera' | 'gallery') => {
@@ -231,13 +221,17 @@ const demo: React.FC<demoProps> = ({
         }
       });
     } else {
-      requestStoragePermission().then(hasPermission => {
-        if (hasPermission) {
+      // Use the new permission flow with proper alerts
+      PermissionManager.requestPermissionWithFlow(
+        'storage',
+        () => {
           launchImageLibrary(options, callback);
-        } else {
+        },
+        (error) => {
+          console.log('Storage permission error:', error);
           showToast('error', 'Storage permission denied');
         }
-      });
+      );
     }
   };
 
@@ -364,6 +358,29 @@ const demo: React.FC<demoProps> = ({
   const handlePhotoUpload = (index: number) => {
     setCurrentImageIndex(index);
     setShowImagePicker(true);
+  };
+
+  const handleDeleteImage = (index: number) => {
+    Alert.alert(
+      "Delete Image",
+      "Are you sure you want to delete this image?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            const newPhotos = [...uploadPhotos];
+            newPhotos.splice(index, 1);
+            setUploadPhotos(newPhotos);
+            showToast('success', 'Image deleted successfully');
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -632,21 +649,30 @@ const demo: React.FC<demoProps> = ({
               </Text>
               <View style={addClubEventDetailStyle.uploadPhotosRow}>
                 {[0, 1, 2].map((index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={addClubEventDetailStyle.imageUploadBox}
-                    onPress={() => handlePhotoUpload(index)}
-                  >
-                    {uploadPhotos[index] ? (
-                      <Image
-                        source={{ uri: uploadPhotos[index] }}
-                        style={addClubEventDetailStyle.uploadedImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <GalleryIcon />
+                  <View key={index} style={addClubEventDetailStyle.imageContainer}>
+                    <TouchableOpacity
+                      style={addClubEventDetailStyle.imageUploadBox}
+                      onPress={() => handlePhotoUpload(index)}
+                    >
+                      {uploadPhotos[index] ? (
+                        <Image
+                          source={{ uri: uploadPhotos[index] }}
+                          style={addClubEventDetailStyle.uploadedImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <GalleryIcon />
+                      )}
+                    </TouchableOpacity>
+                    {uploadPhotos[index] && (
+                      <TouchableOpacity
+                        style={addClubEventDetailStyle.deleteButton}
+                        onPress={() => handleDeleteImage(index)}
+                      >
+                        <DeleteIconNew width={20} height={20} />
+                      </TouchableOpacity>
                     )}
-                  </TouchableOpacity>
+                  </View>
                 ))}
               </View>
             </View>
