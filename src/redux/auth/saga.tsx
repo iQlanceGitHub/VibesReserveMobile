@@ -17,11 +17,9 @@ import {
   onVerifyEmail,
   verifyEmailData,
   verifyEmailError,
-
   onForgotPassword,
   forgotPasswordData,
   forgotPasswordError,
-
   onSendOtp,
   sendOtpData,
   sendOtpError,
@@ -49,47 +47,36 @@ import {
   onUpdateLocation,
   updateLocationData,
   updateLocationError,
-
   onHome,
   homeData,
   homeError,
-
   onFilter,
   filterData,
   filterError,
-
   onViewdetails,
   viewdetailsData,
   viewdetailsError,
-
   onCategory,
   categoryData,
   categoryError,
-
   onFacility,
   facilityData,
   facilityError,
-
   onTogglefavorite,
   togglefavoriteData,
   togglefavoriteError,
-
   onFavoriteslist,
   favoriteslistData,
   favoriteslistError,
-
   onBookingrequest,
   bookingrequestData,
   bookingrequestError,
-
   onAcceptreject,
   acceptrejectData,
   acceptrejectError,
-
   onCreateevent,
   createeventData,
   createeventError,
-
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -119,10 +106,10 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
       "timeZone": payload?.timeZone,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/signIn'}`,
+      url: `${baseurl}${"user/signIn"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/signIn'}`)
+    console.log(`==>> ${baseurl}${"user/signIn"}`);
 
     console.log("response:->", response);
     if (
@@ -176,10 +163,10 @@ function* onSignupSaga({ payload }: { payload: SignupPayload }) {
       "loginType": payload?.loginType,
     }
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/signUp'}`,
+      url: `${baseurl}${"user/signUp"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/signUp'}`)
+    console.log(`==>> ${baseurl}${"user/signUp"}`);
 
     console.log("response:->", response);
     if (
@@ -218,27 +205,31 @@ function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
       "usingtype": "forgot_password"//forgot_password,signup
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/forgotPassword'}`,
+      url: `${baseurl}${"user/forgotPassword"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/signIn'}`)
+    console.log(`==>> ${baseurl}${"user/signIn"}`);
 
     // console.log('response:->', response);
-    if (response?.status == 1 || response?.status == true || response?.status == "1" || response?.status == "true") {
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
       yield put(forgotPasswordData(response));
     } else {
-      console.log('Error:===2', response);
+      console.log("Error:===2", response);
       yield put(forgotPasswordError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log('Error:===', error);
+    console.log("Error:===", error);
     yield put(forgotPasswordError(error));
     yield put(displayLoading(false));
   }
 }
-
 
 interface ResendVerifyOtpSagaPayload {
   email?: string;
@@ -253,10 +244,10 @@ function* onResendVerifyOtpSaga({
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/resendOtp'}`,
+      url: `${baseurl}${"user/resendOtp"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/resendOtp'}`)
+    console.log(`==>> ${baseurl}${"user/resendOtp"}`);
 
     console.log("response:->", response);
     if (
@@ -433,10 +424,10 @@ function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }) {
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/otpVerify'}`,
+      url: `${baseurl}${"user/otpVerify"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/otpVerify'}`)
+    console.log(`==>> ${baseurl}${"user/otpVerify"}`);
 
     console.log("response:->", response);
     if (
@@ -459,17 +450,17 @@ function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }) {
   }
 }
 
-interface ResetPasswordPayload { }
+interface ResetPasswordPayload {}
 
 function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
   try {
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/ResetPassword'}`,
+      url: `${baseurl}${"user/ResetPassword"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/ResetPassword'}`)
+    console.log(`==>> ${baseurl}${"user/ResetPassword"}`);
 
     console.log("response:->", response);
     if (
@@ -492,17 +483,17 @@ function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
   }
 }
 
-interface SocialLoginPayload { }
+interface SocialLoginPayload {}
 
 function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
   try {
     yield put(displayLoading(true));
     const params = payload;
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/checkSocialid'}`,
+      url: `${baseurl}${"user/checkSocialid"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/checkSocialid'}`)
+    console.log(`==>> ${baseurl}${"user/checkSocialid"}`);
 
     console.log("response:->", response);
     if (
@@ -525,26 +516,29 @@ function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
   }
 }
 
-
 interface UpdateLocationPayload {
   userId?: string;
   longitude?: string;
   latitude?: string;
 }
 
-function* onUpdateLocationSaga({ payload }: { payload: UpdateLocationPayload }) {
+function* onUpdateLocationSaga({
+  payload,
+}: {
+  payload: UpdateLocationPayload;
+}) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "userId": payload?.userId,
-      "longitude": payload?.longitude,
-      "latitude": payload?.latitude,
+      userId: payload?.userId,
+      longitude: payload?.longitude,
+      latitude: payload?.latitude,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/updateLocation'}`,
+      url: `${baseurl}${"user/updateLocation"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/updateLocation'}`)
+    console.log(`==>> ${baseurl}${"user/updateLocation"}`);
 
     console.log("response:->", response);
     if (
@@ -567,7 +561,6 @@ function* onUpdateLocationSaga({ payload }: { payload: UpdateLocationPayload }) 
   }
 }
 
-
 interface HomePayload {
   lat?: string;
   long?: string;
@@ -580,17 +573,17 @@ function* HomeSaga({ payload }: { payload: HomePayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "lat": payload?.lat,
-      "long": payload?.long,
-      categoryid:payload?.categoryid,
-      userId:payload?.userId,
+      lat: payload?.lat,
+      long: payload?.long,
+      categoryid: payload?.categoryid,
+      userId: payload?.userId,
       search_keyword: payload?.search_keyword,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/home'}`,
+      url: `${baseurl}${"user/home"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/home'}`)
+    console.log(`==>> ${baseurl}${"user/home"}`);
 
     console.log("response:->", response);
     if (
@@ -613,7 +606,6 @@ function* HomeSaga({ payload }: { payload: HomePayload }) {
   }
 }
 
-
 interface FilterPayload {
   lat?: string;
   long?: string;
@@ -630,21 +622,21 @@ function* FilterSaga({ payload }: { payload: FilterPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "lat": payload?.lat,
-      "long": payload?.long,
-      "categoryId": payload?.categoryId,
-      "minPrice": payload?.minPrice,
-      "maxPrice": payload?.maxPrice,
-      "date": payload?.date,
-      "minDistance": payload?.minDistance,
-      "maxDistance": payload?.maxDistance,
-      "userId": payload?.userId,
+      lat: payload?.lat,
+      long: payload?.long,
+      categoryId: payload?.categoryId,
+      minPrice: payload?.minPrice,
+      maxPrice: payload?.maxPrice,
+      date: payload?.date,
+      minDistance: payload?.minDistance,
+      maxDistance: payload?.maxDistance,
+      userId: payload?.userId,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/filter'}`,
+      url: `${baseurl}${"user/filter"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/filter'}`)
+    console.log(`==>> ${baseurl}${"user/filter"}`);
 
     console.log("response:->", response);
     if (
@@ -667,7 +659,7 @@ function* FilterSaga({ payload }: { payload: FilterPayload }) {
   }
 }
 
-interface ProfilePayload { }
+interface ProfilePayload {}
 
 function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
   try {
@@ -697,7 +689,7 @@ function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
   }
 }
 
-interface LogoutPayload { }
+interface LogoutPayload {}
 
 function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
   try {
@@ -729,7 +721,6 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
     yield put(displayLoading(false));
   }
 }
-
 
 interface ViewdetailsPayload {
   id?: string;
@@ -771,39 +762,6 @@ function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
   }
 }
 
-// function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
-//   try {
-//     yield put(displayLoading(true));
-
-//     const params = {
-//       "userId": payload?.userId,
-//     };
-
-//     const response = yield call(fetchPost, {
-//       url: `${baseurl}${`user/viewdetails/${payload?.id}`}`,
-//       params,
-//     });
-
-//     console.log("response:->", response);
-//     if (
-//       response?.status == 1 ||
-//       response?.status == true ||
-//       response?.status == "1" ||
-//       response?.status == "true"
-//     ) {
-//       yield put(viewdetailsData(response));
-//     } else {
-//       console.log("Errors", response);
-//       yield put(viewdetailsError(response));
-//     }
-//     yield put(displayLoading(false));
-//   } catch (error) {
-//     console.log("Error", error);
-//     yield put(viewdetailsError(error));
-//     yield put(displayLoading(false));
-//   }
-// }
-
 interface CategoryPayload {  
   page?: number;
   limit?: number;
@@ -837,7 +795,7 @@ function* CategorySaga({ payload }: { payload: CategoryPayload }) {
   }
 }
 
-interface FacilityPayload {  
+interface FacilityPayload {
   page?: number;
   limit?: number;
 }
@@ -870,7 +828,6 @@ function* FacilitySaga({ payload }: { payload: FacilityPayload }) {
   }
 }
 
-
 interface TogglefavoritePayload {
   eventId?: string;
 }
@@ -879,14 +836,13 @@ function* TogglefavoriteSaga({ payload }: { payload: TogglefavoritePayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "eventId": payload?.eventId,
-      
+      eventId: payload?.eventId,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/togglefavorite'}`,
+      url: `${baseurl}${"user/togglefavorite"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/togglefavorite'}`)
+    console.log(`==>> ${baseurl}${"user/togglefavorite"}`);
 
     console.log("response:->", response);
     if (
@@ -909,7 +865,6 @@ function* TogglefavoriteSaga({ payload }: { payload: TogglefavoritePayload }) {
   }
 }
 
-
 interface FavoriteslistPayload {
   eventId?: string;
 }
@@ -921,7 +876,7 @@ interface BookingrequestPayload {
 
 interface AcceptrejectPayload {
   bookingId: string;
-  action: 'accept' | 'reject';
+  action: "accept" | "reject";
   reason: string;
 }
 
@@ -952,14 +907,13 @@ function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "eventId": payload?.eventId,
-      
+      eventId: payload?.eventId,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${'user/favoriteslist'}`,
+      url: `${baseurl}${"user/favoriteslist"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${'user/favoriteslist'}`)
+    console.log(`==>> ${baseurl}${"user/favoriteslist"}`);
 
     console.log("response:->", response);
     if (
@@ -985,26 +939,30 @@ function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
 // function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }) {
 //   try {
 //     yield put(displayLoading(true));
-    
+
 //     const response = yield call(fetchGet, {
-  interface BookingrequestPayload {
-    eventId?: string;
-  }
-  
-  function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }) {
-    try {
-      yield put(displayLoading(true));
-      const params = {
-        "status": 'pending',
-        
-      };
-      const response = yield call(fetchPost, {
-      url: `${baseurl}${`user/bookingrequest?page=${payload?.page}&limit=${payload?.limit}`}`,
+interface BookingrequestPayload {
+  eventId?: string;
+  page?: number;
+  limit?: number;
+  status?: string;
+}
+
+function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      status: payload?.status || "pending",
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${`user/bookingrequest?page=${payload?.page || 1}&limit=${
+        payload?.limit || 10
+      }`}`,
       params,
     });
-    
+
     console.log("BookingrequestSaga response:", response);
-    
+
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1016,7 +974,7 @@ function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
       console.log("Error:===2", response);
       yield put(bookingrequestError(response));
     }
-    
+
     yield put(displayLoading(false));
   } catch (error) {
     console.log("Error:===", error);
@@ -1028,20 +986,20 @@ function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
 function* AcceptrejectSaga({ payload }: { payload: AcceptrejectPayload }) {
   try {
     yield put(displayLoading(true));
-    
+
     const params = {
-      "bookingId": payload?.bookingId,
-      "action": payload?.action,
-      "reason": payload?.reason,
+      bookingId: payload?.bookingId,
+      action: payload?.action,
+      reason: payload?.reason,
     };
-    
+
     const response = yield call(fetchPut, {
       url: `${baseurl}${`user/acceptreject`}`,
       params,
     });
-    
+
     console.log("AcceptrejectSaga response:", response);
-    
+
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1053,7 +1011,7 @@ function* AcceptrejectSaga({ payload }: { payload: AcceptrejectPayload }) {
       console.log("Error:===2", response);
       yield put(acceptrejectError(response));
     }
-    
+
     yield put(displayLoading(false));
   } catch (error) {
     console.log("Error:===", error);
@@ -1065,17 +1023,17 @@ function* AcceptrejectSaga({ payload }: { payload: AcceptrejectPayload }) {
 function* CreateeventSaga({ payload }: { payload: CreateeventPayload }) {
   try {
     yield put(displayLoading(true));
-    
+
     const response = yield call(fetchPost, {
       url: `${baseurl}${`user/createevent`}`,
       params: payload,
     });
-    
+
     console.log("CreateeventSaga response:", response);
-    
+
     if (
       response?.status === true ||
-      response?.status === 'true' ||
+      response?.status === "true" ||
       response?.status === 1 ||
       response?.status === "1"
     ) {
@@ -1084,7 +1042,7 @@ function* CreateeventSaga({ payload }: { payload: CreateeventPayload }) {
       console.log("Error:===2", response);
       yield put(createeventError(response));
     }
-    
+
     yield put(displayLoading(false));
   } catch (error) {
     console.log("Error:===", error);
@@ -1119,7 +1077,6 @@ function* authSaga() {
   yield takeLatest(onBookingrequest().type, BookingrequestSaga);
   yield takeLatest(onAcceptreject().type, AcceptrejectSaga);
   yield takeLatest(onCreateevent().type, CreateeventSaga);
-
 }
 
 export default authSaga;

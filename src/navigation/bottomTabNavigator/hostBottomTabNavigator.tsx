@@ -39,32 +39,52 @@ const HostBottomTabNavigator = (props: BottomTabBarProps) => {
               >
                 <View
                   style={[
-                    {padding: 5},
-                     isFocused && styles.selectedIconWrapper,
+                    { padding: 5 },
+                    isFocused && styles.selectedIconWrapper,
                   ]}
                 >
                   {index == 0 ? (
                     isFocused ? (
-                      <HomeFillIcon width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      <HomeFillIcon
+                        width={appConstant.verticalScale(24)}
+                        height={appConstant.horizontalScale(24)}
+                      />
                     ) : (
                       <HomeUnFillIcon />
                     )
                   ) : index == 1 ? (
                     isFocused ? (
-                      <TaskFillIcon width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      <TaskFillIcon
+                        width={appConstant.verticalScale(24)}
+                        height={appConstant.horizontalScale(24)}
+                      />
                     ) : (
-                      <TaskUnFillIcon  />
+                      <TaskUnFillIcon />
                     )
                   ) : index == 2 ? (
                     isFocused ? (
-                      <NotificationFillIcon width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      <NotificationFillIcon
+                        width={appConstant.verticalScale(24)}
+                        height={appConstant.horizontalScale(24)}
+                      />
                     ) : (
-                      <NotificationUnFillIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      <NotificationUnFillIcon
+                        color={colors.gray100}
+                        width={appConstant.verticalScale(24)}
+                        height={appConstant.horizontalScale(24)}
+                      />
                     )
                   ) : isFocused ? (
-                    <ProfileFillIcon width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                    <ProfileFillIcon
+                      width={appConstant.verticalScale(24)}
+                      height={appConstant.horizontalScale(24)}
+                    />
                   ) : (
-                    <ProfileUnFillIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                    <ProfileUnFillIcon
+                      color={colors.gray100}
+                      width={appConstant.verticalScale(24)}
+                      height={appConstant.horizontalScale(24)}
+                    />
                   )}
                 </View>
                 {isFocused && <View style={styles.selectedIndicator} />}

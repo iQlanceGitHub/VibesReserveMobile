@@ -1,12 +1,15 @@
-import React from 'react';
-import Svg, { Path } from 'react-native-svg';
+import React from "react";
+import Svg, { Path } from "react-native-svg";
 
 interface ShareIconProps {
   size?: number;
   color?: string;
 }
 
-const ShareIcon: React.FC<ShareIconProps> = ({ size = 24, color = '#000000' }) => {
+const ShareIcon: React.FC<ShareIconProps> = ({
+  size = 24,
+  color = "#000000",
+}) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

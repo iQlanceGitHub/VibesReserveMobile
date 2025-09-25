@@ -11,6 +11,7 @@ interface ButtonProps {
   isCap?: boolean;
   style?: object;
   txtStyle?: object;
+  textColor?: string;
 }
 export const Buttons: FC<ButtonProps> = ({
   title,
@@ -19,6 +20,7 @@ export const Buttons: FC<ButtonProps> = ({
   isCap = true,
   style,
   txtStyle,
+  textColor = colors.white,
 }) => {
   return (
     <TouchableOpacity
@@ -26,7 +28,7 @@ export const Buttons: FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={[styles.titleText]}>{title}</Text>
+      <Text style={[styles.titleText, { color: textColor }]}>{title}</Text>
     </TouchableOpacity>
   );
 };

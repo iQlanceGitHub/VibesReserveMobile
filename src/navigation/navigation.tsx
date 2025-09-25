@@ -26,21 +26,24 @@ import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
 import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
-import favouriteScreen from '../screen/favouriteScreen/favouriteScreen';
-import ExploreScreen from '../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen';
+import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
+import ExploreScreen from "../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen";
 import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIlterListScreen";
 import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
 import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearbyEventsSeeAll/nearbyEventsSeeAllScreen";
 import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
 import LogoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 import AddClubEventDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
+import HostProfileScreen from "../screen/dashboard/host/profileScreen/hostProfileScreen";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
-import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
 import React, { useState } from "react";
 import homeScreen from "../screen/dashboard/user/homeScreen/homeScreen";
+import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
+import AddClubDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
+import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -91,6 +94,7 @@ export type RootStackParamList = {
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
   UpcomingScreen: undefined;
   AddClubEventDetailScreen: undefined;
+  HostProfileScreen: undefined;
 };
 
 function MyTabs() {
@@ -196,51 +200,54 @@ const NavigationStack: React.FC = () => {
             component={ProfileScreen}
           />
 
-           <Stack.Screen
+          <Stack.Screen
             name="HomeTabs"
             component={MyTabs}
             options={{ headerShown: false }}
-          /> 
+          />
           <Stack.Screen
             name="HostTabs"
             component={HostTabs}
             options={{ headerShown: false }}
           />
-           <Stack.Screen
+          <Stack.Screen
             name="ExploreScreen"
             component={ExploreScreen}
             options={{ headerShown: false }}
-          />  
-           <Stack.Screen
+          />
+          <Stack.Screen
             name="FilterListScreen"
             component={FilterListScreen}
             options={{ headerShown: false }}
-          />  
-           <Stack.Screen
+          />
+          <Stack.Screen
             name="ClubDetailScreen"
             component={ClubDetailScreen}
-            options={{ 
+            options={{
               headerShown: false,
-              gestureEnabled: false // Disable swipe-back gesture on iOS
+              gestureEnabled: false, // Disable swipe-back gesture on iOS
             }}
-          />  
-           <Stack.Screen
+          />
+          <Stack.Screen
             name="NearbyEventsSeeAllScreen"
             component={NearbyEventsSeeAllScreen}
             options={{ headerShown: false }}
-          />  
-           <Stack.Screen
+          />
+          <Stack.Screen
             name="UpcomingScreen"
             component={UpcomingScreen}
             options={{ headerShown: false }}
-          />  
-            <Stack.Screen
+          />
+          <Stack.Screen
             name="AddClubEventDetailScreen"
             component={AddClubEventDetailScreen}
             options={{ headerShown: false }}
-          />  
-        
-          
+          />
+          <Stack.Screen
+            name="HostProfileScreen"
+            component={HostProfileScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </LinearGradient>
       {loader && (

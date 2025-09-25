@@ -1,12 +1,15 @@
-import React from 'react';
-import Svg, { Path } from 'react-native-svg';
+import React from "react";
+import Svg, { Path } from "react-native-svg";
 
 interface PhoneIconProps {
   size?: number;
   color?: string;
 }
 
-const PhoneIcon: React.FC<PhoneIconProps> = ({ size = 24, color = '#000000' }) => {
+const PhoneIcon: React.FC<PhoneIconProps> = ({
+  size = 24,
+  color = "#000000",
+}) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
