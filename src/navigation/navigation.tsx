@@ -24,6 +24,7 @@ import ForgotPasswordScreen from "../screen/auth/ForgotPasswordScreen/ForgotPass
 import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswordScreen";
 import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
+import EditProfileScreen from "../screen/editProfileScreen/editProfileScren";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
 import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
 import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
@@ -48,6 +49,7 @@ import HostHomeScreen from "../screen/dashboard/host/homeScreen/homeScreen";
 import AddClubDetailScreen from "../screen/dashboard/host/homeScreen/addClubEventDetail";
 import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingScreen";
 import BookingDetailScreen from "../screen/dashboard/host/hostBooking/bookingDetailScreen";
+import BookingScreen from "../screen/bookingScreen/bookingScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -83,6 +85,7 @@ export type RootStackParamList = {
   HomeTabs: undefined;
   LeaveReviewScreen: undefined;
   ProfileScreen: undefined;
+  EditProfileScreen: undefined;
   WelcomeScreen: undefined;
   SignupScreen: undefined;
   OTPVerificationScreen: undefined;
@@ -121,7 +124,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={UpcomingScreen}
+        component={BookingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -131,7 +134,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Setting"
-        component={UpcomingScreen}
+        component={ProfileScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -241,6 +244,11 @@ const NavigationStack: React.FC = () => {
             options={{ headerShown: false }}
             name="ProfileScreen"
             component={ProfileScreen}
+          />
+          <Stack.Screen
+            options={{ headerShown: false }}
+            name="EditProfileScreen"
+            component={EditProfileScreen}
           />
 
           <Stack.Screen

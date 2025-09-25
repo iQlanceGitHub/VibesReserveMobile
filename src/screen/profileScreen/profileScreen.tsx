@@ -54,11 +54,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const handleEditProfile = () => {
-    console.log("Edit profile pressed");
-  };
-
-  const handleHelpSupport = () => {
-    navigation?.navigate("HelpSupport");
+    navigation?.navigate("EditProfileScreen");
   };
 
   const renderMenuOption = (
@@ -186,13 +182,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 "Share with Friends",
                 handleShareWithFriends,
                 <View style={styles.shareIconsContainer}></View>,
-                true
-              )}
-
-              {renderMenuOption(
-                "Help and Support",
-                handleHelpSupport,
-                <View />,
                 true
               )}
 
