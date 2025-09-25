@@ -51,9 +51,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
           </View>
           <View style={styles.detailRow}>
             <ClockIcon size={16} color={colors.white} />
-            <Text style={styles.detailText}>
-              {date} - {time}
-            </Text>
+            <Text style={styles.detailText}>{date}</Text>
           </View>
         </View>
         <View style={styles.priceContainer}>

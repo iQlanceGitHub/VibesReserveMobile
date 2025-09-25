@@ -76,7 +76,7 @@ export default StyleSheet.create({
   },
   detailsContainer: {
     gap: verticalScale(15),
-    flex: 1,
+    width: horizontalScale(200),
   },
   detailRow: {
     flexDirection: "row",
@@ -88,5 +88,7 @@ export default StyleSheet.create({
     fontWeight: "400",
     fontFamily: fonts.Regular,
     color: colors.whiteLight,
+    flex: 1,
+    flexWrap: "wrap",
   },
 });

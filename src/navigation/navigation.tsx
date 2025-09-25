@@ -153,7 +153,7 @@ function HostTabs() {
       />
       <Tab.Screen
         name="Search"
-        component={UpcomingScreen}
+        component={HostBookingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen

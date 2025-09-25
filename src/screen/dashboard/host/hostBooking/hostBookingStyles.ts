@@ -116,6 +116,7 @@ export default StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    marginBottom: verticalScale(-8),
   },
   categoryTag: {
     backgroundColor: colors.categoryTagBackground,

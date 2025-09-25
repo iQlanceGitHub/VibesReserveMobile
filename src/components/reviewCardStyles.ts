@@ -70,9 +70,9 @@ export default StyleSheet.create({
     fontSize: fontScale(12),
     fontWeight: "300",
     fontFamily: fonts.light,
-    color: colors.whiteLight,
+    color: colors.textcolor,
     lineHeight: verticalScale(16),
-    marginLeft: horizontalScale(66),
-    marginTop: verticalScale(-18),
+    marginLeft: horizontalScale(60),
+    marginTop: verticalScale(-15),
   },
 });

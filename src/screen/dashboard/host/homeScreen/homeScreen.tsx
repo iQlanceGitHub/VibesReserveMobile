@@ -20,9 +20,9 @@ import RequestCard from "../../../../components/RequestCard";
 import CloseIcon from "../../../../assets/svg/closeIcon";
 import styles from "./styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 import { showToast } from "../../../../utilis/toastUtils";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   onBookingrequest,
   bookingrequestData,
@@ -30,7 +30,7 @@ import {
   onAcceptreject,
   acceptrejectData,
   acceptrejectError,
-} from '../../../../redux/auth/actions';
+} from "../../../../redux/auth/actions";
 
 interface HostHomeScreenProps {
   navigation?: any;
@@ -38,25 +38,28 @@ interface HostHomeScreenProps {
 
 const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const [requests, setRequests] = useState<any[]>([]);
-  const [UserName, setUserName] = useState('');
+  const [UserName, setUserName] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState<string>('');
-  const [customReason, setCustomReason] = useState<string>('');
+  const [selectedRequestId, setSelectedRequestId] = useState<string>("");
+  const [customReason, setCustomReason] = useState<string>("");
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  
+
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
 
   const dispatch = useDispatch();
   const bookingrequest = useSelector((state: any) => state.auth.bookingrequest);
-  const bookingrequestErr = useSelector((state: any) => state.auth.bookingrequestErr);
+  const bookingrequestErr = useSelector(
+    (state: any) => state.auth.bookingrequestErr
+  );
   const acceptreject = useSelector((state: any) => state.auth.acceptreject);
-  const acceptrejectErr = useSelector((state: any) => state.auth.acceptrejectErr);
-
+  const acceptrejectErr = useSelector(
+    (state: any) => state.auth.acceptrejectErr
+  );
 
   const handleAccept = (requestId: string) => {
     setSelectedRequestId(requestId);
@@ -65,10 +68,12 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
 
   const handleAcceptConfirm = () => {
     console.log("Accepting request:", selectedRequestId);
-    dispatch(onAcceptreject({
-      bookingId: selectedRequestId,
-      action: "accept"
-    }));
+    dispatch(
+      onAcceptreject({
+        bookingId: selectedRequestId,
+        action: "accept",
+      })
+    );
     setShowAcceptModal(false);
   };
 
@@ -78,7 +83,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
 
   const handleReject = (requestId: string) => {
     setSelectedRequestId(requestId);
-    setCustomReason('');
+    setCustomReason("");
     setShowRejectModal(true);
   };
 
@@ -87,21 +92,28 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       showToast("error", "Please provide a reason for rejection");
       return;
     }
-    
-    console.log("Rejecting request:", selectedRequestId, "Reason:", customReason);
-    dispatch(onAcceptreject({
-      bookingId: selectedRequestId,
-      action: "reject",
-      reason: customReason
-    }));
-    
+
+    console.log(
+      "Rejecting request:",
+      selectedRequestId,
+      "Reason:",
+      customReason
+    );
+    dispatch(
+      onAcceptreject({
+        bookingId: selectedRequestId,
+        action: "reject",
+        reason: customReason,
+      })
+    );
+
     setShowRejectModal(false);
-    setCustomReason('');
+    setCustomReason("");
   };
 
   const handleRejectCancel = () => {
     setShowRejectModal(false);
-    setCustomReason('');
+    setCustomReason("");
   };
 
   const handleAddPress = () => {
@@ -125,10 +137,12 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const fetchBookingRequests = (page: number = 1) => {
     setLoading(true);
     setCurrentPage(page);
-    dispatch(onBookingrequest({
-      page: page,
-      limit: 10
-    }));
+    dispatch(
+      onBookingrequest({
+        page: page,
+        limit: 10,
+      })
+    );
   };
 
   const refreshRequests = () => {
@@ -146,23 +160,29 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       // Format date
       const startDate = new Date(item.eventId.startDate);
       const endDate = new Date(item.bookingEndDate);
-      const formattedDate = `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} to ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-      
+      const formattedDate = `${startDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })} to ${endDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })}`;
+
       // Format time
       const formatTime = (timeString: string) => {
-        if (!timeString) return '10:00 PM';
+        if (!timeString) return "10:00 PM";
         // Convert 24-hour format to 12-hour format
-        const [hours, minutes] = timeString.split(':');
+        const [hours, minutes] = timeString.split(":");
         const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const ampm = hour >= 12 ? "PM" : "AM";
         const displayHour = hour % 12 || 12;
         return `${displayHour}:${minutes} ${ampm}`;
       };
       const formattedTime = formatTime(item.eventId.openingTime);
-      
+
       // Format price
       const formattedPrice = `$${item.totalAmount.toFixed(2)}`;
-      
+
       return {
         id: item._id,
         _id: item._id,
@@ -171,10 +191,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         location: "New York, USA", // You might want to get this from event data
         date: formattedDate,
         time: formattedTime,
-        people: `${item.members} Person${item.members > 1 ? 's' : ''}`,
+        people: `${item.members} Person${item.members > 1 ? "s" : ""}`,
         price: formattedPrice,
         // Additional data from API
-        originalData: item
+        originalData: item,
       };
     });
   };
@@ -183,7 +203,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   useEffect(() => {
     if (
       bookingrequest?.status === true ||
-      bookingrequest?.status === 'true' ||
+      bookingrequest?.status === "true" ||
       bookingrequest?.status === 1 ||
       bookingrequest?.status === "1"
     ) {
@@ -193,7 +213,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       setRequests(transformedData);
       setLoading(false);
       setRefreshing(false);
-      dispatch(bookingrequestData(''));
+      dispatch(bookingrequestData(""));
     }
 
     if (bookingrequestErr) {
@@ -201,7 +221,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       setLoading(false);
       setRefreshing(false);
       showToast("error", "Failed to fetch booking requests. Please try again.");
-      dispatch(bookingrequestError(''));
+      dispatch(bookingrequestError(""));
     }
   }, [bookingrequest, bookingrequestErr, dispatch]);
 
@@ -209,30 +229,37 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   useEffect(() => {
     if (
       acceptreject?.status === true ||
-      acceptreject?.status === 'true' ||
+      acceptreject?.status === "true" ||
       acceptreject?.status === 1 ||
       acceptreject?.status === "1"
     ) {
       console.log("Accept/Reject response:", acceptreject);
-      
+
       // Show success toast based on action
-      if (acceptreject?.message?.toLowerCase().includes('reject')) {
+      if (acceptreject?.message?.toLowerCase().includes("reject")) {
         showToast("success", "Booking rejected successfully");
-      } else if (acceptreject?.message?.toLowerCase().includes('accept')) {
+      } else if (acceptreject?.message?.toLowerCase().includes("accept")) {
         showToast("success", "Booking accepted successfully");
       } else {
-        showToast("success", acceptreject?.message || "Action completed successfully");
+        showToast(
+          "success",
+          acceptreject?.message || "Action completed successfully"
+        );
       }
-      
+
       // Refresh the booking requests list
       refreshRequests();
-      dispatch(acceptrejectData(''));
+      dispatch(acceptrejectData(""));
     }
 
     if (acceptrejectErr) {
       console.log("Accept/Reject error:", acceptrejectErr);
-      showToast("error", acceptrejectErr?.message || "Failed to process request. Please try again.");
-      dispatch(acceptrejectError(''));
+      showToast(
+        "error",
+        acceptrejectErr?.message ||
+          "Failed to process request. Please try again."
+      );
+      dispatch(acceptrejectError(""));
     }
   }, [acceptreject, acceptrejectErr, dispatch]);
 
@@ -243,12 +270,18 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
 
   // Keyboard event listeners
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
 
     return () => {
       keyboardDidShowListener?.remove();
@@ -258,24 +291,26 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar 
-        barStyle="light-content" 
-        backgroundColor="transparent" 
-        translucent 
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
         // Enhanced StatusBar configuration for Android 15
-        {...(Platform.OS === 'android' && {
+        {...(Platform.OS === "android" && {
           statusBarTranslucent: true,
-          statusBarBackgroundColor: 'transparent',
+          statusBarBackgroundColor: "transparent",
         })}
       />
       <LinearGradient
         colors={[colors.hostGradientStart, colors.hostGradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.gradientContainer, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
+        style={[
+          styles.gradientContainer,
+          { paddingTop: insets.top, paddingBottom: insets.bottom },
+        ]}
       >
         <View style={styles.safeArea}>
-          
           <Header userName={UserName} onAddPress={handleAddPress} />
 
           <View style={styles.contentContainer}>
@@ -330,10 +365,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         animationType="slide"
         onRequestClose={handleRejectCancel}
       >
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
@@ -345,8 +380,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
                 <CloseIcon size={24} color={colors.white} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.modalSubtitle}>Please provide a reason for rejection:</Text>
-            
+            <Text style={styles.modalSubtitle}>
+              Please provide a reason for rejection:
+            </Text>
+
             <TextInput
               style={styles.reasonTextInput}
               placeholder="Enter reason for rejection..."
@@ -401,8 +438,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Accept Booking Request</Text>
-            <Text style={styles.modalSubtitle}>Are you sure you want to accept this booking request?</Text>
-            
+            <Text style={styles.modalSubtitle}>
+              Are you sure you want to accept this booking request?
+            </Text>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.cancelButton}

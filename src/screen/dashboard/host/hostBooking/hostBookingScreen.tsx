@@ -154,8 +154,8 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
       ];
 
       const startMonth = monthNames[startDate.getMonth()];
-      const startDay = startDate.getDate().toString().padStart(2, "0");
-      const endDay = endDate.getDate().toString().padStart(2, "0");
+      const startDay = startDate.getDate().toString();
+      const endDay = endDate.getDate().toString();
 
       const formatTime = (timeString: string) => {
         if (!timeString) return "12:00 AM";
@@ -171,7 +171,7 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
 
       const formattedTime = formatTime(openingTime);
 
-      return `${startMonth} ${startDay} to ${endDay} - ${formattedTime}`;
+      return `${startMonth} ${startDay}-${endDay} ${formattedTime}`;
     } catch (error) {
       console.log("Error formatting date:", error);
       return "Date not available";
@@ -187,7 +187,11 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
       },
       category: item.eventId?.type,
       eventName: item.eventId?.name || "Event",
-      location: item.eventId?.address || "Location",
+      location: item.eventId?.address
+        ? item.eventId.address.length > 30
+          ? item.eventId.address.substring(0, 85) + "..."
+          : item.eventId.address
+        : "Location",
       date: formatDateAndTime(
         item.bookingStartDate,
         item.bookingEndDate,

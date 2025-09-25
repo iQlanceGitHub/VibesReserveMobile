@@ -59,45 +59,37 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
       if (apiData) {
         const transformedData = {
           eventName: apiData.eventId?.name || "Event",
-          location: "Event Location",
+          location: apiData.eventId?.address
+            ? apiData.eventId.address.length > 30
+              ? apiData.eventId.address
+              : apiData.eventId.address
+            : "Location not available",
           date: formatDateAndTime(
             apiData.bookingStartDate,
             apiData.bookingEndDate,
             apiData.eventId?.openingTime
           ),
-          time: formatTime(apiData.eventId?.openingTime),
-          rating: 4.5,
+          rating: apiData.rating?.average || 0,
           totalPrice: `$${apiData.totalAmount || "0.00"}`,
           user: {
-            name: apiData.userId?.fullName || "Unknown User",
+            name: apiData.userId?.fullName,
             email: apiData.userId?.email || "",
             phone: apiData.userId?.phone || "",
             image: {
-              uri: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+              uri: apiData.userId?.profilePicture,
             },
           },
-          reviews: [
-            {
-              id: "1",
-              userName: "Loki Bright",
+          reviews:
+            apiData.rating?.reviews?.map((review: any, index: number) => ({
+              id: review._id || index.toString(),
+              userName: review.user?.fullName,
               userImage: {
-                uri: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+                uri: review.user?.profilePicture,
               },
-              rating: 5,
-              reviewText:
-                "Amazing experience! The vibe was incredible, and the music kept us on the floor all night.",
-            },
-            {
-              id: "2",
-              userName: "Anita Cruz",
-              userImage: {
-                uri: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-              },
-              rating: 4,
-              reviewText:
-                "Loved the DJ sets, but the entry queue was a bit long. Still worth it.",
-            },
-          ],
+              rating: review.rating || 5,
+              reviewText: review.review,
+              createdAt: review.createdAt,
+            })) || [],
         };
         setBookingData(transformedData);
       }
@@ -152,7 +144,7 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
       const endDay = endDate.getDate().toString().padStart(2, "0");
 
       const formattedTime = formatTime(openingTime);
-      return `${startMonth} ${startDay} to ${endDay} - ${formattedTime}`;
+      return `${startMonth} ${startDay} - ${endDay}  ${formattedTime}`;
     } catch (error) {
       return "Date not available";
     }
@@ -167,7 +159,7 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
     const displayHour = hour % 12 || 12;
     const displayMinutes = minutes || "00";
 
-    return `${displayHour}:${displayMinutes} ${ampm}`;
+    return `- ${displayHour}:${displayMinutes} ${ampm}`;
   };
 
   const handleBackPress = () => {
