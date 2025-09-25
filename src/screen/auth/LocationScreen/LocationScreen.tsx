@@ -7,17 +7,15 @@ import {
   SafeAreaView,
   Platform,
   Alert,
-  Linking,
   ActivityIndicator,
 } from "react-native";
 import { colors } from "../../../utilis/colors";
-import { fonts } from "../../../utilis/fonts";
 import { Buttons } from "../../../components/buttons";
 import LinearGradient from "react-native-linear-gradient";
 import Location from "../../../assets/svg/location";
 import styles from "./styles";
 import Geolocation from 'react-native-geolocation-service';
-import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
+import { check, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Geocoder from 'react-native-geocoding';
 //API
@@ -26,10 +24,7 @@ import {
   updateLocationData,
   updateLocationError,
 } from '../../../redux/auth/actions';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch, useSelector } from 'react-redux';
-import { CustomAlertSingleBtn } from '../../../components/CustomeAlertDialog';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showToast } from "../../../utilis/toastUtils.tsx";
 
 // Initialize Geocoder
