@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet } from "react-native";
 import { colors } from "../../../../utilis/colors";
 import { fonts } from "../../../../utilis/fonts";
 import {
@@ -271,39 +271,69 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  promoCodeContainer: {
+  promoCodeSection: {
+    marginTop: verticalScale(20),
+    marginBottom: verticalScale(20),
     paddingHorizontal: horizontalScale(20),
-    paddingTop: verticalScale(20),
   },
-  promoCodeInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.cardBackground,
-    borderRadius: verticalScale(90),
-    borderWidth: 1,
-    borderColor: colors.gray20,
-    paddingHorizontal: horizontalScale(16),
-    paddingVertical: verticalScale(4),
+  promoCodeContainer: {
+    position: "relative",
+    width: horizontalScale(335),
+    height: verticalScale(48),
   },
   promoCodeInput: {
-    flex: 1,
-    height: verticalScale(50),
-    fontSize: fontScale(16),
+    width: "100%",
+    height: "100%",
+    borderRadius: horizontalScale(90),
+    paddingHorizontal: horizontalScale(16),
+    paddingVertical: verticalScale(12),
+    paddingRight: horizontalScale(80),
+    fontSize: fontScale(14),
     fontFamily: fonts.Regular,
     color: colors.white,
-    paddingHorizontal: horizontalScale(12),
+    borderWidth: 1,
+    borderColor: colors.whiteTransparent,
   },
   applyButton: {
-    backgroundColor: colors.violate,
-    paddingHorizontal: horizontalScale(20),
-    paddingVertical: verticalScale(6),
-    borderRadius: verticalScale(20),
-    marginLeft: horizontalScale(8),
+    position: "absolute",
+    right: horizontalScale(8),
+    top: verticalScale(12),
+    width: horizontalScale(66),
+    height: verticalScale(24),
+    backgroundColor: colors.BtnBackground,
+    borderRadius: horizontalScale(90),
+    alignItems: "center",
+    justifyContent: "center",
   },
   applyButtonText: {
     fontSize: fontScale(12),
     fontWeight: "400",
-    fontFamily: fonts.Regular,
+    fontFamily: fonts.regular,
     color: colors.white,
+  },
+  textLogoContainer: {
+    width: horizontalScale(40),
+    height: verticalScale(24),
+    backgroundColor: colors.white,
+    borderRadius: horizontalScale(4),
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: horizontalScale(8),
+  },
+  textLogo: {
+    fontSize: fontScale(10),
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  mastercardLogo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mastercardCircle: {
+    width: horizontalScale(12),
+    height: horizontalScale(12),
+    borderRadius: horizontalScale(6),
+    marginHorizontal: horizontalScale(-2),
   },
 });

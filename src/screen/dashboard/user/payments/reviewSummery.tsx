@@ -8,12 +8,14 @@ import {
   TextInput,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import LinearGradient from "react-native-linear-gradient";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import { Buttons } from "../../../../components/buttons";
 import { colors } from "../../../../utilis/colors";
 import BackIcon from "../../../../assets/svg/backIcon";
 import ApplePayIcon from "../../../../assets/svg/applePayIcon";
+import GoogleIcon from "../../../../assets/svg/googleIcon";
 import HeartIcon from "../../../../assets/svg/heartIcon";
 import LocationFavourite from "../../../../assets/svg/locationFavourite";
 import ClockIcon from "../../../../assets/svg/clockIcon";
@@ -21,6 +23,22 @@ import ArrowRightIcon from "../../../../assets/svg/arrowRightIcon";
 import DottedLine from "../../../../assets/svg/dottedLine";
 import { styles } from "./reviewSummeryStyle";
 import { onReviewSummary } from "../../../../redux/auth/actions";
+
+interface PaymentCard {
+  id: string;
+  cardType: "visa" | "mastercard";
+  cardNumber: string;
+  cardholderName: string;
+  expiryDate: string;
+  isDefault: boolean;
+}
+
+interface PaymentData {
+  selectedCardId: string | null;
+  selectedPaymentMethod: string | null;
+  promoCode: string;
+  selectedCard: PaymentCard | null;
+}
 
 interface ReviewSummaryProps {
   navigation: any;
@@ -84,11 +102,21 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   onPaymentMethodChange,
 }) => {
   const dispatch = useDispatch();
+  const route = useRoute();
+  const nav = useNavigation();
   const { reviewSummary, reviewSummaryErr, loader } = useSelector(
     (state: any) => state.auth
   );
 
-  const [promoCode, setPromoCode] = useState("");
+  // Get payment data from route params
+  const paymentData = route.params as PaymentData;
+  const {
+    selectedCard,
+    selectedPaymentMethod,
+    promoCode: routePromoCode,
+  } = paymentData || {};
+
+  const [promoCode, setPromoCode] = useState(routePromoCode || "");
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(
     null
@@ -142,6 +170,41 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const handlePaymentMethodChange = () => {
     if (onPaymentMethodChange) {
       onPaymentMethodChange();
+    } else {
+      // Navigate back to payments screen with current data
+      (nav as any).navigate("PaymentsScreen", paymentData);
+    }
+  };
+
+  const renderCardLogo = (cardType: string) => {
+    switch (cardType) {
+      case "visa":
+        return (
+          <View style={styles.textLogoContainer}>
+            <Text style={[styles.textLogo, { color: "#1A1F71" }]}>VISA</Text>
+          </View>
+        );
+      case "mastercard":
+        return (
+          <View style={styles.textLogoContainer}>
+            <View style={styles.mastercardLogo}>
+              <View
+                style={[
+                  styles.mastercardCircle,
+                  { backgroundColor: "#EB001B" },
+                ]}
+              />
+              <View
+                style={[
+                  styles.mastercardCircle,
+                  { backgroundColor: "#F79E1B" },
+                ]}
+              />
+            </View>
+          </View>
+        );
+      default:
+        return null;
     }
   };
 
@@ -337,8 +400,26 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           <View style={styles.sectionContainer}>
             <View style={styles.paymentMethodRow}>
               <View style={styles.paymentMethodLeft}>
-                <ApplePayIcon />
-                <Text style={styles.paymentMethodText}>Apple Pay</Text>
+                {selectedPaymentMethod === "apple" ? (
+                  <ApplePayIcon />
+                ) : selectedPaymentMethod === "google" ? (
+                  <GoogleIcon />
+                ) : selectedCard ? (
+                  renderCardLogo(selectedCard.cardType)
+                ) : (
+                  <ApplePayIcon />
+                )}
+                <Text style={styles.paymentMethodText}>
+                  {selectedPaymentMethod === "apple"
+                    ? "Apple Pay"
+                    : selectedPaymentMethod === "google"
+                    ? "Google Pay"
+                    : selectedCard
+                    ? `${selectedCard.cardType.toUpperCase()} •••• ${selectedCard.cardNumber.slice(
+                        -4
+                      )}`
+                    : "Apple Pay"}
+                </Text>
               </View>
               <TouchableOpacity onPress={handlePaymentMethodChange}>
                 <Text style={styles.changeText}>Change</Text>
@@ -346,12 +427,12 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             </View>
           </View>
 
-          <View style={styles.promoCodeContainer}>
-            <View style={styles.promoCodeInputContainer}>
+          <View style={styles.promoCodeSection}>
+            <View style={styles.promoCodeContainer}>
               <TextInput
                 style={styles.promoCodeInput}
                 placeholder="Promo Code"
-                placeholderTextColor={colors.gray20}
+                placeholderTextColor={colors.textcolor}
                 value={promoCode}
                 onChangeText={setPromoCode}
               />
