@@ -110,6 +110,10 @@ export const {
   bookingDetailData,
   bookingDetailError,
 
+  onReviewSummary,
+  reviewSummaryData,
+  reviewSummaryError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -222,6 +226,10 @@ export const {
   "ON_BOOKING_DETAIL",
   "BOOKING_DETAIL_DATA",
   "BOOKING_DETAIL_ERROR",
+
+  "ON_REVIEW_SUMMARY",
+  "REVIEW_SUMMARY_DATA",
+  "REVIEW_SUMMARY_ERROR",
 
   "SET_LOGIN_TOKEN",
 

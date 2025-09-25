@@ -1,5 +1,12 @@
-import React, { FC } from "react";
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import React, { FC, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  TextInput,
+} from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import { Buttons } from "../../../../components/buttons";
@@ -55,6 +62,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   onEventPress,
   onPaymentMethodChange,
 }) => {
+  const [promoCode, setPromoCode] = useState("");
   const eventData: EventData = {
     id: "1",
     name: "Gala Night of Hilarious Comedy at The Club",
@@ -110,6 +118,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     } else {
       navigation.navigate("PaymentSuccessScreen");
     }
+  };
+
+  const handleApplyPromoCode = () => {
+    // Handle promo code application logic here
+    console.log("Applying promo code:", promoCode);
   };
 
   return (
@@ -244,6 +257,24 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               </View>
               <TouchableOpacity onPress={handlePaymentMethodChange}>
                 <Text style={styles.changeText}>Change</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.promoCodeContainer}>
+            <View style={styles.promoCodeInputContainer}>
+              <TextInput
+                style={styles.promoCodeInput}
+                placeholder="Promo Code"
+                placeholderTextColor={colors.gray20}
+                value={promoCode}
+                onChangeText={setPromoCode}
+              />
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={handleApplyPromoCode}
+              >
+                <Text style={styles.applyButtonText}>Apply</Text>
               </TouchableOpacity>
             </View>
           </View>

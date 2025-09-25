@@ -80,6 +80,9 @@ import {
   onBookingDetail,
   bookingDetailData,
   bookingDetailError,
+  onReviewSummary,
+  reviewSummaryData,
+  reviewSummaryError,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -1080,6 +1083,49 @@ function* BookingDetailSaga({ payload }: { payload: BookingDetailPayload }) {
   }
 }
 
+interface ReviewSummaryPayload {
+  eventid: string;
+  members: number;
+  days: number;
+}
+
+function* ReviewSummarySaga({ payload }: { payload: ReviewSummaryPayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      eventid: payload?.eventid,
+      members: payload?.members,
+      days: payload?.days,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/review-summary"}`,
+      params,
+    });
+
+    console.log("ReviewSummarySaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(reviewSummaryData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(reviewSummaryError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(reviewSummaryError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -1107,6 +1153,7 @@ function* authSaga() {
   yield takeLatest(onAcceptreject().type, AcceptrejectSaga);
   yield takeLatest(onCreateevent().type, CreateeventSaga);
   yield takeLatest(onBookingDetail().type, BookingDetailSaga);
+  yield takeLatest(onReviewSummary().type, ReviewSummarySaga);
 }
 
 export default authSaga;

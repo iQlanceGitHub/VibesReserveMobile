@@ -50,6 +50,7 @@ import AddClubDetailScreen from "../screen/dashboard/host/homeScreen/addClubEven
 import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingScreen";
 import BookingDetailScreen from "../screen/dashboard/host/hostBooking/bookingDetailScreen";
 import BookingScreen from "../screen/bookingScreen/bookingScreen";
+import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -129,7 +130,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={UpcomingScreen}
+        component={ReviewSummary}
         options={{ headerShown: false }}
       />
       <Tab.Screen
