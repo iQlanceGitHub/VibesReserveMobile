@@ -57,4 +57,5 @@ export const colors = {
   vilate20: "rgba(141, 52, 255, 0.2)",
   vilate10: "rgba(141, 52, 255, 0.1)",
   purpleTransparent10: "rgba(141, 52, 255, 0.1)",
+  disabledDayText: "rgba(62, 46, 96, 1)",
 };
