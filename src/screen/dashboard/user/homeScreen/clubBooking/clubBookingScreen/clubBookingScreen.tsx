@@ -125,28 +125,28 @@ const ClubBookingScreen: React.FC = () => {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
   
-  // Use event dates dynamically from eventData
-  const eventStartDate = eventData?.startDate ? new Date(eventData.startDate) : new Date();
-  const eventEndDate = eventData?.endDate ? new Date(eventData.endDate) : new Date();
+  // Use event dates dynamically from currentEventData
+  const eventStartDate = currentEventData?.startDate ? new Date(currentEventData.startDate) : new Date();
+  const eventEndDate = currentEventData?.endDate ? new Date(currentEventData.endDate) : new Date();
   
   const bookingData = {
-    startDate: eventData?.startDate || "2025-09-01T00:00:00.000Z",
-    endDate: eventData?.endDate || "2025-09-30T00:00:00.000Z",
+    startDate: currentEventData?.startDate || "2025-09-01T00:00:00.000Z",
+    endDate: currentEventData?.endDate || "2025-09-30T00:00:00.000Z",
     bookedDates: [], // No booked dates for now, can be added later if needed
   };
 
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(
-    eventData?.startDate ? eventStartDate : null
+    currentEventData?.startDate ? eventStartDate : null
   );
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(
-    eventData?.endDate ? eventEndDate : null
+    currentEventData?.endDate ? eventEndDate : null
   );
   const [memberCount, setMemberCount] = useState(1);
 
   // Get capacity from event data
-  const maxCapacity = eventData?.tickets?.[0]?.capacity || 10;
-  const ticketPrice = eventData?.tickets?.[0]?.ticketPrice || 0;
-  const entryFee = eventData?.entryFee || 0;
+  const maxCapacity = currentEventData?.tickets?.[0]?.capacity || 10;
+  const ticketPrice = currentEventData?.tickets?.[0]?.ticketPrice || 0;
+  const entryFee = currentEventData?.entryFee || 0;
 
   const handleDateRangeSelect = (
     startDate: Date | null,
@@ -158,10 +158,10 @@ const ClubBookingScreen: React.FC = () => {
   };
 
   useEffect(
-   () => {
-    console.log("eventData", eventData);
-   }, [eventData]
-  ); 
+    () => {
+      console.log("currentEventData", currentEventData);
+    }, [currentEventData]
+  );
 
   const formatSelectedDateRange = () => {
     if (selectedStartDate && selectedEndDate) {
@@ -173,9 +173,9 @@ const ClubBookingScreen: React.FC = () => {
       return `${startMonth} ${startDay} - ${endDay}`;
     }
     // If no dates selected, show event dates or default
-    if (eventData?.startDate && eventData?.endDate) {
-      const startDate = new Date(eventData.startDate);
-      const endDate = new Date(eventData.endDate);
+    if (currentEventData?.startDate && currentEventData?.endDate) {
+      const startDate = new Date(currentEventData.startDate);
+      const endDate = new Date(currentEventData.endDate);
       const startMonth = startDate.toLocaleDateString("en-US", {
         month: "short",
       });
@@ -205,7 +205,7 @@ const ClubBookingScreen: React.FC = () => {
     // Prepare booking data to pass to next screen
     const totalPrice = calculateTotalPrice();
     const bookingData = {
-      eventData: eventData,
+      eventData: currentEventData,
       selectedStartDate: selectedStartDate,
       selectedEndDate: selectedEndDate,
       memberCount: memberCount,
@@ -214,11 +214,11 @@ const ClubBookingScreen: React.FC = () => {
       entryFee: entryFee,
       totalPrice: totalPrice,
       bookingDetails: {
-        eventName: eventData?.name || "Event",
-        eventAddress: eventData?.address || "Address not available",
+        eventName: currentEventData?.name || "Event",
+        eventAddress: currentEventData?.address || "Address not available",
         eventPrice: entryFee,
         ticketPrice: ticketPrice,
-        eventTime: eventData?.openingTime || "10:00",
+        eventTime: currentEventData?.openingTime || "10:00",
         eventDate: selectedStartDate ? selectedStartDate.toISOString() : new Date().toISOString(),
         memberCount: memberCount,
         totalPrice: totalPrice,
@@ -247,7 +247,7 @@ const ClubBookingScreen: React.FC = () => {
         <View style={clubBookingStyles.locationLeft}>
           <LocationFavourite width={16} height={16} />
             <Text style={clubBookingStyles.locationText}>
-              {eventData?.address || "Address not available"}
+              {currentEventData?.address || "Address not available"}
             </Text>
         </View>
         <View style={clubBookingStyles.dateDisplay}>
