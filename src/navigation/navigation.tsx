@@ -113,7 +113,7 @@ export type RootStackParamList = {
   AddPromotionalCode: undefined;
   HelpSupport: undefined;
   BookingDetailScreen: { bookingId: string };
-  PaymentScreen: undefined;
+  PaymentScreen: { bookingData?: any };
   ReviewSummary: undefined;
 };
 

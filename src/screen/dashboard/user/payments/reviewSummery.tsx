@@ -52,6 +52,14 @@ interface PaymentData {
   paymentAmount?: number;
   paymentIntent?: any;
   paymentMethod?: string;
+  // New booking data fields
+  memberCount?: number;
+  entryFee?: number;
+  ticketPrice?: number;
+  totalPrice?: number;
+  maxCapacity?: number;
+  eventData?: any;
+  bookingData?: any;
 }
 
 interface ReviewSummaryProps {
@@ -137,6 +145,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     selectedPaymentMethod,
     promoCode: routePromoCode,
   } = paymentData || {};
+
+  // Debug: Log payment data to see what's being passed
+  console.log("ReviewSummary paymentData:", paymentData);
+  console.log("ReviewSummary bookingData:", paymentData?.bookingData);
 
   const [promoCode, setPromoCode] = useState(routePromoCode || "");
   const [eventData, setEventData] = useState<EventData | null>(null);
@@ -538,15 +550,15 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           {priceBreakdown ? (
             <View style={styles.sectionContainerNoBorderReduced}>
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Member Cost</Text>
+                <Text style={styles.priceLabel}>Entry Fee ({paymentData?.memberCount || paymentData?.bookingData?.memberCount || 1} members)</Text>
                 <Text style={styles.priceValue}>
-                  ${priceBreakdown.memberCost.toFixed(2)}
+                  ${((paymentData?.entryFee || paymentData?.bookingData?.entryFee || 0) * (paymentData?.memberCount || paymentData?.bookingData?.memberCount || 1)).toFixed(2)}
                 </Text>
               </View>
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Booth Cost</Text>
+                <Text style={styles.priceLabel}>Ticket Price ({paymentData?.memberCount || paymentData?.bookingData?.memberCount || 1} members)</Text>
                 <Text style={styles.priceValue}>
-                  ${priceBreakdown.boothCost.toFixed(2)}
+                  ${((paymentData?.ticketPrice || paymentData?.bookingData?.ticketPrice || 0) * (paymentData?.memberCount || paymentData?.bookingData?.memberCount || 1)).toFixed(2)}
                 </Text>
               </View>
               <View style={styles.priceRow}>
@@ -565,7 +577,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>Total</Text>
                 <Text style={styles.totalValue}>
-                  ${priceBreakdown.total.toFixed(2)}
+                  ${(paymentData?.totalPrice || paymentData?.bookingData?.totalPrice || priceBreakdown.total).toFixed(2)}
                 </Text>
               </View>
               <View style={styles.divider} />

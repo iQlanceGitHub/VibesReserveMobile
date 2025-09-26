@@ -79,6 +79,9 @@ const ClubDetailScreen = () => {
 
   const dispatch = useDispatch();
   const viewdetails = useSelector((state: any) => state.auth.viewdetails);
+  
+  // Debug: Log viewdetails to see if it's populated
+  console.log("ClubDetailScreen viewdetails from Redux:", viewdetails);
 
   // Disable swipe-back gesture on iOS
   useFocusEffect(
@@ -740,7 +743,9 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     };
 
     // Handle booking logic here
-    navigation.navigate("ClubBookingScreen" as never);
+    console.log("ClubDetailScreen viewdetails (booking):", viewdetails);
+    console.log("ClubDetailScreen navigating to ClubBookingScreen with (booking):", { eventData: viewdetails });
+    (navigation as any).navigate("ClubBookingScreen", { eventData: viewdetails });
   };
 
   const handleFavorite = (isFavorite: boolean) => {
@@ -750,7 +755,9 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
   const handleNextPress = () => {
     // setShowComingSoonDialog(true);
-    navigation.navigate('ClubBookingScreen' as never);
+    console.log("ClubDetailScreen viewdetails:", viewdetails);
+    console.log("ClubDetailScreen navigating to ClubBookingScreen with:", { eventData: viewdetails });
+    (navigation as any).navigate('ClubBookingScreen', { eventData: viewdetails });
   };
 
   return (

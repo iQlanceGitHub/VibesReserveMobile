@@ -45,6 +45,14 @@ interface PaymentData {
   selectedPaymentMethod: string | null;
   promoCode: string;
   selectedCard: PaymentCard | null;
+  // Booking data fields
+  bookingData?: any;
+  eventData?: any;
+  memberCount?: number;
+  entryFee?: number;
+  ticketPrice?: number;
+  totalPrice?: number;
+  maxCapacity?: number;
 }
 
 const PaymentsScreen: React.FC = () => {
@@ -71,6 +79,12 @@ const PaymentsScreen: React.FC = () => {
 
   // Get payment data from route params (when navigating back from review summary)
   const paymentData = route.params as PaymentData;
+  
+  // Extract booking data from route params
+  const { bookingData } = (route.params as any) || {};
+  const eventData = bookingData?.eventData;
+  const memberCount = bookingData?.memberCount || 1;
+  const totalPrice = bookingData?.totalPrice || 0;
 
   useEffect(() => {
     if (paymentData) {
@@ -84,8 +98,8 @@ const PaymentsScreen: React.FC = () => {
     // Check platform pay support
     checkPlatformPaySupport();
     
-    // Set payment amount (you can get this from route params or props)
-    setPaymentAmount(250); // Example amount, replace with actual amount
+    // Set payment amount from booking data
+    setPaymentAmount(totalPrice || 250); // Use total price from booking data
   }, [paymentData]);
 
   // Check platform pay support
@@ -211,6 +225,14 @@ const PaymentsScreen: React.FC = () => {
       promoCode,
       selectedCard: selectedCard || null,
       paymentAmount,
+      // Include booking data
+      bookingData,
+      eventData,
+      memberCount,
+      entryFee: bookingData?.entryFee,
+      ticketPrice: bookingData?.ticketPrice,
+      totalPrice: bookingData?.totalPrice,
+      maxCapacity: bookingData?.maxCapacity,
     };
     (navigation as any).navigate("ReviewSummary", paymentData);
   };
@@ -250,7 +272,15 @@ const PaymentsScreen: React.FC = () => {
         (navigation as any).navigate("ReviewSummary", { 
           paymentIntent,
           paymentMethod: 'card',
-          amount: amount 
+          amount: amount,
+          // Include booking data
+          bookingData,
+          eventData,
+          memberCount,
+          entryFee: bookingData?.entryFee,
+          ticketPrice: bookingData?.ticketPrice,
+          totalPrice: bookingData?.totalPrice,
+          maxCapacity: bookingData?.maxCapacity,
         });
       }
     } catch (error) {
@@ -406,7 +436,15 @@ const PaymentsScreen: React.FC = () => {
         (navigation as any).navigate("ReviewSummary", { 
           paymentIntent,
           paymentMethod: 'apple_pay',
-          amount: paymentAmount 
+          amount: paymentAmount,
+          // Include booking data
+          bookingData,
+          eventData,
+          memberCount,
+          entryFee: bookingData?.entryFee,
+          ticketPrice: bookingData?.ticketPrice,
+          totalPrice: bookingData?.totalPrice,
+          maxCapacity: bookingData?.maxCapacity,
         });
       }
     } catch (error: any) {
@@ -451,7 +489,15 @@ const PaymentsScreen: React.FC = () => {
         (navigation as any).navigate("ReviewSummary", { 
           paymentIntent,
           paymentMethod: 'google_pay',
-          amount: paymentAmount 
+          amount: paymentAmount,
+          // Include booking data
+          bookingData,
+          eventData,
+          memberCount,
+          entryFee: bookingData?.entryFee,
+          ticketPrice: bookingData?.ticketPrice,
+          totalPrice: bookingData?.totalPrice,
+          maxCapacity: bookingData?.maxCapacity,
         });
       }
     } catch (error: any) {
