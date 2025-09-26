@@ -42,8 +42,6 @@ import AddPromotionalCode from "../screen/dashboard/host/profileScreen/addPromot
 import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
-import PaymentScreen from "../screen/dashboard/user/payments/payments";
-
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
 import React, { useState } from "react";
@@ -111,8 +109,6 @@ export type RootStackParamList = {
   AddPromotionalCode: undefined;
   HelpSupport: undefined;
   BookingDetailScreen: { bookingId: string };
-  PaymentScreen: undefined;
-  ReviewSummary: undefined;
 };
 
 function MyTabs() {
@@ -332,16 +328,6 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="BookingDetailScreen"
             component={BookingDetailScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="PaymentScreen"
-            component={PaymentScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="ReviewSummary"
-            component={ReviewSummary}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

@@ -749,8 +749,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const handleNextPress = () => {
-    // setShowComingSoonDialog(true);
-    navigation.navigate('PaymentScreen' as never);
+    setShowComingSoonDialog(true);
   };
 
   return (

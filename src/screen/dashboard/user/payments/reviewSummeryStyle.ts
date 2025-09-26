@@ -336,22 +336,4 @@ export const styles = StyleSheet.create({
     borderRadius: horizontalScale(6),
     marginHorizontal: horizontalScale(-2),
   },
-  platformPaymentSection: {
-    marginHorizontal: horizontalScale(20),
-    marginVertical: verticalScale(16),
-  },
-  platformPayContainer: {
-    marginBottom: verticalScale(12),
-  },
-  platformPayButton: {
-    width: '100%',
-    height: verticalScale(50),
-  },
-  cardPaymentContainer: {
-    marginBottom: verticalScale(12),
-  },
-  cardPaymentButton: {
-    width: '100%',
-    height: verticalScale(50),
-  },
 });

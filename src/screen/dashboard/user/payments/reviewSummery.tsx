@@ -6,8 +6,6 @@ import {
   Image,
   ScrollView,
   TextInput,
-  Alert,
-  Platform,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -25,15 +23,6 @@ import ArrowRightIcon from "../../../../assets/svg/arrowRightIcon";
 import DottedLine from "../../../../assets/svg/dottedLine";
 import { styles } from "./reviewSummeryStyle";
 import { onReviewSummary } from "../../../../redux/auth/actions";
-import { 
-  useStripe, 
-  ApplePay, 
-  isPlatformPaySupported, 
-  usePlatformPay, 
-  PlatformPayButton, 
-  PlatformPay 
-} from '@stripe/stripe-react-native';
-import { stripeTestKey } from "../../../../utilis/appConstant";
 
 interface PaymentCard {
   id: string;
@@ -49,9 +38,6 @@ interface PaymentData {
   selectedPaymentMethod: string | null;
   promoCode: string;
   selectedCard: PaymentCard | null;
-  paymentAmount?: number;
-  paymentIntent?: any;
-  paymentMethod?: string;
 }
 
 interface ReviewSummaryProps {
@@ -121,14 +107,6 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const { reviewSummary, reviewSummaryErr, loader } = useSelector(
     (state: any) => state.auth
   );
-  
-  // Stripe hooks
-  const { confirmPayment } = useStripe();
-  const { confirmPlatformPayPayment } = usePlatformPay();
-  
-  // Payment processing state
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [isGooglePaySupported, setIsGooglePaySupported] = useState(false);
 
   // Get payment data from route params
   const paymentData = route.params as PaymentData;
@@ -154,24 +132,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     };
 
     dispatch(onReviewSummary(staticPayload));
-    
-    // Check platform pay support
-    checkPlatformPaySupport();
   }, [dispatch]);
-
-  // Check platform pay support
-  const checkPlatformPaySupport = async () => {
-    try {
-      const supported = await isPlatformPaySupported({
-        googlePay: {
-          testEnv: false,
-        }
-      });
-      setIsGooglePaySupported(supported);
-    } catch (error) {
-      console.error('Error checking platform pay support:', error);
-    }
-  };
 
   useEffect(() => {
     if (reviewSummary && reviewSummary.status === 1) {
@@ -211,7 +172,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       onPaymentMethodChange();
     } else {
       // Navigate back to payments screen with current data
-      (nav as any).navigate("PaymentScreen", paymentData);
+      (nav as any).navigate("PaymentsScreen", paymentData);
     }
   };
 
@@ -247,160 +208,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     }
   };
 
-  const handleConfirmPayment = async () => {
-    if (paymentData?.paymentIntent) {
-      // Payment already processed, navigate to success
-      navigation.navigate("PaymentSuccessScreen");
-      return;
-    }
-
-    if (paymentData?.selectedCard) {
-      // Process card payment
-      await processCardPayment();
-    } else if (paymentData?.selectedPaymentMethod === 'apple_pay') {
-      // Process Apple Pay
-      await processApplePay();
-    } else if (paymentData?.selectedPaymentMethod === 'google_pay') {
-      // Process Google Pay
-      await processGooglePay();
+  const handleConfirmPayment = () => {
+    if (onConfirmPayment) {
+      onConfirmPayment();
     } else {
-      Alert.alert('Error', 'Please select a payment method');
-    }
-  };
-
-  // Process card payment
-  const processCardPayment = async () => {
-    if (!paymentData?.selectedCard) {
-      Alert.alert('Error', 'No card selected');
-      return;
-    }
-
-    setIsProcessingPayment(true);
-    try {
-      const amount = paymentData?.paymentAmount || priceBreakdown?.total || 0;
-      const amountInCents = Math.round(amount * 100);
-      
-      const paymentIntentResponse = await fetch(
-        'https://api.stripe.com/v1/payment_intents',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Bearer ${stripeTestKey.secreteKey}`,
-          },
-          body: new URLSearchParams({
-            amount: amountInCents.toString(),
-            currency: 'usd',
-            customer: 'cus_T7lZ5LfIt7RqBf',
-            payment_method: paymentData.selectedCard.id,
-            off_session: 'true',
-            confirm: 'true',
-          }).toString(),
-        },
-      );
-
-      const paymentIntent = await paymentIntentResponse.json();
-
-      if (paymentIntent.error) {
-        Alert.alert('Payment Error', paymentIntent.error.message);
-      } else {
-        Alert.alert('Success', 'Payment processed successfully!');
-        navigation.navigate("PaymentSuccessScreen");
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      Alert.alert('Error', 'Payment failed. Please try again.');
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
-
-  // Process Apple Pay
-  const processApplePay = async () => {
-    try {
-      const amount = paymentData?.paymentAmount || priceBreakdown?.total || 0;
-      const amountInCents = Math.round(amount * 100);
-      
-      const paymentIntentResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Bearer ${stripeTestKey.secreteKey}`,
-        },
-        body: new URLSearchParams({
-          amount: amountInCents.toString(),
-          currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
-        }).toString(),
-      });
-
-      const { client_secret } = await paymentIntentResponse.json();
-      
-      const { error, paymentIntent } = await confirmPlatformPayPayment(client_secret, {
-        applePay: {
-          cartItems: [
-            {
-              label: 'Event Booking',
-              amount: amount.toFixed(2),
-              paymentType: 'Immediate',
-            } as any,
-          ],
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-        },
-      });
-
-      if (error) {
-        Alert.alert('Apple Pay Error', error.localizedMessage || error.message);
-      } else {
-        Alert.alert('Success', 'Apple Pay payment successful!');
-        navigation.navigate("PaymentSuccessScreen");
-      }
-    } catch (error: any) {
-      console.error('Apple Pay error:', error);
-      Alert.alert('Error', 'Apple Pay payment failed. Please try again.');
-    }
-  };
-
-  // Process Google Pay
-  const processGooglePay = async () => {
-    try {
-      const amount = paymentData?.paymentAmount || priceBreakdown?.total || 0;
-      const amountInCents = Math.round(amount * 100);
-      
-      const paymentIntentResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Bearer ${stripeTestKey.secreteKey}`,
-        },
-        body: new URLSearchParams({
-          amount: amountInCents.toString(),
-          currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
-        }).toString(),
-      });
-
-      const { client_secret } = await paymentIntentResponse.json();
-      
-      const { error, paymentIntent } = await confirmPlatformPayPayment(client_secret, {
-        googlePay: {
-          merchantName: 'VibesReserve',
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-          testEnv: false,
-        },
-      });
-
-      if (error) {
-        Alert.alert('Google Pay Error', error.message);
-      } else {
-        Alert.alert('Success', 'Google Pay payment successful!');
-        navigation.navigate("PaymentSuccessScreen");
-      }
-    } catch (error: any) {
-      console.error('Google Pay error:', error);
-      Alert.alert('Error', 'Google Pay payment failed. Please try again.');
+      navigation.navigate("PaymentSuccessScreen");
     }
   };
 
@@ -588,28 +400,25 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           <View style={styles.sectionContainer}>
             <View style={styles.paymentMethodRow}>
               <View style={styles.paymentMethodLeft}>
-                {selectedPaymentMethod === "apple" || selectedPaymentMethod === "apple_pay" ? (
+                {selectedPaymentMethod === "apple" ? (
                   <ApplePayIcon />
-                ) : selectedPaymentMethod === "google" || selectedPaymentMethod === "google_pay" ? (
+                ) : selectedPaymentMethod === "google" ? (
                   <GoogleIcon />
                 ) : selectedCard ? (
                   renderCardLogo(selectedCard.cardType)
-                ) : Platform.OS === 'ios' ? (
-                  <ApplePayIcon />
                 ) : (
-                  <GoogleIcon />
+                  <ApplePayIcon />
                 )}
-                
                 <Text style={styles.paymentMethodText}>
-                  {selectedPaymentMethod === "apple" || selectedPaymentMethod === "apple_pay"
+                  {selectedPaymentMethod === "apple"
                     ? "Apple Pay"
-                    : selectedPaymentMethod === "google" || selectedPaymentMethod === "google_pay"
+                    : selectedPaymentMethod === "google"
                     ? "Google Pay"
                     : selectedCard
                     ? `${selectedCard.cardType.toUpperCase()} •••• ${selectedCard.cardNumber.slice(
                         -4
                       )}`
-                    : Platform.OS === 'ios' ? "Apple Pay" : "Google Pay"}
+                    : "Apple Pay"}
                 </Text>
               </View>
               <TouchableOpacity onPress={handlePaymentMethodChange}>
@@ -618,49 +427,31 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             </View>
           </View>
 
-          {/* Platform-specific payment buttons */}
-          <View style={styles.platformPaymentSection}>
-            {/* Apple Pay Button - Show on iOS or when Apple Pay is selected */}
-            {(selectedPaymentMethod === 'apple' || selectedPaymentMethod === 'apple_pay' || (Platform.OS === 'ios' && !selectedPaymentMethod && !selectedCard)) && (
-              <View style={styles.platformPayContainer}>
-                <PlatformPayButton
-                  onPress={processApplePay}
-                  type={PlatformPay.ButtonType.Pay}
-                  borderRadius={8}
-                  style={styles.platformPayButton}
-                />
-              </View>
-            )}
-
-            {/* Google Pay Button - Show on Android or when Google Pay is selected */}
-            {(selectedPaymentMethod === 'google' || selectedPaymentMethod === 'google_pay' || (Platform.OS === 'android' && !selectedPaymentMethod && !selectedCard && isGooglePaySupported)) && (
-              <View style={styles.platformPayContainer}>
-                <PlatformPayButton
-                  onPress={processGooglePay}
-                  type={PlatformPay.ButtonType.Default}
-                  borderRadius={4}
-                  style={styles.platformPayButton}
-                />
-              </View>
-            )}
-
-            {/* Card Payment Button - Show when card is selected */}
-            {selectedCard && (
-              <View style={styles.cardPaymentContainer}>
-                <Buttons
-                  title={isProcessingPayment ? "Processing Card Payment..." : "Confirm Payment"}
-                  onPress={processCardPayment}
-                  style={styles.cardPaymentButton}
-                  disabled={isProcessingPayment}
-                />
-              </View>
-            )}
+          <View style={styles.promoCodeSection}>
+            <View style={styles.promoCodeContainer}>
+              <TextInput
+                style={styles.promoCodeInput}
+                placeholder="Promo Code"
+                placeholderTextColor={colors.textcolor}
+                value={promoCode}
+                onChangeText={setPromoCode}
+              />
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={handleApplyPromoCode}
+              >
+                <Text style={styles.applyButtonText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          {selectedPaymentMethod === "apple" || selectedPaymentMethod === "apple_pay" || selectedPaymentMethod === "google" || selectedPaymentMethod === "google_pay" ? 
-          
-        null :  null
-          }
-          
+
+          <View style={styles.buttonContainer}>
+            <Buttons
+              title="Confirm Payment"
+              onPress={handleConfirmPayment}
+              style={styles.confirmButton}
+            />
+          </View>
         </ScrollView>
       </LinearGradient>
     </SafeAreaWrapper>

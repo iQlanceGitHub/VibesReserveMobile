@@ -9,9 +9,6 @@ import SplashScreen from "react-native-splash-screen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/utilis/toastUtils.tsx";
 import AppInitializer from "./src/components/AppInitializer";
-import {StripeProvider} from '@stripe/stripe-react-native';
-import {stripeTestKey} from './src/utilis/appConstant';
-
 
 const initialState = {};
 const store: any = configureStore(initialState);
@@ -32,7 +29,6 @@ function App(): React.JSX.Element {
   }, []);
 
   return (
-    <StripeProvider merchantIdentifier="merchant.org.iqlance.iqlanc.shoppywhere" publishableKey={stripeTestKey.publishKey}> 
     <Provider store={store}>
       <SafeAreaProvider
         // Enhanced configuration for Android 15 edge-to-edge support
@@ -60,7 +56,7 @@ function App(): React.JSX.Element {
           </View>
         </AppInitializer>
       </SafeAreaProvider>
-    </Provider> </StripeProvider>
+    </Provider>
   );
 }
 
