@@ -126,7 +126,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={UpcomingScreen}
+        component={BookingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen

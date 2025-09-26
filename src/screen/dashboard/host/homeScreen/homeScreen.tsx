@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import Header from "../../../../components/Header";
@@ -154,6 +155,16 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     fetchBookingRequests(1);
   };
 
+  // Clear booking request data
+  const clearBookingData = () => {
+    setRequests([]);
+    setLoading(false);
+    setRefreshing(false);
+    setCurrentPage(1);
+    dispatch(bookingrequestData(""));
+    dispatch(bookingrequestError(""));
+  };
+
   // Transform API data to match RequestCard format
   const transformBookingData = (apiData: any[]) => {
     return apiData.map((item) => {
@@ -267,6 +278,19 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     getUser();
     fetchBookingRequests();
   }, []);
+
+  // Focus effect to fetch data when screen comes into focus and clear when leaving
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch data when screen comes into focus
+      fetchBookingRequests(1);
+
+      // Cleanup function - clear data when screen loses focus
+      return () => {
+        clearBookingData();
+      };
+    }, [])
+  );
 
   // Keyboard event listeners
   useEffect(() => {
