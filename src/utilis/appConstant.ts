@@ -363,3 +363,17 @@ export function returnTimeDiff(date: string) {
     return changeDateFormate(date);
   }
 }
+
+export const stripeTestKey = {
+  // publishKey:
+  //   'pk_test_51PbI1iHRWbjbwu3hEW2dduCNtf1wdVtfjHEDvYyGLeXgfQDzmPdYXMzRDm357G89XO4n9BJ9Wy9Vym5VMff720r8002R32UtjI',
+  // secreteKey:
+  //   'sk_test_51PbI1iHRWbjbwu3h6rPezn064Aw1Z1i6Uwr2NCBy520KhqoCU3i4JtwyzXyhA6K0AjhuySBXKRNUXyKdJgYfwHd200QbwUReRS',
+
+   publishKey:
+    'pk_test_51SBVvYG1YDeYbMZgrHDZOLANzAQPUnvdLk46zn6rz2JPrwAKdi3cMD4q5ccvacsFgq5dlvRKS04gvXhjK0cYwF9S004UuIYPr1',
+  secreteKey:
+    'sk_test_51SBVvYG1YDeYbMZguWLouPK8ECWd1rs5BnDGdoWLwmMclNrVv6gmUzlfDzgj8VYVytAkz0vHFQYDo2Rv0socgPRn00M1giOtn2',
+}
+
+ 

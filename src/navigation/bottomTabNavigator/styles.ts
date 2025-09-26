@@ -53,7 +53,7 @@ export default StyleSheet.create({
   },
   iconWrapper: {
     width: appConstant.horizontalScale(40),
-    height: appConstant.verticalScale(40),
+    height: appConstant.verticalScale(20),
     borderRadius: appConstant.horizontalScale(20),
     justifyContent: "center",
     alignItems: "center",
