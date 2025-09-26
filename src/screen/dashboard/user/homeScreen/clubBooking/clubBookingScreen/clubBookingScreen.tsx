@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import DateRangePicker from "../../../../../../components/DateRangePicker";
 import { colors } from "../../../../../../utilis/colors";
 import { BackButton } from "../../../../../../components/BackButton";
@@ -15,25 +15,38 @@ import CalendarIconViolet from "../../../../../../assets/svg/CalendarIconViolet"
 import MinusSVG from "../../../../../../assets/svg/MinusSVG";
 import PlusSVG from "../../../../../../assets/svg/PlusSVG";
 import clubBookingStyles from "./styles";
+import { verticalScale } from "../../../../../../utilis/appConstant";
 
 const ClubBookingScreen: React.FC = () => {
   const navigation = useNavigation();
-
+  const route = useRoute();
+  
+  // Get event data from route params
+  const { eventData } = (route.params as any) || {};
+  
+  // Initialize with event data or fallback to current month
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  
+  // Use event dates if available, otherwise use current month
+  const eventStartDate = eventData?.startDate ? new Date(eventData.startDate) : new Date();
+  const eventEndDate = eventData?.endDate ? new Date(eventData.endDate) : new Date();
+  
   const bookingData = {
-    startDate: "2025-09-01T00:00:00.000Z",
-    endDate: "2025-09-30T00:00:00.000Z",
+    startDate: eventData?.startDate || "2025-09-01T00:00:00.000Z",
+    endDate: eventData?.endDate || "2025-09-30T00:00:00.000Z",
     bookedDates: [
+      "2025-09-21T00:00:00.000Z",
       "2025-09-22T00:00:00.000Z",
       "2025-09-24T00:00:00.000Z",
-      "2025-09-21T00:00:00.000Z",
     ],
   };
 
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(
-    new Date(2025, 7, 3)
+    eventData?.startDate ? eventStartDate : new Date(2025, 8, 11) // September 11, 2025
   );
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(
-    new Date(2025, 7, 6)
+    eventData?.endDate ? eventEndDate : new Date(2025, 8, 27) // September 27, 2025
   );
   const [memberCount, setMemberCount] = useState(4);
 
@@ -55,7 +68,12 @@ const ClubBookingScreen: React.FC = () => {
       const endDay = selectedEndDate.getDate().toString().padStart(2, "0");
       return `${startMonth} ${startDay} - ${endDay}`;
     }
-    return "Aug 03 - 06";
+    const currentDate = new Date();
+    const currentMonth = currentDate.toLocaleDateString("en-US", {
+      month: "short",
+    });
+    const currentDay = currentDate.getDate().toString().padStart(2, "0");
+    return `${currentMonth} ${currentDay} - ${currentDay}`;
   };
 
   const handleMemberCountChange = (increment: boolean) => {
@@ -67,7 +85,25 @@ const ClubBookingScreen: React.FC = () => {
   };
 
   const handleNextPress = () => {
-    navigation.navigate("ClubDetailScreen" as never);
+    // Prepare booking data to pass to next screen
+    const bookingData = {
+      eventData: eventData,
+      selectedStartDate: selectedStartDate,
+      selectedEndDate: selectedEndDate,
+      memberCount: memberCount,
+      bookingDetails: {
+        eventName: eventData?.name || "Event",
+        eventAddress: eventData?.address || "Address not available",
+        eventPrice: eventData?.entryFee || 0,
+        eventTime: eventData?.openingTime || "10:00",
+        eventDate: selectedStartDate ? selectedStartDate.toISOString() : new Date().toISOString(),
+        memberCount: memberCount,
+        totalPrice: (eventData?.entryFee || 0) * memberCount,
+      }
+    };
+    
+    console.log("Booking data:", bookingData);
+    (navigation as any).navigate("ClubDetailScreen", bookingData);
   };
 
   return (
@@ -86,7 +122,9 @@ const ClubBookingScreen: React.FC = () => {
       <View style={clubBookingStyles.locationContainer}>
         <View style={clubBookingStyles.locationLeft}>
           <LocationFavourite width={16} height={16} />
-          <Text style={clubBookingStyles.locationText}>Bartonfort, Canada</Text>
+          <Text style={clubBookingStyles.locationText}>
+            {eventData?.address || "Bartonfort, Canada"}
+          </Text>
         </View>
         <View style={clubBookingStyles.dateDisplay}>
           <CalendarIconViolet width={16} height={16} />
@@ -135,7 +173,9 @@ const ClubBookingScreen: React.FC = () => {
         >
           <Text style={clubBookingStyles.nextButtonText}>Next</Text>
         </TouchableOpacity>
+        <View style={{marginBottom: verticalScale(50)}}></View>
       </View>
+     
     </SafeAreaView>
   );
 };

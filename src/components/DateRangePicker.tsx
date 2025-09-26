@@ -154,6 +154,72 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     });
   };
 
+  // Check if booked date is start of consecutive sequence
+  const isBookedStart = (date: Date) => {
+    if (!isDateBooked(date)) return false;
+    
+    const nextDay = new Date(date);
+    nextDay.setDate(date.getDate() + 1);
+    return !isDateBooked(nextDay);
+  };
+
+  // Check if booked date is end of consecutive sequence
+  const isBookedEnd = (date: Date) => {
+    if (!isDateBooked(date)) return false;
+    
+    const prevDay = new Date(date);
+    prevDay.setDate(date.getDate() - 1);
+    return !isDateBooked(prevDay);
+  };
+
+  // Check if booked date is middle of consecutive sequence
+  const isBookedMiddle = (date: Date) => {
+    if (!isDateBooked(date)) return false;
+    
+    const prevDay = new Date(date);
+    prevDay.setDate(date.getDate() - 1);
+    const nextDay = new Date(date);
+    nextDay.setDate(date.getDate() + 1);
+    
+    return isDateBooked(prevDay) && isDateBooked(nextDay);
+  };
+
+  // Check if booked date is within selected range
+  const isBookedInRange = (date: Date) => {
+    if (!isDateBooked(date) || !isDateInRange(date)) return false;
+    return true;
+  };
+
+  // Check if booked date in range is start of consecutive sequence
+  const isBookedInRangeStart = (date: Date) => {
+    if (!isBookedInRange(date)) return false;
+    
+    const nextDay = new Date(date);
+    nextDay.setDate(date.getDate() + 1);
+    return !isBookedInRange(nextDay);
+  };
+
+  // Check if booked date in range is end of consecutive sequence
+  const isBookedInRangeEnd = (date: Date) => {
+    if (!isBookedInRange(date)) return false;
+    
+    const prevDay = new Date(date);
+    prevDay.setDate(date.getDate() - 1);
+    return !isBookedInRange(prevDay);
+  };
+
+  // Check if booked date in range is middle of consecutive sequence
+  const isBookedInRangeMiddle = (date: Date) => {
+    if (!isBookedInRange(date)) return false;
+    
+    const prevDay = new Date(date);
+    prevDay.setDate(date.getDate() - 1);
+    const nextDay = new Date(date);
+    nextDay.setDate(date.getDate() + 1);
+    
+    return isBookedInRange(prevDay) && isBookedInRange(nextDay);
+  };
+
   const isDateDisabled = (date: Date) => {
     return !isDateInAllowedRange(date) || isDateBooked(date);
   };
@@ -200,7 +266,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             return (
               <View
                 key={dayIndex}
-                style={[styles.dayCell, { width: dayWidth }]}
+                style={[styles.dayCell, styles.emptyCell]}
               />
             );
           }
@@ -214,13 +280,19 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             selectedEndDate && day.getTime() === selectedEndDate.getTime();
           const isDisabled = isDateDisabled(day);
           const isBooked = isDateBooked(day);
+          const isBookedStartDate = isBookedStart(day);
+          const isBookedEndDate = isBookedEnd(day);
+          const isBookedMiddleDate = isBookedMiddle(day);
+          const isBookedInRangeDate = isBookedInRange(day);
+          const isBookedInRangeStartDate = isBookedInRangeStart(day);
+          const isBookedInRangeEndDate = isBookedInRangeEnd(day);
+          const isBookedInRangeMiddleDate = isBookedInRangeMiddle(day);
 
           return (
             <TouchableOpacity
               key={dayIndex}
               style={[
                 styles.dayCell,
-                { width: dayWidth },
                 isInRange && !isSelected && !isDisabled && styles.rangeDay,
                 isSelected && styles.selectedDay,
                 isTodayDate && !isSelected && !isDisabled && styles.todayDay,
@@ -233,7 +305,17 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                   !isDisabled &&
                   styles.middleDateCapsule,
                 isDisabled && !isBooked,
-                isBooked && styles.bookedDay,
+                // Booked date styling with joined capsules
+                // Priority: In-range booked dates (square) over out-of-range booked dates (round)
+                isBookedInRangeDate && !isBookedInRangeStartDate && !isBookedInRangeEndDate && !isBookedInRangeMiddleDate && styles.bookedInRange,
+                isBookedInRangeStartDate && styles.bookedInRangeStart,
+                isBookedInRangeEndDate && styles.bookedInRangeEnd,
+                isBookedInRangeMiddleDate && styles.bookedInRangeMiddle,
+                // Out-of-range booked dates (round)
+                isBooked && !isBookedInRangeDate && !isBookedStartDate && !isBookedEndDate && !isBookedMiddleDate && styles.bookedDay,
+                isBooked && !isBookedInRangeDate && isBookedStartDate && styles.bookedStartCapsule,
+                isBooked && !isBookedInRangeDate && isBookedEndDate && styles.bookedEndCapsule,
+                isBooked && !isBookedInRangeDate && isBookedMiddleDate && styles.bookedMiddleCapsule,
               ]}
               onPress={() => handleDatePress(day)}
               disabled={isDisabled}
@@ -292,7 +374,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
       <View style={styles.daysOfWeekContainer}>
         {daysOfWeek.map((day, index) => (
-          <Text key={index} style={[styles.dayOfWeekText, { width: dayWidth }]}>
+          <Text key={index} style={styles.dayOfWeekText}>
             {day}
           </Text>
         ))}

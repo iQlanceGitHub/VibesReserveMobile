@@ -31,6 +31,7 @@ import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
 import ExploreScreen from "../screen/dashboard/user/homeScreen/exploreScreen/exploreScreen";
 import FilterListScreen from "../screen/dashboard/user/homeScreen/FIlterList/FIlterListScreen";
 import ClubDetailScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubDetails/clubDetailScreen";
+import ClubBookingScreen from "../screen/dashboard/user/homeScreen/clubBooking/clubBookingScreen/clubBookingScreen";
 import NearbyEventsSeeAllScreen from "../screen/dashboard/user/homeScreen/nearbyEventsSeeAll/nearbyEventsSeeAllScreen";
 import UpcomingScreen from "../screen/dashboard/user/homeScreen/upcomingScreen/upcomingScreen";
 import LogoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
@@ -101,7 +102,8 @@ export type RootStackParamList = {
   HostTabs: undefined;
   ExploreScreen: undefined;
   FilterListScreen: { filteredData: any[] };
-  ClubDetailScreen: undefined;
+  ClubDetailScreen: { bookingData?: any };
+  ClubBookingScreen: { eventData: any };
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
   UpcomingScreen: undefined;
   AddClubEventDetailScreen: undefined;
@@ -284,6 +286,14 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ClubDetailScreen"
             component={ClubDetailScreen}
+            options={{
+              headerShown: false,
+              gestureEnabled: false, // Disable swipe-back gesture on iOS
+            }}
+          />
+          <Stack.Screen
+            name="ClubBookingScreen"
+            component={ClubBookingScreen}
             options={{
               headerShown: false,
               gestureEnabled: false, // Disable swipe-back gesture on iOS
