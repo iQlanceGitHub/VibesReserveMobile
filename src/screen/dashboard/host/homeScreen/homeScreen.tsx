@@ -199,7 +199,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         _id: item._id,
         name: item.userId.fullName,
         category: item.eventId.name,
-        location: "New York, USA", // You might want to get this from event data
+        location: item.eventId.address,
         date: formattedDate,
         time: formattedTime,
         people: `${item.members} Person${item.members > 1 ? "s" : ""}`,

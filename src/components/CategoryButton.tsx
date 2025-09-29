@@ -61,8 +61,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   unselectedButton: {
-    backgroundColor: 'transparent',
-    borderColor: colors.white,
+    backgroundColor: colors.unselectedBackground,
+    borderColor: colors.purpleBorder,
     borderWidth: 1,
   },
   buttonContent: {

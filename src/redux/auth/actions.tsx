@@ -70,6 +70,10 @@ export const {
   homeData,
   homeError,
 
+  onHomenew,
+  homenewData,
+  homenewError,
+
   onFilter,
   filterData,
   filterError,
@@ -113,6 +117,10 @@ export const {
   onReviewSummary,
   reviewSummaryData,
   reviewSummaryError,
+
+  onHostProfile,
+  hostProfileData,
+  hostProfileError,
 
   setLoginToken,
 
@@ -187,6 +195,10 @@ export const {
   "HOME_DATA",
   "HOME_ERROR",
 
+  "ON_HOMENEW",
+  "HOMENEW_DATA",
+  "HOMENEW_ERROR",
+
   "ON_FILTER",
   "FILTER_DATA",
   "FILTER_ERROR",
@@ -230,6 +242,10 @@ export const {
   "ON_REVIEW_SUMMARY",
   "REVIEW_SUMMARY_DATA",
   "REVIEW_SUMMARY_ERROR",
+
+  "ON_HOST_PROFILE",
+  "HOST_PROFILE_DATA",
+  "HOST_PROFILE_ERROR",
 
   "SET_LOGIN_TOKEN",
 

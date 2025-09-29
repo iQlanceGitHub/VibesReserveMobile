@@ -315,4 +315,50 @@ export default StyleSheet.create({
     fontSize: fontScale(16),
     textAlign: "center",
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  comingSoonDialog: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: horizontalScale(20),
+    padding: horizontalScale(20),
+    marginHorizontal: horizontalScale(20),
+    maxWidth: horizontalScale(300),
+  },
+  dialogHeader: {
+    alignItems: "center",
+    marginBottom: verticalScale(16),
+  },
+  dialogTitle: {
+    color: colors.white,
+    fontFamily: fonts.bold,
+    fontSize: fontScale(18),
+  },
+  dialogContent: {
+    marginBottom: verticalScale(20),
+  },
+  dialogMessage: {
+    color: colors.white,
+    fontFamily: fonts.regular,
+    fontSize: fontScale(14),
+    textAlign: "center",
+    lineHeight: fontScale(20),
+  },
+  dialogActions: {
+    alignItems: "center",
+  },
+  dialogButton: {
+    backgroundColor: colors.violate,
+    borderRadius: horizontalScale(25),
+    paddingHorizontal: horizontalScale(30),
+    paddingVertical: verticalScale(12),
+  },
+  dialogButtonText: {
+    color: colors.white,
+    fontFamily: fonts.bold,
+    fontSize: fontScale(14),
+  },
 });

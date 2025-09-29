@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { onCategory, categoryData, categoryError } from '../redux/auth/actions';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { onCategory, categoryData, categoryError } from "../redux/auth/actions";
 
-const CATEGORY_STORAGE_KEY = 'CATEGORY_DATA';
-const CATEGORY_API_CALLED_KEY = 'CATEGORY_API_CALLED';
+const CATEGORY_STORAGE_KEY = "CATEGORY_DATA";
+const CATEGORY_API_CALLED_KEY = "CATEGORY_API_CALLED";
 
 interface CategoryItem {
   id: string;
@@ -34,21 +34,26 @@ export const useCategory = () => {
 
   // Handle API response
   useEffect(() => {
-    if (category?.status === true || category?.status === 'true' || category?.status === 1 || category?.status === "1") {
+    if (
+      category?.status === true ||
+      category?.status === "true" ||
+      category?.status === 1 ||
+      category?.status === "1"
+    ) {
       console.log("Category API Success:", category);
       if (category?.data) {
         setCategories(category.data);
         saveCategoriesToStorage(category.data);
         setError(null);
       }
-      dispatch(categoryData(''));
+      dispatch(categoryData(""));
       setIsLoading(false);
     }
 
     if (categoryErr) {
       console.log("Category API Error:", categoryErr);
-      setError(categoryErr?.message?.toString() || 'Failed to load categories');
-      dispatch(categoryError(''));
+      setError(categoryErr?.message?.toString() || "Failed to load categories");
+      dispatch(categoryError(""));
       setIsLoading(false);
     }
   }, [category, categoryErr, dispatch]);
@@ -68,7 +73,10 @@ export const useCategory = () => {
 
   const saveCategoriesToStorage = async (categoryData: CategoryItem[]) => {
     try {
-      await AsyncStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categoryData));
+      await AsyncStorage.setItem(
+        CATEGORY_STORAGE_KEY,
+        JSON.stringify(categoryData)
+      );
       console.log("Categories saved to storage");
     } catch (error) {
       console.log("Error saving categories to storage:", error);
@@ -78,7 +86,7 @@ export const useCategory = () => {
   const checkIfApiCalled = async (): Promise<boolean> => {
     try {
       const apiCalled = await AsyncStorage.getItem(CATEGORY_API_CALLED_KEY);
-      return apiCalled === 'true';
+      return apiCalled === "true";
     } catch (error) {
       console.log("Error checking API call status:", error);
       return false;
@@ -87,7 +95,7 @@ export const useCategory = () => {
 
   const markApiAsCalled = async () => {
     try {
-      await AsyncStorage.setItem(CATEGORY_API_CALLED_KEY, 'true');
+      await AsyncStorage.setItem(CATEGORY_API_CALLED_KEY, "true");
       console.log("Category API marked as called");
     } catch (error) {
       console.log("Error marking API as called:", error);
@@ -96,7 +104,7 @@ export const useCategory = () => {
 
   const fetchCategories = async () => {
     const hasApiBeenCalled = await checkIfApiCalled();
-    
+
     if (hasApiBeenCalled) {
       console.log("Category API already called, using stored data");
       return;

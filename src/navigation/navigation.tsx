@@ -54,6 +54,8 @@ import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingS
 import BookingDetailScreen from "../screen/dashboard/host/hostBooking/bookingDetailScreen";
 import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
+import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
+import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -102,6 +104,11 @@ export type RootStackParamList = {
   ExploreScreen: undefined;
   FilterListScreen: { filteredData: any[] };
   ClubDetailScreen: undefined;
+  ClubProfileScreen: {
+    clubId: string;
+    hostData?: any;
+    eventsData?: any[];
+  };
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
   UpcomingScreen: undefined;
   AddClubEventDetailScreen: undefined;
@@ -113,6 +120,7 @@ export type RootStackParamList = {
   BookingDetailScreen: { bookingId: string };
   PaymentScreen: undefined;
   ReviewSummary: undefined;
+  ClubBarListScreen: { eventId?: string };
 };
 
 function MyTabs() {
@@ -135,7 +143,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={UpcomingScreen}
+        component={LogoutScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -290,6 +298,11 @@ const NavigationStack: React.FC = () => {
             }}
           />
           <Stack.Screen
+            name="ClubProfileScreen"
+            component={ClubProfileScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="NearbyEventsSeeAllScreen"
             component={NearbyEventsSeeAllScreen}
             options={{ headerShown: false }}
@@ -342,6 +355,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ReviewSummary"
             component={ReviewSummary}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ClubBarListScreen"
+            component={ClubBarListScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
