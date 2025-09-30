@@ -698,9 +698,9 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const getTotalPrice = () => {
-    // If no lounge is selected, return 0
+    // If no lounge is selected, return entryFee
     if (!selectedLounge) {
-      return 0;
+      return (clubDetails as any)?.entryFee || 0;
     }
 
     // Check both tickets and booths for the selected item
@@ -716,7 +716,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
     }
     
-    return selectedData ? selectedData.price : 0;
+    return selectedData ? selectedData.price : ((clubDetails as any)?.entryFee || 0);
   };
 
 
@@ -724,15 +724,9 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
 
   const handleBookNow = () => {
-    // Check if a lounge/ticket is selected
-    if (!selectedLounge) {
-      Alert.alert('Selection Required', 'Please select a lounge or ticket to proceed with booking.');
-      return;
-    }
-
-    // Collect all selected values
-    const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
-    const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
+    // Collect all selected values (allow entryFee-only bookings)
+    const selectedLoungeData = selectedLounge ? lounges.find((lounge: any) => lounge.id === selectedLounge) : null;
+    const selectedTicketData = selectedLounge ? transformedTickets.find((ticket: any) => ticket.id === selectedLounge) : null;
     const selectedFacilitiesData = facilities.filter((facility: any) => selectedFacilities.includes(facility.id));
 
     const selectedValues = {
@@ -775,16 +769,23 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     const combinedEventData = {
       ...(baseEventData || {}),
       selectedTicket: selectedTicketData,
-      // Override capacity and pricing with selected ticket data
-      tickets: selectedTicketData ? [{
-        ticketType: {
-          _id: selectedTicketData.id || '',
-          name: selectedTicketData.title || selectedTicketData.name || 'Selected Ticket'
-        },
-        ticketPrice: selectedTicketData.price || 0,
-        capacity: selectedTicketData.capacity || 1,
-        _id: selectedTicketData.id || ''
-      }] : ((baseEventData as any)?.tickets || [])
+      // If no ticket selected, use entryFee and don't include ticket-specific fields
+      ...(selectedTicketData ? {
+        // Override capacity and pricing with selected ticket data
+        tickets: [{
+          ticketType: {
+            _id: selectedTicketData.id || '',
+            name: selectedTicketData.title || selectedTicketData.name || 'Selected Ticket'
+          },
+          ticketPrice: selectedTicketData.price || 0,
+          capacity: selectedTicketData.capacity || 1,
+          _id: selectedTicketData.id || ''
+        }]
+      } : {
+        // When no ticket selected, use entryFee and don't include ticket-specific fields
+        entryFee: (baseEventData as any)?.entryFee || 0,
+        // Don't include ticketCost, ticketType, ticketid
+      })
     };
     
     console.log("ClubDetailScreen combinedEventData:", combinedEventData);
@@ -798,49 +799,56 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const handleNextPress = () => {
-   
-    if (!selectedLounge) {
-      Alert.alert('Please Select at list once booth or ticket')
-      return 
-    }
-
     let selectedData: any = null;
+    let isBooth = false;
     
-    // Check both tickets and booths for the selected item
-    if (transformedTickets && transformedTickets.length > 0) {
-      selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
-    }
-    
-    if (!selectedData && lounges && lounges.length > 0) {
-      selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+    // Check if a booth or ticket is selected
+    if (selectedLounge) {
+      // Check both tickets and booths for the selected item
+      if (transformedTickets && transformedTickets.length > 0) {
+        selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
+      }
+      
+      if (!selectedData && lounges && lounges.length > 0) {
+        selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+      }
+      
+      // Determine if this is a booth or ticket based on the data structure
+      isBooth = selectedData?.boothType !== undefined;
     }
    
     console.log("selectedData:=>", selectedData);
     console.log("clubDetails:=>", clubDetails);
     
-    // Determine if this is a booth or ticket based on the data structure
-    const isBooth = selectedData?.boothType !== undefined;
+    // If no booth/ticket selected, use entryFee as the price
+    const entryFee = (clubDetails as any)?.entryFee || 0;
     
     // Combine event data with selected information
     const combinedEventData = {
       ...(clubDetails || {}),
       selectedTicket: selectedData, // Keep the same name for consistency
-      // Override capacity and pricing with selected data
-      [isBooth ? 'booths' : 'tickets']: selectedData ? [{
-        [isBooth ? 'boothType' : 'ticketType']: {
+      // If no selection, don't include booth/ticket specific fields
+      ...(selectedData ? {
+        [isBooth ? 'booths' : 'tickets']: [{
+          [isBooth ? 'boothType' : 'ticketType']: {
+            _id: selectedData.id || '',
+            name: selectedData.title || selectedData.name || (isBooth ? 'Selected Booth' : 'Selected Ticket')
+          },
+          [isBooth ? 'boothPrice' : 'ticketPrice']: selectedData.price || 0,
+          capacity: selectedData.capacity || 1,
           _id: selectedData.id || '',
-          name: selectedData.title || selectedData.name || (isBooth ? 'Selected Booth' : 'Selected Ticket')
-        },
-        [isBooth ? 'boothPrice' : 'ticketPrice']: selectedData.price || 0,
-        capacity: selectedData.capacity || 1,
-        _id: selectedData.id || '',
-        // Add booth-specific fields if it's a booth
-        ...(isBooth ? {
-          boothName: selectedData.name || selectedData.title,
-          discountedPrice: selectedData.discountedPrice || selectedData.price,
-          boothImage: selectedData.image ? [selectedData.image] : []
-        } : {})
-      }] : ((clubDetails as any)?.[isBooth ? 'booths' : 'tickets'] || [])
+          // Add booth-specific fields if it's a booth
+          ...(isBooth ? {
+            boothName: selectedData.name || selectedData.title,
+            discountedPrice: selectedData.discountedPrice || selectedData.price,
+            boothImage: selectedData.image ? [selectedData.image] : []
+          } : {})
+        }]
+      } : {
+        // When no booth/ticket selected, use entryFee and don't include booth/ticket specific fields
+        entryFee: entryFee,
+        // Don't include boothCost, boothType, boothId, ticketCost, ticketType, ticketid
+      })
     };
     
     console.log("Combined event data for booking:", combinedEventData);

@@ -160,6 +160,15 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const selectedTicket = bookingData?.selectedTicket;
   const ticketType = bookingData?.ticketType || selectedTicket?.title || selectedTicket?.name || 'General';
   const ticketId = bookingData?.ticketId || selectedTicket?.id || selectedTicket?._id || '';
+  
+  // Helper function to determine if we should include boothid
+  const shouldIncludeBoothId = () => {
+    // Only include boothid if selectedTicket exists and has boothType (indicating it's a booth)
+    return selectedTicket && selectedTicket.boothType !== undefined;
+  };
+  
+  // Get boothid only if it's a booth selection
+  const boothId = shouldIncludeBoothId() ? (selectedTicket?._id || selectedTicket?.id || ticketId) : undefined;
 
   // Calculate number of days selected
   const calculateDays = () => {
@@ -265,12 +274,6 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     }
   }, [applyPromoCode, applyPromoCodeErr, promoCode]);
 
-  // Debug: Track dynamicPricing changes
-  useEffect(() => {
-    console.log("🔄 dynamicPricing updated:", dynamicPricing);
-    console.log("🔄 Discount in dynamicPricing:", dynamicPricing.discount);
-  }, [dynamicPricing]);
-
   // Debug: Track reviewSummary changes
   useEffect(() => {
     console.log("reviewSummary", reviewSummary);
@@ -295,8 +298,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     const isBooth = selectedTicket?.boothType !== undefined;
     
     const basePayload = {
-      eventId: eventData?._id || ticketId || "68c150951782d230d3e4dd7c",
-      hostId: eventData?.userId?._id || "68c14a2dfea417560dae2a62",
+      eventId: eventData?._id || ticketId || "",
+      hostId: eventData?.userId?._id || "",
       members: memberCount || 1,
       discount: Math.round(pricing.discount),
       fees: pricing.fees,
@@ -320,8 +323,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       }
     }
     
-    const extractedBoothTypeId = selectedTicket?.boothType?._id || selectedTicket?.boothType || "68b7df99241ce469fe7e2079";
-    const extractedTicketTypeId = selectedTicket?.ticketType?._id || selectedTicket?.ticketType || "VIP";
+    const extractedBoothTypeId = selectedTicket?.boothType?._id || selectedTicket?.boothType || "";
+    const extractedTicketTypeId = selectedTicket?.ticketType?._id || selectedTicket?.ticketType || "";
     
     console.log("=== EXTRACTED IDS ===");
     console.log("extractedId:", extractedId);
@@ -526,18 +529,30 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     return pricing;
   }, [entryFee, memberCount, numberOfDays, ticketPrice, ticketType, apiPricing]);
 
+  // Debug: Track dynamicPricing changes
+  useEffect(() => {
+    console.log("🔄 dynamicPricing updated:", dynamicPricing);
+    console.log("🔄 Discount in dynamicPricing:", dynamicPricing.discount);
+  }, [dynamicPricing]);
+
   useEffect(() => {
     // Check platform pay support
     checkPlatformPaySupport();
   }, []);
 
   useEffect(() => {
-    dispatch(onApplyPromoCode({
+    const promoPayload: any = {
       eventid: eventData?._id || ticketId || "",
-      boothid: selectedTicket?._id || selectedTicket?.id || ticketId || "",
       members: memberCount || 1,
       days: numberOfDays || 1,
-    }));
+    };
+    
+    // Only include boothid if it's a booth selection
+    if (boothId) {
+      promoPayload.boothid = boothId;
+    }
+    
+    dispatch(onApplyPromoCode(promoPayload));
   }, []);
 
   // Check platform pay support
@@ -854,14 +869,20 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
   const handleApplyPromoCode = () => {
     if (promoCode.trim()) {
-      // Dispatch apply promo code action
-      dispatch(onApplyPromoCode({
-        eventid: eventData?._id || ticketId || "68c150951782d230d3e4dd7c",
-        boothid: selectedTicket?._id || selectedTicket?.id || ticketId || "",
+      const promoPayload: any = {
+        eventid: eventData?._id || ticketId || "",
         members: memberCount || 1,
         days: numberOfDays || 1,
         promocode: promoCode.trim()
-      }));
+      };
+      
+      // Only include boothid if it's a booth selection
+      if (boothId) {
+        promoPayload.boothid = boothId;
+      }
+      
+      // Dispatch apply promo code action
+      dispatch(onApplyPromoCode(promoPayload));
     } else {
       Alert.alert("Invalid Code", "Please enter a valid promo code");
     }
@@ -872,14 +893,21 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     setSelectedPromoCode(promoCodeData);
     setPromoCode(promoCodeData.code);
     setShowPromoCodeList(false);
-    // Dispatch apply promo code action
-    dispatch(onApplyPromoCode({
-      eventid: eventData?._id || ticketId || "68c150951782d230d3e4dd7c",
-      boothid: selectedTicket?._id || selectedTicket?.id || ticketId || "",
+    
+    const promoPayload: any = {
+      eventid: eventData?._id || ticketId || "",
       members: memberCount || 1,
       days: numberOfDays || 1,
       promocode: promoCodeData.code
-    }));
+    };
+    
+    // Only include boothid if it's a booth selection
+    if (boothId) {
+      promoPayload.boothid = boothId;
+    }
+    
+    // Dispatch apply promo code action
+    dispatch(onApplyPromoCode(promoPayload));
   };
 
 
@@ -1080,7 +1108,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                   style={styles.browseButtonNew}
                   onPress={() => {
                     dispatch(onFetchPromoCodes({
-                      hostId: eventData?.userId?._id || "68d23e6a82858961d66eb4de"
+                      hostId: eventData?.userId?._id || ""
                     }));
                     setShowPromoCodeList(true);
                   }}
@@ -1121,12 +1149,18 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                     setPromoCode("");
                     setSelectedDiscount(null);
 
-                    dispatch(onApplyPromoCode({
+                    const promoPayload: any = {
                       eventid: eventData?._id || ticketId || "",
-                      boothid: selectedTicket?._id || selectedTicket?.id || ticketId || "",
                       members: memberCount || 1,
                       days: numberOfDays || 1,
-                    }));
+                    };
+                    
+                    // Only include boothid if it's a booth selection
+                    if (boothId) {
+                      promoPayload.boothid = boothId;
+                    }
+                    
+                    dispatch(onApplyPromoCode(promoPayload));
                     
                     // Recalculate pricing without promo code
                     const baseEntryFee = entryFee * memberCount * numberOfDays;
