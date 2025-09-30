@@ -43,27 +43,25 @@ const VerificationSucessScreen: React.FC<VerificationSucessScreenProps> = ({
         style={styles.container}
       >
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.congratulationContainer}>
-            <Congratulation />
-          </View>
-
           <View style={styles.content}>
+            <View style={styles.congratulationContainer}>
+              <Congratulation />
+            </View>
+
             <Text style={styles.title}>You're all set!</Text>
 
             <Text style={styles.discriptionText}>
-              Thank you for registering your account</Text>
+              Thank you for registering your account
+            </Text>
+          </View>
 
-            <View style={styles.buttonSection}>
-              <Buttons
-                title="Get Started"
-                onPress={() => navigation.replace('WelcomeScreen')}
-                style={styles.getStartedButton}
-                isCap={false}
-              />
-            </View>
-
-
-
+          <View style={styles.buttonSection}>
+            <Buttons
+              title="Get Started"
+              onPress={() => navigation.replace('WelcomeScreen')}
+              style={styles.getStartedButton}
+              isCap={false}
+            />
           </View>
         </SafeAreaView>
       </LinearGradient>

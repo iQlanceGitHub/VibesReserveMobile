@@ -66,6 +66,13 @@ import {
   fetchPromoCodesError,
   applyPromoCodeData,
   applyPromoCodeError,
+  
+  getProfileDetailData,
+  getProfileDetailError,
+
+  updateProfileData,
+  updateProfileError,
+
 } from "./actions";
 
 export const initialState = {
@@ -147,6 +154,12 @@ export const initialState = {
 
   applyPromoCode: "",
   applyPromoCodeErr: "",
+
+  getProfileDetail: "",
+  getProfileDetailErr: "",
+
+  updateProfile: "",
+  updateProfileErr: "",
 
   user: "",
 };
@@ -452,6 +465,26 @@ const authReducer = handleActions(
     [applyPromoCodeError().type]: produce((draft, action) => {
       console.log("payload applyPromoCode Error", action.payload);
       draft.applyPromoCodeErr = action.payload;
+    }),
+
+    // payload getProfileDetail
+    [getProfileDetailData().type]: produce((draft, action) => {
+      console.log("payload getProfileDetail", action.payload);
+      draft.getProfileDetail = action.payload;
+    }),
+    [getProfileDetailError().type]: produce((draft, action) => {
+      console.log("payload getProfileDetail Error", action.payload);
+      draft.getProfileDetailErr = action.payload;
+    }),
+
+    // payload updateProfile
+    [updateProfileData().type]: produce((draft, action) => {
+      console.log("payload updateProfile", action.payload);
+      draft.updateProfile = action.payload;
+    }),
+    [updateProfileError().type]: produce((draft, action) => {
+      console.log("payload updateProfile Error", action.payload);
+      draft.updateProfileErr = action.payload;
     }),
   },
   initialState

@@ -93,6 +93,12 @@ import {
   onApplyPromoCode,
   applyPromoCodeData,
   applyPromoCodeError,
+  onGetProfileDetail,
+  getProfileDetailData,
+  getProfileDetailError,
+  onUpdateProfile,
+  updateProfileData,
+  updateProfileError,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -536,6 +542,7 @@ interface UpdateLocationPayload {
   userId?: string;
   longitude?: string;
   latitude?: string;
+  address?: string;
 }
 
 function* onUpdateLocationSaga({
@@ -549,6 +556,7 @@ function* onUpdateLocationSaga({
       userId: payload?.userId,
       longitude: payload?.longitude,
       latitude: payload?.latitude,
+      address: payload?.address,
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/updateLocation"}`,
@@ -1270,6 +1278,97 @@ function* ApplyPromoCodeSaga({ payload }: { payload: any }) {
   }
 }
 
+// Get Profile Detail Saga
+interface GetProfileDetailPayload {}
+
+function* GetProfileDetailSaga({ payload }: { payload: GetProfileDetailPayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${"user/profiledetail"}`,
+    });
+
+    console.log("GetProfileDetailSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(getProfileDetailData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(getProfileDetailError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(getProfileDetailError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Update Profile Saga
+interface UpdateProfilePayload {
+  fullName?: string;
+  countrycode?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  profilePicture?: string;
+  userDocument?: string;
+  businessName?: string;
+  businessPicture?: string;
+  businessBanner?: string;
+  businessDiscription?: string;
+}
+
+function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      fullName: payload?.fullName,
+      countrycode: payload?.countrycode,
+      phone: payload?.phone,
+      dateOfBirth: payload?.dateOfBirth,
+      profilePicture: payload?.profilePicture,
+      userDocument: payload?.userDocument,
+      businessName: payload?.businessName,
+      businessPicture: payload?.businessPicture,
+      businessBanner: payload?.businessBanner,
+      businessDiscription: payload?.businessDiscription,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/updateProfile"}`,
+      params,
+    });
+
+    console.log("UpdateProfileSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(updateProfileData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(updateProfileError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(updateProfileError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -1301,6 +1400,8 @@ function* authSaga() {
   yield takeLatest(onCreateBooking().type, CreateBookingSaga);
   yield takeLatest(onFetchPromoCodes().type, FetchPromoCodesSaga);
   yield takeLatest(onApplyPromoCode().type, ApplyPromoCodeSaga);
+  yield takeLatest(onGetProfileDetail().type, GetProfileDetailSaga);
+  yield takeLatest(onUpdateProfile().type, UpdateProfileSaga);
 }
 
 export default authSaga;

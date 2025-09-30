@@ -227,6 +227,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
               userId: uid,
               longitude: longitude,
               latitude: latitude,
+              address: address,
             };
             dispatch(onUpdateLocation(obj));
 
@@ -239,14 +240,15 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
               )}`,
             });
 
-            const obj = {
-              userId: uid,
-              longitude: longitude,
-              latitude: latitude,
-            };
-            dispatch(onUpdateLocation(obj));
+            //   const obj = {
+            //     userId: uid,
+            //     longitude: longitude,
+            //     latitude: latitude,
+            //     address: address,
+            //   };
+            //   dispatch(onUpdateLocation(obj));
 
-            showToast("success", "Location obtained (coordinates only)");
+            // showToast("success", "Location obtained (coordinates only)");
           }
         } catch (geocodingError) {
           console.log("Error reverse geocoding:", geocodingError);
@@ -261,6 +263,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
             userId: uid,
             longitude: longitude,
             latitude: latitude,
+            address: address,
           };
           dispatch(onUpdateLocation(obj));
 
@@ -331,6 +334,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
       userId: uid,
       longitude: location.longitude,
       latitude: location.latitude,
+      address: location.address || locationData.address,
     };
     dispatch(onUpdateLocation(obj));
   };
@@ -376,6 +380,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
             userId: uid,
             longitude: lng,
             latitude: lat,
+            address: locationData.address,
           };
           dispatch(onUpdateLocation(obj));
         } else {

@@ -8,6 +8,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { colors } from "../../../utilis/colors";
 import { Buttons } from "../../../components/buttons";
@@ -64,6 +65,7 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
     id: "", // id as string
     longitude: "",
     latitude: "",
+    address: "",
   });
 
   useEffect(() => {
@@ -113,19 +115,38 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
     }
   };
 
-  const handleLocationObtained = (
+  const handleLocationObtained = async (
     latitude: number,
     longitude: number,
     id?: string
   ) => {
     console.log("Location obtained:", latitude, longitude);
 
-    setFormData((prev) => ({
-      ...prev,
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-      id: id || prev.id, // Keep existing id or use new one
-    }));
+    try {
+      // Get address using reverse geocoding
+      const response = await Geocoder.from(latitude, longitude);
+      const address = response.results[0]?.formatted_address || "";
+      
+      console.log("Address obtained:", address);
+
+      setFormData((prev) => ({
+        ...prev,
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        address: address,
+        id: id || prev.id, // Keep existing id or use new one
+      }));
+    } catch (error) {
+      console.log("Error getting address:", error);
+      // Set location without address if geocoding fails
+      setFormData((prev) => ({
+        ...prev,
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        address: "",
+        id: id || prev.id,
+      }));
+    }
   };
 
   // Function to get current location with automatic permission handling
@@ -180,7 +201,7 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
         );
 
         if (fullAddress) {
-          handleLocationObtained(
+          await handleLocationObtained(
             locationData.latitude,
             locationData.longitude,
             uid
@@ -188,7 +209,7 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
           setPermissionMsg(`Current detected location\n\n${fullAddress}`);
         } else {
           // Fallback if geocoding fails
-          handleLocationObtained(
+          await handleLocationObtained(
             locationData.latitude,
             locationData.longitude,
             uid
@@ -214,9 +235,11 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
       userId: formData.id, // uid from formData.id
       longitude: formData.longitude, // longitude from formData.longitude
       latitude: formData.latitude, // latitude from formData.latitude
+      address: formData.address, // address from formData.address
     };
 
     console.log("Dispatching location update:", obj);
+    console.log("Address being sent:", obj.address);
     dispatch(onUpdateLocation(obj));
     setPermissionMsg("");
   };

@@ -126,6 +126,14 @@ export const {
   applyPromoCodeData,
   applyPromoCodeError,
 
+  onGetProfileDetail,
+  getProfileDetailData,
+  getProfileDetailError,
+
+  onUpdateProfile,
+  updateProfileData,
+  updateProfileError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -238,6 +246,14 @@ export const {
   "ON_APPLY_PROMO_CODE",
   "APPLY_PROMO_CODE_DATA",
   "APPLY_PROMO_CODE_ERROR",
+
+  "ON_GET_PROFILE_DETAIL",
+  "GET_PROFILE_DETAIL_DATA",
+  "GET_PROFILE_DETAIL_ERROR",
+
+  "ON_UPDATE_PROFILE",
+  "UPDATE_PROFILE_DATA",
+  "UPDATE_PROFILE_ERROR",
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",
