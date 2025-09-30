@@ -284,6 +284,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             selectedStartDate && day.getTime() === selectedStartDate.getTime();
           const isEndDate =
             selectedEndDate && day.getTime() === selectedEndDate.getTime();
+          const isSameDate = isStartDate && isEndDate;
+          const isFirstDateOnly = isStartDate && !selectedEndDate;
           const isDisabled = isDateDisabled(day);
           const isBooked = isDateBooked(day);
           const isBookedStartDate = isBookedStart(day);
@@ -302,8 +304,10 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 isInRange && !isSelected && !isDisabled && styles.rangeDay,
                 isSelected && styles.selectedDay,
                 isTodayDate && !isSelected && !isDisabled && styles.todayDay,
-                isStartDate && styles.startDateCapsule,
-                isEndDate && styles.endDateCapsule,
+                isSameDate && styles.singleDateCapsule,
+                isFirstDateOnly && styles.singleDateCapsule,
+                isStartDate && !isSameDate && !isFirstDateOnly && styles.startDateCapsule,
+                isEndDate && !isSameDate && styles.endDateCapsule,
                 isInRange &&
                   !isSelected &&
                   !isStartDate &&

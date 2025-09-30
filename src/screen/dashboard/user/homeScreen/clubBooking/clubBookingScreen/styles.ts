@@ -49,6 +49,7 @@ const clubBookingStyles = StyleSheet.create({
     fontFamily: fonts.Regular,
     color: colors.white,
     marginLeft: horizontalScale(8),
+    maxWidth: horizontalScale(200),
   },
   dateDisplay: {
     flexDirection: "row",

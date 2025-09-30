@@ -43,7 +43,6 @@ interface PaymentCard {
 interface PaymentData {
   selectedCardId: string | null;
   selectedPaymentMethod: string | null;
-  promoCode: string;
   selectedCard: PaymentCard | null;
   // Booking data fields
   bookingData?: any;
@@ -66,7 +65,6 @@ const PaymentsScreen: React.FC = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     string | null
   >(null);
-  const [promoCode, setPromoCode] = useState<string>("");
   const [showAddCard, setShowAddCard] = useState<boolean>(false);
   const [cardDetails, setCardDetails] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -82,15 +80,73 @@ const PaymentsScreen: React.FC = () => {
   
   // Extract booking data from route params
   const { bookingData } = (route.params as any) || {};
-  const eventData = bookingData?.eventData;
-  const memberCount = bookingData?.memberCount || 1;
-  const totalPrice = bookingData?.totalPrice || 0;
+  // Also check if data is passed as paymentData
+  const actualBookingData = bookingData || paymentData;
+  const eventData = actualBookingData?.eventData;
+  const memberCount = actualBookingData?.memberCount || 1;
+  const totalPrice = actualBookingData?.totalPrice || 0;
+
+  // Print complete booking data for debugging
+  useEffect(() => {
+    console.log("=== PAYMENT SCREEN - COMPLETE BOOKING DATA ===");
+    console.log("Full route.params:", route.params);
+    console.log("Complete bookingData:", bookingData);
+    console.log("PaymentData:", paymentData);
+    console.log("ActualBookingData:", actualBookingData);
+    
+    if (actualBookingData) {
+      console.log("📅 Selected Dates:");
+      console.log("  - Start Date:", actualBookingData.selectedStartDate);
+      console.log("  - End Date:", actualBookingData.selectedEndDate);
+      console.log("  - Date Range:", actualBookingData.selectedDateRange);
+      
+      console.log("🎫 Ticket Information:");
+      console.log("  - Selected Ticket:", actualBookingData.selectedTicket);
+      console.log("  - Ticket ID:", actualBookingData.ticketId);
+      console.log("  - Ticket Type:", actualBookingData.ticketType);
+      
+      console.log("👥 Booking Details:");
+      console.log("  - Member Count:", actualBookingData.memberCount);
+      console.log("  - Max Capacity:", actualBookingData.maxCapacity);
+      console.log("  - Ticket Price per person:", actualBookingData.ticketPrice);
+      console.log("  - Entry Fee:", actualBookingData.entryFee);
+      console.log("  - Total Price:", actualBookingData.totalPrice);
+      
+      console.log("🏢 Event Information:");
+      console.log("  - Event Data:", actualBookingData.eventData);
+      console.log("  - Event Name:", actualBookingData.eventData?.name || actualBookingData.eventData?.title);
+      console.log("  - Event Address:", actualBookingData.eventData?.address || actualBookingData.eventData?.location);
+      
+      console.log("📋 Additional Booking Details:");
+      console.log("  - Booking Details Object:", actualBookingData.bookingDetails);
+      
+      // Debug undefined values
+      if (!actualBookingData.ticketId) {
+        console.log("⚠️ Ticket ID is undefined. Selected Ticket keys:", Object.keys(actualBookingData.selectedTicket || {}));
+      }
+      if (!actualBookingData.ticketType) {
+        console.log("⚠️ Ticket Type is undefined. Selected Ticket:", actualBookingData.selectedTicket);
+      }
+      if (!actualBookingData.eventData?.name) {
+        console.log("⚠️ Event Name is undefined. Event Data keys:", Object.keys(actualBookingData.eventData || {}));
+      }
+    } else {
+      console.log("❌ No booking data received!");
+      console.log("Debugging info:");
+      console.log("  - route.params type:", typeof route.params);
+      console.log("  - route.params keys:", Object.keys(route.params || {}));
+      console.log("  - bookingData from route.params:", (route.params as any)?.bookingData);
+      console.log("  - paymentData:", paymentData);
+      console.log("  - paymentData type:", typeof paymentData);
+      console.log("  - paymentData keys:", Object.keys(paymentData || {}));
+    }
+    console.log("=== END BOOKING DATA ===");
+  }, [actualBookingData]);
 
   useEffect(() => {
     if (paymentData) {
       setSelectedCardId(paymentData.selectedCardId);
       setSelectedPaymentMethod(paymentData.selectedPaymentMethod);
-      setPromoCode(paymentData.promoCode);
     }
     // Load cards when component mounts
     loadSavedCards();
@@ -99,6 +155,12 @@ const PaymentsScreen: React.FC = () => {
     checkPlatformPaySupport();
     
     // Set payment amount from booking data
+    console.log("=== PAYMENT AMOUNT CALCULATION ===");
+    console.log("TotalPrice from booking data:", totalPrice);
+    console.log("PaymentData totalPrice:", paymentData?.totalPrice);
+    console.log("BookingData totalPrice:", actualBookingData?.totalPrice);
+    console.log("Final payment amount:", totalPrice || 250);
+    console.log("=== END PAYMENT AMOUNT ===");
     setPaymentAmount(totalPrice || 250); // Use total price from booking data
   }, [paymentData]);
 
@@ -209,30 +271,30 @@ const PaymentsScreen: React.FC = () => {
     setSelectedCardId(null);
   };
 
-  const handleApplyPromoCode = () => {
-    if (promoCode.trim()) {
-      Alert.alert("Promo Code Applied", `Applied promo code: ${promoCode}`);
-    } else {
-      Alert.alert("Invalid Code", "Please enter a valid promo code");
-    }
-  };
 
   const handleNext = () => {
     const selectedCard = savedCards.find((card) => card.id === selectedCardId);
     const paymentData = {
       selectedCardId,
       selectedPaymentMethod,
-      promoCode,
       selectedCard: selectedCard || null,
       paymentAmount,
-      // Include booking data
-      bookingData,
-      eventData,
-      memberCount,
-      entryFee: bookingData?.entryFee,
-      ticketPrice: bookingData?.ticketPrice,
-      totalPrice: bookingData?.totalPrice,
-      maxCapacity: bookingData?.maxCapacity,
+      // Include complete booking data
+      bookingData: actualBookingData,
+      eventData: actualBookingData?.eventData,
+      memberCount: actualBookingData?.memberCount,
+      entryFee: actualBookingData?.entryFee,
+      ticketPrice: actualBookingData?.ticketPrice,
+      totalPrice: actualBookingData?.totalPrice,
+      maxCapacity: actualBookingData?.maxCapacity,
+      // Add all booking details for ReviewSummary
+      selectedStartDate: actualBookingData?.selectedStartDate,
+      selectedEndDate: actualBookingData?.selectedEndDate,
+      selectedDateRange: actualBookingData?.selectedDateRange,
+      selectedTicket: actualBookingData?.selectedTicket,
+      ticketId: actualBookingData?.ticketId,
+      ticketType: actualBookingData?.ticketType,
+      bookingDetails: actualBookingData?.bookingDetails,
     };
     (navigation as any).navigate("ReviewSummary", paymentData);
   };
@@ -273,14 +335,21 @@ const PaymentsScreen: React.FC = () => {
           paymentIntent,
           paymentMethod: 'card',
           amount: amount,
-          // Include booking data
-          bookingData,
-          eventData,
-          memberCount,
-          entryFee: bookingData?.entryFee,
-          ticketPrice: bookingData?.ticketPrice,
-          totalPrice: bookingData?.totalPrice,
-          maxCapacity: bookingData?.maxCapacity,
+          // Include complete booking data
+          bookingData: actualBookingData,
+          eventData: actualBookingData?.eventData,
+          memberCount: actualBookingData?.memberCount,
+          entryFee: actualBookingData?.entryFee,
+          ticketPrice: actualBookingData?.ticketPrice,
+          totalPrice: actualBookingData?.totalPrice,
+          maxCapacity: actualBookingData?.maxCapacity,
+          selectedStartDate: actualBookingData?.selectedStartDate,
+          selectedEndDate: actualBookingData?.selectedEndDate,
+          selectedDateRange: actualBookingData?.selectedDateRange,
+          selectedTicket: actualBookingData?.selectedTicket,
+          ticketId: actualBookingData?.ticketId,
+          ticketType: actualBookingData?.ticketType,
+          bookingDetails: actualBookingData?.bookingDetails,
         });
       }
     } catch (error) {
@@ -437,14 +506,21 @@ const PaymentsScreen: React.FC = () => {
           paymentIntent,
           paymentMethod: 'apple_pay',
           amount: paymentAmount,
-          // Include booking data
-          bookingData,
-          eventData,
-          memberCount,
-          entryFee: bookingData?.entryFee,
-          ticketPrice: bookingData?.ticketPrice,
-          totalPrice: bookingData?.totalPrice,
-          maxCapacity: bookingData?.maxCapacity,
+          // Include complete booking data
+          bookingData: actualBookingData,
+          eventData: actualBookingData?.eventData,
+          memberCount: actualBookingData?.memberCount,
+          entryFee: actualBookingData?.entryFee,
+          ticketPrice: actualBookingData?.ticketPrice,
+          totalPrice: actualBookingData?.totalPrice,
+          maxCapacity: actualBookingData?.maxCapacity,
+          selectedStartDate: actualBookingData?.selectedStartDate,
+          selectedEndDate: actualBookingData?.selectedEndDate,
+          selectedDateRange: actualBookingData?.selectedDateRange,
+          selectedTicket: actualBookingData?.selectedTicket,
+          ticketId: actualBookingData?.ticketId,
+          ticketType: actualBookingData?.ticketType,
+          bookingDetails: actualBookingData?.bookingDetails,
         });
       }
     } catch (error: any) {
@@ -490,14 +566,21 @@ const PaymentsScreen: React.FC = () => {
           paymentIntent,
           paymentMethod: 'google_pay',
           amount: paymentAmount,
-          // Include booking data
-          bookingData,
-          eventData,
-          memberCount,
-          entryFee: bookingData?.entryFee,
-          ticketPrice: bookingData?.ticketPrice,
-          totalPrice: bookingData?.totalPrice,
-          maxCapacity: bookingData?.maxCapacity,
+          // Include complete booking data
+          bookingData: actualBookingData,
+          eventData: actualBookingData?.eventData,
+          memberCount: actualBookingData?.memberCount,
+          entryFee: actualBookingData?.entryFee,
+          ticketPrice: actualBookingData?.ticketPrice,
+          totalPrice: actualBookingData?.totalPrice,
+          maxCapacity: actualBookingData?.maxCapacity,
+          selectedStartDate: actualBookingData?.selectedStartDate,
+          selectedEndDate: actualBookingData?.selectedEndDate,
+          selectedDateRange: actualBookingData?.selectedDateRange,
+          selectedTicket: actualBookingData?.selectedTicket,
+          ticketId: actualBookingData?.ticketId,
+          ticketType: actualBookingData?.ticketType,
+          bookingDetails: actualBookingData?.bookingDetails,
         });
       }
     } catch (error: any) {
@@ -556,6 +639,65 @@ const PaymentsScreen: React.FC = () => {
             <Text style={paymentsStyles.headerTitle}>Payment Method</Text>
             <View style={paymentsStyles.headerRight} />
           </View>
+
+          {/* Booking Data Display - Debug Section */}
+          {/* {actualBookingData && (
+            <View style={{
+              backgroundColor: '#f0f0f0',
+              margin: 10,
+              padding: 15,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: '#ddd'
+            }}>
+              <Text style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                marginBottom: 10,
+                color: '#333'
+              }}>
+                📋 Booking Data Received
+              </Text>
+              
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#666' }}>📅 Dates:</Text>
+                <Text style={{ fontSize: 12, color: '#333' }}>
+                  {actualBookingData.selectedDateRange?.formatted || 'No dates selected'}
+                </Text>
+              </View>
+              
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#666' }}>🎫 Ticket:</Text>
+                <Text style={{ fontSize: 12, color: '#333' }}>
+                  {actualBookingData.ticketType} (ID: {actualBookingData.ticketId})
+                </Text>
+              </View>
+              
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#666' }}>👥 Members:</Text>
+                <Text style={{ fontSize: 12, color: '#333' }}>
+                  {actualBookingData.memberCount} of {actualBookingData.maxCapacity}
+                </Text>
+              </View>
+              
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#666' }}>💰 Pricing:</Text>
+                <Text style={{ fontSize: 12, color: '#333' }}>
+                  ${actualBookingData.ticketPrice} per person × {actualBookingData.memberCount} = ${actualBookingData.totalPrice}
+                </Text>
+              </View>
+              
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#666' }}>🏢 Event:</Text>
+                <Text style={{ fontSize: 12, color: '#333' }}>
+                  {actualBookingData.eventData?.name || 'Unknown Event'}
+                </Text>
+                <Text style={{ fontSize: 12, color: '#333' }}>
+                  {actualBookingData.eventData?.address || 'No address'}
+                </Text>
+              </View>
+            </View>
+          )} */}
 
           <View style={paymentsStyles.section}>
             <View style={paymentsStyles.sectionHeader}>
@@ -724,23 +866,6 @@ const PaymentsScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
             )}
-            <View style={paymentsStyles.promoCodeSection}>
-              <View style={paymentsStyles.promoCodeContainer}>
-                <TextInput
-                  style={paymentsStyles.promoCodeInput}
-                  placeholder="Promo Code"
-                  placeholderTextColor={colors.textcolor}
-                  value={promoCode}
-                  onChangeText={setPromoCode}
-                />
-                <TouchableOpacity
-                  style={paymentsStyles.applyButton}
-                  onPress={handleApplyPromoCode}
-                >
-                  <Text style={paymentsStyles.applyButtonText}>Apply</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
 
             <Buttons 
               title={isProcessingPayment ? "Processing..." : "Next"} 

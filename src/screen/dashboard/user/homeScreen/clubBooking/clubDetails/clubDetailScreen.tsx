@@ -223,6 +223,10 @@ const ClubDetailScreen = () => {
 
   // Handle Viewdetails API response
   useEffect(() => {
+    console.log("Viewdetails useEffect triggered with:", viewdetails);
+    console.log("Viewdetails status:", viewdetails?.status);
+    console.log("Viewdetails data:", viewdetails?.data);
+    
     if (
       viewdetails?.status === true ||
       viewdetails?.status === 'true' ||
@@ -247,6 +251,8 @@ const ClubDetailScreen = () => {
       console.log("viewdetailsErr:+>", viewdetailsErr);
       setMsg(viewdetailsErr?.message?.toString());
       dispatch(viewdetailsError(''));
+    } else {
+      console.log("No viewdetails error, but status not recognized:", viewdetails?.status);
     }
   }, [viewdetails, viewdetailsErr, dispatch, clubId, bookmarks]);
 
@@ -298,19 +304,27 @@ const ClubDetailScreen = () => {
   const lounges = (clubDetails as any)?.booths?.map((booth: any, index: number) => ({
     id: booth._id || `booth_${index}`,
     name: booth.boothName || 'Booth',
+    title: booth.boothName || 'Booth', // Add title for consistency
     type: booth.boothType?.name || 'VIP Booth',
-    capacity: `${booth.capacity || 6} People`,
+    capacity: booth.capacity || 6, // Remove "People" suffix for consistency
     originalPrice: booth.boothPrice || 1000,
     discountedPrice: booth.discountedPrice || 800,
+    price: booth.discountedPrice || booth.boothPrice || 800, // Use discounted price as main price
     image: booth.boothImage?.[0] || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
+    boothType: booth.boothType, // Keep original booth type data
   })) || [];
 
   const transformedTickets = (clubDetails as any)?.tickets?.map((ticket: any, index: number) => ({
     id: ticket._id || `ticket_${index}`,
     name: ticket.ticketType?.name || 'General Admission',
+    title: ticket.ticketType?.name || 'General Admission', // Add title for consistency
     type: ticket.ticketType?.name || 'General',
-    capacity: `${ticket.capacity || 0} People`,
+    capacity: ticket.capacity || 0, // Remove "People" suffix for consistency
     price: ticket.ticketPrice || 45,
+    originalPrice: ticket.ticketPrice || 45,
+    discountedPrice: ticket.ticketPrice || 45,
+    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
+    ticketType: ticket.ticketType, // Keep original ticket type data
   })) || [];
 
 
@@ -689,16 +703,23 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       return 0;
     }
 
-    // If there are tickets, calculate based on selected ticket
+    // Check both tickets and booths for the selected item
+    let selectedData = null;
+    
+    // First check tickets
     if (transformedTickets && transformedTickets.length > 0) {
-      const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
-      return selectedTicketData ? selectedTicketData.price : 0;
+      selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
     }
-
-    // Otherwise, calculate based on selected lounge/booth
-    const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
-    return selectedLoungeData ? selectedLoungeData.discountedPrice + 100 : 0; // +100 for base event price
+    
+    // If not found in tickets, check booths
+    if (!selectedData && lounges && lounges.length > 0) {
+      selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+    }
+    
+    return selectedData ? selectedData.price : 0;
   };
+
+
 
 
 
@@ -744,8 +765,31 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
     // Handle booking logic here
     console.log("ClubDetailScreen viewdetails (booking):", viewdetails);
-    console.log("ClubDetailScreen navigating to ClubBookingScreen with (booking):", { eventData: viewdetails });
-    (navigation as any).navigate("ClubBookingScreen", { eventData: viewdetails });
+    console.log("ClubDetailScreen viewdetails type:", typeof viewdetails);
+    console.log("ClubDetailScreen viewdetails keys:", viewdetails ? Object.keys(viewdetails) : 'viewdetails is null/undefined');
+    
+    // Pass the actual event data (either from viewdetails.data or viewdetails itself)
+    const baseEventData = viewdetails?.data || viewdetails || clubDetails;
+    
+    // Combine event data with selected ticket information
+    const combinedEventData = {
+      ...(baseEventData || {}),
+      selectedTicket: selectedTicketData,
+      // Override capacity and pricing with selected ticket data
+      tickets: selectedTicketData ? [{
+        ticketType: {
+          _id: selectedTicketData.id || '',
+          name: selectedTicketData.title || selectedTicketData.name || 'Selected Ticket'
+        },
+        ticketPrice: selectedTicketData.price || 0,
+        capacity: selectedTicketData.capacity || 1,
+        _id: selectedTicketData.id || ''
+      }] : ((baseEventData as any)?.tickets || [])
+    };
+    
+    console.log("ClubDetailScreen combinedEventData:", combinedEventData);
+    console.log("ClubDetailScreen navigating to ClubBookingScreen with (booking):", { eventData: combinedEventData });
+    (navigation as any).navigate("ClubBookingScreen", { eventData: combinedEventData });
   };
 
   const handleFavorite = (isFavorite: boolean) => {
@@ -754,10 +798,53 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const handleNextPress = () => {
-    // setShowComingSoonDialog(true);
-    console.log("ClubDetailScreen viewdetails:", viewdetails);
-    console.log("ClubDetailScreen navigating to ClubBookingScreen with:", { eventData: viewdetails });
-    (navigation as any).navigate('ClubBookingScreen', { eventData: viewdetails });
+   
+    if (!selectedLounge) {
+      Alert.alert('Please Select at list once booth or ticket')
+      return 
+    }
+
+    let selectedData: any = null;
+    
+    // Check both tickets and booths for the selected item
+    if (transformedTickets && transformedTickets.length > 0) {
+      selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
+    }
+    
+    if (!selectedData && lounges && lounges.length > 0) {
+      selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+    }
+   
+    console.log("selectedData:=>", selectedData);
+    console.log("clubDetails:=>", clubDetails);
+    
+    // Determine if this is a booth or ticket based on the data structure
+    const isBooth = selectedData?.boothType !== undefined;
+    
+    // Combine event data with selected information
+    const combinedEventData = {
+      ...(clubDetails || {}),
+      selectedTicket: selectedData, // Keep the same name for consistency
+      // Override capacity and pricing with selected data
+      [isBooth ? 'booths' : 'tickets']: selectedData ? [{
+        [isBooth ? 'boothType' : 'ticketType']: {
+          _id: selectedData.id || '',
+          name: selectedData.title || selectedData.name || (isBooth ? 'Selected Booth' : 'Selected Ticket')
+        },
+        [isBooth ? 'boothPrice' : 'ticketPrice']: selectedData.price || 0,
+        capacity: selectedData.capacity || 1,
+        _id: selectedData.id || '',
+        // Add booth-specific fields if it's a booth
+        ...(isBooth ? {
+          boothName: selectedData.name || selectedData.title,
+          discountedPrice: selectedData.discountedPrice || selectedData.price,
+          boothImage: selectedData.image ? [selectedData.image] : []
+        } : {})
+      }] : ((clubDetails as any)?.[isBooth ? 'booths' : 'tickets'] || [])
+    };
+    
+    console.log("Combined event data for booking:", combinedEventData);
+    (navigation as any).navigate('ClubBookingScreen', { eventData: combinedEventData });
   };
 
   return (

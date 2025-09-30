@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
   SafeAreaView,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from "react-native";
+import { showToast } from "../../../../../../utilis/toastUtils";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import DateRangePicker from "../../../../../../components/DateRangePicker";
 import { colors } from "../../../../../../utilis/colors";
@@ -20,14 +22,25 @@ import { verticalScale } from "../../../../../../utilis/appConstant";
 const ClubBookingScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  
+
   // Get event data from route params
   const { eventData } = (route.params as any) || {};
-  
+  const { selected } = (route.params as any) || {};
+
   // Debug: Log route params to see what's being passed
   console.log("ClubBookingScreen route.params:", route.params);
   console.log("ClubBookingScreen eventData:", eventData);
-  
+  console.log("ClubBookingScreen selected:", selected);
+  console.log("ClubBookingScreen eventData type:", typeof eventData);
+  console.log("ClubBookingScreen eventData keys:", eventData ? Object.keys(eventData) : 'eventData is null/undefined');
+  console.log("ClubBookingScreen eventData length:", eventData ? Object.keys(eventData).length : 'eventData is null/undefined');
+
+  // Extract actual event data - handle both direct data and API response structure
+  const actualEventData = eventData?.data || eventData;
+  console.log("ClubBookingScreen actualEventData:", actualEventData);
+  console.log("ClubBookingScreen selectedTicket:", actualEventData?.selectedTicket);
+  console.log("ClubBookingScreen tickets:", actualEventData?.tickets);
+
   // Fallback event data for testing (remove this when real data is working)
   const fallbackEventData = {
     "_id": "68d3b7123ecac02e1e4e3a6a",
@@ -117,36 +130,138 @@ const ClubBookingScreen: React.FC = () => {
     "__v": 0,
     "isFavorite": true
   };
-  
-  // Use eventData if available, otherwise use fallback
-  const currentEventData = eventData && Object.keys(eventData).length > 0 ? eventData : fallbackEventData;
-  
-  // Initialize with event data or fallback to current month
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth();
-  
-  // Use event dates dynamically from currentEventData
-  const eventStartDate = currentEventData?.startDate ? new Date(currentEventData.startDate) : new Date();
-  const eventEndDate = currentEventData?.endDate ? new Date(currentEventData.endDate) : new Date();
-  
-  const bookingData = {
-    startDate: currentEventData?.startDate || "2025-09-01T00:00:00.000Z",
-    endDate: currentEventData?.endDate || "2025-09-30T00:00:00.000Z",
-    bookedDates: [], // No booked dates for now, can be added later if needed
-  };
 
-  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(
-    currentEventData?.startDate ? eventStartDate : null
-  );
-  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(
-    currentEventData?.endDate ? eventEndDate : null
-  );
+  // State for event data and fallback indicator
+  const [currentEventData, setCurrentEventData] = useState(fallbackEventData);
+  const [isUsingFallbackData, setIsUsingFallbackData] = useState(true);
+
+  // State for dates and booking data
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
+  const [bookingData, setBookingData] = useState({
+    startDate: "2025-09-01T00:00:00.000Z",
+    endDate: "2025-09-30T00:00:00.000Z",
+    bookedDates: [],
+  });
+  const [eventStartDate, setEventStartDate] = useState<Date>(new Date());
+  const [eventEndDate, setEventEndDate] = useState<Date>(new Date());
+
+  // Process event data in useEffect to prevent infinite re-renders
+  useEffect(() => {
+    if (!actualEventData) {
+      console.log("No actualEventData available, using fallback");
+      setCurrentEventData(fallbackEventData);
+      setIsUsingFallbackData(true);
+      return;
+    }
+
+    if (typeof actualEventData === 'string' && actualEventData.trim() === '') {
+      console.log("actualEventData is empty string, using fallback");
+      setCurrentEventData(fallbackEventData);
+      setIsUsingFallbackData(true);
+      return;
+    }
+
+    if (typeof actualEventData === 'object' && Object.keys(actualEventData).length === 0) {
+      console.log("actualEventData is empty object, using fallback");
+      setCurrentEventData(fallbackEventData);
+      setIsUsingFallbackData(true);
+      return;
+    }
+
+    console.log("Using actualEventData:", actualEventData);
+    setCurrentEventData(actualEventData);
+    setIsUsingFallbackData(false);
+  }, [actualEventData]);
+
+  // Initialize dates and booking data when currentEventData changes
+  useEffect(() => {
+    if (currentEventData) {
+      const startDate = currentEventData?.startDate ? new Date(currentEventData.startDate) : new Date();
+      const endDate = currentEventData?.endDate ? new Date(currentEventData.endDate) : new Date();
+
+      setEventStartDate(startDate);
+      setEventEndDate(endDate);
+      setSelectedStartDate(startDate);
+      setSelectedEndDate(endDate);
+
+      setBookingData({
+        startDate: currentEventData?.startDate || "2025-09-01T00:00:00.000Z",
+        endDate: currentEventData?.endDate || "2025-09-30T00:00:00.000Z",
+        bookedDates: [], // No booked dates for now, can be added later if needed
+      });
+    }
+  }, [currentEventData]);
+
   const [memberCount, setMemberCount] = useState(1);
 
-  // Get capacity from event data
-  const maxCapacity = currentEventData?.tickets?.[0]?.capacity || 10;
-  const ticketPrice = currentEventData?.tickets?.[0]?.ticketPrice || 0;
-  const entryFee = currentEventData?.entryFee || 0;
+  // Get capacity and pricing from selected ticket data using useMemo to prevent re-calculations
+  const maxCapacity = useMemo(() => {
+    console.log("Calculating maxCapacity from currentEventData:", currentEventData);
+    
+    // First try to get from selected ticket
+    if ((currentEventData as any)?.selectedTicket?.capacity) {
+      const capacity = parseInt(String((currentEventData as any).selectedTicket.capacity));
+      console.log("Using selectedTicket capacity:", capacity);
+      return isNaN(capacity) ? 10 : capacity;
+    }
+    // Then try from tickets array
+    if (currentEventData?.tickets?.[0]?.capacity) {
+      const capacity = parseInt(String(currentEventData.tickets[0].capacity));
+      console.log("Using tickets[0] capacity:", capacity);
+      return isNaN(capacity) ? 10 : capacity;
+    }
+    // Fallback to 10
+    console.log("Using fallback capacity: 10");
+    return 10;
+  }, [currentEventData]);
+  
+  const ticketPrice = useMemo(() => {
+    console.log("Calculating ticketPrice from currentEventData:", currentEventData);
+    
+    // First try to get from selected ticket/booth
+    if ((currentEventData as any)?.selectedTicket?.price) {
+      const price = parseFloat(String((currentEventData as any).selectedTicket.price));
+      console.log("Using selectedTicket price:", price);
+      return isNaN(price) ? 0 : price;
+    }
+    
+    // Check if this is a booth (has boothType property)
+    const isBooth = (currentEventData as any)?.selectedTicket?.boothType !== undefined;
+    
+    if (isBooth) {
+      // Try from booths array
+      if (currentEventData?.booths?.[0] && 'boothPrice' in currentEventData.booths[0]) {
+        const price = parseFloat(String((currentEventData.booths[0] as any).boothPrice));
+        console.log("Using booths[0] boothPrice:", price);
+        return isNaN(price) ? 0 : price;
+      }
+    } else {
+      // Try from tickets array
+      if (currentEventData?.tickets?.[0]?.ticketPrice) {
+        const price = parseFloat(String(currentEventData.tickets[0].ticketPrice));
+        console.log("Using tickets[0] ticketPrice:", price);
+        return isNaN(price) ? 0 : price;
+      }
+    }
+    
+    // Fallback to 0
+    console.log("Using fallback price: 0");
+    return 0;
+  }, [currentEventData]);
+  
+  const entryFee = useMemo(() => {
+    // First try to get from selected ticket
+    if ((currentEventData as any)?.selectedTicket?.entryFee) {
+      return (currentEventData as any).selectedTicket.entryFee;
+    }
+    // Then try from event data
+    if (currentEventData?.entryFee) {
+      return currentEventData.entryFee;
+    }
+    // Fallback to 0
+    return 0;
+  }, [currentEventData]);
 
   const handleDateRangeSelect = (
     startDate: Date | null,
@@ -172,18 +287,16 @@ const ClubBookingScreen: React.FC = () => {
       const endDay = selectedEndDate.getDate().toString().padStart(2, "0");
       return `${startMonth} ${startDay} - ${endDay}`;
     }
-    // If no dates selected, show event dates or default
-    if (currentEventData?.startDate && currentEventData?.endDate) {
-      const startDate = new Date(currentEventData.startDate);
-      const endDate = new Date(currentEventData.endDate);
-      const startMonth = startDate.toLocaleDateString("en-US", {
+    // If only start date is selected
+    if (selectedStartDate && !selectedEndDate) {
+      const startMonth = selectedStartDate.toLocaleDateString("en-US", {
         month: "short",
       });
-      const startDay = startDate.getDate().toString().padStart(2, "0");
-      const endDay = endDate.getDate().toString().padStart(2, "0");
-      return `${startMonth} ${startDay} - ${endDay}`;
+      const startDay = selectedStartDate.getDate().toString().padStart(2, "0");
+      return `${startMonth} ${startDay}`;
     }
-    return "Select dates";
+    // If no dates selected, return empty string
+    return "";
   };
 
   const handleMemberCountChange = (increment: boolean) => {
@@ -202,31 +315,100 @@ const ClubBookingScreen: React.FC = () => {
   };
 
   const handleNextPress = () => {
+    console.log("🔍 handleNextPress called");
+    console.log("🔍 selectedStartDate:", selectedStartDate);
+    console.log("🔍 selectedEndDate:", selectedEndDate);
+    console.log("🔍 !selectedStartDate:", !selectedStartDate);
+    
+    // Validate required data before proceeding
+    if (!selectedStartDate) {
+      console.log("❌ No date selected, showing toast");
+      showToast('error', 'Please select at least one date for your booking.');
+      return;
+    }
+    
+    console.log("✅ Date validation passed, proceeding...");
+
+    // If only start date is selected, use the same date for end date
+    const finalStartDate = selectedStartDate;
+    const finalEndDate = selectedEndDate || selectedStartDate;
+
+    if (memberCount < 1) {
+      Alert.alert('Invalid Member Count', 'Please select at least 1 member for your booking.');
+      return;
+    }
+
     // Prepare booking data to pass to next screen
     const totalPrice = calculateTotalPrice();
+    const selectedTicket = (currentEventData as any)?.selectedTicket;
+    
     const bookingData = {
+      // Event information
       eventData: currentEventData,
-      selectedStartDate: selectedStartDate,
-      selectedEndDate: selectedEndDate,
+      
+      // Selected dates (converted to strings to avoid serialization warnings)
+      selectedStartDate: finalStartDate?.toISOString() || null,
+      selectedEndDate: finalEndDate?.toISOString() || null,
+      selectedDateRange: {
+        start: finalStartDate?.toISOString() || '',
+        end: finalEndDate?.toISOString() || '',
+        formatted: formatSelectedDateRange()
+      },
+      
+      // Ticket/Booth information
+      selectedTicket: selectedTicket,
+      ticketId: selectedTicket?.id || selectedTicket?._id || 
+                (selectedTicket?.boothType ? 
+                  ((currentEventData?.booths?.[0] as any)?._id || (currentEventData?.booths?.[0] as any)?.id) :
+                  (currentEventData?.tickets?.[0]?._id || (currentEventData?.tickets?.[0] as any)?.id)
+                ) || '',
+      ticketType: selectedTicket?.title || selectedTicket?.name || 
+                  selectedTicket?.ticketType?.name || selectedTicket?.boothType?.name ||
+                  (selectedTicket?.boothType ? 
+                    ((currentEventData?.booths?.[0] as any)?.boothType?.name) :
+                    (currentEventData?.tickets?.[0]?.ticketType?.name)
+                  ) || 'General',
+      
+      // Booking details
       memberCount: memberCount,
       maxCapacity: maxCapacity,
       ticketPrice: ticketPrice,
       entryFee: entryFee,
       totalPrice: totalPrice,
+      
+      // Additional booking information
       bookingDetails: {
-        eventName: currentEventData?.name || "Event",
-        eventAddress: currentEventData?.address || "Address not available",
+        eventName: currentEventData?.name || (currentEventData as any)?.title || "Event",
+        eventAddress: currentEventData?.address || (currentEventData as any)?.location || "Address not available",
         eventPrice: entryFee,
         ticketPrice: ticketPrice,
         eventTime: currentEventData?.openingTime || "10:00",
-        eventDate: selectedStartDate ? selectedStartDate.toISOString() : new Date().toISOString(),
+        eventDate: finalStartDate.toISOString(),
         memberCount: memberCount,
         totalPrice: totalPrice,
         maxCapacity: maxCapacity,
+        ticketId: selectedTicket?.id || selectedTicket?._id || 
+                  (selectedTicket?.boothType ? 
+                    ((currentEventData?.booths?.[0] as any)?._id || (currentEventData?.booths?.[0] as any)?.id) :
+                    (currentEventData?.tickets?.[0]?._id || (currentEventData?.tickets?.[0] as any)?.id)
+                  ) || '',
+        ticketType: selectedTicket?.title || selectedTicket?.name || 
+                    selectedTicket?.ticketType?.name || selectedTicket?.boothType?.name ||
+                    (selectedTicket?.boothType ? 
+                      ((currentEventData?.booths?.[0] as any)?.boothType?.name) :
+                      (currentEventData?.tickets?.[0]?.ticketType?.name)
+                    ) || 'General',
+        selectedDateRange: formatSelectedDateRange()
       }
     };
     
-    console.log("Booking data:", bookingData);
+    console.log("Complete booking data being passed to next screen:", bookingData);
+    console.log("Selected dates:", { start: finalStartDate, end: finalEndDate });
+    console.log("Number of tickets:", memberCount);
+    console.log("Ticket price per person:", ticketPrice);
+    console.log("Total price:", totalPrice);
+    console.log("Ticket ID:", selectedTicket?.id || currentEventData?.tickets?.[0]?._id);
+    
     (navigation as any).navigate("PaymentScreen", bookingData);
   };
 
@@ -246,9 +428,9 @@ const ClubBookingScreen: React.FC = () => {
       <View style={clubBookingStyles.locationContainer}>
         <View style={clubBookingStyles.locationLeft}>
           <LocationFavourite width={16} height={16} />
-            <Text style={clubBookingStyles.locationText}>
-              {currentEventData?.address || "Address not available"}
-            </Text>
+          <Text numberOfLines={1} style={clubBookingStyles.locationText}>
+            {currentEventData?.address || "Address not available"}
+          </Text>
         </View>
         <View style={clubBookingStyles.dateDisplay}>
           <CalendarIconViolet width={16} height={16} />
@@ -258,11 +440,51 @@ const ClubBookingScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* Debug indicator when using fallback data */}
+      {isUsingFallbackData && (
+        <View style={{ backgroundColor: '#ffeb3b', padding: 8, margin: 10, borderRadius: 4 }}>
+          <Text style={{ color: '#000', fontSize: 12, textAlign: 'center' }}>
+            ⚠️ Using sample data - Event details not loaded properly
+          </Text>
+        </View>
+      )}
+
+      {/* Selected ticket information */}
+      {/* {(currentEventData as any)?.selectedTicket && (
+        <View style={{ backgroundColor: '#4CAF50', padding: 8, margin: 10, borderRadius: 4 }}>
+          <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center', fontWeight: 'bold' }}>
+            ✅ Selected: {(currentEventData as any).selectedTicket.title || (currentEventData as any).selectedTicket.name || 'Ticket'}
+          </Text>
+          <Text style={{ color: '#fff', fontSize: 10, textAlign: 'center' }}>
+            Capacity: {maxCapacity} | Price: ${ticketPrice}
+          </Text>
+        </View>
+      )} */}
+
+      {/* Booking summary */}
+      {/* <View style={{ backgroundColor: '#2196F3', padding: 12, margin: 10, borderRadius: 8 }}>
+        <Text style={{ color: '#fff', fontSize: 14, textAlign: 'center', fontWeight: 'bold', marginBottom: 4 }}>
+          📋 Booking Summary
+        </Text>
+        <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>
+          Dates: {formatSelectedDateRange()}
+        </Text>
+        <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>
+          Members: {memberCount} of {maxCapacity}
+        </Text>
+        <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>
+          Price per person: ${ticketPrice}
+        </Text>
+        <Text style={{ color: '#fff', fontSize: 14, textAlign: 'center', fontWeight: 'bold', marginTop: 4 }}>
+          Total: ${calculateTotalPrice()}
+        </Text>
+      </View> */}
+
       <View style={clubBookingStyles.calendarContainer}>
         <DateRangePicker
           onDateRangeSelect={handleDateRangeSelect}
-          initialStartDate={selectedStartDate || eventStartDate}
-          initialEndDate={selectedEndDate || eventEndDate}
+          initialStartDate={selectedStartDate}
+          initialEndDate={selectedEndDate}
           startDate={bookingData.startDate}
           endDate={bookingData.endDate}
           bookedDates={bookingData.bookedDates}
@@ -282,14 +504,14 @@ const ClubBookingScreen: React.FC = () => {
             </Text>
           </View>
           <View style={clubBookingStyles.memberCounter}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => handleMemberCountChange(false)}
               disabled={memberCount <= 1}
             >
               <MinusSVG />
             </TouchableOpacity>
             <Text style={clubBookingStyles.memberCount}>{memberCount}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => handleMemberCountChange(true)}
               disabled={memberCount >= maxCapacity}
             >
@@ -327,9 +549,14 @@ const ClubBookingScreen: React.FC = () => {
         >
           <Text style={clubBookingStyles.nextButtonText}>Next</Text>
         </TouchableOpacity>
-        <View style={{marginBottom: verticalScale(50)}}></View>
+        <View style={{ marginBottom: verticalScale(5), marginTop: verticalScale(10)}}></View>
+
+        <Text style={clubBookingStyles.memberAge}>
+              * If you do not select any date, we will consider all dates as selected.
+            </Text>
+        <View style={{ marginBottom: verticalScale(50), marginTop: verticalScale(10)}}></View>
       </View>
-     
+
     </SafeAreaView>
   );
 };

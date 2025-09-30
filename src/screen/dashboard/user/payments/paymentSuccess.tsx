@@ -30,7 +30,7 @@ export const PaymentSuccess: FC<PaymentSuccessProps> = ({
     if (onGoHome) {
       onGoHome();
     } else {
-      navigation.navigate("DashBoardScreen");
+      navigation.navigate("HomeTabs");
     }
   };
 
