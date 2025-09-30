@@ -79,6 +79,9 @@ const ClubDetailScreen = () => {
 
   const dispatch = useDispatch();
   const viewdetails = useSelector((state: any) => state.auth.viewdetails);
+  
+  // Debug: Log viewdetails to see if it's populated
+  console.log("ClubDetailScreen viewdetails from Redux:", viewdetails);
 
   // Disable swipe-back gesture on iOS
   useFocusEffect(
@@ -220,6 +223,10 @@ const ClubDetailScreen = () => {
 
   // Handle Viewdetails API response
   useEffect(() => {
+    console.log("Viewdetails useEffect triggered with:", viewdetails);
+    console.log("Viewdetails status:", viewdetails?.status);
+    console.log("Viewdetails data:", viewdetails?.data);
+    
     if (
       viewdetails?.status === true ||
       viewdetails?.status === 'true' ||
@@ -244,6 +251,8 @@ const ClubDetailScreen = () => {
       console.log("viewdetailsErr:+>", viewdetailsErr);
       setMsg(viewdetailsErr?.message?.toString());
       dispatch(viewdetailsError(''));
+    } else {
+      console.log("No viewdetails error, but status not recognized:", viewdetails?.status);
     }
   }, [viewdetails, viewdetailsErr, dispatch, clubId, bookmarks]);
 
@@ -295,19 +304,27 @@ const ClubDetailScreen = () => {
   const lounges = (clubDetails as any)?.booths?.map((booth: any, index: number) => ({
     id: booth._id || `booth_${index}`,
     name: booth.boothName || 'Booth',
+    title: booth.boothName || 'Booth', // Add title for consistency
     type: booth.boothType?.name || 'VIP Booth',
-    capacity: `${booth.capacity || 6} People`,
+    capacity: booth.capacity || 6, // Remove "People" suffix for consistency
     originalPrice: booth.boothPrice || 1000,
     discountedPrice: booth.discountedPrice || 800,
+    price: booth.discountedPrice || booth.boothPrice || 800, // Use discounted price as main price
     image: booth.boothImage?.[0] || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
+    boothType: booth.boothType, // Keep original booth type data
   })) || [];
 
   const transformedTickets = (clubDetails as any)?.tickets?.map((ticket: any, index: number) => ({
     id: ticket._id || `ticket_${index}`,
     name: ticket.ticketType?.name || 'General Admission',
+    title: ticket.ticketType?.name || 'General Admission', // Add title for consistency
     type: ticket.ticketType?.name || 'General',
-    capacity: `${ticket.capacity || 0} People`,
+    capacity: ticket.capacity || 0, // Remove "People" suffix for consistency
     price: ticket.ticketPrice || 45,
+    originalPrice: ticket.ticketPrice || 45,
+    discountedPrice: ticket.ticketPrice || 45,
+    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop',
+    ticketType: ticket.ticketType, // Keep original ticket type data
   })) || [];
 
 
@@ -681,34 +698,35 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const getTotalPrice = () => {
-    // If no lounge is selected, return 0
+    // If no lounge is selected, return entryFee
     if (!selectedLounge) {
-      return 0;
+      return (clubDetails as any)?.entryFee || 0;
     }
 
-    // If there are tickets, calculate based on selected ticket
+    // Check both tickets and booths for the selected item
+    let selectedData = null;
+    
+    // First check tickets
     if (transformedTickets && transformedTickets.length > 0) {
-      const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
-      return selectedTicketData ? selectedTicketData.price : 0;
+      selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
     }
-
-    // Otherwise, calculate based on selected lounge/booth
-    const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
-    return selectedLoungeData ? selectedLoungeData.discountedPrice + 100 : 0; // +100 for base event price
+    
+    // If not found in tickets, check booths
+    if (!selectedData && lounges && lounges.length > 0) {
+      selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+    }
+    
+    return selectedData ? selectedData.price : ((clubDetails as any)?.entryFee || 0);
   };
 
 
 
-  const handleBookNow = () => {
-    // Check if a lounge/ticket is selected
-    if (!selectedLounge) {
-      Alert.alert('Selection Required', 'Please select a lounge or ticket to proceed with booking.');
-      return;
-    }
 
-    // Collect all selected values
-    const selectedLoungeData = lounges.find((lounge: any) => lounge.id === selectedLounge);
-    const selectedTicketData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
+
+  const handleBookNow = () => {
+    // Collect all selected values (allow entryFee-only bookings)
+    const selectedLoungeData = selectedLounge ? lounges.find((lounge: any) => lounge.id === selectedLounge) : null;
+    const selectedTicketData = selectedLounge ? transformedTickets.find((ticket: any) => ticket.id === selectedLounge) : null;
     const selectedFacilitiesData = facilities.filter((facility: any) => selectedFacilities.includes(facility.id));
 
     const selectedValues = {
@@ -740,7 +758,39 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     };
 
     // Handle booking logic here
-    navigation.navigate("ClubBookingScreen" as never);
+    console.log("ClubDetailScreen viewdetails (booking):", viewdetails);
+    console.log("ClubDetailScreen viewdetails type:", typeof viewdetails);
+    console.log("ClubDetailScreen viewdetails keys:", viewdetails ? Object.keys(viewdetails) : 'viewdetails is null/undefined');
+    
+    // Pass the actual event data (either from viewdetails.data or viewdetails itself)
+    const baseEventData = viewdetails?.data || viewdetails || clubDetails;
+    
+    // Combine event data with selected ticket information
+    const combinedEventData = {
+      ...(baseEventData || {}),
+      selectedTicket: selectedTicketData,
+      // If no ticket selected, use entryFee and don't include ticket-specific fields
+      ...(selectedTicketData ? {
+        // Override capacity and pricing with selected ticket data
+        tickets: [{
+          ticketType: {
+            _id: selectedTicketData.id || '',
+            name: selectedTicketData.title || selectedTicketData.name || 'Selected Ticket'
+          },
+          ticketPrice: selectedTicketData.price || 0,
+          capacity: selectedTicketData.capacity || 1,
+          _id: selectedTicketData.id || ''
+        }]
+      } : {
+        // When no ticket selected, use entryFee and don't include ticket-specific fields
+        entryFee: (baseEventData as any)?.entryFee || 0,
+        // Don't include ticketCost, ticketType, ticketid
+      })
+    };
+    
+    console.log("ClubDetailScreen combinedEventData:", combinedEventData);
+    console.log("ClubDetailScreen navigating to ClubBookingScreen with (booking):", { eventData: combinedEventData });
+    (navigation as any).navigate("ClubBookingScreen", { eventData: combinedEventData });
   };
 
   const handleFavorite = (isFavorite: boolean) => {
@@ -749,8 +799,60 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const handleNextPress = () => {
-    // setShowComingSoonDialog(true);
-    navigation.navigate('ClubBookingScreen' as never);
+    let selectedData: any = null;
+    let isBooth = false;
+    
+    // Check if a booth or ticket is selected
+    if (selectedLounge) {
+      // Check both tickets and booths for the selected item
+      if (transformedTickets && transformedTickets.length > 0) {
+        selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
+      }
+      
+      if (!selectedData && lounges && lounges.length > 0) {
+        selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
+      }
+      
+      // Determine if this is a booth or ticket based on the data structure
+      isBooth = selectedData?.boothType !== undefined;
+    }
+   
+    console.log("selectedData:=>", selectedData);
+    console.log("clubDetails:=>", clubDetails);
+    
+    // If no booth/ticket selected, use entryFee as the price
+    const entryFee = (clubDetails as any)?.entryFee || 0;
+    
+    // Combine event data with selected information
+    const combinedEventData = {
+      ...(clubDetails || {}),
+      selectedTicket: selectedData, // Keep the same name for consistency
+      // If no selection, don't include booth/ticket specific fields
+      ...(selectedData ? {
+        [isBooth ? 'booths' : 'tickets']: [{
+          [isBooth ? 'boothType' : 'ticketType']: {
+            _id: selectedData.id || '',
+            name: selectedData.title || selectedData.name || (isBooth ? 'Selected Booth' : 'Selected Ticket')
+          },
+          [isBooth ? 'boothPrice' : 'ticketPrice']: selectedData.price || 0,
+          capacity: selectedData.capacity || 1,
+          _id: selectedData.id || '',
+          // Add booth-specific fields if it's a booth
+          ...(isBooth ? {
+            boothName: selectedData.name || selectedData.title,
+            discountedPrice: selectedData.discountedPrice || selectedData.price,
+            boothImage: selectedData.image ? [selectedData.image] : []
+          } : {})
+        }]
+      } : {
+        // When no booth/ticket selected, use entryFee and don't include booth/ticket specific fields
+        entryFee: entryFee,
+        // Don't include boothCost, boothType, boothId, ticketCost, ticketType, ticketid
+      })
+    };
+    
+    console.log("Combined event data for booking:", combinedEventData);
+    (navigation as any).navigate('ClubBookingScreen', { eventData: combinedEventData });
   };
 
   return (

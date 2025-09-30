@@ -89,6 +89,21 @@ import {
   onHostProfile,
   hostProfileData,
   hostProfileError,
+  onCreateBooking,
+  createBookingData,
+  createBookingError,
+  onFetchPromoCodes,
+  fetchPromoCodesData,
+  fetchPromoCodesError,
+  onApplyPromoCode,
+  applyPromoCodeData,
+  applyPromoCodeError,
+  onGetProfileDetail,
+  getProfileDetailData,
+  getProfileDetailError,
+  onUpdateProfile,
+  updateProfileData,
+  updateProfileError,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -532,6 +547,7 @@ interface UpdateLocationPayload {
   userId?: string;
   longitude?: string;
   latitude?: string;
+  address?: string;
 }
 
 function* onUpdateLocationSaga({
@@ -545,6 +561,7 @@ function* onUpdateLocationSaga({
       userId: payload?.userId,
       longitude: payload?.longitude,
       latitude: payload?.latitude,
+      address: payload?.address,
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/updateLocation"}`,
@@ -1185,6 +1202,7 @@ function* ReviewSummarySaga({ payload }: { payload: ReviewSummaryPayload }) {
   }
 }
 
+// Host Profile Saga
 interface HostProfilePayload {
   hostId?: string;
 }
@@ -1224,6 +1242,223 @@ function* HostProfileSaga({ payload }: { payload: HostProfilePayload }) {
   }
 }
 
+// Create Booking Saga
+function* CreateBookingSaga({ payload }: { payload: any }) {
+  try {
+    yield put(displayLoading(true));
+    
+    // Build params dynamically based on whether it's a booth or ticket
+    const params: any = {
+      eventId: payload.eventId,
+      hostId: payload.hostId,
+      members: payload.members,
+      discount: payload.discount,
+      fees: payload.fees,
+      totalAmount: payload.totalAmount,
+      transactionInfo: payload.transactionInfo,
+      bookingStartDate: payload.bookingStartDate,
+      bookingEndDate: payload.bookingEndDate,
+    };
+    
+    // Add booth-specific or ticket-specific fields
+    if (payload.boothCost !== undefined) {
+      // This is a booth booking
+      params.boothCost = payload.boothCost;
+      params.boothType = payload.boothType;
+      params.boothId = payload.boothId; // Add boothId
+    } else {
+      // This is a ticket booking
+      params.ticketCost = payload.ticketCost;
+      params.ticketType = payload.ticketType;
+      params.ticketId = payload.ticketId; // Add ticketId
+    }
+
+    console.log("=== CREATE BOOKING SAGA ===");
+    console.log("API Endpoint: POST /user/booking");
+    console.log("Payload:", JSON.stringify(params, null, 2));
+
+   // const response = yield call(fetchPost, "/user/booking", params);
+   const response = yield call(fetchPost, {
+    url: `${baseurl}${"user/booking"}`,
+    params,
+  });
+    
+    console.log("Booking API Response:", response);
+    
+    if (response && response.status === 1) {
+      yield put(createBookingData(response));
+      console.log("🎉 BOOKING CREATED SUCCESSFULLY!");
+      console.log("📋 Booking Details:", JSON.stringify(response.data, null, 2));
+      console.log("✅ Redux state updated with booking data");
+    } else {
+      yield put(createBookingError(response?.message || "Booking failed"));
+      console.log("❌ BOOKING FAILED:", response?.message);
+      console.log("📋 Error Response:", JSON.stringify(response, null, 2));
+    }
+    
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("❌ Create Booking Error:", error);
+    yield put(createBookingError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Fetch Promo Codes Saga
+function* FetchPromoCodesSaga({ payload }: { payload: any }) {
+  try {
+    yield put(displayLoading(true));
+    
+    const response = yield call(fetchPost, {
+     // url: 'user/promocodelist',
+     url: `${baseurl}${"user/promocodelist"}`,
+      params: {
+        hostId: payload.hostId
+      }
+    });
+    
+    console.log("Fetch Promo Codes API Response:", response);
+    
+    if (response && response.status === 1) {
+      yield put(fetchPromoCodesData(response));
+      console.log("✅ PROMO CODES FETCHED SUCCESSFULLY!");
+    } else {
+      yield put(fetchPromoCodesError(response?.message || "Failed to fetch promo codes"));
+      console.log("❌ FETCH PROMO CODES FAILED:", response?.message);
+    }
+  } catch (error) {
+    console.log("Fetch Promo Codes Error:", error);
+    yield put(fetchPromoCodesError("Failed to fetch promo codes"));
+  } finally {
+    yield put(displayLoading(false));
+  }
+}
+
+// Apply Promo Code Saga
+function* ApplyPromoCodeSaga({ payload }: { payload: any }) {
+  console.log("Apply Promo Code API params:", payload);
+  try {
+    yield put(displayLoading(true));
+    
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/reviewsummary"}`,
+      params: {
+        eventid: payload.eventid,
+        boothid: payload.boothid,
+        members: payload.members,
+        days: payload.days,
+        promocode: payload.promocode
+      }
+    });
+    
+    console.log("Apply Promo Code API Response:", response);
+    
+    if (response && response.status === 1) {
+      yield put(applyPromoCodeData(response));
+      console.log("✅ PROMO CODE APPLIED SUCCESSFULLY!");
+    } else {
+      yield put(applyPromoCodeError(response?.message || "Failed to apply promo code"));
+      console.log("❌ APPLY PROMO CODE FAILED:", response?.message);
+    }
+  } catch (error) {
+    console.error("Apply Promo Code Error:", error);
+    yield put(applyPromoCodeError("Failed to apply promo code"));
+  } finally {
+    yield put(displayLoading(false));
+  }
+}
+
+// Get Profile Detail Saga
+interface GetProfileDetailPayload {}
+
+function* GetProfileDetailSaga({ payload }: { payload: GetProfileDetailPayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${"user/profiledetail"}`,
+    });
+
+    console.log("GetProfileDetailSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(getProfileDetailData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(getProfileDetailError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(getProfileDetailError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Update Profile Saga
+interface UpdateProfilePayload {
+  fullName?: string;
+  countrycode?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  profilePicture?: string;
+  userDocument?: string;
+  businessName?: string;
+  businessPicture?: string;
+  businessBanner?: string;
+  businessDiscription?: string;
+}
+
+function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      fullName: payload?.fullName,
+      countrycode: payload?.countrycode,
+      phone: payload?.phone,
+      dateOfBirth: payload?.dateOfBirth,
+      profilePicture: payload?.profilePicture,
+      userDocument: payload?.userDocument,
+      businessName: payload?.businessName,
+      businessPicture: payload?.businessPicture,
+      businessBanner: payload?.businessBanner,
+      businessDiscription: payload?.businessDiscription,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/updateProfile"}`,
+      params,
+    });
+
+    console.log("UpdateProfileSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(updateProfileData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(updateProfileError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(updateProfileError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -1254,6 +1489,11 @@ function* authSaga() {
   yield takeLatest(onBookingDetail().type, BookingDetailSaga);
   yield takeLatest(onReviewSummary().type, ReviewSummarySaga);
   yield takeLatest(onHostProfile().type, HostProfileSaga);
+  yield takeLatest(onCreateBooking().type, CreateBookingSaga);
+  yield takeLatest(onFetchPromoCodes().type, FetchPromoCodesSaga);
+  yield takeLatest(onApplyPromoCode().type, ApplyPromoCodeSaga);
+  yield takeLatest(onGetProfileDetail().type, GetProfileDetailSaga);
+  yield takeLatest(onUpdateProfile().type, UpdateProfileSaga);
 }
 
 export default authSaga;

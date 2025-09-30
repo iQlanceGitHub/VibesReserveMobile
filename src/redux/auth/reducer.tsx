@@ -63,6 +63,20 @@ import {
   reviewSummaryError,
   hostProfileData,
   hostProfileError,
+
+  createBookingData,
+  createBookingError,
+  fetchPromoCodesData,
+  fetchPromoCodesError,
+  applyPromoCodeData,
+  applyPromoCodeError,
+  
+  getProfileDetailData,
+  getProfileDetailError,
+
+  updateProfileData,
+  updateProfileError,
+
 } from "./actions";
 
 export const initialState = {
@@ -141,6 +155,20 @@ export const initialState = {
 
   hostProfile: "",
   hostProfileErr: "",
+  createBooking: "",
+  createBookingErr: "",
+
+  fetchPromoCodes: "",
+  fetchPromoCodesErr: "",
+
+  applyPromoCode: "",
+  applyPromoCodeErr: "",
+
+  getProfileDetail: "",
+  getProfileDetailErr: "",
+
+  updateProfile: "",
+  updateProfileErr: "",
 
   user: "",
 };
@@ -436,6 +464,55 @@ const authReducer = handleActions(
     [hostProfileError().type]: produce((draft, action) => {
       console.log("payload hostProfile Error", action.payload);
       draft.hostProfileErr = action.payload;
+    }),
+    // payload createBooking
+    [createBookingData().type]: produce((draft, action) => {
+      console.log("payload createBooking", action.payload);
+      draft.createBooking = action.payload;
+    }),
+    [createBookingError().type]: produce((draft, action) => {
+      console.log("payload createBooking Error", action.payload);
+      draft.createBookingErr = action.payload;
+    }),
+
+    // payload fetchPromoCodes
+    [fetchPromoCodesData().type]: produce((draft, action) => {
+      console.log("payload fetchPromoCodes", action.payload);
+      draft.fetchPromoCodes = action.payload;
+    }),
+    [fetchPromoCodesError().type]: produce((draft, action) => {
+      console.log("payload fetchPromoCodes Error", action.payload);
+      draft.fetchPromoCodesErr = action.payload;
+    }),
+
+    // payload applyPromoCode
+    [applyPromoCodeData().type]: produce((draft, action) => {
+      console.log("payload applyPromoCode", action.payload);
+      draft.applyPromoCode = action.payload;
+    }),
+    [applyPromoCodeError().type]: produce((draft, action) => {
+      console.log("payload applyPromoCode Error", action.payload);
+      draft.applyPromoCodeErr = action.payload;
+    }),
+
+    // payload getProfileDetail
+    [getProfileDetailData().type]: produce((draft, action) => {
+      console.log("payload getProfileDetail", action.payload);
+      draft.getProfileDetail = action.payload;
+    }),
+    [getProfileDetailError().type]: produce((draft, action) => {
+      console.log("payload getProfileDetail Error", action.payload);
+      draft.getProfileDetailErr = action.payload;
+    }),
+
+    // payload updateProfile
+    [updateProfileData().type]: produce((draft, action) => {
+      console.log("payload updateProfile", action.payload);
+      draft.updateProfile = action.payload;
+    }),
+    [updateProfileError().type]: produce((draft, action) => {
+      console.log("payload updateProfile Error", action.payload);
+      draft.updateProfileErr = action.payload;
     }),
   },
   initialState

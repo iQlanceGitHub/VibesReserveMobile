@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   TextInput,
   Alert,
   Platform,
+  Modal,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -24,7 +27,7 @@ import ClockIcon from "../../../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../../../assets/svg/arrowRightIcon";
 import DottedLine from "../../../../assets/svg/dottedLine";
 import { styles } from "./reviewSummeryStyle";
-import { onReviewSummary } from "../../../../redux/auth/actions";
+import { onReviewSummary, onCreateBooking, onFetchPromoCodes, onApplyPromoCode } from "../../../../redux/auth/actions";
 import { 
   useStripe, 
   ApplePay, 
@@ -52,6 +55,14 @@ interface PaymentData {
   paymentAmount?: number;
   paymentIntent?: any;
   paymentMethod?: string;
+  // New booking data fields
+  memberCount?: number;
+  entryFee?: number;
+  ticketPrice?: number;
+  totalPrice?: number;
+  maxCapacity?: number;
+  eventData?: any;
+  bookingData?: any;
 }
 
 interface ReviewSummaryProps {
@@ -118,7 +129,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const dispatch = useDispatch();
   const route = useRoute();
   const nav = useNavigation();
-  const { reviewSummary, reviewSummaryErr, loader } = useSelector(
+  const { reviewSummary, reviewSummaryErr, loader, createBooking, createBookingErr } = useSelector(
     (state: any) => state.auth
   );
   
@@ -138,26 +149,411 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     promoCode: routePromoCode,
   } = paymentData || {};
 
+  // Extract booking data for dynamic calculations
+  const bookingData = paymentData?.bookingData;
+  const eventData = bookingData?.eventData || paymentData?.eventData;
+  const memberCount = bookingData?.memberCount || paymentData?.memberCount || 1;
+  const ticketPrice = bookingData?.ticketPrice || paymentData?.ticketPrice || 0;
+  const entryFee = bookingData?.entryFee || paymentData?.entryFee || 0;
+  const selectedStartDate = bookingData?.selectedStartDate;
+  const selectedEndDate = bookingData?.selectedEndDate;
+  const selectedTicket = bookingData?.selectedTicket;
+  const ticketType = bookingData?.ticketType || selectedTicket?.title || selectedTicket?.name || 'General';
+  const ticketId = bookingData?.ticketId || selectedTicket?.id || selectedTicket?._id || '';
+  
+  // Helper function to determine if we should include boothid
+  const shouldIncludeBoothId = () => {
+    // Only include boothid if selectedTicket exists and has boothType (indicating it's a booth)
+    return selectedTicket && selectedTicket.boothType !== undefined;
+  };
+  
+  // Get boothid only if it's a booth selection
+  const boothId = shouldIncludeBoothId() ? (selectedTicket?._id || selectedTicket?.id || ticketId) : undefined;
+
+  // Calculate number of days selected
+  const calculateDays = () => {
+    if (selectedStartDate && selectedEndDate) {
+      const start = new Date(selectedStartDate);
+      const end = new Date(selectedEndDate);
+      const timeDiff = end.getTime() - start.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end days
+      return daysDiff;
+    }
+    return 1; // Default to 1 day if dates not available
+  };
+
+  const numberOfDays = calculateDays();
+
+  // Debug: Log all data to see what's being passed
+  console.log("=== REVIEW SUMMARY - COMPLETE DATA ===");
+  console.log("PaymentData:", paymentData);
+  console.log("BookingData:", bookingData);
+  console.log("EventData:", eventData);
+  console.log("MemberCount:", memberCount);
+  console.log("TicketPrice:", ticketPrice);
+  console.log("EntryFee:", entryFee);
+  console.log("SelectedStartDate:", selectedStartDate);
+  console.log("SelectedEndDate:", selectedEndDate);
+  console.log("NumberOfDays:", numberOfDays);
+  console.log("TicketType:", ticketType);
+  console.log("TicketId:", ticketId);
+  console.log("SelectedTicket:", selectedTicket);
+  console.log("SelectedTicket ID:", selectedTicket?.id);
+  console.log("SelectedTicket _ID:", selectedTicket?._id);
+  console.log("BookingData ticketId:", bookingData?.ticketId);
+  console.log("=== END REVIEW SUMMARY DATA ===");
+  
+  // Debug discount calculation inputs
+  console.log("=== DISCOUNT INPUT DEBUG ===");
+  console.log("entryFee:", entryFee, "type:", typeof entryFee);
+  console.log("ticketPrice:", ticketPrice, "type:", typeof ticketPrice);
+  console.log("memberCount:", memberCount, "type:", typeof memberCount);
+  console.log("numberOfDays:", numberOfDays, "type:", typeof numberOfDays);
+  console.log("ticketType:", ticketType, "type:", typeof ticketType);
+  console.log("=== END DISCOUNT INPUT DEBUG ===");
+
   const [promoCode, setPromoCode] = useState(routePromoCode || "");
-  const [eventData, setEventData] = useState<EventData | null>(null);
-  const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(
-    null
-  );
-
+  const [selectedPromoCode, setSelectedPromoCode] = useState<any>(null);
+  const [showPromoCodeList, setShowPromoCodeList] = useState(false);
+  const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [selectedDiscount, setSelectedDiscount] = useState<string | null>(null);
+  const [apiPricing, setApiPricing] = useState<any>(null);
 
+  // Redux selectors
+  const { fetchPromoCodes, fetchPromoCodesErr, applyPromoCode, applyPromoCodeErr } = useSelector((state: any) => state.auth);
+
+  // Handle fetch promo codes response
   useEffect(() => {
-    const staticPayload = {
-      eventid: "68d2413a82858961d66eb53b",
-      members: 4,
-      days: 4,
+    if (fetchPromoCodes && fetchPromoCodes.status === 1) {
+      console.log("✅ Promo codes fetched successfully:", fetchPromoCodes.data);
+    } else if (fetchPromoCodesErr) {
+      console.log("❌ Fetch promo codes error:", fetchPromoCodesErr);
+      Alert.alert("Error", fetchPromoCodesErr);
+    }
+  }, [fetchPromoCodes, fetchPromoCodesErr]);
+
+  // Handle apply promo code response
+  useEffect(() => {
+    if (applyPromoCode && applyPromoCode.status === 1) {
+      console.log("✅ Promo code applied successfully:===>", applyPromoCode.data);
+      console.log("✅ Promo code applied summary:===>", applyPromoCode.summary);
+      
+      // Update pricing with promo code discount from API response
+      if (applyPromoCode.summary) {
+        const summary = applyPromoCode.summary;
+        console.log("📊 Summary from API:", summary);
+        const updatedPricing = {
+          entryFee: summary.memberCost || 0,
+          ticketPrice: summary.boothCost || 0,
+          discount: parseFloat(summary.discount) || 0,
+          fees: parseFloat(summary.fees) || 0,
+          total: summary.total || 0
+        };
+        
+        // Store API pricing for use in UI
+        setApiPricing(updatedPricing);
+        
+        // Update price breakdown
+        setPriceBreakdown({
+          memberCost: updatedPricing.entryFee,
+          boothCost: updatedPricing.ticketPrice,
+          discount: updatedPricing.discount.toFixed(2),
+          fees: updatedPricing.fees.toFixed(2),
+          total: updatedPricing.total,
+        });
+        
+        console.log("📊 Updated pricing from API:", updatedPricing);
+      }
+      
+      setSelectedDiscount(promoCode);
+      // Alert.alert("Success", "Promo code applied successfully!");
+    } else if (applyPromoCodeErr) {
+      console.log("❌ Apply promo code error:", applyPromoCodeErr);
+      Alert.alert("Error", applyPromoCodeErr);
+    }
+  }, [applyPromoCode, applyPromoCodeErr, promoCode]);
+
+  // Debug: Track reviewSummary changes
+  useEffect(() => {
+    console.log("reviewSummary", reviewSummary);
+  }, [reviewSummary]);
+
+  // Generate booking payload for API
+  const generateBookingPayload = (pricing: any) => {
+    const baseEntryFee = (entryFee || 0) * (memberCount || 1) * (numberOfDays || 1);
+    const baseTicketPrice = (ticketPrice || 0) * (memberCount || 1) * (numberOfDays || 1);
+    
+    // Debug: Log the values we're working with
+    console.log("=== BOOTH/TICKET ID DEBUG ===");
+    console.log("selectedTicket:", selectedTicket);
+    console.log("selectedTicket?.id:", selectedTicket?.id);
+    console.log("selectedTicket?._id:", selectedTicket?._id);
+    console.log("ticketId:", ticketId);
+    console.log("selectedTicket?.boothType:", selectedTicket?.boothType);
+    console.log("selectedTicket?.ticketType:", selectedTicket?.ticketType);
+    console.log("=== END BOOTH/TICKET ID DEBUG ===");
+    
+    // Determine if this is a booth or ticket based on selectedTicket data
+    const isBooth = selectedTicket?.boothType !== undefined;
+    
+    const basePayload = {
+      eventId: eventData?._id || ticketId || "",
+      hostId: eventData?.userId?._id || "",
+      members: memberCount || 1,
+      discount: Math.round(pricing.discount),
+      fees: pricing.fees,
+      totalAmount: Math.round(pricing.total),
+      transactionInfo: `TXN${Date.now()}`, // Generate unique transaction ID
+      bookingStartDate: selectedStartDate || new Date().toISOString(),
+      bookingEndDate: selectedEndDate || new Date().toISOString()
+    };
+    
+    // Extract IDs with better fallbacks
+    let extractedId = selectedTicket?.id || selectedTicket?._id || ticketId || "";
+    
+    // If no ID found, try to get it from event data
+    if (!extractedId) {
+      if (isBooth && eventData?.booths?.[0]) {
+        extractedId = eventData.booths[0]._id || eventData.booths[0].id || "";
+        console.log("Using booth ID from event data:", extractedId);
+      } else if (!isBooth && eventData?.tickets?.[0]) {
+        extractedId = eventData.tickets[0]._id || eventData.tickets[0].id || "";
+        console.log("Using ticket ID from event data:", extractedId);
+      }
+    }
+    
+    const extractedBoothTypeId = selectedTicket?.boothType?._id || selectedTicket?.boothType || "";
+    const extractedTicketTypeId = selectedTicket?.ticketType?._id || selectedTicket?.ticketType || "";
+    
+    console.log("=== EXTRACTED IDS ===");
+    console.log("extractedId:", extractedId);
+    console.log("extractedBoothTypeId:", extractedBoothTypeId);
+    console.log("extractedTicketTypeId:", extractedTicketTypeId);
+    console.log("=== END EXTRACTED IDS ===");
+    
+    // Add booth-specific or ticket-specific fields
+    if (isBooth) {
+      return {
+        ...basePayload,
+        boothCost: baseTicketPrice, // Use boothCost for booths
+        boothType: extractedBoothTypeId, // Use boothType ID for booths
+        boothId: extractedId, // Add boothId
+        // Don't include ticketCost for booths
+      };
+    } else {
+      return {
+        ...basePayload,
+        ticketCost: baseTicketPrice, // Use ticketCost for tickets
+        ticketType: extractedTicketTypeId, // Use ticketType ID for tickets
+        ticketId: extractedId, // Add ticketId
+        // Don't include boothCost for tickets
+      };
+    }
+  };
+
+  // Calculate discount only if explicitly provided from previous screens
+  const calculateDynamicDiscount = () => {
+    let discount = 0;
+    
+    // Check if discount was explicitly selected in previous screens or current screen
+    const hasDiscountFromBooking = bookingData?.discount || bookingData?.selectedDiscount || bookingData?.promoCode;
+    const hasDiscountFromPayment = (paymentData as any)?.discount || (paymentData as any)?.selectedDiscount || paymentData?.promoCode;
+    const hasLocalDiscount = selectedDiscount || promoCode;
+    
+    // Only apply discount if it was selected in previous screens or current screen
+    if (!hasDiscountFromBooking && !hasDiscountFromPayment && !hasLocalDiscount) {
+      console.log("=== NO DISCOUNT SELECTED ===");
+      console.log("No discount was selected in previous screens or current screen");
+      console.log("BookingData discount:", bookingData?.discount);
+      console.log("PaymentData discount:", (paymentData as any)?.discount);
+      console.log("Local selectedDiscount:", selectedDiscount);
+      console.log("PromoCode:", promoCode);
+      console.log("=== END NO DISCOUNT ===");
+      return 0;
+    }
+    
+    // Ensure all values are numbers
+    const safeEntryFee = Number(entryFee) || 0;
+    const safeTicketPrice = Number(ticketPrice) || 0;
+    const safeMemberCount = Number(memberCount) || 1;
+    const safeNumberOfDays = Number(numberOfDays) || 1;
+    
+    const baseEntryFee = safeEntryFee * safeMemberCount * safeNumberOfDays;
+    const baseTicketPrice = safeTicketPrice * safeMemberCount * safeNumberOfDays;
+    const baseAmount = baseEntryFee + baseTicketPrice;
+    
+    // Apply discount only if it was selected
+    if (hasDiscountFromBooking || hasDiscountFromPayment || hasLocalDiscount) {
+      // Discount based on member count (only if selected)
+      if (safeMemberCount >= 4) {
+        discount += baseAmount * 0.15; // 15% discount for 4+ members
+      } else if (safeMemberCount >= 2) {
+        discount += baseAmount * 0.10; // 10% discount for 2+ members
+      }
+      
+      // Discount based on number of days (only if selected)
+      if (safeNumberOfDays >= 3) {
+        discount += baseAmount * 0.20; // 20% discount for 3+ days
+      } else if (safeNumberOfDays >= 2) {
+        discount += baseAmount * 0.15; // 15% discount for 2+ days
+      }
+      
+      // Discount based on ticket type (only if selected)
+      if (ticketType?.toLowerCase().includes('vip') || ticketType?.toLowerCase().includes('premium')) {
+        discount += baseAmount * 0.15; // 15% discount for VIP/Premium tickets
+      } else if (ticketType?.toLowerCase().includes('gala') || ticketType?.toLowerCase().includes('special')) {
+        discount += baseAmount * 0.12; // 12% discount for Gala/Special events
+      } else if (ticketType?.toLowerCase().includes('dj')) {
+        discount += baseAmount * 0.10; // 10% discount for DJ events
+      }
+    }
+    
+    // Maximum discount cap (30% of total amount)
+    const maxDiscount = baseAmount * 0.3;
+    const finalDiscount = Math.min(discount, maxDiscount);
+    
+    console.log("=== DISCOUNT CALCULATION DEBUG ===");
+    console.log("Has discount from booking:", hasDiscountFromBooking);
+    console.log("Has discount from payment:", hasDiscountFromPayment);
+    console.log("Entry Fee per person per day:", safeEntryFee);
+    console.log("Ticket Price per person per day:", safeTicketPrice);
+    console.log("Member Count:", safeMemberCount);
+    console.log("Number of Days:", safeNumberOfDays);
+    console.log("Base Entry Fee Total:", baseEntryFee);
+    console.log("Base Ticket Price Total:", baseTicketPrice);
+    console.log("Base Amount (Entry + Ticket):", baseAmount);
+    console.log("Calculated Discount:", discount);
+    console.log("Max Discount (30%):", maxDiscount);
+    console.log("Final Discount Applied:", finalDiscount);
+    console.log("=== END DISCOUNT DEBUG ===");
+    
+    return finalDiscount;
+  };
+
+  // Get discount breakdown for display (only if discount was selected)
+  const getDiscountBreakdown = () => {
+    const breakdown = [];
+    
+    // Check if discount was explicitly selected in previous screens
+    const hasDiscountFromBooking = bookingData?.discount || bookingData?.selectedDiscount || bookingData?.promoCode;
+    const hasDiscountFromPayment = (paymentData as any)?.discount || (paymentData as any)?.selectedDiscount || paymentData?.promoCode;
+    
+    // Only show breakdown if discount was selected
+    if (!hasDiscountFromBooking && !hasDiscountFromPayment) {
+      return "No discount selected";
+    }
+    
+    // Ensure all values are numbers
+    const safeEntryFee = Number(entryFee) || 0;
+    const safeTicketPrice = Number(ticketPrice) || 0;
+    const safeMemberCount = Number(memberCount) || 1;
+    const safeNumberOfDays = Number(numberOfDays) || 1;
+    
+    const baseEntryFee = safeEntryFee * safeMemberCount * safeNumberOfDays;
+    const baseTicketPrice = safeTicketPrice * safeMemberCount * safeNumberOfDays;
+    const baseAmount = baseEntryFee + baseTicketPrice;
+    
+    // Member count discount
+    if (safeMemberCount >= 4) {
+      breakdown.push(`${Math.round((baseAmount * 0.15) / baseAmount * 100)}% group`);
+    } else if (safeMemberCount >= 2) {
+      breakdown.push(`${Math.round((baseAmount * 0.10) / baseAmount * 100)}% group`);
+    }
+    
+    // Days discount
+    if (safeNumberOfDays >= 3) {
+      breakdown.push(`${Math.round((baseAmount * 0.20) / baseAmount * 100)}% multi-day`);
+    } else if (safeNumberOfDays >= 2) {
+      breakdown.push(`${Math.round((baseAmount * 0.15) / baseAmount * 100)}% multi-day`);
+    }
+    
+    // Ticket type discount
+    if (ticketType?.toLowerCase().includes('vip') || ticketType?.toLowerCase().includes('premium')) {
+      breakdown.push(`${Math.round((baseAmount * 0.15) / baseAmount * 100)}% VIP`);
+    } else if (ticketType?.toLowerCase().includes('gala') || ticketType?.toLowerCase().includes('special')) {
+      breakdown.push(`${Math.round((baseAmount * 0.12) / baseAmount * 100)}% special`);
+    } else if (ticketType?.toLowerCase().includes('dj')) {
+      breakdown.push(`${Math.round((baseAmount * 0.10) / baseAmount * 100)}% DJ`);
+    }
+    
+    return breakdown.join(', ');
+  };
+
+  // Calculate dynamic pricing based on member count and days using useMemo
+  const dynamicPricing = useMemo(() => {
+    // Use API pricing if available (from promo code response)
+    if (apiPricing) {
+      console.log("=== USING API PRICING ===");
+      console.log("API Pricing:", apiPricing);
+      return apiPricing;
+    }
+    
+    // Otherwise calculate normally
+    const baseEntryFee = entryFee * memberCount * numberOfDays;
+    const baseTicketPrice = ticketPrice * memberCount * numberOfDays;
+    const discount = calculateDynamicDiscount();
+    const fees = Math.round((baseEntryFee + baseTicketPrice) * 0.05); // 5% service fee
+    const total = baseEntryFee + baseTicketPrice - discount + fees;
+
+    console.log("=== DYNAMIC DISCOUNT CALCULATION ===");
+    console.log("Entry Fee per person per day:", entryFee);
+    console.log("Ticket Price per person per day:", ticketPrice);
+    console.log("Member Count:", memberCount);
+    console.log("Number of Days:", numberOfDays);
+    console.log("Ticket Type:", ticketType);
+    console.log("Base Entry Fee Total:", baseEntryFee);
+    console.log("Base Ticket Price Total:", baseTicketPrice);
+    console.log("Base Amount (Entry + Ticket):", baseEntryFee + baseTicketPrice);
+    console.log("Calculated Discount:", discount);
+    console.log("Fees (5% of base):", fees);
+    console.log("Calculation: (", baseEntryFee, "+", baseTicketPrice, ") -", discount, "+", fees, "=", total);
+    console.log("=== END DISCOUNT CALCULATION ===");
+    
+    const pricing = {
+      entryFee: baseEntryFee,
+      ticketPrice: baseTicketPrice,
+      discount: discount,
+      fees: fees,
+      total: total,
+      memberCount: memberCount,
+      numberOfDays: numberOfDays,
     };
 
-    dispatch(onReviewSummary(staticPayload));
-    
+    // Log booking payload
+    const bookingPayload = generateBookingPayload(pricing);
+    console.log("=== BOOKING API PAYLOAD ===");
+    console.log(JSON.stringify(bookingPayload, null, 2));
+    console.log("=== END BOOKING API PAYLOAD ===");
+
+    return pricing;
+  }, [entryFee, memberCount, numberOfDays, ticketPrice, ticketType, apiPricing]);
+
+  // Debug: Track dynamicPricing changes
+  useEffect(() => {
+    console.log("🔄 dynamicPricing updated:", dynamicPricing);
+    console.log("🔄 Discount in dynamicPricing:", dynamicPricing.discount);
+  }, [dynamicPricing]);
+
+  useEffect(() => {
     // Check platform pay support
     checkPlatformPaySupport();
-  }, [dispatch]);
+  }, []);
+
+  useEffect(() => {
+    const promoPayload: any = {
+      eventid: eventData?._id || ticketId || "",
+      members: memberCount || 1,
+      days: numberOfDays || 1,
+    };
+    
+    // Only include boothid if it's a booth selection
+    if (boothId) {
+      promoPayload.boothid = boothId;
+    }
+    
+    dispatch(onApplyPromoCode(promoPayload));
+  }, []);
 
   // Check platform pay support
   const checkPlatformPaySupport = async () => {
@@ -173,24 +569,54 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     }
   };
 
+  // Set price breakdown immediately using dynamic pricing
   useEffect(() => {
-    if (reviewSummary && reviewSummary.status === 1) {
-      setEventData(reviewSummary.data);
-      setPriceBreakdown(reviewSummary.summary);
+    setPriceBreakdown({
+      memberCost: dynamicPricing.entryFee,
+      boothCost: dynamicPricing.ticketPrice,
+      discount: dynamicPricing.discount.toFixed(2),
+      fees: dynamicPricing.fees.toFixed(2),
+      total: dynamicPricing.total,
+    });
+  }, [dynamicPricing]);
 
-      if (reviewSummary.data && reviewSummary.data.userId) {
-        setUserData({
-          fullName: reviewSummary.data.userId.fullName || "N/A",
-          phoneNumber: reviewSummary.data.userId.phone || "N/A",
-          email: reviewSummary.data.userId.email || "N/A",
-          boothName:
-            reviewSummary.data.booths && reviewSummary.data.booths[0]
-              ? reviewSummary.data.booths[0].boothName
-              : "N/A",
-        });
-      }
+  // Set user data from API response if available, otherwise use fallback
+  useEffect(() => {
+    if (reviewSummary && reviewSummary.status === 1 && reviewSummary.data && reviewSummary.data.userId) {
+      setUserData({
+        fullName: reviewSummary.data.userId.fullName || "N/A",
+        phoneNumber: reviewSummary.data.userId.phone || "N/A",
+        email: reviewSummary.data.userId.email || "N/A",
+        boothName: ticketType || "N/A", // Use dynamic ticket type
+      });
+    } else {
+      // Set fallback user data if API doesn't provide it
+      setUserData({
+        fullName: "N/A",
+        phoneNumber: "N/A",
+        email: "N/A",
+        boothName: ticketType || "N/A",
+      });
     }
-  }, [reviewSummary]);
+  }, [reviewSummary, ticketType]);
+
+  // Handle booking creation response
+  useEffect(() => {
+    if (createBooking && createBooking.status === 1) {
+      console.log("🎉 BOOKING CREATION SUCCESSFUL!");
+      console.log("📋 Full Booking Response:", JSON.stringify(createBooking, null, 2));
+      console.log("✅ Booking ID:", createBooking.data?._id || createBooking.data?.id);
+      console.log("✅ Booking Status:", createBooking.status);
+      console.log("✅ Total Amount:", createBooking.data?.totalAmount);
+      // Handle successful booking creation
+      // You can navigate to success screen or show success message
+    } else if (createBookingErr) {
+      console.log("❌ BOOKING CREATION FAILED!");
+      console.log("📋 Error Details:", JSON.stringify(createBookingErr, null, 2));
+      // Handle booking creation error
+      // You can show error message to user
+    }
+  }, [createBooking, createBookingErr]);
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -206,12 +632,36 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     }
   };
 
+  // Send booking data to API using Redux
+  const sendBookingToAPI = () => {
+    const bookingPayload = generateBookingPayload(dynamicPricing);
+    console.log("=== SENDING BOOKING TO API VIA REDUX ===");
+    console.log("API Endpoint: POST /user/booking");
+    console.log("Payload:====>", JSON.stringify(bookingPayload, null, 2));
+    
+    
+    dispatch(onCreateBooking(bookingPayload));
+    console.log("✅ BOOKING API CALL DISPATCHED SUCCESSFULLY");
+  };
+
   const handlePaymentMethodChange = () => {
     if (onPaymentMethodChange) {
       onPaymentMethodChange();
     } else {
-      // Navigate back to payments screen with current data
-      (nav as any).navigate("PaymentScreen", paymentData);
+      // Navigate back to payments screen with updated pricing data
+      const updatedPaymentData = {
+        ...paymentData,
+        bookingData: {
+          ...paymentData?.bookingData,
+          totalPrice: dynamicPricing.total,
+          discount: dynamicPricing.discount,
+          selectedDiscount: selectedDiscount,
+        },
+        totalPrice: dynamicPricing.total,
+        discount: dynamicPricing.discount,
+        selectedDiscount: selectedDiscount,
+      };
+      (nav as any).navigate("PaymentScreen", updatedPaymentData);
     }
   };
 
@@ -264,7 +714,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       // Process Google Pay
       await processGooglePay();
     } else {
-      Alert.alert('Error', 'Please select a payment method');
+      // If no payment method selected, still create booking (for testing or if payment handled elsewhere)
+      console.log("📝 NO PAYMENT METHOD - Creating booking directly...");
+      sendBookingToAPI();
+      // Alert.alert('Booking Created', 'Booking created successfully!');
+      navigation.navigate("PaymentSuccessScreen");
     }
   };
 
@@ -277,7 +731,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
     setIsProcessingPayment(true);
     try {
-      const amount = paymentData?.paymentAmount || priceBreakdown?.total || 0;
+      const amount = dynamicPricing.total
       const amountInCents = Math.round(amount * 100);
       
       const paymentIntentResponse = await fetch(
@@ -304,7 +758,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       if (paymentIntent.error) {
         Alert.alert('Payment Error', paymentIntent.error.message);
       } else {
-        Alert.alert('Success', 'Payment processed successfully!');
+        // Send booking data to API after successful payment
+        console.log("💳 CARD PAYMENT SUCCESSFUL - Creating booking...");
+        sendBookingToAPI();
+        // Alert.alert('Success', 'Payment processed successfully!');
         navigation.navigate("PaymentSuccessScreen");
       }
     } catch (error) {
@@ -318,7 +775,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Process Apple Pay
   const processApplePay = async () => {
     try {
-      const amount = paymentData?.paymentAmount || priceBreakdown?.total || 0;
+      const amount = dynamicPricing.total
       const amountInCents = Math.round(amount * 100);
       
       const paymentIntentResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
@@ -353,7 +810,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       if (error) {
         Alert.alert('Apple Pay Error', error.localizedMessage || error.message);
       } else {
-        Alert.alert('Success', 'Apple Pay payment successful!');
+        // Send booking data to API after successful payment
+        console.log("🍎 APPLE PAY SUCCESSFUL - Creating booking...");
+        sendBookingToAPI();
+        // Alert.alert('Success', 'Apple Pay payment successful!');
         navigation.navigate("PaymentSuccessScreen");
       }
     } catch (error: any) {
@@ -395,6 +855,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       if (error) {
         Alert.alert('Google Pay Error', error.message);
       } else {
+        // Send booking data to API after successful payment
+        console.log("📱 GOOGLE PAY SUCCESSFUL - Creating booking...");
+        sendBookingToAPI();
         Alert.alert('Success', 'Google Pay payment successful!');
         navigation.navigate("PaymentSuccessScreen");
       }
@@ -405,8 +868,48 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   };
 
   const handleApplyPromoCode = () => {
-    // Handle promo code application logic here
+    if (promoCode.trim()) {
+      const promoPayload: any = {
+        eventid: eventData?._id || ticketId || "",
+        members: memberCount || 1,
+        days: numberOfDays || 1,
+        promocode: promoCode.trim()
+      };
+      
+      // Only include boothid if it's a booth selection
+      if (boothId) {
+        promoPayload.boothid = boothId;
+      }
+      
+      // Dispatch apply promo code action
+      dispatch(onApplyPromoCode(promoPayload));
+    } else {
+      Alert.alert("Invalid Code", "Please enter a valid promo code");
+    }
   };
+
+
+  const handlePromoCodeSelect = (promoCodeData: any) => {
+    setSelectedPromoCode(promoCodeData);
+    setPromoCode(promoCodeData.code);
+    setShowPromoCodeList(false);
+    
+    const promoPayload: any = {
+      eventid: eventData?._id || ticketId || "",
+      members: memberCount || 1,
+      days: numberOfDays || 1,
+      promocode: promoCodeData.code
+    };
+    
+    // Only include boothid if it's a booth selection
+    if (boothId) {
+      promoPayload.boothid = boothId;
+    }
+    
+    // Dispatch apply promo code action
+    dispatch(onApplyPromoCode(promoPayload));
+  };
+
 
   return (
     <SafeAreaWrapper
@@ -506,14 +1009,14 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Full Name</Text>
               <Text style={styles.infoValue}>
-                {userData ? userData.fullName : loader ? "Loading..." : "N/A"}
+                {eventData ? eventData?.userId?.fullName : loader ? "Loading..." : "N/A"}
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Phone Number</Text>
               <Text style={styles.infoValue}>
-                {userData
-                  ? userData.phoneNumber
+                {eventData
+                  ? eventData?.userId?.phone
                   : loader
                   ? "Loading..."
                   : "N/A"}
@@ -522,7 +1025,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email</Text>
               <Text style={styles.infoValue}>
-                {userData ? userData.email : loader ? "Loading..." : "N/A"}
+                {eventData ? eventData?.userId?.email : loader ? "Loading..." : "N/A"}
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -535,55 +1038,205 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
           <View style={styles.sectionDivider} />
 
-          {priceBreakdown ? (
-            <View style={styles.sectionContainerNoBorderReduced}>
+          {/* Discount Selection */}
+          {/* <View style={styles.sectionContainerNoBorderReduced}>
+            <Text style={[styles.priceLabel, { marginBottom: 10 }]}>Apply Discount</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              <TouchableOpacity
+                style={[
+                  styles.discountButton,
+                  selectedDiscount === 'group' && styles.discountButtonSelected
+                ]}
+                onPress={() => setSelectedDiscount(selectedDiscount === 'group' ? null : 'group')}
+              >
+                <Text style={[
+                  styles.discountButtonText,
+                  selectedDiscount === 'group' && styles.discountButtonTextSelected
+                ]}>
+                  Group Discount (10%)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.discountButton,
+                  selectedDiscount === 'multi-day' && styles.discountButtonSelected
+                ]}
+                onPress={() => setSelectedDiscount(selectedDiscount === 'multi-day' ? null : 'multi-day')}
+              >
+                <Text style={[
+                  styles.discountButtonText,
+                  selectedDiscount === 'multi-day' && styles.discountButtonTextSelected
+                ]}>
+                  Multi-day (15%)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.discountButton,
+                  selectedDiscount === 'special' && styles.discountButtonSelected
+                ]}
+                onPress={() => setSelectedDiscount(selectedDiscount === 'special' ? null : 'special')}
+              >
+                <Text style={[
+                  styles.discountButtonText,
+                  selectedDiscount === 'special' && styles.discountButtonTextSelected
+                ]}>
+                  Special Event (10%)
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View> */}
+
+          {/* Discount Banner - Only show if discount was selected in previous screens */}
+          {/* {dynamicPricing.discount > 0 && (bookingData?.discount || bookingData?.selectedDiscount || bookingData?.promoCode || (paymentData as any)?.discount || (paymentData as any)?.selectedDiscount || paymentData?.promoCode || selectedDiscount) && (
+            <View style={[styles.sectionContainerNoBorderReduced, { backgroundColor: '#4CAF50', marginBottom: 10 }]}>
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Member Cost</Text>
-                <Text style={styles.priceValue}>
-                  ${priceBreakdown.memberCost.toFixed(2)}
+                <Text style={[styles.priceLabel, { color: 'white', fontWeight: 'bold' }]}>
+                  🎉 You saved ${dynamicPricing.discount.toFixed(2)}!
+                </Text>
+                <Text style={[styles.priceValue, { color: 'white' }]}>
+                  {getDiscountBreakdown()}
                 </Text>
               </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Booth Cost</Text>
-                <Text style={styles.priceValue}>
-                  ${priceBreakdown.boothCost.toFixed(2)}
+            </View>
+          )} */}
+
+          {/* Promo Code Section */}
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Promo Code</Text>
+            <TouchableOpacity
+                  style={styles.browseButtonNew}
+                  onPress={() => {
+                    dispatch(onFetchPromoCodes({
+                      hostId: eventData?.userId?._id || ""
+                    }));
+                    setShowPromoCodeList(true);
+                  }}
+                  
+                >
+                  <Text style={styles.applyButtonTextNew}>Browse Promo Codes</Text>
+                </TouchableOpacity>
+          
+            <View style={styles.promoCodeSectionNew}>
+              <View style={styles.promoCodeContainerNew}>
+              <TextInput
+                style={styles.promoCodeInputNew}
+                placeholder="Enter promo code"
+                placeholderTextColor={colors.textcolor}
+                value={promoCode}
+                onChangeText={setPromoCode}
+                editable={false}
+              />
+                  <TouchableOpacity
+                  style={styles.applyButtonNew}
+                  onPress={handleApplyPromoCode}
+                >
+                  <Text style={styles.applyButtonTextNew}>Apply</Text>
+                </TouchableOpacity>
+              
+              </View>
+            </View>
+
+            {selectedPromoCode && (
+              <View style={styles.selectedPromoCodeContainer}>
+                <Text style={styles.selectedPromoCodeText}>
+                  Applied: {selectedPromoCode.code}
                 </Text>
+                <TouchableOpacity
+                  style={styles.removePromoCodeButton}
+                  onPress={() => {
+                    setSelectedPromoCode(null);
+                    setPromoCode("");
+                    setSelectedDiscount(null);
+
+                    const promoPayload: any = {
+                      eventid: eventData?._id || ticketId || "",
+                      members: memberCount || 1,
+                      days: numberOfDays || 1,
+                    };
+                    
+                    // Only include boothid if it's a booth selection
+                    if (boothId) {
+                      promoPayload.boothid = boothId;
+                    }
+                    
+                    dispatch(onApplyPromoCode(promoPayload));
+                    
+                    // Recalculate pricing without promo code
+                    const baseEntryFee = entryFee * memberCount * numberOfDays;
+                    const baseTicketPrice = ticketPrice * memberCount * numberOfDays;
+                    const discount = 0; // No discount when promo code is removed
+                    const fees = Math.round((baseEntryFee + baseTicketPrice) * 0.05); // 5% service fee
+                    const total = baseEntryFee + baseTicketPrice - discount + fees;
+                    
+                    const recalculatedPricing = {
+                      entryFee: baseEntryFee,
+                      ticketPrice: baseTicketPrice,
+                      discount: discount,
+                      fees: fees,
+                      total: total,
+                    };
+                    
+                    // Set the recalculated pricing as API pricing to override dynamicPricing
+                    setApiPricing(recalculatedPricing);
+                    
+                    // Update price breakdown with recalculated values
+                    setPriceBreakdown({
+                      memberCost: recalculatedPricing.entryFee,
+                      boothCost: recalculatedPricing.ticketPrice,
+                      discount: recalculatedPricing.discount.toFixed(2),
+                      fees: recalculatedPricing.fees.toFixed(2),
+                      total: recalculatedPricing.total,
+                    });
+                    
+                    console.log("🔄 Recalculated pricing after removing promo code:", recalculatedPricing);
+                    console.log("🔄 Discount value after removal:", recalculatedPricing.discount);
+                  }}
+                >
+                  <Text style={styles.removePromoCodeText}>Remove</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Discount</Text>
-                <Text style={styles.priceValue}>
-                  -${priceBreakdown.discount}
-                </Text>
-              </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Fees</Text>
-                <Text style={styles.priceValue}>${priceBreakdown.fees}</Text>
-              </View>
-              <View style={styles.dottedLineContainer}>
-                <DottedLine />
-              </View>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>
-                  ${priceBreakdown.total.toFixed(2)}
-                </Text>
-              </View>
-              <View style={styles.divider} />
+            )}
+          </View>
+
+          <View style={styles.sectionContainerNoBorderReduced}>
+          {dynamicPricing.entryFee != 0 ? (
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Entry Fee ({memberCount} members × {numberOfDays} days)</Text>
+              <Text style={styles.priceValue}>${dynamicPricing.entryFee.toFixed(2)}</Text> 
             </View>
           ) : (
-            <View style={styles.sectionContainerNoBorderReduced}>
-              <View
-                style={[
-                  styles.priceRow,
-                  { justifyContent: "center", padding: 20 },
-                ]}
-              >
-                <Text style={[styles.priceLabel, { color: colors.white }]}>
-                  {loader ? "Loading pricing..." : "No pricing data available"}
-                </Text>
-              </View>
-            </View>
+            <></>
           )}
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Ticket Price ({memberCount} members × {numberOfDays} days)</Text>
+              <Text style={styles.priceValue}>
+                ${dynamicPricing.ticketPrice.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>
+                Discount {dynamicPricing.discount > 0 ? `(${getDiscountBreakdown()})` : '(No discount applied)'}
+              </Text>
+              <Text style={[styles.priceValue, dynamicPricing.discount > 0 && { color: '#4CAF50' }]}>
+                {dynamicPricing.discount > 0 ? `-$${dynamicPricing.discount.toFixed(2)}` : `$${dynamicPricing.discount.toFixed(2)}`}
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Fees</Text>
+              <Text style={styles.priceValue}>${dynamicPricing.fees.toFixed(2)}</Text>
+            </View>
+            <View style={styles.dottedLineContainer}>
+              <DottedLine />
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                ${dynamicPricing.total.toFixed(2)}
+              </Text>
+            </View>
+            <View style={styles.divider} />
+          </View>
 
           <View style={styles.sectionContainer}>
             <View style={styles.paymentMethodRow}>
@@ -656,13 +1309,74 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               </View>
             )}
           </View>
-          {selectedPaymentMethod === "apple" || selectedPaymentMethod === "apple_pay" || selectedPaymentMethod === "google" || selectedPaymentMethod === "google_pay" ? 
-          
-        null :  null
-          }
+          {/* General Confirm Payment Button - Show when no specific payment method is selected */}
+          {!selectedCard && !selectedPaymentMethod && (
+            <View style={styles.cardPaymentContainer}>
+              <Buttons
+                title="Confirm Booking"
+                onPress={handleConfirmPayment}
+                style={styles.cardPaymentButton}
+              />
+            </View>
+          )}
           
         </ScrollView>
       </LinearGradient>
+
+      {/* Promo Code List Modal */}
+      <Modal
+        visible={showPromoCodeList}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowPromoCodeList(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Promo Code</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowPromoCodeList(false)}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {fetchPromoCodes?.status === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary_pink} />
+              <Text style={styles.loadingText}>Loading promo codes...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={fetchPromoCodes?.data || []}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.promoCodeItem}
+                  onPress={() => handlePromoCodeSelect(item)}
+                >
+                  <View style={styles.promoCodeHeader}>
+                    <Text style={styles.promoCodeText}>{item.code}</Text>
+                    {/* <Text style={styles.discountText}>
+                      {item.discountType === 'percentage' ? `${item.discountValue}% OFF` : `₹${item.discountValue} OFF`}
+                    </Text> */}
+                  </View>
+                  <Text style={styles.promoCodeDescription}>{item.description}</Text>
+                  {item.minAmount && (
+                    <Text style={styles.minAmountText}>Min. order: ₹{item.minAmount}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.promoCodeList}
+              ListEmptyComponent={() => (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No promo codes available</Text>
+                </View>
+              )}
+            />
+          )}
+        </View>
+      </Modal>
     </SafeAreaWrapper>
   );
 };

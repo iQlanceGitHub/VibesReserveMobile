@@ -28,21 +28,22 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = VibesReserveMobile/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = VibesReserveMobile/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = VibesReserveMobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		39102D8C97D34CD2BB713882 /* BlackerDisplayTrial-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Light.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Light.ttf"; sourceTree = "<group>"; };
+		39102D8C97D34CD2BB713882 /* BlackerDisplayTrial-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Light.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Light.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-VibesReserveMobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VibesReserveMobile.debug.xcconfig"; path = "Target Support Files/Pods-VibesReserveMobile/Pods-VibesReserveMobile.debug.xcconfig"; sourceTree = "<group>"; };
+		40C769EE2E8AD14D00D14F46 /* VibesReserveMobile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = VibesReserveMobile.entitlements; path = VibesReserveMobile/VibesReserveMobile.entitlements; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-VibesReserveMobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VibesReserveMobile.release.xcconfig"; path = "Target Support Files/Pods-VibesReserveMobile/Pods-VibesReserveMobile.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-VibesReserveMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-VibesReserveMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = VibesReserveMobile/AppDelegate.swift; sourceTree = "<group>"; };
-		788E67B418A34CB9A88695D2 /* BlackerDisplayTrial-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Regular.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Regular.ttf"; sourceTree = "<group>"; };
-		7AFF8A982CFA46CDBE5B3DBD /* BlackerDisplayTrial-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Medium.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Medium.ttf"; sourceTree = "<group>"; };
+		788E67B418A34CB9A88695D2 /* BlackerDisplayTrial-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Regular.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Regular.ttf"; sourceTree = "<group>"; };
+		7AFF8A982CFA46CDBE5B3DBD /* BlackerDisplayTrial-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Medium.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Medium.ttf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = VibesReserveMobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		8501DC49F7024A4EAF5BF0F1 /* BlackerDisplayTrial-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Bold.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Bold.ttf"; sourceTree = "<group>"; };
-		9523DB4AF44041D9800174A9 /* PlusJakartaSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-SemiBold.ttf"; path = "../src/assets/font/PlusJakartaSans-SemiBold.ttf"; sourceTree = "<group>"; };
-		991C84EF0BCC4B4BAC99960D /* PlusJakartaSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Regular.ttf"; path = "../src/assets/font/PlusJakartaSans-Regular.ttf"; sourceTree = "<group>"; };
-		AF98CAC3802A49BDA2BD0A2A /* PlusJakartaSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Bold.ttf"; path = "../src/assets/font/PlusJakartaSans-Bold.ttf"; sourceTree = "<group>"; };
-		BD987F8EC7C64473A8DC3F9C /* PlusJakartaSans-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Light.ttf"; path = "../src/assets/font/PlusJakartaSans-Light.ttf"; sourceTree = "<group>"; };
+		8501DC49F7024A4EAF5BF0F1 /* BlackerDisplayTrial-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "BlackerDisplayTrial-Bold.ttf"; path = "../src/assets/font/BlackerDisplayTrial-Bold.ttf"; sourceTree = "<group>"; };
+		9523DB4AF44041D9800174A9 /* PlusJakartaSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-SemiBold.ttf"; path = "../src/assets/font/PlusJakartaSans-SemiBold.ttf"; sourceTree = "<group>"; };
+		991C84EF0BCC4B4BAC99960D /* PlusJakartaSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Regular.ttf"; path = "../src/assets/font/PlusJakartaSans-Regular.ttf"; sourceTree = "<group>"; };
+		AF98CAC3802A49BDA2BD0A2A /* PlusJakartaSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Bold.ttf"; path = "../src/assets/font/PlusJakartaSans-Bold.ttf"; sourceTree = "<group>"; };
+		BD987F8EC7C64473A8DC3F9C /* PlusJakartaSans-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Light.ttf"; path = "../src/assets/font/PlusJakartaSans-Light.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		FFD37803F2D447C2B922E5C1 /* PlusJakartaSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Medium.ttf"; path = "../src/assets/font/PlusJakartaSans-Medium.ttf"; sourceTree = "<group>"; };
+		FFD37803F2D447C2B922E5C1 /* PlusJakartaSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "PlusJakartaSans-Medium.ttf"; path = "../src/assets/font/PlusJakartaSans-Medium.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +61,7 @@
 		13B07FAE1A68108700A75B9A /* VibesReserveMobile */ = {
 			isa = PBXGroup;
 			children = (
+				40C769EE2E8AD14D00D14F46 /* VibesReserveMobile.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -92,7 +94,6 @@
 				788E67B418A34CB9A88695D2 /* BlackerDisplayTrial-Regular.ttf */,
 			);
 			name = Resources;
-			path = "";
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -304,7 +305,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CODE_SIGN_ENTITLEMENTS = VibesReserveMobile/VibesReserveMobile.entitlements;
+				CURRENT_PROJECT_VERSION = 25;
+				DEVELOPMENT_TEAM = JRN5W5EA66;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = VibesReserveMobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -332,7 +335,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CODE_SIGN_ENTITLEMENTS = VibesReserveMobile/VibesReserveMobile.entitlements;
+				CURRENT_PROJECT_VERSION = 25;
+				DEVELOPMENT_TEAM = JRN5W5EA66;
 				INFOPLIST_FILE = VibesReserveMobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -421,10 +426,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -493,10 +495,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

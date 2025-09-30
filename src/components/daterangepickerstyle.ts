@@ -145,6 +145,15 @@ export const styles = StyleSheet.create({
     marginVertical: 0,
     flex: 1,
   },
+  singleDateCapsule: {
+    backgroundColor: colors.violate,
+    borderRadius: horizontalScale(20),
+    height: verticalScale(41.55038833618164),
+    marginLeft: 0,
+    marginRight: 0,
+    marginVertical: 0,
+    flex: 1,
+  },
   middleDateCapsule: {
     backgroundColor: colors.white,
     borderRadius: 0,

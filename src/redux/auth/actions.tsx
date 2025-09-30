@@ -121,6 +121,26 @@ export const {
   onHostProfile,
   hostProfileData,
   hostProfileError,
+  
+  onCreateBooking,
+  createBookingData,
+  createBookingError,
+
+  onFetchPromoCodes,
+  fetchPromoCodesData,
+  fetchPromoCodesError,
+
+  onApplyPromoCode,
+  applyPromoCodeData,
+  applyPromoCodeError,
+
+  onGetProfileDetail,
+  getProfileDetailData,
+  getProfileDetailError,
+
+  onUpdateProfile,
+  updateProfileData,
+  updateProfileError,
 
   setLoginToken,
 
@@ -226,6 +246,26 @@ export const {
   "ON_BOOKINGREQUEST",
   "BOOKINGREQUEST_DATA",
   "BOOKINGREQUEST_ERROR",
+
+  "ON_CREATE_BOOKING",
+  "CREATE_BOOKING_DATA",
+  "CREATE_BOOKING_ERROR",
+
+  "ON_FETCH_PROMO_CODES",
+  "FETCH_PROMO_CODES_DATA",
+  "FETCH_PROMO_CODES_ERROR",
+
+  "ON_APPLY_PROMO_CODE",
+  "APPLY_PROMO_CODE_DATA",
+  "APPLY_PROMO_CODE_ERROR",
+
+  "ON_GET_PROFILE_DETAIL",
+  "GET_PROFILE_DETAIL_DATA",
+  "GET_PROFILE_DETAIL_ERROR",
+
+  "ON_UPDATE_PROFILE",
+  "UPDATE_PROFILE_DATA",
+  "UPDATE_PROFILE_ERROR",
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",

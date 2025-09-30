@@ -185,6 +185,45 @@ const styles = StyleSheet.create({
     fontFamily: fonts.SemiBold,
     color: colors.white,
   },
+  businessProfileContainer: {
+    marginHorizontal: horizontalScale(20),
+    marginVertical: verticalScale(10),
+    backgroundColor: colors.white,
+    borderRadius: horizontalScale(12),
+    padding: horizontalScale(16),
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  businessProfileContent: {
+    alignItems: "center",
+  },
+  businessProfileTitle: {
+    fontSize: fontScale(14),
+    fontWeight: "600",
+    fontFamily: fonts.SemiBold,
+    color: colors.black,
+    textAlign: "center",
+    marginBottom: verticalScale(12),
+    lineHeight: fontScale(20),
+  },
+  completeProfileButton: {
+    backgroundColor: colors.violate,
+    paddingHorizontal: horizontalScale(24),
+    paddingVertical: verticalScale(10),
+    borderRadius: horizontalScale(20),
+  },
+  completeProfileButtonText: {
+    fontSize: fontScale(12),
+    fontWeight: "600",
+    fontFamily: fonts.SemiBold,
+    color: colors.white,
+  },
 });
 
 export default styles;
