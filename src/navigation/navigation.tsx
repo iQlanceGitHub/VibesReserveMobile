@@ -44,6 +44,7 @@ import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import PaymentScreen from "../screen/dashboard/user/payments/payments";
+import PaymentSuccessScreen from "../screen/dashboard/user/payments/paymentSuccess";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -113,7 +114,7 @@ export type RootStackParamList = {
   AddPromotionalCode: undefined;
   HelpSupport: undefined;
   BookingDetailScreen: { bookingId: string };
-  PaymentScreen: undefined;
+  PaymentScreen: { bookingData?: any };
   ReviewSummary: undefined;
 };
 
@@ -352,6 +353,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ReviewSummary"
             component={ReviewSummary}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PaymentSuccessScreen"
+            component={PaymentSuccessScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

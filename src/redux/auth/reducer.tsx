@@ -59,6 +59,13 @@ import {
   bookingDetailError,
   reviewSummaryData,
   reviewSummaryError,
+
+  createBookingData,
+  createBookingError,
+  fetchPromoCodesData,
+  fetchPromoCodesError,
+  applyPromoCodeData,
+  applyPromoCodeError,
 } from "./actions";
 
 export const initialState = {
@@ -131,6 +138,15 @@ export const initialState = {
 
   reviewSummary: "",
   reviewSummaryErr: "",
+
+  createBooking: "",
+  createBookingErr: "",
+
+  fetchPromoCodes: "",
+  fetchPromoCodesErr: "",
+
+  applyPromoCode: "",
+  applyPromoCodeErr: "",
 
   user: "",
 };
@@ -406,6 +422,36 @@ const authReducer = handleActions(
     [reviewSummaryError().type]: produce((draft, action) => {
       console.log("payload reviewSummary Error", action.payload);
       draft.reviewSummaryErr = action.payload;
+    }),
+
+    // payload createBooking
+    [createBookingData().type]: produce((draft, action) => {
+      console.log("payload createBooking", action.payload);
+      draft.createBooking = action.payload;
+    }),
+    [createBookingError().type]: produce((draft, action) => {
+      console.log("payload createBooking Error", action.payload);
+      draft.createBookingErr = action.payload;
+    }),
+
+    // payload fetchPromoCodes
+    [fetchPromoCodesData().type]: produce((draft, action) => {
+      console.log("payload fetchPromoCodes", action.payload);
+      draft.fetchPromoCodes = action.payload;
+    }),
+    [fetchPromoCodesError().type]: produce((draft, action) => {
+      console.log("payload fetchPromoCodes Error", action.payload);
+      draft.fetchPromoCodesErr = action.payload;
+    }),
+
+    // payload applyPromoCode
+    [applyPromoCodeData().type]: produce((draft, action) => {
+      console.log("payload applyPromoCode", action.payload);
+      draft.applyPromoCode = action.payload;
+    }),
+    [applyPromoCodeError().type]: produce((draft, action) => {
+      console.log("payload applyPromoCode Error", action.payload);
+      draft.applyPromoCodeErr = action.payload;
     }),
   },
   initialState

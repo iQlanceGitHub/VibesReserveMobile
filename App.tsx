@@ -60,7 +60,8 @@ function App(): React.JSX.Element {
           </View>
         </AppInitializer>
       </SafeAreaProvider>
-    </Provider> </StripeProvider>
+    </Provider>
+    </StripeProvider>
   );
 }
 

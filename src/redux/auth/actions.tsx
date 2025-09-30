@@ -114,6 +114,18 @@ export const {
   reviewSummaryData,
   reviewSummaryError,
 
+  onCreateBooking,
+  createBookingData,
+  createBookingError,
+
+  onFetchPromoCodes,
+  fetchPromoCodesData,
+  fetchPromoCodesError,
+
+  onApplyPromoCode,
+  applyPromoCodeData,
+  applyPromoCodeError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -214,6 +226,18 @@ export const {
   "ON_BOOKINGREQUEST",
   "BOOKINGREQUEST_DATA",
   "BOOKINGREQUEST_ERROR",
+
+  "ON_CREATE_BOOKING",
+  "CREATE_BOOKING_DATA",
+  "CREATE_BOOKING_ERROR",
+
+  "ON_FETCH_PROMO_CODES",
+  "FETCH_PROMO_CODES_DATA",
+  "FETCH_PROMO_CODES_ERROR",
+
+  "ON_APPLY_PROMO_CODE",
+  "APPLY_PROMO_CODE_DATA",
+  "APPLY_PROMO_CODE_ERROR",
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",
