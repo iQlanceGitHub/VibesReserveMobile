@@ -740,7 +740,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     };
 
     // Handle booking logic here
-    navigation.navigate("ClubDetailScreen" as never);
+    navigation.navigate("ClubBookingScreen" as never);
   };
 
   const handleFavorite = (isFavorite: boolean) => {
@@ -750,7 +750,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
   const handleNextPress = () => {
     // setShowComingSoonDialog(true);
-    navigation.navigate('PaymentScreen' as never);
+    navigation.navigate('ClubBookingScreen' as never);
   };
 
   return (
