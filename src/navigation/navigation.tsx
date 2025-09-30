@@ -46,6 +46,9 @@ import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
 import PaymentScreen from "../screen/dashboard/user/payments/payments";
 import PaymentSuccessScreen from "../screen/dashboard/user/payments/paymentSuccess";
 
+//Host
+import HostEditProfileScreen from "../screen/dashboard/host/profileScreen/hostEditProfileScreen/hostEditProfileScreen";
+
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
 import React, { useState } from "react";
@@ -116,6 +119,7 @@ export type RootStackParamList = {
   BookingDetailScreen: { bookingId: string };
   PaymentScreen: { bookingData?: any };
   ReviewSummary: undefined;
+  HostEditProfileScreen: undefined;
 };
 
 function MyTabs() {
@@ -358,6 +362,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="PaymentSuccessScreen"
             component={PaymentSuccessScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HostEditProfileScreen"
+            component={HostEditProfileScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
