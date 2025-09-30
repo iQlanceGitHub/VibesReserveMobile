@@ -137,7 +137,7 @@ function MyTabs() {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Match"
+        name="BookingScreen"
         component={BookingScreen}
         options={{ headerShown: false }}
       />

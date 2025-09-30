@@ -28,9 +28,9 @@ import {
 } from "../../../../../contexts/LocationContext";
 import LocationDisplay from "../../../../../components/LocationDisplay";
 import {
-  onHome,
-  homeData,
-  homeError,
+  onHomenew,
+  homenewData,
+  homenewError,
   onTogglefavorite,
   togglefavoriteData,
   togglefavoriteError,
@@ -83,8 +83,8 @@ const ExploreScreenContent = () => {
   }, []);
 
   const dispatch = useDispatch();
-  const home = useSelector((state: any) => state.auth.home);
-  const homeErr = useSelector((state: any) => state.auth.homeErr);
+  const homenew = useSelector((state: any) => state.auth.homenew);
+  const homenewErr = useSelector((state: any) => state.auth.homenewErr);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   const handleFilterPress = () => {
@@ -159,7 +159,7 @@ const ExploreScreenContent = () => {
     console.log("Fetching nearby data with userId:", userId);
 
     dispatch(
-      onHome({
+      onHomenew({
         lat: mapRegion.latitude.toString(),
         long: mapRegion.longitude.toString(),
         userId: userId || "68c17979f763e99ba95a6de4",
@@ -170,27 +170,27 @@ const ExploreScreenContent = () => {
   // Handle API response
   useEffect(() => {
     if (
-      home?.status === true ||
-      home?.status === "true" ||
-      home?.status === 1 ||
-      home?.status === "1"
+      homenew?.status === true ||
+      homenew?.status === "true" ||
+      homenew?.status === 1 ||
+      homenew?.status === "1"
     ) {
-      console.log("Home data received:", home);
-      if (home?.data?.nearby) {
-        setNearbyEvents(home.data.nearby);
+      console.log("Homenew data received:", homenew);
+      if (homenew?.nearbyHosts) {
+        setNearbyEvents(homenew.nearbyHosts);
         // Don't auto-adjust map bounds initially
       }
-      if (home?.data?.featured) {
-        setFeaturedEvents(home.data.featured);
+      if (homenew?.featuredList) {
+        setFeaturedEvents(homenew.featuredList);
       }
-      dispatch(homeData(""));
+      dispatch(homenewData(""));
     }
 
-    if (homeErr) {
-      console.log("Home error:", homeErr);
-      dispatch(homeError(""));
+    if (homenewErr) {
+      console.log("Homenew error:", homenewErr);
+      dispatch(homenewError(""));
     }
-  }, [home, homeErr, dispatch]);
+  }, [homenew, homenewErr, dispatch]);
 
   const requestLocationPermission = async () => {
     if (Platform.OS === "android") {
@@ -237,7 +237,7 @@ const ExploreScreenContent = () => {
     if (searchText.trim().length > 0) {
       const userId = await getUserID();
       dispatch(
-        onHome({
+        onHomenew({
           lat: mapRegion.latitude.toString(),
           long: mapRegion.longitude.toString(),
           userId: userId || "68c17979f763e99ba95a6de4",

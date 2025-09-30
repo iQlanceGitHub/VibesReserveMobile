@@ -114,7 +114,9 @@ const ClubProfileScreen = () => {
     const clubEvents = hostEvents.filter((event) => event.type === "Club");
     const allBooths = clubEvents.flatMap((event) => event.booths || []);
 
+  
     return (
+      console.log('allBooths::===>', clubEvents),
       <View style={styles.tabContent}>
         <Text style={styles.sectionTitle}>
           Club Services ({allBooths.length})
@@ -122,7 +124,10 @@ const ClubProfileScreen = () => {
 
         {allBooths.length > 0 ? (
           allBooths.map((booth, index) => (
-            <TouchableOpacity key={booth._id || index} style={styles.boothCard}>
+            console.log('booth::===>', booth),
+            <TouchableOpacity onPress={() => (navigation as any).navigate("ClubDetailScreen", {
+              clubId:clubEvents[index]._id,
+            })} key={booth._id || index} style={styles.boothCard}>
               <View style={styles.boothInfo}>
                 <View style={styles.boothHeader}>
                   <Text style={styles.boothName}>{booth.boothName}</Text>
@@ -173,6 +178,9 @@ const ClubProfileScreen = () => {
             <TouchableOpacity
               key={ticket._id || index}
               style={styles.eventCard}
+              onPress={() => (navigation as any).navigate("ClubDetailScreen", {
+                clubId:eventTypeEvents[index]._id,
+              })}
             >
               <View style={styles.eventInfo}>
                 <View style={styles.eventHeader}>
@@ -210,7 +218,10 @@ const ClubProfileScreen = () => {
 
         {pubTypeEvents.length > 0 ? (
           pubTypeEvents.map((event, index) => (
-            <TouchableOpacity key={event._id || index} style={styles.pubCard}>
+            <TouchableOpacity key={event._id || index} style={styles.pubCard}
+            onPress={() => (navigation as any).navigate("ClubDetailScreen", {
+              clubId:hostEvents[index]._id,
+            })}>
               <View style={styles.pubInfo}>
                 <View style={styles.pubHeader}>
                   <Text style={styles.pubName}>{event.name}</Text>
@@ -259,14 +270,14 @@ const ClubProfileScreen = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <BackButton navigation={navigation} />
-        <Text style={styles.headerTitle}>Club Profile</Text>
+        <Text style={styles.headerTitle}>Profile</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.clubInfoContainer}>
         <Image
           source={{
-            uri: hostProfile?.profilePicture,
+            uri: hostProfile?.businessPicture,
           }}
           style={styles.clubImage}
         />
@@ -285,7 +296,7 @@ const ClubProfileScreen = () => {
             numberOfLines={3}
             ellipsizeMode="tail"
           >
-            {hostProfile?.businessDiscription}
+            {hostProfile?.businessDescription}
           </Text>
         </View>
       </View>

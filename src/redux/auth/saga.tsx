@@ -1198,7 +1198,7 @@ function* HostProfileSaga({ payload }: { payload: HostProfilePayload }) {
     };
 
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"hostprofile"}`,
+      url: `${baseurl}${"user/hostprofile"}`,
       params,
     });
 

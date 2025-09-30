@@ -644,7 +644,7 @@ const HomeScreenContent = () => {
 
         {/* Nearby Events */}
         <View style={styles.nearbyHeaderRow}>
-          <Text style={styles.sectionTitle}>Nearby</Text>
+          <Text style={styles.sectionTitle}>Nearby Profile</Text>
           <TouchableOpacity
             onPress={() =>
               (navigation as any).navigate("NearbyEventsSeeAllScreen", {

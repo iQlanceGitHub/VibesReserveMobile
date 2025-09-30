@@ -86,7 +86,7 @@ export default StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.white,
     marginBottom: verticalScale(8),
-    marginTop: Platform.OS === "ios" ? verticalScale(20) : verticalScale(25),
+   // marginTop: Platform.OS === "ios" ? verticalScale(20) : verticalScale(25),
   },
   detailsRow: {
     flexDirection: "row",

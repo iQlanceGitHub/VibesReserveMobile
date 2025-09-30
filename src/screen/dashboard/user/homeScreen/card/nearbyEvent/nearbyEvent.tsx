@@ -20,6 +20,7 @@ import LocationIcon from "../../../../../../assets/svg/locationIcon";
 import ClockIcon from "../../../../../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../../../../../assets/svg/arrowRightIcon";
 import LocationFavourite from "../../../../../../assets/svg/locationFavourite";
+import DistancePinsIcon from "../../../../../../assets/svg/distancePinsIcon";
 import styles from "./styles";
 
 interface NearbyEventCardProps {
@@ -34,6 +35,7 @@ interface NearbyEventCardProps {
     price: string;
     image: any;
     isFavorite: boolean;
+    businessPicture: string;
   };
   onPress: () => void;
   onFavoritePress: (eventId: string) => void;
@@ -44,6 +46,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
   onPress,
   onFavoritePress,
 }) => {
+  console.log('event::===>', event);
   // Use isFavorite directly from event data
   const isFavorite = (event as any).isFavorite || false;
 
@@ -101,10 +104,10 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
       <View style={styles.imageContainer}>
         <Image
           source={
-            (event as any).profilePicture || (event as any).photos?.[0]
+            (event as any).businessPicture || (event as any).photos?.[0]
               ? {
                   uri:
-                    (event as any).profilePicture || (event as any).photos?.[0],
+                    (event as any).businessPicture || (event as any).photos?.[0],
                 }
               : {
                   uri: "https://via.placeholder.com/120x90/2D014D/8D34FF?text=Event",
@@ -114,7 +117,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
           resizeMode="cover"
         />
         {/* Heart Icon - Top Left of Image */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.favoriteButton}
           onPress={handleFavoritePress}
         >
@@ -123,7 +126,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
           ) : (
             <FavouriteIcon size={20} color={colors.violate} />
           )}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Content Area */}
@@ -138,7 +141,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
 
         {/* Event Title */}
         <Text numberOfLines={1} style={styles.eventName}>
-          {event.fullName}
+          {(event as any).businessName || event.name}
         </Text>
 
         {/* Location */}
@@ -146,6 +149,21 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
           <LocationFavourite size={14} color={colors.violate} />
           <Text style={styles.detailText} numberOfLines={1}>
             {(event as any).address}
+          </Text>
+        </View>
+
+         {/* Location */}
+         <View style={styles.detailsRow}>
+          <Text style={styles.detailText} numberOfLines={2}>
+            {(event as any).businessDiscription}
+          </Text>
+        </View>
+
+         {/* Distance */}
+         <View style={styles.detailsRow}>
+          <DistancePinsIcon width={14} height={14} color={colors.violate} />
+          <Text style={styles.detailText} numberOfLines={2}>
+            {(event as any).distance + " away"}
           </Text>
         </View>
 
