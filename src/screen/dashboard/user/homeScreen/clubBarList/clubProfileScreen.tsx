@@ -7,6 +7,9 @@ import { colors } from "../../../../../utilis/colors";
 import { BackButton } from "../../../../../components/BackButton";
 import LocationFavourite from "../../../../../assets/svg/locationFavourite";
 import ArrowRightIcon from "../../../../../assets/svg/arrowRightIcon";
+import MessageIcon from "../../../../../assets/svg/messageIcon";
+import PhoneIcon from "../../../../../assets/svg/phoneIcon";
+import EditIcon from "../../../../../assets/svg/editIcon";
 import {
   onHostProfile,
   hostProfileData,
@@ -112,49 +115,47 @@ const ClubProfileScreen = () => {
   const renderBoothsContent = () => {
     // Get only Club type events
     const clubEvents = hostEvents.filter((event) => event.type === "Club");
-    const allBooths = clubEvents.flatMap((event) => event.booths || []);
 
-  
     return (
-      console.log('allBooths::===>', clubEvents),
+      console.log('clubEvents::===>', clubEvents),
       <View style={styles.tabContent}>
         <Text style={styles.sectionTitle}>
-          Club Services ({allBooths.length})
+          Club Services ({clubEvents.length})
         </Text>
 
-        {allBooths.length > 0 ? (
-          allBooths.map((booth, index) => (
-            console.log('booth::===>', booth),
-            <TouchableOpacity onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-              clubId:clubEvents[0]._id,
-            })} key={booth._id || index} style={styles.boothCard}>
-              <View style={styles.boothInfo}>
-                <View style={styles.boothHeader}>
-                  <Text style={styles.boothName}>{booth.boothName}</Text>
-                  {booth.boothTypeName && (
-                    <Text style={styles.categoryTag}>
-                      {booth.boothTypeName}
+        {clubEvents.length > 0 ? (
+          clubEvents.map((event, index) => {
+            console.log('event::===>', event);
+            return (
+              <TouchableOpacity onPress={() => (navigation as any).navigate("ClubDetailScreen", {
+                clubId: event._id,
+              })} key={event._id || index} style={styles.boothCard}>
+                <View style={styles.boothInfo}>
+                  <View style={styles.boothHeader}>
+                    <Text style={styles.boothName}>{event.name || 'Event Name'}</Text>
+                    {event.type && (
+                      <Text style={styles.categoryTag}>
+                        {event.type}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={styles.boothDetails}>
+                    <Text style={styles.boothCapacity}>
+                      Capacity: 10 people
                     </Text>
-                  )}
-                </View>
-                <View style={styles.boothDetails}>
-                  <Text style={styles.boothCapacity}>
-                    Capacity: {booth.capacity} people
-                  </Text>
-                  <View style={styles.boothPriceContainer}>
-                    <Text style={styles.boothPrice}>
-                      {booth.discountedPrice
-                        ? `$${booth.discountedPrice}`
-                        : `$${booth.boothPrice}`}
-                    </Text>
-                    <ArrowRightIcon size={16} color={colors.white} />
+                    <View style={styles.boothPriceContainer}>
+                      <Text style={styles.boothPrice}>
+                        ${event.entryFee || 0}
+                      </Text>
+                      <ArrowRightIcon size={16} color={colors.white} />
+                    </View>
                   </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))
+              </TouchableOpacity>
+            );
+          })
         ) : (
-          <Text style={styles.noDataText}>No booths available</Text>
+          <Text style={styles.noDataText}>No events available</Text>
         )}
       </View>
     );
@@ -165,34 +166,33 @@ const ClubProfileScreen = () => {
     const eventTypeEvents = hostEvents.filter(
       (event) => event.type === "Event"
     );
-    const allTickets = eventTypeEvents.flatMap((event) => event.tickets || []);
 
     return (
       <View style={styles.tabContent}>
         <Text style={styles.sectionTitle}>
-          Event Services ({allTickets.length})
+          Event Services ({eventTypeEvents.length})
         </Text>
 
-        {allTickets.length > 0 ? (
-          allTickets.map((ticket, index) => (
+        {eventTypeEvents.length > 0 ? (
+          eventTypeEvents.map((event, index) => (
             <TouchableOpacity
-              key={ticket._id || index}
+              key={event._id || index}
               style={styles.eventCard}
               onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-                clubId:eventTypeEvents[0]._id,
+                clubId: event._id,
               })}
             >
               <View style={styles.eventInfo}>
                 <View style={styles.eventHeader}>
-                  <Text style={styles.eventName}>{ticket.ticketTypeName}</Text>
-                  <Text style={styles.categoryTag}>Event</Text>
+                  <Text style={styles.eventName}>{event.name || 'Event Name'}</Text>
+                  <Text style={styles.categoryTag}>{event.type}</Text>
                 </View>
                 <View style={styles.eventDetails}>
                   <Text style={styles.eventCapacity}>
-                    Capacity: {ticket.capacity} people
+                    Capacity: 10 people
                   </Text>
                   <View style={styles.eventPriceContainer}>
-                    <Text style={styles.eventPrice}>${ticket.ticketPrice}</Text>
+                    <Text style={styles.eventPrice}>${event.entryFee || 0}</Text>
                     <ArrowRightIcon size={16} color={colors.white} />
                   </View>
                 </View>
@@ -200,7 +200,7 @@ const ClubProfileScreen = () => {
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={styles.noDataText}>No event tickets available</Text>
+          <Text style={styles.noDataText}>No events available</Text>
         )}
       </View>
     );
@@ -220,11 +220,11 @@ const ClubProfileScreen = () => {
           pubTypeEvents.map((event, index) => (
             <TouchableOpacity key={event._id || index} style={styles.pubCard}
             onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-              clubId:hostEvents[0]._id,
+              clubId: event._id,
             })}>
               <View style={styles.pubInfo}>
                 <View style={styles.pubHeader}>
-                  <Text style={styles.pubName}>{event.name}</Text>
+                  <Text style={styles.pubName}>{event.name || 'Event Name'}</Text>
                   <Text style={styles.categoryTag}>{event.type}</Text>
                 </View>
                 <Text
@@ -232,14 +232,14 @@ const ClubProfileScreen = () => {
                   numberOfLines={3}
                   ellipsizeMode="tail"
                 >
-                  {event.details}
+                  {event.details || 'Event details'}
                 </Text>
                 <View style={styles.pubDetails}>
                   <Text style={styles.pubAvailability}>
-                    {event.openingTime} - {event.closeTime}
+                    Capacity: 10 people
                   </Text>
                   <View style={styles.pubPriceContainer}>
-                    <Text style={styles.pubPrice}>${event.entryFee}</Text>
+                    <Text style={styles.pubPrice}>${event.entryFee || 0}</Text>
                     <ArrowRightIcon size={16} color={colors.white} />
                   </View>
                 </View>
@@ -274,32 +274,54 @@ const ClubProfileScreen = () => {
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.clubInfoContainer}>
-        <Image
-          source={{
-            uri: hostProfile?.businessPicture,
-          }}
-          style={styles.clubImage}
-        />
-        <View style={styles.clubDetails}>
-          <Text style={styles.clubName}>
-            {hostProfile?.businessName ||
-              hostProfile?.fullName ||
-              clubProfileData.name}
-          </Text>
-          <View style={styles.locationRow}>
-            <LocationFavourite size={14} color={colors.violate} />
-            <Text style={styles.locationText}>{hostProfile?.address}</Text>
+      <View style={styles.profileCardContainer}>
+        <View style={styles.profileContainer}>
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={{
+                uri: hostProfile?.businessPicture || hostProfile?.profilePicture,
+              }}
+              style={styles.profileImage}
+            />
           </View>
-          <Text
-            style={styles.descriptionText}
-            numberOfLines={3}
-            ellipsizeMode="tail"
-          >
-            {hostProfile?.businessDescription}
-          </Text>
+          
+          <View style={styles.profileDetails}>
+            <Text style={styles.profileName}>
+              {hostProfile?.businessName ||
+                hostProfile?.fullName ||
+                clubProfileData.name}
+            </Text>
+                
+           
+            <View style={styles.locationRow}>
+              <LocationFavourite size={14} color={colors.violate} />
+              <Text numberOfLines={3} ellipsizeMode="tail" style={styles.locationText}>{hostProfile?.address}</Text>
+            </View>
+            <Text
+              style={styles.descriptionText}
+              numberOfLines={3}
+              ellipsizeMode="tail"
+            >
+              {hostProfile?.businessDescription}
+            </Text>
+          </View>
         </View>
       </View>
+
+      <View style={styles.smallContainer}>
+        <Text style={styles.smallContainerText}>Contact Info</Text>
+        <Text style={styles.hostNameContainerText}>{hostProfile?.fullName}</Text>
+        <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity style={styles.actionButton}>
+              <MessageIcon width={20} height={20} color={colors.violate} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <PhoneIcon width={20} height={20} color={colors.violate} />
+            </TouchableOpacity>
+          </View>
+      </View>
+
+      
 
       <View style={styles.tabsContainer}>{tabs.map(renderTabButton)}</View>
       <ScrollView
