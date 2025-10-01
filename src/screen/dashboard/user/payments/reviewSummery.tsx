@@ -332,23 +332,29 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     console.log("extractedTicketTypeId:", extractedTicketTypeId);
     console.log("=== END EXTRACTED IDS ===");
     
-    // Add booth-specific or ticket-specific fields
-    if (isBooth) {
+    // Only include booth/ticket data if we have valid data
+    const hasValidBoothData = isBooth && extractedId && extractedBoothTypeId && baseTicketPrice > 0;
+    const hasValidTicketData = !isBooth && extractedId && extractedTicketTypeId && baseTicketPrice > 0;
+    
+    // Add booth-specific or ticket-specific fields only if data is available
+    if (hasValidBoothData) {
       return {
         ...basePayload,
-        boothCost: baseTicketPrice, // Use boothCost for booths
-        boothType: extractedBoothTypeId, // Use boothType ID for booths
-        boothId: extractedId, // Add boothId
-        // Don't include ticketCost for booths
+        boothCost: baseTicketPrice,
+        boothType: extractedBoothTypeId,
+        boothId: extractedId,
+      };
+    } else if (hasValidTicketData) {
+      return {
+        ...basePayload,
+        ticketCost: baseTicketPrice,
+        ticketType: extractedTicketTypeId,
+        ticketId: extractedId,
       };
     } else {
-      return {
-        ...basePayload,
-        ticketCost: baseTicketPrice, // Use ticketCost for tickets
-        ticketType: extractedTicketTypeId, // Use ticketType ID for tickets
-        ticketId: extractedId, // Add ticketId
-        // Don't include boothCost for tickets
-      };
+      // Return base payload without booth/ticket specific fields if no valid data
+      console.log("No valid booth or ticket data available, returning base payload only");
+      return basePayload;
     }
   };
 
@@ -547,13 +553,14 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       days: numberOfDays || 1,
     };
     
-    // Only include boothid if it's a booth selection
-    if (boothId) {
+    // Only include boothid if it's a booth selection and we have valid booth data
+    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+    if (hasValidBoothData) {
       promoPayload.boothid = boothId;
     }
     
     dispatch(onApplyPromoCode(promoPayload));
-  }, []);
+  }, [eventData, memberCount, numberOfDays, boothId, selectedTicket]);
 
   // Check platform pay support
   const checkPlatformPaySupport = async () => {
@@ -876,8 +883,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         promocode: promoCode.trim()
       };
       
-      // Only include boothid if it's a booth selection
-      if (boothId) {
+      // Only include boothid if it's a booth selection and we have valid booth data
+      const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+      if (hasValidBoothData) {
         promoPayload.boothid = boothId;
       }
       
@@ -901,8 +909,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       promocode: promoCodeData.code
     };
     
-    // Only include boothid if it's a booth selection
-    if (boothId) {
+    // Only include boothid if it's a booth selection and we have valid booth data
+    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+    if (hasValidBoothData) {
       promoPayload.boothid = boothId;
     }
     
@@ -1155,8 +1164,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                       days: numberOfDays || 1,
                     };
                     
-                    // Only include boothid if it's a booth selection
-                    if (boothId) {
+                    // Only include boothid if it's a booth selection and we have valid booth data
+                    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+                    if (hasValidBoothData) {
                       promoPayload.boothid = boothId;
                     }
                     

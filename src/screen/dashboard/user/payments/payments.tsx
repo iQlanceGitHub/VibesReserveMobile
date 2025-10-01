@@ -20,6 +20,7 @@ import ApplePayIcon from "../../../../assets/svg/applePayIcon";
 import GoogleIcon from "../../../../assets/svg/googleIcon";
 import VisaIcon from "../../../../assets/svg/visaIcon";
 import MasterCard from "../../../../assets/svg/masterCard";
+import RefreshIcon from "../../../../assets/svg/refreshIcon";
 import { 
   CardField, 
   useStripe, 
@@ -708,9 +709,11 @@ const PaymentsScreen: React.FC = () => {
                   style={paymentsStyles.refreshButton}
                   disabled={loadingCards}
                 >
-                  <Text style={paymentsStyles.refreshButtonText}>
-                    {loadingCards ? 'Loading...' : 'Refresh'}
-                  </Text>
+                  {loadingCards ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <RefreshIcon width={16} height={16} color="#FFFFFF" />
+                  )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={toggleAddCard}

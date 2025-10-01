@@ -186,8 +186,8 @@ const ClubBookingScreen: React.FC = () => {
       setSelectedEndDate(endDate);
 
       setBookingData({
-        startDate: currentEventData?.startDate || "2025-09-01T00:00:00.000Z",
-        endDate: currentEventData?.endDate || "2025-09-30T00:00:00.000Z",
+        startDate: currentEventData?.startDate || new Date().toISOString(),
+        endDate: currentEventData?.endDate || new Date().toISOString(),
         bookedDates: [], // No booked dates for now, can be added later if needed
       });
     }
@@ -483,8 +483,8 @@ const ClubBookingScreen: React.FC = () => {
       <View style={clubBookingStyles.calendarContainer}>
         <DateRangePicker
           onDateRangeSelect={handleDateRangeSelect}
-          initialStartDate={selectedStartDate}
-          initialEndDate={selectedEndDate}
+          initialStartDate={selectedStartDate || undefined}
+          initialEndDate={selectedEndDate || undefined}
           startDate={bookingData.startDate}
           endDate={bookingData.endDate}
           bookedDates={bookingData.bookedDates}

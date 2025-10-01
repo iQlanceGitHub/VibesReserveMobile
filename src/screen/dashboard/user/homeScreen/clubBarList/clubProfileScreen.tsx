@@ -126,7 +126,7 @@ const ClubProfileScreen = () => {
           allBooths.map((booth, index) => (
             console.log('booth::===>', booth),
             <TouchableOpacity onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-              clubId:clubEvents[index]._id,
+              clubId:clubEvents[0]._id,
             })} key={booth._id || index} style={styles.boothCard}>
               <View style={styles.boothInfo}>
                 <View style={styles.boothHeader}>
@@ -179,7 +179,7 @@ const ClubProfileScreen = () => {
               key={ticket._id || index}
               style={styles.eventCard}
               onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-                clubId:eventTypeEvents[index]._id,
+                clubId:eventTypeEvents[0]._id,
               })}
             >
               <View style={styles.eventInfo}>
@@ -220,7 +220,7 @@ const ClubProfileScreen = () => {
           pubTypeEvents.map((event, index) => (
             <TouchableOpacity key={event._id || index} style={styles.pubCard}
             onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-              clubId:hostEvents[index]._id,
+              clubId:hostEvents[0]._id,
             })}>
               <View style={styles.pubInfo}>
                 <View style={styles.pubHeader}>

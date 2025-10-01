@@ -374,6 +374,21 @@ const NavigationStack: React.FC = () => {
             component={ReviewSummary}
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="HostEditProfileScreen"
+            component={HostEditProfileScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PaymentSuccessScreen"
+            component={PaymentSuccessScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ClubBarListScreen"
+            component={ClubBarListScreen}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </LinearGradient>
       {loader && (
