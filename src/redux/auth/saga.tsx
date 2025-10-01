@@ -1,4 +1,5 @@
 import { call, put, takeLatest, select } from "redux-saga/effects";
+import { SagaIterator } from "redux-saga";
 
 import {
   clearAuthStore,
@@ -126,7 +127,7 @@ interface SigninPayload {
   timeZone?: string;
 }
 
-function* onSigninSaga({ payload }: { payload: SigninPayload }) {
+function* onSigninSaga({ payload }: { payload: SigninPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -178,7 +179,7 @@ interface SignupPayload {
   loginType?: string;
 }
 
-function* onSignupSaga({ payload }: { payload: SignupPayload }) {
+function* onSignupSaga({ payload }: { payload: SignupPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -225,7 +226,7 @@ interface ForgotPasswordPayload {
   email?: string;
 }
 
-function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
+function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -271,7 +272,7 @@ function* onResendVerifyOtpSaga({
   payload,
 }: {
   payload: ResendVerifyOtpSagaPayload;
-}) {
+}): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -310,7 +311,7 @@ function* UpdateProfileFieldsSaga({
   payload,
 }: {
   payload: UpdateProfileFieldsPayload;
-}) {
+}): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -349,7 +350,7 @@ function* getDynamicContentSaga({
   payload,
 }: {
   payload: DynamicContentPayload;
-}) {
+}): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -381,7 +382,7 @@ interface VerifyEmailPayload {
   email?: string;
 }
 
-function* VerifyEmailSaga({ payload }: { payload: VerifyEmailPayload }) {
+function* VerifyEmailSaga({ payload }: { payload: VerifyEmailPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -416,7 +417,7 @@ interface SendOtpPayload {
   email?: string;
 }
 
-function* SendOtpSaga({ payload }: { payload: SendOtpPayload }) {
+function* SendOtpSaga({ payload }: { payload: SendOtpPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -451,7 +452,7 @@ interface VerifyOtpPayload {
   email?: string;
 }
 
-function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }) {
+function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -484,7 +485,7 @@ function* VerifyOtpSaga({ payload }: { payload: VerifyOtpPayload }) {
 
 interface ResetPasswordPayload {}
 
-function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
+function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -517,7 +518,7 @@ function* ResetPasswordSaga({ payload }: { payload: ResetPasswordPayload }) {
 
 interface SocialLoginPayload {}
 
-function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }) {
+function* SocialLoginSaga({ payload }: { payload: SocialLoginPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -559,7 +560,7 @@ function* onUpdateLocationSaga({
   payload,
 }: {
   payload: UpdateLocationPayload;
-}) {
+}): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -603,7 +604,7 @@ interface HomePayload {
   search_keyword: string;
 }
 
-function* HomeSaga({ payload }: { payload: HomePayload }) {
+function* HomeSaga({ payload }: { payload: HomePayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -648,7 +649,7 @@ interface HomenewPayload {
   search_keyword: string;
 }
 
-function* HomenewSaga({ payload }: { payload: HomenewPayload }) {
+function* HomenewSaga({ payload }: { payload: HomenewPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -697,7 +698,7 @@ interface FilterPayload {
   userId?: string;
 }
 
-function* FilterSaga({ payload }: { payload: FilterPayload }) {
+function* FilterSaga({ payload }: { payload: FilterPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -740,7 +741,7 @@ function* FilterSaga({ payload }: { payload: FilterPayload }) {
 
 interface ProfilePayload {}
 
-function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
+function* getProfileSaga({ payload }: { payload: ProfilePayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -770,7 +771,7 @@ function* getProfileSaga({ payload }: { payload: ProfilePayload }) {
 
 interface LogoutPayload {}
 
-function* LogoutSaga({ payload }: { payload: LogoutPayload }) {
+function* LogoutSaga({ payload }: { payload: LogoutPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = payload;
@@ -806,7 +807,7 @@ interface ViewdetailsPayload {
   userId?: string;
 }
 
-function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
+function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -846,7 +847,7 @@ interface CategoryPayload {
   limit?: number;
 }
 
-function* CategorySaga({ payload }: { payload: CategoryPayload }) {
+function* CategorySaga({ payload }: { payload: CategoryPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -879,7 +880,7 @@ interface FacilityPayload {
   limit?: number;
 }
 
-function* FacilitySaga({ payload }: { payload: FacilityPayload }) {
+function* FacilitySaga({ payload }: { payload: FacilityPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -911,7 +912,7 @@ interface TogglefavoritePayload {
   eventId?: string;
 }
 
-function* TogglefavoriteSaga({ payload }: { payload: TogglefavoritePayload }) {
+function* TogglefavoriteSaga({ payload }: { payload: TogglefavoritePayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -948,12 +949,12 @@ interface FavoriteslistPayload {
   eventId?: string;
 }
 
-interface BookingrequestPayload {
+interface BookingRequestPayload {
   page: number;
   limit: number;
 }
 
-interface AcceptrejectPayload {
+interface AcceptRejectPayload {
   bookingId: string;
   action: "accept" | "reject";
   reason: string;
@@ -982,7 +983,7 @@ interface CreateeventPayload {
   }>;
 }
 
-function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }) {
+function* FavoriteslistSaga({ payload }: { payload: FavoriteslistPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -1027,7 +1028,7 @@ interface BookingrequestPayload {
   status?: string;
 }
 
-function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }) {
+function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -1062,7 +1063,7 @@ function* BookingrequestSaga({ payload }: { payload: BookingrequestPayload }) {
   }
 }
 
-function* AcceptrejectSaga({ payload }: { payload: AcceptrejectPayload }) {
+function* AcceptrejectSaga({ payload }: { payload: AcceptRejectPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -1099,7 +1100,7 @@ function* AcceptrejectSaga({ payload }: { payload: AcceptrejectPayload }) {
   }
 }
 
-function* CreateeventSaga({ payload }: { payload: CreateeventPayload }) {
+function* CreateeventSaga({ payload }: { payload: CreateeventPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -1134,7 +1135,7 @@ interface BookingDetailPayload {
   bookingId: string;
 }
 
-function* BookingDetailSaga({ payload }: { payload: BookingDetailPayload }) {
+function* BookingDetailSaga({ payload }: { payload: BookingDetailPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -1170,7 +1171,7 @@ interface ReviewSummaryPayload {
   days: number;
 }
 
-function* ReviewSummarySaga({ payload }: { payload: ReviewSummaryPayload }) {
+function* ReviewSummarySaga({ payload }: { payload: ReviewSummaryPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -1211,8 +1212,7 @@ interface BookingListPayload {
   status?: string;
 }
 
-
-function* BookingListSaga({ payload }: { payload: BookingListPayload }) {
+function* BookingListSaga({ payload }: { payload: BookingListPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
     const params = {
@@ -1239,12 +1239,15 @@ function* BookingListSaga({ payload }: { payload: BookingListPayload }) {
   } catch (error) {
     console.log("Error:===", error);
     yield put(bookingListError(error));
+  } 
+}
+
 // Host Profile Saga
 interface HostProfilePayload {
   hostId?: string;
 }
 
-function* HostProfileSaga({ payload }: { payload: HostProfilePayload }) {
+function* HostProfileSaga({ payload }: { payload: HostProfilePayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -1280,7 +1283,7 @@ function* HostProfileSaga({ payload }: { payload: HostProfilePayload }) {
 }
 
 // Create Booking Saga
-function* CreateBookingSaga({ payload }: { payload: any }) {
+function* CreateBookingSaga({ payload }: { payload: any }): SagaIterator {
   try {
     yield put(displayLoading(true));
     
@@ -1342,7 +1345,7 @@ function* CreateBookingSaga({ payload }: { payload: any }) {
 }
 
 // Fetch Promo Codes Saga
-function* FetchPromoCodesSaga({ payload }: { payload: any }) {
+function* FetchPromoCodesSaga({ payload }: { payload: any }): SagaIterator {
   try {
     yield put(displayLoading(true));
     
@@ -1372,7 +1375,7 @@ function* FetchPromoCodesSaga({ payload }: { payload: any }) {
 }
 
 // Apply Promo Code Saga
-function* ApplyPromoCodeSaga({ payload }: { payload: any }) {
+function* ApplyPromoCodeSaga({ payload }: { payload: any }): SagaIterator {
   console.log("Apply Promo Code API params:", payload);
   try {
     yield put(displayLoading(true));
@@ -1408,7 +1411,7 @@ function* ApplyPromoCodeSaga({ payload }: { payload: any }) {
 // Get Profile Detail Saga
 interface GetProfileDetailPayload {}
 
-function* GetProfileDetailSaga({ payload }: { payload: GetProfileDetailPayload }) {
+function* GetProfileDetailSaga({ payload }: { payload: GetProfileDetailPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -1452,7 +1455,7 @@ interface UpdateProfilePayload {
   businessDiscription?: string;
 }
 
-function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }) {
+function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
 
@@ -1469,8 +1472,8 @@ function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }) {
       businessDiscription: payload?.businessDiscription,
     };
 
-    const response = yield call(fetchPost, {
-      url: `${baseurl}${"user/updateProfile"}`,
+    const response: any = yield call(fetchPost, {
+      url: `${baseurl}user/updateProfile`,
       params,
     });
 
@@ -1496,43 +1499,42 @@ function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }) {
   }
 }
 
-function* authSaga() {
-  yield takeLatest(onSignin().type, onSigninSaga);
-  yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
-  yield takeLatest(onUpdateProfileFields().type, UpdateProfileFieldsSaga);
-  yield takeLatest(onGetDynamicContent().type, getDynamicContentSaga);
-  yield takeLatest(onSignup().type, onSignupSaga);
-  yield takeLatest(onVerifyEmail().type, VerifyEmailSaga);
-  yield takeLatest(onSendOtp().type, SendOtpSaga);
-  yield takeLatest(onVerifyOtp().type, VerifyOtpSaga);
-  yield takeLatest(onForgotPassword().type, ForgotPasswordSaga);
-  yield takeLatest(onResetPassword().type, ResetPasswordSaga);
-  yield takeLatest(onSocialLogin().type, SocialLoginSaga);
-  yield takeLatest(onProfile().type, getProfileSaga);
-  yield takeLatest(onLogout().type, LogoutSaga);
-  yield takeLatest(onUpdateLocation().type, onUpdateLocationSaga);
+function* authSaga(): SagaIterator {
+  yield takeLatest(onSignin().type as any, onSigninSaga);
+  yield takeLatest(onUpdateProfileFields().type as any, UpdateProfileFieldsSaga);
+  yield takeLatest(onGetDynamicContent().type as any, getDynamicContentSaga);
+  yield takeLatest(onSignup().type as any, onSignupSaga);
+  yield takeLatest(onVerifyEmail().type as any, VerifyEmailSaga);
+  yield takeLatest(onSendOtp().type as any, SendOtpSaga);
+  yield takeLatest(onVerifyOtp().type as any, VerifyOtpSaga);
+  yield takeLatest(onForgotPassword().type as any, ForgotPasswordSaga);
+  yield takeLatest(onResetPassword().type as any, ResetPasswordSaga);
+  yield takeLatest(onSocialLogin().type as any, SocialLoginSaga);
+  yield takeLatest(onProfile().type as any, getProfileSaga);
+  yield takeLatest(onLogout().type as any, LogoutSaga);
+  yield takeLatest(onUpdateLocation().type as any, onUpdateLocationSaga);
 
-  yield takeLatest(onHome().type, HomeSaga);
-  yield takeLatest(onHomenew().type, HomenewSaga);
-  yield takeLatest(onFilter().type, FilterSaga);
-  yield takeLatest(onViewdetails().type, ViewdetailsSaga);
-  yield takeLatest(onCategory().type, CategorySaga);
-  yield takeLatest(onFacility().type, FacilitySaga);
-  yield takeLatest(onTogglefavorite().type, TogglefavoriteSaga);
-  yield takeLatest(onFavoriteslist().type, FavoriteslistSaga);
-  yield takeLatest(onBookingrequest().type, BookingrequestSaga);
-  yield takeLatest(onAcceptreject().type, AcceptrejectSaga);
-  yield takeLatest(onCreateevent().type, CreateeventSaga);
-  yield takeLatest(onBookingDetail().type, BookingDetailSaga);
-  yield takeLatest(onReviewSummary().type, ReviewSummarySaga);
-    yield takeLatest(getBookingList().type, BookingListSaga);
+  yield takeLatest(onHome().type as any, HomeSaga);
+  yield takeLatest(onHomenew().type as any, HomenewSaga);
+  yield takeLatest(onFilter().type as any, FilterSaga);
+  yield takeLatest(onViewdetails().type as any, ViewdetailsSaga);
+  yield takeLatest(onCategory().type as any, CategorySaga);
+  yield takeLatest(onFacility().type as any, FacilitySaga);
+  yield takeLatest(onTogglefavorite().type as any, TogglefavoriteSaga);
+  yield takeLatest(onFavoriteslist().type as any, FavoriteslistSaga);
+  yield takeLatest(onBookingrequest().type as any, BookingrequestSaga);
+  yield takeLatest(onAcceptreject().type as any, AcceptrejectSaga);
+  yield takeLatest(onCreateevent().type as any, CreateeventSaga);
+  yield takeLatest(onBookingDetail().type as any, BookingDetailSaga);
+  yield takeLatest(onReviewSummary().type as any, ReviewSummarySaga);
+  yield takeLatest(getBookingList().type as any, BookingListSaga);
 
-  yield takeLatest(onHostProfile().type, HostProfileSaga);
-  yield takeLatest(onCreateBooking().type, CreateBookingSaga);
-  yield takeLatest(onFetchPromoCodes().type, FetchPromoCodesSaga);
-  yield takeLatest(onApplyPromoCode().type, ApplyPromoCodeSaga);
-  yield takeLatest(onGetProfileDetail().type, GetProfileDetailSaga);
-  yield takeLatest(onUpdateProfile().type, UpdateProfileSaga);
+  yield takeLatest(onHostProfile().type as any, HostProfileSaga);
+  yield takeLatest(onCreateBooking().type as any, CreateBookingSaga);
+  yield takeLatest(onFetchPromoCodes().type as any, FetchPromoCodesSaga);
+  yield takeLatest(onApplyPromoCode().type as any, ApplyPromoCodeSaga);
+  yield takeLatest(onGetProfileDetail().type as any, GetProfileDetailSaga);
+  yield takeLatest(onUpdateProfile().type as any, UpdateProfileSaga);
 }
 
 export default authSaga;
