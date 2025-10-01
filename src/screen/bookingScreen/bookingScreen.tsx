@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
 import ClockIcon from "../../assets/svg/clockIcon";
 import LocationFavourite from "../../assets/svg/locationFavourite";
+import { useDispatch, useSelector } from 'react-redux';
+import { getBookingList } from "../../redux/auth/actions";
 
 interface BookingScreenProps {
   navigation?: any;
@@ -116,7 +118,7 @@ const BookingCard: React.FC<{
             <Text style={styles.priceText}>{booking.price}</Text>
           </View>
 
-          <Text style={styles.eventName}>{booking.name}</Text>
+          <Text style={styles.eventName}>{booking?.eventId?.name}</Text>
 
           <View style={styles.detailsRow}>
             <LocationFavourite size={14} color={colors.violate} />
@@ -146,8 +148,31 @@ const BookingCard: React.FC<{
 };
 
 const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
+
+  const dispatch = useDispatch();
+    const bookingList = useSelector((state: any) => state.auth.bookingList);
+    const bookingListErr = useSelector((state: any) => state.auth.bookingListErr);
+
   const [selectedTab, setSelectedTab] = useState("upcoming");
   const [refreshing, setRefreshing] = useState(false);
+
+    // Fetch favorites list
+    const fetchBookingList = async (categoryId?: string) => {
+      // const userId = await getUserID();
+      const payload = {
+       status: 'cancelled'
+      };
+      dispatch(getBookingList(payload));
+    };
+  
+    // Fetch categories and favorites on component mount
+    useEffect(() => {
+      //  getUserID();
+      fetchBookingList();
+    }, []);
+  
+
+    console.log('bookingList...', bookingList);
 
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
@@ -168,7 +193,8 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
   const getBookingsForTab = () => {
     switch (selectedTab) {
       case "upcoming":
-        return sampleBookings;
+        return bookingList;
+        // return sampleBookings;
       case "completed":
         return completedBookings;
       case "cancelled":
@@ -242,7 +268,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
               />
             }
           >
-            {currentBookings.map((booking) => (
+            {bookingList?.map((booking) => (
               <BookingCard
                 key={booking.id}
                 booking={booking}

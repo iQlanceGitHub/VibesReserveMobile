@@ -114,6 +114,10 @@ export const {
   reviewSummaryData,
   reviewSummaryError,
 
+  getBookingList,
+  bookingListData,
+  bookingListError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -230,6 +234,11 @@ export const {
   "ON_REVIEW_SUMMARY",
   "REVIEW_SUMMARY_DATA",
   "REVIEW_SUMMARY_ERROR",
+
+
+  "GET_BOOKING_LIST",
+  'BOOKING_LIST_DATA',
+  'BOOKING_LIST_ERROR',
 
   "SET_LOGIN_TOKEN",
 

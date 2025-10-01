@@ -59,6 +59,8 @@ import {
   bookingDetailError,
   reviewSummaryData,
   reviewSummaryError,
+  bookingListData,
+  bookingListError,
 } from "./actions";
 
 export const initialState = {
@@ -131,6 +133,9 @@ export const initialState = {
 
   reviewSummary: "",
   reviewSummaryErr: "",
+
+  bookingList: [],
+  bookingListErr: '',
 
   user: "",
 };
@@ -406,6 +411,16 @@ const authReducer = handleActions(
     [reviewSummaryError().type]: produce((draft, action) => {
       console.log("payload reviewSummary Error", action.payload);
       draft.reviewSummaryErr = action.payload;
+    }),
+
+    // payload booking list
+    [bookingListData().type]: produce((draft, action) => {
+      console.log("payload bookingListData", action.payload);
+      draft.bookingList = action.payload?.data;
+    }),
+    [bookingListError().type]: produce((draft, action) => {
+      console.log("payload bookingListError", action.payload);
+      draft.bookingListErr = action.payload;
     }),
   },
   initialState
