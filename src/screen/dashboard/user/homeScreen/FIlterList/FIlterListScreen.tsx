@@ -150,7 +150,10 @@ const FilterListScreen: React.FC<FilterListScreenProps> = () => {
   const renderEventItem = ({ item }: { item: any }) => (
     <NearbyEventCard
       event={item}
-      onPress={() => handleBookNow((item as any)._id || (item as any).id)}
+      //onPress={() => handleBookNow((item as any)._id || (item as any).id)}
+      onPress={() => (navigation as any).navigate("ClubProfileScreen", {
+        clubId:item._id,
+      })}
       onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
     />
   );

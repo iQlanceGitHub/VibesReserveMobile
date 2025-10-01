@@ -44,6 +44,10 @@ import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import PaymentScreen from "../screen/dashboard/user/payments/payments";
+import PaymentSuccessScreen from "../screen/dashboard/user/payments/paymentSuccess";
+
+//Host
+import HostEditProfileScreen from "../screen/dashboard/host/profileScreen/hostEditProfileScreen/hostEditProfileScreen";
 
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
@@ -55,6 +59,8 @@ import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingS
 import BookingDetailScreen from "../screen/dashboard/host/hostBooking/bookingDetailScreen";
 import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
+import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
+import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -102,7 +108,13 @@ export type RootStackParamList = {
   HostTabs: undefined;
   ExploreScreen: undefined;
   FilterListScreen: { filteredData: any[] };
-  ClubDetailScreen: { bookingData?: any };
+  ClubDetailScreen: undefined;
+  ClubProfileScreen: {
+    clubId: string;
+    hostData?: any;
+    eventsData?: any[];
+    bookingData?: any 
+  };
   ClubBookingScreen: { eventData: any };
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
   UpcomingScreen: undefined;
@@ -113,7 +125,7 @@ export type RootStackParamList = {
   AddPromotionalCode: undefined;
   HelpSupport: undefined;
   BookingDetailScreen: { bookingId: string };
-  PaymentScreen: undefined;
+  PaymentScreen: { bookingData?: any };
   ReviewSummary: undefined;
 };
 
@@ -131,13 +143,13 @@ function MyTabs() {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Match"
-        component={UpcomingScreen}
+        name="BookingScreen"
+        component={BookingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Chat"
-        component={UpcomingScreen}
+        component={LogoutScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -294,6 +306,14 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ClubBookingScreen"
             component={ClubBookingScreen}
+            options={{
+              headerShown: false,
+              gestureEnabled: false, // Disable swipe-back gesture on iOS
+            }}
+          />
+          <Stack.Screen
+            name="ClubProfileScreen"
+            component={ClubProfileScreen}
             options={{
               headerShown: false,
               gestureEnabled: false, // Disable swipe-back gesture on iOS

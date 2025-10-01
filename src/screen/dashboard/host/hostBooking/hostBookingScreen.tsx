@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { colors } from "../../../../utilis/colors";
 import PeopleIcon from "../../../../assets/svg/peopleIcon";
 import ChatIcon from "../../../../assets/svg/chatIcon";
@@ -94,6 +95,15 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
         status: status,
       })
     );
+  };
+
+  // Clear booking data
+  const clearBookingData = () => {
+    setBookings([]);
+    setLoading(false);
+    setRefreshing(false);
+    dispatch(bookingrequestData(""));
+    dispatch(bookingrequestError(""));
   };
 
   // Handle pull to refresh
@@ -208,6 +218,19 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
   useEffect(() => {
     fetchBookings(selectedTab === "accepted" ? "confirmed" : "cancelled");
   }, [selectedTab]);
+
+  // Focus effect to fetch data when screen comes into focus and clear when leaving
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch data when screen comes into focus
+      fetchBookings(selectedTab === "accepted" ? "confirmed" : "cancelled");
+
+      // Cleanup function - clear data when screen loses focus
+      return () => {
+        clearBookingData();
+      };
+    }, [selectedTab])
+  );
 
   const currentBookings = bookings;
 

@@ -203,7 +203,6 @@ export const getData = async (key: any) => {
     const retrievedArray = jsonValue != null ? jsonValue : null;
     return retrievedArray;
   } catch (e) {
-   
     return null;
   }
 };

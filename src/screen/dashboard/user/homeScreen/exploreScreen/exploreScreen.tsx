@@ -1,5 +1,4 @@
-
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,50 +10,53 @@ import {
   PermissionsAndroid,
   Alert,
   Dimensions,
-} from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import styles from './styles';
-import EventCard from '../../../../../screen/dashboard/user/homeScreen/card/featuredEvent/featuredEvent';
-import BackIcon from '../../../../../assets/svg/backIcon';
-import SearchIcon from '../../../../../assets/svg/searchIcon';
-import { colors } from '../../../../../utilis/colors';
-import Filtericon from '../../../../../assets/svg/filtericon';
-import Blox from '../../../../../assets/svg/blox';
-import { BackButton } from '../../../../../components/BackButton';
-import { useDispatch, useSelector } from 'react-redux';
-import { LocationProvider, useLocation } from '../../../../../contexts/LocationContext';
-import LocationDisplay from '../../../../../components/LocationDisplay';
+} from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import styles from "./styles";
+import EventCard from "../../../../../screen/dashboard/user/homeScreen/card/featuredEvent/featuredEvent";
+import BackIcon from "../../../../../assets/svg/backIcon";
+import SearchIcon from "../../../../../assets/svg/searchIcon";
+import { colors } from "../../../../../utilis/colors";
+import Filtericon from "../../../../../assets/svg/filtericon";
+import Blox from "../../../../../assets/svg/blox";
+import { BackButton } from "../../../../../components/BackButton";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  onHome,
-  homeData,
-  homeError,
+  LocationProvider,
+  useLocation,
+} from "../../../../../contexts/LocationContext";
+import LocationDisplay from "../../../../../components/LocationDisplay";
+import {
+  onHomenew,
+  homenewData,
+  homenewError,
   onTogglefavorite,
   togglefavoriteData,
   togglefavoriteError,
   onFilter,
-} from '../../../../../redux/auth/actions';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import CurrentLocationIcon from '../../../../../assets/svg/currentLocationIcon';
-import FilterScreen from '../FilterScreen/FilterScreen';
+} from "../../../../../redux/auth/actions";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CurrentLocationIcon from "../../../../../assets/svg/currentLocationIcon";
+import FilterScreen from "../FilterScreen/FilterScreen";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const ExploreScreenContent = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const mapRef = useRef<MapView>(null);
-  const [searchVal, setSearchVal] = useState('');
+  const [searchVal, setSearchVal] = useState("");
   const [mapReady, setMapReady] = useState(false);
   const [nearbyEvents, setNearbyEvents] = useState<any[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
-  const [userId, setUserId] = useState('');
-  
+  const [userId, setUserId] = useState("");
+
   // Default coordinates for Ahmedabad, India with larger delta for better view
   const [mapRegion, setMapRegion] = useState({
     latitude: 23.0225,
     longitude: 72.5714,
-    latitudeDelta: 0.5,  // Increased for better visibility
+    latitudeDelta: 0.5, // Increased for better visibility
     longitudeDelta: 0.5, // Increased for better visibility
   });
 
@@ -62,7 +64,7 @@ const ExploreScreenContent = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!mapReady) {
-        console.log('Map loading timeout - forcing map ready');
+        console.log("Map loading timeout - forcing map ready");
         setMapReady(true);
       }
     }, 3000);
@@ -73,7 +75,7 @@ const ExploreScreenContent = () => {
   // Force map ready after component mount
   useEffect(() => {
     const forceReady = setTimeout(() => {
-      console.log('Forcing map ready after 5 seconds');
+      console.log("Forcing map ready after 5 seconds");
       setMapReady(true);
     }, 5000);
 
@@ -81,8 +83,8 @@ const ExploreScreenContent = () => {
   }, []);
 
   const dispatch = useDispatch();
-  const home = useSelector((state: any) => state.auth.home);
-  const homeErr = useSelector((state: any) => state.auth.homeErr);
+  const homenew = useSelector((state: any) => state.auth.homenew);
+  const homenewErr = useSelector((state: any) => state.auth.homenewErr);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   const handleFilterPress = () => {
@@ -97,21 +99,26 @@ const ExploreScreenContent = () => {
     const filterPayload = {
       lat: "23.0225",
       long: "72.5714",
-      categoryId: filterValues?.selectedCategory?.id !== 'all' ? filterValues?.selectedCategory?.id : undefined,
+      categoryId:
+        filterValues?.selectedCategory?.id !== "all"
+          ? filterValues?.selectedCategory?.id
+          : undefined,
       minPrice: filterValues?.priceRange?.min || 0,
       maxPrice: filterValues?.priceRange?.max || 3000,
-      date: filterValues?.selectedDate?.formattedDate || new Date().toISOString().split('T')[0],
+      date:
+        filterValues?.selectedDate?.formattedDate ||
+        new Date().toISOString().split("T")[0],
       minDistance: filterValues?.distanceRange?.min || 0,
       maxDistance: filterValues?.distanceRange?.max || 20,
-      userId: userId || "68c147b05f4b76754d914383"
+      userId: userId || "68c147b05f4b76754d914383",
     };
-    
+
     dispatch(onFilter(filterPayload));
     navigation.navigate("FilterListScreen" as never);
   };
 
   useEffect(() => {
-    console.log('=== ExploreScreen Mounted ===');
+    console.log("=== ExploreScreen Mounted ===");
     requestLocationPermission();
     getUserID();
     fetchNearbyData();
@@ -119,8 +126,8 @@ const ExploreScreenContent = () => {
 
   // Debug effect to check events data
   useEffect(() => {
-    console.log('=== DEBUG: Nearby Events Data ===');
-    console.log('Number of events:', nearbyEvents.length);
+    console.log("=== DEBUG: Nearby Events Data ===");
+    console.log("Number of events:", nearbyEvents.length);
     nearbyEvents.forEach((event, index) => {
       console.log(`Event ${index}: ${event.name}`);
       if (event.coordinates && event.coordinates.coordinates) {
@@ -133,68 +140,75 @@ const ExploreScreenContent = () => {
 
   const getUserID = async (): Promise<string | null> => {
     try {
-      const userData = await AsyncStorage.getItem('user_data');
+      const userData = await AsyncStorage.getItem("user_data");
       if (userData) {
         const parsedUserData = JSON.parse(userData);
-        const userId = parsedUserData?.id || '';
+        const userId = parsedUserData?.id || "";
         setUserId(userId);
         return userId;
       }
       return null;
     } catch (error) {
-      console.log('Error getting user ID:', error);
+      console.log("Error getting user ID:", error);
       return null;
     }
   };
 
   const fetchNearbyData = async () => {
     const userId = await getUserID();
-    console.log('Fetching nearby data with userId:', userId);
-    
-    dispatch(onHome({
-      lat: mapRegion.latitude.toString(),
-      long: mapRegion.longitude.toString(),
-      userId: userId || "68c17979f763e99ba95a6de4",
-    }));
+    console.log("Fetching nearby data with userId:", userId);
+
+    dispatch(
+      onHomenew({
+        lat: mapRegion.latitude.toString(),
+        long: mapRegion.longitude.toString(),
+        userId: userId || "68c17979f763e99ba95a6de4",
+      })
+    );
   };
 
   // Handle API response
   useEffect(() => {
-    if (home?.status === true || home?.status === 'true' || home?.status === 1 || home?.status === "1") {
-      console.log("Home data received:", home);
-      if (home?.data?.nearby) {
-        setNearbyEvents(home.data.nearby);
+    if (
+      homenew?.status === true ||
+      homenew?.status === "true" ||
+      homenew?.status === 1 ||
+      homenew?.status === "1"
+    ) {
+      console.log("Homenew data received:", homenew);
+      if (homenew?.nearbyHosts) {
+        setNearbyEvents(homenew.nearbyHosts);
         // Don't auto-adjust map bounds initially
       }
-      if (home?.data?.featured) {
-        setFeaturedEvents(home.data.featured);
+      if (homenew?.featuredList) {
+        setFeaturedEvents(homenew.featuredList);
       }
-      dispatch(homeData(''));
+      dispatch(homenewData(""));
     }
 
-    if (homeErr) {
-      console.log("Home error:", homeErr);
-      dispatch(homeError(''));
+    if (homenewErr) {
+      console.log("Homenew error:", homenewErr);
+      dispatch(homenewError(""));
     }
-  }, [home, homeErr, dispatch]);
+  }, [homenew, homenewErr, dispatch]);
 
   const requestLocationPermission = async () => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       try {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
-            title: 'Location Permission',
-            message: 'This app needs access to location to show events on map',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
+            title: "Location Permission",
+            message: "This app needs access to location to show events on map",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          }
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Location permission granted');
+          console.log("Location permission granted");
         } else {
-          console.log('Location permission denied');
+          console.log("Location permission denied");
         }
       } catch (err) {
         console.warn(err);
@@ -213,21 +227,23 @@ const ExploreScreenContent = () => {
   };
 
   const onSearchClose = () => {
-    setSearchVal('');
+    setSearchVal("");
     fetchNearbyData();
   };
 
   const handleSearch = async (searchText: string) => {
     setSearchVal(searchText);
-    
+
     if (searchText.trim().length > 0) {
       const userId = await getUserID();
-      dispatch(onHome({
-        lat: mapRegion.latitude.toString(),
-        long: mapRegion.longitude.toString(),
-        userId: userId || "68c17979f763e99ba95a6de4",
-        search_keyword: searchText.trim(),
-      }));
+      dispatch(
+        onHomenew({
+          lat: mapRegion.latitude.toString(),
+          long: mapRegion.longitude.toString(),
+          userId: userId || "68c17979f763e99ba95a6de4",
+          search_keyword: searchText.trim(),
+        })
+      );
     } else {
       fetchNearbyData();
     }
@@ -236,73 +252,76 @@ const ExploreScreenContent = () => {
   // SIMPLIFIED MARKER RENDERING - Using default markers first
   const renderEventMarker = (event: any, index: number) => {
     if (!event.coordinates || !event.coordinates.coordinates) {
-      console.log('Event missing coordinates:', event.name);
+      console.log("Event missing coordinates:", event.name);
       return null;
     }
 
     try {
       const [apiLongitude, apiLatitude] = event.coordinates.coordinates;
-      
+
       // Swap coordinates (API returns them swapped)
       const latitude = parseFloat(apiLongitude);
       const longitude = parseFloat(apiLatitude);
-      
+
       if (isNaN(latitude) || isNaN(longitude)) {
-        console.log('Invalid coordinates for event:', event.name);
+        console.log("Invalid coordinates for event:", event.name);
         return null;
       }
 
-      console.log(`Marker ${index}: ${event.name} at lat=${latitude}, lng=${longitude}`);
-      
+      console.log(
+        `Marker ${index}: ${event.name} at lat=${latitude}, lng=${longitude}`
+      );
+
       // Use default marker first for testing
       return (
         <Marker
           key={event._id || `event-${index}`}
           coordinate={{ latitude, longitude }}
           title={event.name}
-          description={event.address || 'Event location'}
+          description={event.address || "Event location"}
           pinColor="red" // Simple red pin for testing
           onPress={() => {
-            console.log('Marker pressed:', event.name);
-            (navigation as any).navigate("ClubDetailScreen", { clubId: event._id });
+            console.log("Marker pressed:", event.name);
+            (navigation as any).navigate("ClubProfileScreen", {
+              clubId: event._id,
+            });
           }}
         />
       );
     } catch (error) {
-      console.log('Error rendering marker for event:', event.name, error);
+      console.log("Error rendering marker for event:", event.name, error);
       return null;
     }
   };
 
   return (
     <View style={styles.mainContainer}>
-
       {/* Map View */}
       {!mapReady && (
         <View style={styles.mapLoadingContainer}>
           <Text style={styles.mapLoadingText}>Loading Map...</Text>
         </View>
       )}
-      
+
       <MapView
         ref={mapRef}
         style={styles.fullScreenMap}
         provider={undefined}
         initialRegion={mapRegion}
         onMapReady={() => {
-          console.log('✅ MapView is ready and rendered');
+          console.log("✅ MapView is ready and rendered");
           setMapReady(true);
         }}
         onMapLoaded={() => {
-          console.log('✅ MapView loaded successfully');
+          console.log("✅ MapView loaded successfully");
           setMapReady(true);
         }}
         onError={(error) => {
-          console.log('❌ MapView error:', error);
+          console.log("❌ MapView error:", error);
           setMapReady(true);
         }}
         onPress={() => {
-          console.log('Map pressed');
+          console.log("Map pressed");
         }}
         showsUserLocation={true}
         showsMyLocationButton={false}
@@ -324,7 +343,7 @@ const ExploreScreenContent = () => {
           description="Map is working!"
           pinColor="red"
         />
-        
+
         {/* Event markers */}
         {nearbyEvents.map((event, index) => renderEventMarker(event, index))}
       </MapView>
@@ -335,7 +354,10 @@ const ExploreScreenContent = () => {
         <View style={[styles.topSection, { marginTop: 50 }]}>
           <View style={styles.locationRow}>
             <TouchableOpacity style={styles.filterButton}>
-              <BackButton navigation={navigation} onBackPress={() => navigation.goBack()} />
+              <BackButton
+                navigation={navigation}
+                onBackPress={() => navigation.goBack()}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -349,7 +371,7 @@ const ExploreScreenContent = () => {
               onChangeText={handleSearch}
               style={styles.input}
               placeholder="Search clubs, events, Bars,..."
-              placeholderTextColor={'#9CA3AF'}
+              placeholderTextColor={"#9CA3AF"}
             />
             {searchVal && (
               <TouchableOpacity onPress={onSearchClose}>
@@ -357,12 +379,18 @@ const ExploreScreenContent = () => {
               </TouchableOpacity>
             )}
           </View>
-          
+
           <View style={styles.filterButtons}>
-            <TouchableOpacity style={styles.filterButton} onPress={handleFilterPress}>
-              <Filtericon/>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={handleFilterPress}
+            >
+              <Filtericon />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton} onPress={() => navigation.goBack()}>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => navigation.goBack()}
+            >
               <Blox />
             </TouchableOpacity>
           </View>
@@ -372,13 +400,17 @@ const ExploreScreenContent = () => {
       {/* Bottom Featured Events Carousel */}
       {featuredEvents.length > 0 && (
         <View style={styles.featuredSection}>
-          <Text style={styles.featuredTitle}>Featured ({featuredEvents.length})</Text>
+          <Text style={styles.featuredTitle}>
+            Featured ({featuredEvents.length})
+          </Text>
           <FlatList
             data={featuredEvents}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.featuredEventsContainer}
-            keyExtractor={(item, index) => (item as any)._id || index.toString()}
+            keyExtractor={(item, index) =>
+              (item as any)._id || index.toString()
+            }
             renderItem={({ item }) => (
               <EventCard
                 title={(item as any).name}
@@ -386,7 +418,7 @@ const ExploreScreenContent = () => {
                 date={new Date((item as any).startDate).toLocaleDateString()}
                 price={`$${(item as any).entryFee}`}
                 tag={(item as any).type}
-                image={(item as any).photos?.[0] || ''}
+                image={(item as any).photos?.[0] || ""}
                 rating={4.5}
                 isFavorite={(item as any).isFavorite || false}
                 onBookNow={() => handleBookNow((item as any)._id)}

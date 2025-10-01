@@ -93,7 +93,8 @@ const tabs = [
 const BookingCard: React.FC<{
   booking: any;
   onCancel: () => void;
-}> = ({ booking, onCancel }) => {
+  onLeaveReview?: () => void;
+}> = ({ booking, onCancel, onLeaveReview }) => {
   const getButtonText = () => {
     switch (booking.status) {
       case "completed":
@@ -105,11 +106,18 @@ const BookingCard: React.FC<{
     }
   };
 
+  const handleButtonPress = () => {
+    if (booking.status === "completed" && onLeaveReview) {
+      onLeaveReview();
+    } else {
+      onCancel();
+    }
+  };
+
   return (
     <View style={styles.bookingCard}>
       <View style={styles.cardTopSection}>
         <Image source={booking.image} style={styles.bookingImage} />
-
         <View style={styles.bookingContent}>
           <View style={styles.bookingHeader}>
             <View style={styles.categoryTag}>
@@ -138,7 +146,10 @@ const BookingCard: React.FC<{
         <>
           <View style={styles.separatorLine} />
 
-          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={handleButtonPress}
+          >
             <Text style={styles.cancelButtonText}>{getButtonText()}</Text>
           </TouchableOpacity>
         </>
@@ -179,6 +190,10 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
   };
 
   const handleCancelBooking = (bookingId: string) => {};
+
+  const handleLeaveReview = (bookingId: string) => {
+    navigation?.navigate("LeaveReviewScreen");
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -273,6 +288,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
                 key={booking.id}
                 booking={booking}
                 onCancel={() => handleCancelBooking(booking.id)}
+                onLeaveReview={() => handleLeaveReview(booking.id)}
               />
             ))}
           </ScrollView>

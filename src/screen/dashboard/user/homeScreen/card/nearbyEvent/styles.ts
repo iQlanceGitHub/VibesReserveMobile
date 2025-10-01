@@ -9,14 +9,13 @@ import {
 } from "../../../../../../utilis/appConstant";
 
 export default StyleSheet.create({
- 
   cardContainer: {
     flexDirection: "row",
     backgroundColor: colors.cardBackground,
     width: horizontalScale(334),
-    height: Platform.OS === 'ios' ? verticalScale(130) : verticalScale(140),
+    height: Platform.OS === "ios" ? verticalScale(130) : verticalScale(140),
     borderRadius: horizontalScale(16),
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: verticalScale(12),
     padding: horizontalScale(16),
     borderWidth: 1,
@@ -37,8 +36,8 @@ export default StyleSheet.create({
     height: verticalScale(88),
   },
   eventImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: horizontalScale(12),
   },
   favoriteButton: {
@@ -87,7 +86,7 @@ export default StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.white,
     marginBottom: verticalScale(8),
-    marginTop: Platform.OS === 'ios' ? verticalScale(20) : verticalScale(25), 
+   // marginTop: Platform.OS === "ios" ? verticalScale(20) : verticalScale(25),
   },
   detailsRow: {
     flexDirection: "row",

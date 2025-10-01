@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import Header from "../../../../components/Header";
@@ -23,6 +24,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { showToast } from "../../../../utilis/toastUtils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomAlert from "../../../../components/CustomAlert";
 import {
   onBookingrequest,
   bookingrequestData,
@@ -30,6 +32,9 @@ import {
   onAcceptreject,
   acceptrejectData,
   acceptrejectError,
+  onGetProfileDetail,
+  getProfileDetailData,
+  getProfileDetailError,
 } from "../../../../redux/auth/actions";
 
 interface HostHomeScreenProps {
@@ -39,6 +44,8 @@ interface HostHomeScreenProps {
 const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const [requests, setRequests] = useState<any[]>([]);
   const [UserName, setUserName] = useState("");
+  const [userData, setUserData] = useState<any>(null);
+  const [profileDetail, setProfileDetail] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,6 +54,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const [selectedRequestId, setSelectedRequestId] = useState<string>("");
   const [customReason, setCustomReason] = useState<string>("");
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  // Custom Alert states
+  const [showInactiveAlert, setShowInactiveAlert] = useState(false);
+  const [showProfileUpdateAlert, setShowProfileUpdateAlert] = useState(false);
 
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
@@ -59,6 +70,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const acceptreject = useSelector((state: any) => state.auth.acceptreject);
   const acceptrejectErr = useSelector(
     (state: any) => state.auth.acceptrejectErr
+  );
+  const getProfileDetail = useSelector((state: any) => state.auth.getProfileDetail);
+  const getProfileDetailErr = useSelector(
+    (state: any) => state.auth.getProfileDetailErr
   );
 
   const handleAccept = (requestId: string) => {
@@ -117,6 +132,27 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   };
 
   const handleAddPress = () => {
+    // Check if profile is inactive
+
+
+    // Check if business profile is not updated
+    const needsProfileUpdate = (profileDetail && profileDetail.businesspofileUpdate === "No") ||
+      (!profileDetail && userData && userData.businesspofileUpdate === "No");
+
+    if (needsProfileUpdate) {
+      setShowProfileUpdateAlert(true);
+      return;
+    }
+
+    const isInactive = (profileDetail && profileDetail.status === "inactive") ||
+      (!profileDetail && userData && userData.status === "inactive");
+
+    if (isInactive) {
+      setShowInactiveAlert(true);
+      return;
+    }
+
+    // If all checks pass, navigate to add event screen
     navigation?.navigate("AddClubEventDetailScreen");
   };
 
@@ -126,12 +162,31 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       if (user !== null) {
         const parsedUser = JSON.parse(user);
         setUserName(parsedUser.firstName);
+        setUserData(parsedUser);
         console.log("User retrieved:", parsedUser);
         return parsedUser;
       }
     } catch (e) {
       console.error("Failed to fetch the user.", e);
     }
+  };
+
+  const fetchProfileDetail = () => {
+    dispatch(onGetProfileDetail({}));
+  };
+
+  // Alert handlers
+  const handleInactiveAlertClose = () => {
+    setShowInactiveAlert(false);
+  };
+
+  const handleProfileUpdateAlertClose = () => {
+    setShowProfileUpdateAlert(false);
+  };
+
+  const handleUpdateProfilePress = () => {
+    setShowProfileUpdateAlert(false);
+    navigation?.navigate("HostEditProfileScreen");
   };
 
   const fetchBookingRequests = (page: number = 1) => {
@@ -152,6 +207,16 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const onRefresh = () => {
     setRefreshing(true);
     fetchBookingRequests(1);
+  };
+
+  // Clear booking request data
+  const clearBookingData = () => {
+    setRequests([]);
+    setLoading(false);
+    setRefreshing(false);
+    setCurrentPage(1);
+    dispatch(bookingrequestData(""));
+    dispatch(bookingrequestError(""));
   };
 
   // Transform API data to match RequestCard format
@@ -188,7 +253,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         _id: item._id,
         name: item.userId.fullName,
         category: item.eventId.name,
-        location: "New York, USA", // You might want to get this from event data
+        location: item.eventId.address,
         date: formattedDate,
         time: formattedTime,
         people: `${item.members} Person${item.members > 1 ? "s" : ""}`,
@@ -257,16 +322,54 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       showToast(
         "error",
         acceptrejectErr?.message ||
-          "Failed to process request. Please try again."
+        "Failed to process request. Please try again."
       );
       dispatch(acceptrejectError(""));
     }
   }, [acceptreject, acceptrejectErr, dispatch]);
 
+  // Handle profile detail API response
+  useEffect(() => {
+    if (
+      getProfileDetail?.status === true ||
+      getProfileDetail?.status === "true" ||
+      getProfileDetail?.status === 1 ||
+      getProfileDetail?.status === "1"
+    ) {
+      console.log("Profile detail response:", getProfileDetail);
+      console.log("Business profile update status:", getProfileDetail?.data?.businesspofileUpdate);
+      console.log("User status:", getProfileDetail?.data?.status);
+      setProfileDetail(getProfileDetail?.data);
+      dispatch(getProfileDetailData(""));
+    }
+
+    if (getProfileDetailErr) {
+      console.log("Profile detail error:", getProfileDetailErr);
+      showToast("error", "Failed to fetch profile details. Please try again.");
+      dispatch(getProfileDetailError(""));
+    }
+  }, [getProfileDetail, getProfileDetailErr, dispatch]);
+
   useEffect(() => {
     getUser();
+    fetchProfileDetail();
     fetchBookingRequests();
   }, []);
+
+  // Focus effect to fetch data when screen comes into focus and clear when leaving
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch data when screen comes into focus
+      console.log("Screen focused - refreshing profile details");
+      fetchProfileDetail();
+      fetchBookingRequests(1);
+
+      // Cleanup function - clear data when screen loses focus
+      return () => {
+        clearBookingData();
+      };
+    }, [])
+  );
 
   // Keyboard event listeners
   useEffect(() => {
@@ -313,48 +416,85 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         <View style={styles.safeArea}>
           <Header userName={UserName} onAddPress={handleAddPress} />
 
-          <View style={styles.contentContainer}>
-            <Text style={styles.sectionTitle}>View Request</Text>
+          {/* Business Profile Completion Container - Show when businesspofileUpdate is "No" (Priority 1) */}
+          {((profileDetail && profileDetail.businesspofileUpdate === "No") || 
+            (!profileDetail && userData && userData.businesspofileUpdate === "No")) && (
+            <View style={styles.businessProfileContainer}>
+              <View style={styles.businessProfileContent}>
+                <Text style={styles.businessProfileTitle}>
+                  Please complete your business profile for activating business profile
+                </Text>
+                <TouchableOpacity 
+                  style={styles.completeProfileButton}
+                  onPress={() => {
+                    // Navigate to profile completion screen
+                    navigation?.navigate("HostEditProfileScreen");
+                  }}
+                >
+                  <Text style={styles.completeProfileButtonText}>Complete Profile</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
 
-            <ScrollView
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  colors={[colors.violate]} // Android
-                  tintColor={colors.violate} // iOS
-                  title="Pull to refresh"
-                  titleColor={colors.white}
-                />
-              }
-            >
-              {loading ? (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>Loading requests...</Text>
-                </View>
-              ) : requests.length > 0 ? (
-                requests.map((request, index) => (
-                  <RequestCard
-                    key={request._id || request.id}
-                    request={request}
-                    onAccept={() => handleAccept(request._id || request.id)}
-                    onReject={() => handleReject(request._id || request.id)}
-                    isLastItem={index === requests.length - 1}
-                  />
-                ))
-              ) : (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No pending requests</Text>
-                  <Text style={styles.emptySubtext}>
-                    New booking requests will appear here
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
-          </View>
+          {/* Profile Under Review Container - Show when status is inactive AND businesspofileUpdate is "Yes" (Priority 2) */}
+          {((profileDetail && profileDetail.status === "inactive" && profileDetail.businesspofileUpdate === "Yes") || 
+            (!profileDetail && userData && userData.status === "inactive" && userData.businesspofileUpdate === "Yes")) && (
+            <View style={styles.businessProfileContainer}>
+              <View style={styles.businessProfileContent}>
+                <Text style={styles.businessProfileTitle}>
+                  Thank you for updating your profile. Now your profile is under review. So once your profile is active you can access further.
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Only show main content if profile is active */}
+          {((profileDetail && profileDetail.status === "active") ||
+            (!profileDetail && userData && userData.status === "active")) && (
+              <View style={styles.contentContainer}>
+                <Text style={styles.sectionTitle}>View Request</Text>
+
+                <ScrollView
+                  style={styles.scrollView}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.scrollContent}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                      colors={[colors.violate]} // Android
+                      tintColor={colors.violate} // iOS
+                      title="Pull to refresh"
+                      titleColor={colors.white}
+                    />
+                  }
+                >
+                  {loading ? (
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyText}>Loading requests...</Text>
+                    </View>
+                  ) : requests.length > 0 ? (
+                    requests.map((request, index) => (
+                      <RequestCard
+                        key={request._id || request.id}
+                        request={request}
+                        onAccept={() => handleAccept(request._id || request.id)}
+                        onReject={() => handleReject(request._id || request.id)}
+                        isLastItem={index === requests.length - 1}
+                      />
+                    ))
+                  ) : (
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyText}>No pending requests</Text>
+                      <Text style={styles.emptySubtext}>
+                        New booking requests will appear here
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
+              </View>
+            )}
         </View>
       </LinearGradient>
 
@@ -459,6 +599,28 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      {/* Custom Alert for Inactive Status */}
+      <CustomAlert
+        visible={showInactiveAlert}
+        title="Profile Under Review"
+        message="Thank you for updating your profile. Now your profile is under review. So once your profile is active you can access further."
+        primaryButtonText="Okay"
+        onPrimaryPress={handleInactiveAlertClose}
+        showSecondaryButton={false}
+      />
+
+      {/* Custom Alert for Profile Update Required */}
+      <CustomAlert
+        visible={showProfileUpdateAlert}
+        title="Complete Your Profile"
+        message="Please complete your business profile to create events and access all features."
+        primaryButtonText="Update Profile"
+        secondaryButtonText="Cancel"
+        onPrimaryPress={handleUpdateProfilePress}
+        onSecondaryPress={handleProfileUpdateAlertClose}
+        showSecondaryButton={true}
+      />
     </View>
   );
 };
