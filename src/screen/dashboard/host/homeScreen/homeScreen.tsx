@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import Header from "../../../../components/Header";
@@ -23,7 +24,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { showToast } from "../../../../utilis/toastUtils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
 import CustomAlert from "../../../../components/CustomAlert";
 import {
   onBookingrequest,
@@ -209,6 +209,16 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     fetchBookingRequests(1);
   };
 
+  // Clear booking request data
+  const clearBookingData = () => {
+    setRequests([]);
+    setLoading(false);
+    setRefreshing(false);
+    setCurrentPage(1);
+    dispatch(bookingrequestData(""));
+    dispatch(bookingrequestError(""));
+  };
+
   // Transform API data to match RequestCard format
   const transformBookingData = (apiData: any[]) => {
     return apiData.map((item) => {
@@ -243,7 +253,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         _id: item._id,
         name: item.userId.fullName,
         category: item.eventId.name,
-        location: "New York, USA", // You might want to get this from event data
+        location: item.eventId.address,
         date: formattedDate,
         time: formattedTime,
         people: `${item.members} Person${item.members > 1 ? "s" : ""}`,
@@ -346,12 +356,18 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     fetchBookingRequests();
   }, []);
 
-  // Refresh profile details when screen comes into focus
+  // Focus effect to fetch data when screen comes into focus and clear when leaving
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
+      // Fetch data when screen comes into focus
       console.log("Screen focused - refreshing profile details");
       fetchProfileDetail();
-      fetchBookingRequests();
+      fetchBookingRequests(1);
+
+      // Cleanup function - clear data when screen loses focus
+      return () => {
+        clearBookingData();
+      };
     }, [])
   );
 

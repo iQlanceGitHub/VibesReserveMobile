@@ -59,6 +59,8 @@ import HostBookingScreen from "../screen/dashboard/host/hostBooking/hostBookingS
 import BookingDetailScreen from "../screen/dashboard/host/hostBooking/bookingDetailScreen";
 import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
+import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
+import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -106,7 +108,13 @@ export type RootStackParamList = {
   HostTabs: undefined;
   ExploreScreen: undefined;
   FilterListScreen: { filteredData: any[] };
-  ClubDetailScreen: { bookingData?: any };
+  ClubDetailScreen: undefined;
+  ClubProfileScreen: {
+    clubId: string;
+    hostData?: any;
+    eventsData?: any[];
+    bookingData?: any 
+  };
   ClubBookingScreen: { eventData: any };
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
   UpcomingScreen: undefined;
@@ -119,7 +127,6 @@ export type RootStackParamList = {
   BookingDetailScreen: { bookingId: string };
   PaymentScreen: { bookingData?: any };
   ReviewSummary: undefined;
-  HostEditProfileScreen: undefined;
 };
 
 function MyTabs() {
@@ -136,13 +143,13 @@ function MyTabs() {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="Match"
-        component={UpcomingScreen}
+        name="BookingScreen"
+        component={BookingScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Chat"
-        component={UpcomingScreen}
+        component={LogoutScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -305,6 +312,14 @@ const NavigationStack: React.FC = () => {
             }}
           />
           <Stack.Screen
+            name="ClubProfileScreen"
+            component={ClubProfileScreen}
+            options={{
+              headerShown: false,
+              gestureEnabled: false, // Disable swipe-back gesture on iOS
+            }}
+          />
+          <Stack.Screen
             name="NearbyEventsSeeAllScreen"
             component={NearbyEventsSeeAllScreen}
             options={{ headerShown: false }}
@@ -360,13 +375,18 @@ const NavigationStack: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="HostEditProfileScreen"
+            component={HostEditProfileScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="PaymentSuccessScreen"
             component={PaymentSuccessScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="HostEditProfileScreen"
-            component={HostEditProfileScreen}
+            name="ClubBarListScreen"
+            component={ClubBarListScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

@@ -2,7 +2,7 @@ import React from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { colors } from "../utilis/colors";
 import { horizontalScale } from "../utilis/appConstant";
-import StarIcon from "../assets/svg/starIcon";
+import StarNew from "../assets/svg/starNew";
 
 interface StarRatingProps {
   rating: number;
@@ -30,10 +30,11 @@ const StarRating: React.FC<StarRatingProps> = ({
         disabled={disabled}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <StarIcon
-          size={size}
-          color={isFilled ? colors.violate : "#525866"}
-          filled={isFilled}
+        <StarNew
+          width={size}
+          height={size}
+          stroke={isFilled ? "#FFD700" : "#525866"}
+          fill={isFilled ? "#FFD700" : "none"}
         />
       </TouchableOpacity>
     );

@@ -37,6 +37,8 @@ import {
   updateLocationError,
   homeData,
   homeError,
+  homenewData,
+  homenewError,
   filterData,
   filterError,
   viewdetailsData,
@@ -59,6 +61,8 @@ import {
   bookingDetailError,
   reviewSummaryData,
   reviewSummaryError,
+  hostProfileData,
+  hostProfileError,
 
   createBookingData,
   createBookingError,
@@ -113,6 +117,9 @@ export const initialState = {
   home: "",
   homeErr: "",
 
+  homenew: "",
+  homenewErr: "",
+
   filter: "",
   filterErr: "",
 
@@ -146,6 +153,8 @@ export const initialState = {
   reviewSummary: "",
   reviewSummaryErr: "",
 
+  hostProfile: "",
+  hostProfileErr: "",
   createBooking: "",
   createBookingErr: "",
 
@@ -327,6 +336,16 @@ const authReducer = handleActions(
       draft.homeErr = action.payload;
     }),
 
+    // payload homenew
+    [homenewData().type]: produce((draft, action) => {
+      console.log("payload homenew", action.payload);
+      draft.homenew = action.payload;
+    }),
+    [homenewError().type]: produce((draft, action) => {
+      console.log("payload homenew Error", action.payload);
+      draft.homenewErr = action.payload;
+    }),
+
     // payload filter
     [filterData().type]: produce((draft, action) => {
       console.log("payload filter", action.payload);
@@ -437,6 +456,15 @@ const authReducer = handleActions(
       draft.reviewSummaryErr = action.payload;
     }),
 
+    // payload hostProfile
+    [hostProfileData().type]: produce((draft, action) => {
+      console.log("payload hostProfile", action.payload);
+      draft.hostProfile = action.payload;
+    }),
+    [hostProfileError().type]: produce((draft, action) => {
+      console.log("payload hostProfile Error", action.payload);
+      draft.hostProfileErr = action.payload;
+    }),
     // payload createBooking
     [createBookingData().type]: produce((draft, action) => {
       console.log("payload createBooking", action.payload);

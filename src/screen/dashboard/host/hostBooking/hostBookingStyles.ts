@@ -148,6 +148,7 @@ export default StyleSheet.create({
     fontFamily: fonts.Bold,
     color: colors.white,
     marginBottom: verticalScale(5),
+    marginTop: verticalScale(8),
   },
   detailsContainer: {
     flex: 1,

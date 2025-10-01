@@ -124,6 +124,7 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
     if (updateProfile?.data) {
       showToast('success', 'Profile updated successfully!');
     }
+    navigation.goBack();
   }, [updateProfile]);
 
   // Handle errors

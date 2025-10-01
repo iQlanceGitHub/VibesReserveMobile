@@ -24,14 +24,15 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   bookedDates = [],
 }) => {
   // Initialize calendar to show the month of the selected start date
+  const defaultStartDate = initialStartDate || new Date();
+  const defaultEndDate = initialEndDate || new Date();
+  
   const [currentDate, setCurrentDate] = useState(() => {
     if (defaultStartDate) {
       return new Date(defaultStartDate.getFullYear(), defaultStartDate.getMonth(), 1);
     }
-    return new Date(2025, 8, 1); // September 2025 as fallback
+    return new Date(); // Current month as fallback
   });
-  const defaultStartDate = initialStartDate || new Date(2025, 7, 3);
-  const defaultEndDate = initialEndDate || new Date(2025, 7, 6);
 
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(
     defaultStartDate
@@ -113,6 +114,13 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear()
     );
+  };
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    return dateOnly < todayDateOnly;
   };
 
   const isDateInAllowedRange = (date: Date) => {
@@ -227,7 +235,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   };
 
   const isDateDisabled = (date: Date) => {
-    return !isDateInAllowedRange(date) || isDateBooked(date);
+    return !isDateInAllowedRange(date) || isDateBooked(date) || isPastDate(date);
   };
 
   const handleDatePress = (date: Date) => {

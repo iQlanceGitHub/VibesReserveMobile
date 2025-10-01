@@ -50,6 +50,9 @@ import {
   onHome,
   homeData,
   homeError,
+  onHomenew,
+  homenewData,
+  homenewError,
   onFilter,
   filterData,
   filterError,
@@ -83,7 +86,9 @@ import {
   onReviewSummary,
   reviewSummaryData,
   reviewSummaryError,
-
+  onHostProfile,
+  hostProfileData,
+  hostProfileError,
   onCreateBooking,
   createBookingData,
   createBookingError,
@@ -121,11 +126,11 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }) {
     yield put(displayLoading(true));
     const params = {
       //"currentRole": "user",
-      "email": payload?.email?.toLowerCase(),
-      "password": payload?.password,
-      "deviceToken": 'abcd',
-      "deviceType": "ios",
-      "timeZone": payload?.timeZone,
+      email: payload?.email?.toLowerCase(),
+      password: payload?.password,
+      deviceToken: "abcd",
+      deviceType: "ios",
+      timeZone: payload?.timeZone,
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/signIn"}`,
@@ -172,18 +177,18 @@ function* onSignupSaga({ payload }: { payload: SignupPayload }) {
   try {
     yield put(displayLoading(true));
     const params = {
-      "currentRole": payload?.currentRole,  //user,host <- U need small
-      "fullName": payload?.fullName,
-      "email": payload?.email?.toLowerCase(),
-      "countrycode": payload?.countrycode,
-      "phone": payload?.phone,
-      "dateOfBirth": payload?.dateOfBirth,
-      "password": payload?.password,
-      "confirmPassword": payload?.confirmPassword,
-      "userDocument": payload?.userDocument,
-      "timeZone": payload?.timeZone,
-      "loginType": payload?.loginType,
-    }
+      currentRole: payload?.currentRole, //user,host <- U need small
+      fullName: payload?.fullName,
+      email: payload?.email?.toLowerCase(),
+      countrycode: payload?.countrycode,
+      phone: payload?.phone,
+      dateOfBirth: payload?.dateOfBirth,
+      password: payload?.password,
+      confirmPassword: payload?.confirmPassword,
+      userDocument: payload?.userDocument,
+      timeZone: payload?.timeZone,
+      loginType: payload?.loginType,
+    };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/signUp"}`,
       params,
@@ -220,11 +225,11 @@ function* ForgotPasswordSaga({ payload }: { payload: ForgotPasswordPayload }) {
     yield put(displayLoading(true));
     const params = {
       //"currentRole": "user",
-      "type": "email",
-      "typevalue": payload?.email?.toLowerCase(),
-      "deviceToken": 'abcd',
-      "deviceType": "ios",
-      "usingtype": "forgot_password"//forgot_password,signup
+      type: "email",
+      typevalue: payload?.email?.toLowerCase(),
+      deviceToken: "abcd",
+      deviceType: "ios",
+      usingtype: "forgot_password", //forgot_password,signup
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/forgotPassword"}`,
@@ -630,6 +635,51 @@ function* HomeSaga({ payload }: { payload: HomePayload }) {
   }
 }
 
+interface HomenewPayload {
+  lat?: string;
+  long?: string;
+  categoryid?: string;
+  userId?: string;
+  search_keyword: string;
+}
+
+function* HomenewSaga({ payload }: { payload: HomenewPayload }) {
+  try {
+    yield put(displayLoading(true));
+    const params = {
+      lat: payload?.lat,
+      long: payload?.long,
+      categoryid: payload?.categoryid,
+      userId: payload?.userId,
+      search_keyword: payload?.search_keyword,
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/homenew"}`,
+      params,
+    });
+    console.log(`==>> ${baseurl}${"user/homenew"}`);
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      yield put(homenewData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(homenewError(response));
+    }
+    //yield put(homenewData(response));
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(homenewError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 interface FilterPayload {
   lat?: string;
   long?: string;
@@ -754,18 +804,18 @@ interface ViewdetailsPayload {
 function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
   try {
     yield put(displayLoading(true));
-    
+
     const params = {
-      "userId": payload?.userId
+      userId: payload?.userId,
     };
-    
+
     const response = yield call(fetchPost, {
       url: `${baseurl}${`user/viewdetails/${payload?.id}`}`,
       params,
     });
-    
+
     console.log("ViewdetailsSaga response:", response);
-    
+
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -777,7 +827,7 @@ function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
       console.log("Error:===2", response);
       yield put(viewdetailsError(response));
     }
-    
+
     yield put(displayLoading(false));
   } catch (error) {
     console.log("Error:===", error);
@@ -786,7 +836,7 @@ function* ViewdetailsSaga({ payload }: { payload: ViewdetailsPayload }) {
   }
 }
 
-interface CategoryPayload {  
+interface CategoryPayload {
   page?: number;
   limit?: number;
 }
@@ -1152,6 +1202,46 @@ function* ReviewSummarySaga({ payload }: { payload: ReviewSummaryPayload }) {
   }
 }
 
+// Host Profile Saga
+interface HostProfilePayload {
+  hostId?: string;
+}
+
+function* HostProfileSaga({ payload }: { payload: HostProfilePayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      hostId: payload?.hostId,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/hostprofile"}`,
+      params,
+    });
+
+    console.log("HostProfileSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(hostProfileData(response));
+    } else {
+      console.log("HostProfileSaga error:", response);
+      yield put(hostProfileError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("HostProfileSaga error:", error);
+    yield put(hostProfileError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 // Create Booking Saga
 function* CreateBookingSaga({ payload }: { payload: any }) {
   try {
@@ -1386,6 +1476,7 @@ function* authSaga() {
   yield takeLatest(onUpdateLocation().type, onUpdateLocationSaga);
 
   yield takeLatest(onHome().type, HomeSaga);
+  yield takeLatest(onHomenew().type, HomenewSaga);
   yield takeLatest(onFilter().type, FilterSaga);
   yield takeLatest(onViewdetails().type, ViewdetailsSaga);
   yield takeLatest(onCategory().type, CategorySaga);
@@ -1397,6 +1488,7 @@ function* authSaga() {
   yield takeLatest(onCreateevent().type, CreateeventSaga);
   yield takeLatest(onBookingDetail().type, BookingDetailSaga);
   yield takeLatest(onReviewSummary().type, ReviewSummarySaga);
+  yield takeLatest(onHostProfile().type, HostProfileSaga);
   yield takeLatest(onCreateBooking().type, CreateBookingSaga);
   yield takeLatest(onFetchPromoCodes().type, FetchPromoCodesSaga);
   yield takeLatest(onApplyPromoCode().type, ApplyPromoCodeSaga);
