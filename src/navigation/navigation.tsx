@@ -61,6 +61,7 @@ import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
 import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
 import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -127,6 +128,9 @@ export type RootStackParamList = {
   BookingDetailScreen: { bookingId: string };
   PaymentScreen: { bookingData?: any };
   ReviewSummary: undefined;
+  HostEditProfileScreen: undefined;
+  PaymentSuccessScreen: undefined;
+  ClubBarListScreen: undefined;
 };
 
 function MyTabs() {
