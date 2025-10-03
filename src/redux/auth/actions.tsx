@@ -121,7 +121,7 @@ export const {
   onHostProfile,
   hostProfileData,
   hostProfileError,
-  
+
   onCreateBooking,
   createBookingData,
   createBookingError,
@@ -141,6 +141,12 @@ export const {
   onUpdateProfile,
   updateProfileData,
   updateProfileError,
+
+  getBookingList,
+  bookingListData,
+  bookingListError,
+
+  clearBookingList,
 
   setLoginToken,
 
@@ -286,6 +292,12 @@ export const {
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",
+
+  "GET_BOOKING_LIST",
+  "BOOKING_LIST_DATA",
+  "BOOKING_LIST_ERROR",
+
+  "CLEAR_BOOKING_LIST",
 
   "SET_LOGIN_TOKEN",
 

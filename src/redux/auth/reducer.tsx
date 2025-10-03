@@ -77,6 +77,10 @@ import {
   updateProfileData,
   updateProfileError,
 
+  bookingListData,
+  bookingListError,
+  clearBookingList,
+
 } from "./actions";
 
 export const initialState = {
@@ -169,6 +173,9 @@ export const initialState = {
 
   updateProfile: "",
   updateProfileErr: "",
+
+  bookingList: [],
+  bookingListErr: "",
 
   user: "",
 };
@@ -513,6 +520,32 @@ const authReducer = handleActions(
     [updateProfileError().type]: produce((draft, action) => {
       console.log("payload updateProfile Error", action.payload);
       draft.updateProfileErr = action.payload;
+    }),
+
+    // payload bookingList
+    [bookingListData().type]: produce((draft, action) => {
+      console.log("payload bookingList", action.payload);
+      const newData = action.payload?.data || [];
+      
+      // Check if this is pagination (page > 1) or fresh data
+      const isPagination = action.payload?.page && action.payload.page > 1;
+      
+      if (isPagination) {
+        // Append new data for pagination
+        draft.bookingList = [...(draft.bookingList || []), ...newData];
+      } else {
+        // Replace data for fresh load
+        draft.bookingList = newData;
+      }
+    }),
+    [bookingListError().type]: produce((draft, action) => {
+      console.log("payload bookingList Error", action.payload);
+      draft.bookingListErr = action.payload;
+    }),
+    [clearBookingList().type]: produce((draft, action) => {
+      console.log("Clearing booking list");
+      draft.bookingList = [];
+      draft.bookingListErr = "";
     }),
   },
   initialState

@@ -104,6 +104,9 @@ import {
   onUpdateProfile,
   updateProfileData,
   updateProfileError,
+  getBookingList,
+  bookingListData,
+  bookingListError,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -1459,6 +1462,63 @@ function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }) {
   }
 }
 
+
+interface BookingListPayload {
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+function* BookingListSaga({ payload }: { payload: BookingListPayload }) {
+  try {
+    // Only show loading for first page, not for pagination
+    if (payload?.page === 1 || !payload?.page) {
+      yield put(displayLoading(true));
+    }
+    
+    const params = {
+      status: payload?.status,
+      page: payload?.page || 1,
+      limit: payload?.limit || 10,
+    };
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/bookinglist"}?page=${payload?.page || 1}&limit=${payload?.limit || 10}`,
+      params,
+    });
+
+    console.log("response:->", response);
+    if (
+      response?.status == 1 ||
+      response?.status == true ||
+      response?.status == "1" ||
+      response?.status == "true"
+    ) {
+      // Include page information in the response for pagination handling
+      const responseWithPage = {
+        ...response,
+        page: payload?.page || 1
+      };
+      yield put(bookingListData(responseWithPage));
+    } else {
+      console.log("Error:===2", response);
+      yield put(bookingListError(response));
+    }
+    
+    // Only hide loading for first page
+    if (payload?.page === 1 || !payload?.page) {
+      yield put(displayLoading(false));
+    }
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(bookingListError(error));
+    
+    // Only hide loading for first page
+    if (payload?.page === 1 || !payload?.page) {
+      yield put(displayLoading(false));
+    }
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -1494,6 +1554,7 @@ function* authSaga() {
   yield takeLatest(onApplyPromoCode().type, ApplyPromoCodeSaga);
   yield takeLatest(onGetProfileDetail().type, GetProfileDetailSaga);
   yield takeLatest(onUpdateProfile().type, UpdateProfileSaga);
+  yield takeLatest(getBookingList().type, BookingListSaga);
 }
 
 export default authSaga;
