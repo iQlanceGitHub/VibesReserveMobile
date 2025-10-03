@@ -76,6 +76,8 @@ import {
 
   updateProfileData,
   updateProfileError,
+  checkBookedDateBoothData,
+  checkBookedDateBoothError,
 
 } from "./actions";
 
@@ -169,6 +171,9 @@ export const initialState = {
 
   updateProfile: "",
   updateProfileErr: "",
+
+  checkBookedDateBooth: "",
+  checkBookedDateBoothErr: "",
 
   user: "",
 };
@@ -513,6 +518,16 @@ const authReducer = handleActions(
     [updateProfileError().type]: produce((draft, action) => {
       console.log("payload updateProfile Error", action.payload);
       draft.updateProfileErr = action.payload;
+    }),
+
+    // payload checkBookedDateBooth
+    [checkBookedDateBoothData().type]: produce((draft, action) => {
+      console.log("payload checkBookedDateBooth", action.payload);
+      draft.checkBookedDateBooth = action.payload;
+    }),
+    [checkBookedDateBoothError().type]: produce((draft, action) => {
+      console.log("payload checkBookedDateBooth Error", action.payload);
+      draft.checkBookedDateBoothErr = action.payload;
     }),
   },
   initialState

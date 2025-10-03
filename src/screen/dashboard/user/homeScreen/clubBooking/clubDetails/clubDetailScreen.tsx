@@ -963,12 +963,12 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
       <View style={styles.eventCardNew}>
         {/* Loading Overlay */}
-        {isDataLoading && (
+        {/* {isDataLoading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.violate} />
             <Text style={styles.loadingText}>Loading club details...</Text>
           </View>
-        )}
+        )} */}
         
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Event Details Card */}

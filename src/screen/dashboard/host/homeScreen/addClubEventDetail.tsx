@@ -1215,6 +1215,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               label="Details"
               placeholder="Enter here"
               value={details}
+              
               onChangeText={(text) => {
                 setDetails(text);
                 if (errors.details) {

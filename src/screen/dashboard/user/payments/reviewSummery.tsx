@@ -1050,9 +1050,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                   }}
                   style={styles.eventImage}
                 />
-                <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
+                {/* <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
                   <HeartIcon color={colors.white} filled={isFavorite} />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
 
               <View style={styles.eventContent}>
