@@ -48,10 +48,10 @@ export const PaymentSuccess: FC<PaymentSuccessProps> = ({
         end={{ x: 0, y: 1 }}
       >
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.headerContainer}>
+          {/* <View style={styles.headerContainer}>
             <View style={styles.statusBar} />
             <BackButton navigation={navigation} />
-          </View>
+          </View> */}
 
           <View style={styles.contentContainer}>
             <View style={styles.topContentContainer}>

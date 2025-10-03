@@ -638,6 +638,19 @@ const addClubEventDetailStyle = StyleSheet.create({
   toggleButtonTextActive: {
     color: colors.white,
   },
+  textInput: {
+    backgroundColor: colors.vilate20,
+    borderRadius: horizontalScale(8),
+    paddingHorizontal: horizontalScale(16),
+    paddingVertical: verticalScale(12),
+    fontSize: fontScale(16),
+    color: colors.white,
+    borderWidth: 1,
+    borderColor: colors.whiteLight + '33',
+  },
+  textInputError: {
+    borderColor: colors.red,
+  },
 });
 
 export default addClubEventDetailStyle;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, BackHandler, Alert } from "react-native";
 import { colors } from "../../../../utilis/colors";
 import BackIcon from "../../../../assets/svg/backIcon";
 import EventInfo from "../../../../components/EventInfo";
@@ -13,6 +13,7 @@ import {
   bookingDetailError,
 } from "../../../../redux/auth/actions";
 import { showToast } from "../../../../utilis/toastUtils";
+import { useNavigation, useFocusEffect, useNavigationState, CommonActions } from "@react-navigation/native";
 
 interface BookingDetailsScreenProps {
   navigation: any;
@@ -27,6 +28,15 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [bookingData, setBookingData] = useState<any>(null);
   const bookingId = route?.params?.bookingId;
+  
+  // Use navigation hook for better type safety
+  const nav = useNavigation();
+  
+  // Get navigation state to check stack
+  const navigationState = useNavigationState(state => state);
+  console.log('Navigation state:', navigationState);
+  console.log('Current route name:', navigationState?.routes?.[navigationState?.index]?.name);
+  console.log('Navigation stack length:', navigationState?.routes?.length);
 
   const {
     bookingDetail,
@@ -163,8 +173,35 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
   };
 
   const handleBackPress = () => {
-    navigation.goBack();
+    console.log('Back button pressed');
+    console.log('Navigation object:', navigation);
+    console.log('Nav object:', nav);
+    console.log('Navigation state:', navigationState);
+    console.log('Current route name:', navigationState?.routes?.[navigationState?.index]?.name);
+    console.log('Navigation stack length:', navigationState?.routes?.length);
+    
+    // Simple approach - just try to go back
+    if (navigation && typeof navigation.goBack === 'function') {
+      console.log('Using navigation.goBack()');
+      navigation.goBack();
+    } else {
+      console.log('navigation.goBack() not available, using fallback');
+      navigation.navigate('HostTabs', { screen: 'Search' });
+    }
   };
+
+  // Handle Android back button
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        handleBackPress();
+        return true; // Prevent default behavior
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [])
+  );
 
   const handleChatPress = () => {};
 

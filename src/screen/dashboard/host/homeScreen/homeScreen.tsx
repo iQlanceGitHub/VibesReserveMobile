@@ -371,18 +371,24 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     }, [])
   );
 
-  // Keyboard event listeners
+  // Keyboard event listeners with more stable handling
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
       () => {
-        setKeyboardVisible(true);
+        // Use requestAnimationFrame for smoother state updates
+        requestAnimationFrame(() => {
+          setKeyboardVisible(true);
+        });
       }
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
       () => {
-        setKeyboardVisible(false);
+        // Use requestAnimationFrame for smoother state updates
+        requestAnimationFrame(() => {
+          setKeyboardVisible(false);
+        });
       }
     );
 
@@ -390,6 +396,15 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       keyboardDidShowListener?.remove();
       keyboardDidHideListener?.remove();
     };
+  }, []);
+
+  // Handle keyboard dismiss with a more stable approach
+  const handleKeyboardDismiss = useCallback(() => {
+    setKeyboardVisible(false);
+    // Use requestAnimationFrame for smoother transition
+    requestAnimationFrame(() => {
+      Keyboard.dismiss();
+    });
   }, []);
 
   return (
@@ -502,14 +517,12 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       <Modal
         visible={showRejectModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={handleRejectCancel}
+        statusBarTranslucent={true}
+        hardwareAccelerated={true}
       >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-        >
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Reject Booking Request</Text>
@@ -540,7 +553,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
               <View style={styles.modalButtons}>
                 <TouchableOpacity
                   style={styles.doneButton}
-                  onPress={() => Keyboard.dismiss()}
+                  onPress={handleKeyboardDismiss}
                 >
                   <Text style={styles.doneButtonText}>Done</Text>
                 </TouchableOpacity>
@@ -565,15 +578,17 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
               </View>
             )}
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* Custom Accept Modal */}
       <Modal
         visible={showAcceptModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={handleAcceptCancel}
+        statusBarTranslucent={true}
+        hardwareAccelerated={true}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>

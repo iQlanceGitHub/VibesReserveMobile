@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.ExtraBold,
     color: colors.white,
     marginHorizontal: horizontalScale(20),
-    marginBottom: verticalScale(15),
+    marginBottom: verticalScale(20),
   },
   scrollView: {
     flex: 1,
@@ -36,6 +36,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: verticalScale(20),
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    paddingBottom: verticalScale(20),
+    justifyContent: "center",
+    minHeight: "100%",
   },
   emptyContainer: {
     flex: 1,
@@ -66,16 +72,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlayBackground,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: horizontalScale(20),
   },
   modalContainer: {
     backgroundColor: colors.backgroundColor,
     borderRadius: horizontalScale(16),
     padding: horizontalScale(20),
-    marginHorizontal: horizontalScale(20),
     maxHeight: verticalScale(500),
-    width: "90%",
+    width: "100%",
+    maxWidth: horizontalScale(350),
     borderWidth: 1,
-    borderColor: colors.violate20,
+    borderColor: colors.vilate20,
   },
   modalHeader: {
     flexDirection: "row",
@@ -111,7 +118,7 @@ const styles = StyleSheet.create({
   },
   reasonTextInput: {
     borderWidth: 1,
-    borderColor: colors.violate20,
+    borderColor: colors.vilate20,
     borderRadius: horizontalScale(12),
     padding: horizontalScale(16),
     fontSize: fontScale(14),

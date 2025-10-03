@@ -2,11 +2,14 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   StatusBar,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { showToast } from "../../../../../../utilis/toastUtils";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import DateRangePicker from "../../../../../../components/DateRangePicker";
@@ -415,15 +418,30 @@ const ClubBookingScreen: React.FC = () => {
   return (
     <SafeAreaView style={clubBookingStyles.container}>
       <StatusBar
+        translucent
+        backgroundColor="transparent"
         barStyle="light-content"
-        backgroundColor={colors.gradient_dark_purple}
+        {...(Platform.OS === 'android' && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: 'transparent',
+        })}
       />
-
-      <View style={clubBookingStyles.header}>
-        <BackButton navigation={navigation} />
-        <Text style={clubBookingStyles.headerTitle}>Select Date</Text>
-        <View style={clubBookingStyles.placeholder} />
-      </View>
+      <KeyboardAvoidingView
+        style={clubBookingStyles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <ScrollView
+          style={clubBookingStyles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={clubBookingStyles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={clubBookingStyles.header}>
+            <BackButton navigation={navigation} />
+            <Text style={clubBookingStyles.headerTitle}>Select Date</Text>
+            <View style={clubBookingStyles.headerRight} />
+          </View>
 
       <View style={clubBookingStyles.locationContainer}>
         <View style={clubBookingStyles.locationLeft}>
@@ -556,7 +574,8 @@ const ClubBookingScreen: React.FC = () => {
             </Text>
         <View style={{ marginBottom: verticalScale(50), marginTop: verticalScale(10)}}></View>
       </View>
-
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

@@ -959,6 +959,7 @@ interface CreateeventPayload {
   name: string;
   details: string;
   entryFee: number;
+  eventCapacity: number;
   openingTime: string;
   closeTime: string;
   startDate: string;

@@ -13,6 +13,7 @@ import {
   Alert,
   Share,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import styles from './styles';
@@ -62,6 +63,8 @@ const ClubDetailScreen = () => {
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [viewedMap, setViewedMap] = useState(false);
   const [clubDetails, setClubDetails] = useState(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [msg, setMsg] = useState('');
   const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -202,6 +205,8 @@ const ClubDetailScreen = () => {
     const fetchClubDetails = async () => {
       if (clubId) {
         console.log('Calling Viewdetails API with ID:', clubId);
+        setIsDataLoading(true);
+        setIsDataLoaded(false);
         try {
           const user = await getUser();
           console.log('user::===>', user);
@@ -235,6 +240,8 @@ const ClubDetailScreen = () => {
     ) {
       console.log("viewdetails response:+>", viewdetails);
       setClubDetails(viewdetails?.data);
+      setIsDataLoading(false);
+      setIsDataLoaded(true);
 
       // Set like state from server response using isFavorite field
       const serverLike = viewdetails?.data?.isFavorite || false;
@@ -250,6 +257,8 @@ const ClubDetailScreen = () => {
     if (viewdetailsErr) {
       console.log("viewdetailsErr:+>", viewdetailsErr);
       setMsg(viewdetailsErr?.message?.toString());
+      setIsDataLoading(false);
+      setIsDataLoaded(false);
       dispatch(viewdetailsError(''));
     } else {
       console.log("No viewdetails error, but status not recognized:", viewdetails?.status);
@@ -799,6 +808,34 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
   };
 
   const handleNextPress = () => {
+    // Check if data is still loading
+    if (isDataLoading) {
+      Alert.alert(
+        'Please Wait',
+        'Club details are still loading. Please wait a moment and try again.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // Check if data failed to load
+    if (!isDataLoaded || !clubDetails) {
+      Alert.alert(
+        'Data Not Available',
+        'Unable to load club details. Please try again or go back and select a different club.',
+        [
+          { text: 'Try Again', onPress: () => {
+            // Retry loading data
+            setIsDataLoading(true);
+            setIsDataLoaded(false);
+            dispatch(onViewdetails({ id: clubId }));
+          }},
+          { text: 'Go Back', onPress: () => navigation.goBack() }
+        ]
+      );
+      return;
+    }
+
     let selectedData: any = null;
     let isBooth = false;
     
@@ -824,8 +861,9 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     const entryFee = (clubDetails as any)?.entryFee || 0;
     
     // Combine event data with selected information
+    const baseEventData = clubDetails as any || {};
     const combinedEventData = {
-      ...(clubDetails || {}),
+      ...baseEventData,
       selectedTicket: selectedData, // Keep the same name for consistency
       // If no selection, don't include booth/ticket specific fields
       ...(selectedData ? {
@@ -923,43 +961,52 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Event Details Card */}
-        <View style={styles.eventCard}>
-          <View style={styles.eventHeader}>
-            <View style={styles.categoryTag}>
-              <Text style={styles.categoryText}>{(clubDetails as any)?.type || 'Club'}</Text>
-            </View>
-            <View style={styles.ratingContainer}>
-              <StarIcon size={16} color={colors.yellow} />
-              <Text style={styles.ratingText}>4.8</Text>
-            </View>
+      <View style={styles.eventCardNew}>
+        {/* Loading Overlay */}
+        {isDataLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={colors.violate} />
+            <Text style={styles.loadingText}>Loading club details...</Text>
           </View>
-
-          <Text style={styles.eventTitle}>{(clubDetails as any)?.name || 'Loading...'}</Text>
-
-          <View style={styles.eventDetails}>
-            <View style={styles.detailRow}>
-              <LocationFavourite size={16} color={colors.violate} />
-              <Text style={styles.detailText}>{(clubDetails as any)?.address || 'Loading...'}</Text>
+        )}
+        
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Event Details Card */}
+          <View style={styles.eventCard}>
+            <View style={styles.eventHeader}>
+              <View style={styles.categoryTag}>
+                <Text style={styles.categoryText}>{(clubDetails as any)?.type || 'Club'}</Text>
+              </View>
+              <View style={styles.ratingContainer}>
+                <StarIcon size={16} color={colors.yellow} />
+                <Text style={styles.ratingText}>4.8</Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <ClockIcon size={16} color={colors.violate} />
-              <Text style={styles.detailText}>
-                {clubDetails ?
-                  `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
-                  'Loading...'
-                }
+
+            <Text style={styles.eventTitle}>{(clubDetails as any)?.name || 'Loading...'}</Text>
+
+            <View style={styles.eventDetails}>
+              <View style={styles.detailRow}>
+                <LocationFavourite size={16} color={colors.violate} />
+                <Text style={styles.detailText}>{(clubDetails as any)?.address || 'Loading...'}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <ClockIcon size={16} color={colors.violate} />
+                <Text style={styles.detailText}>
+                  {clubDetails ?
+                    `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
+                    'Loading...'
+                  }
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutTitle}>About</Text>
+              <Text style={styles.aboutText}>
+                {(clubDetails as any)?.details || 'Loading club details...'}
               </Text>
             </View>
-          </View>
-
-          <View style={styles.aboutSection}>
-            <Text style={styles.aboutTitle}>About</Text>
-            <Text style={styles.aboutText}>
-              {(clubDetails as any)?.details || 'Loading club details...'}
-            </Text>
-          </View>
 
           {/* Booking Options */}
           <View style={styles.section}>
@@ -1073,10 +1120,10 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               </View>
               <View style={styles.contactIcons}>
                 <TouchableOpacity style={styles.contactButton}>
-                  <MessageIcon size={20} color={colors.violate} />
+                  <MessageIcon width={20} height={20} color={colors.violate} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contactButton}>
-                  <PhoneIcon size={20} color={colors.violate} />
+                  <PhoneIcon width={20} height={20} color={colors.violate} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -1152,16 +1199,30 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
         </View>
         <View style={{ marginTop: verticalScale(100) }}></View>
       </ScrollView>
+      </View>
 
 
       {/* Bottom Booking Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.priceSection}>
           <Text style={styles.totalPriceLabel}>Total Price</Text>
-          <Text style={styles.totalPriceValue}>${getTotalPrice()}</Text>
+          <Text style={styles.totalPriceValue}>
+            {isDataLoading ? 'Loading...' : `$${getTotalPrice()}`}
+          </Text>
         </View>
-        <TouchableOpacity style={styles.bookNowButton} onPress={handleNextPress}>
-          <Text style={styles.bookNowText}>Next</Text>
+        <TouchableOpacity 
+          style={[
+            styles.bookNowButton, 
+            (isDataLoading || !isDataLoaded) && styles.bookNowButtonDisabled
+          ]} 
+          onPress={handleNextPress}
+          disabled={isDataLoading || !isDataLoaded}
+        >
+          {isDataLoading ? (
+            <ActivityIndicator size="small" color={colors.white} />
+          ) : (
+            <Text style={styles.bookNowText}>Next</Text>
+          )}
         </TouchableOpacity>
         <View style={{ marginTop: verticalScale(80) }}></View>
       </View>

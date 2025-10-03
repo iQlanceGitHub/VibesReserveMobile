@@ -44,6 +44,8 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      statusBarTranslucent={true}
+      hardwareAccelerated={true}
     >
       <View style={styles.overlay}>
         <View style={styles.alertContainer}>
@@ -86,6 +88,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: horizontalScale(20),
+    paddingVertical: verticalScale(40),
   },
   alertContainer: {
     backgroundColor: colors.white,

@@ -109,6 +109,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [entryFee, setEntryFee] = useState("");
+  const [eventCapacity, setEventCapacity] = useState("");
   const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState({
     type: "Point",
@@ -148,6 +149,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     name: false,
     details: false,
     entryFee: false,
+    eventCapacity: false,
     // Remove date/time error fields since we're using fallback values
     address: false,
     uploadPhotos: false,
@@ -216,6 +218,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       setName(eventData.name || "");
       setDetails(eventData.details || "");
       setEntryFee(eventData.entryFee?.toString() || "");
+      setEventCapacity(eventData.eventCapacity?.toString() || "");
       setStartTime(eventData.openingTime || "");
       setEndTime(eventData.closeTime || "");
       setStartDate(eventData.startDate ? new Date(eventData.startDate).toLocaleDateString('en-GB') : "");
@@ -267,6 +270,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     console.log('Name:', name);
     console.log('Details:', details);
     console.log('Entry Fee:', entryFee);
+    console.log('Event Capacity:', eventCapacity);
     console.log('Start Time:', startTime);
     console.log('End Time:', endTime);
     console.log('Start Date:', startDate);
@@ -280,6 +284,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       name: !name.trim(),
       details: !details.trim(),
       entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
+      eventCapacity: !eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0,
       // Remove date/time validation since we're using fallback values
       address: !address.trim(),
       // Remove ticket validation - tickets are handled in dynamic forms
@@ -299,6 +304,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     if (!name.trim()) missingFields.push("Name");
     if (!details.trim()) missingFields.push("Details");
     if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Entry Fee");
+    if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) missingFields.push("Event Capacity");
     if (!startTime.trim()) missingFields.push("Start Time");
     if (!endTime.trim()) missingFields.push("End Time");
     if (!startDate.trim()) missingFields.push("Start Date");
@@ -1004,6 +1010,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       name: name,
       details: details,
       entryFee: Number(entryFee),
+      eventCapacity: Number(eventCapacity),
       openingTime: finalStartTime,
       closeTime: finalEndTime,
       startDate: finalStartDate,
@@ -1231,6 +1238,24 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 }}
                 error={errors.entryFee}
                 message={errors.entryFee ? "Valid entry fee is required" : ""}
+                leftImage=""
+                kType="numeric"
+              />
+            </View>
+
+            <View style={addClubEventDetailStyle.formElement}>
+              <CustomeTextInput
+                label="Event Capacity"
+                placeholder="Enter capacity"
+                value={eventCapacity}
+                onChangeText={(text) => {
+                  setEventCapacity(text);
+                  if (errors.eventCapacity) {
+                    setErrors(prev => ({ ...prev, eventCapacity: false }));
+                  }
+                }}
+                error={errors.eventCapacity}
+                message={errors.eventCapacity ? "Valid event capacity is required" : ""}
                 leftImage=""
                 kType="numeric"
               />
