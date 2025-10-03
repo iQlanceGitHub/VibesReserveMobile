@@ -383,6 +383,7 @@ export default StyleSheet.create({
     fontSize: fontScale(16),
     fontFamily: fonts.Medium,
     color: colors.white,
+    lineHeight: fontScale(20),
   },
   radioButton: {
     width: horizontalScale(20),

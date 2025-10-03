@@ -507,7 +507,6 @@ const PaymentsScreen: React.FC = () => {
           paymentIntent,
           paymentMethod: 'apple_pay',
           amount: paymentAmount,
-          // Include complete booking data
           bookingData: actualBookingData,
           eventData: actualBookingData?.eventData,
           memberCount: actualBookingData?.memberCount,
@@ -770,11 +769,12 @@ const PaymentsScreen: React.FC = () => {
                       number: '4242 4242 4242 4242',
                     }}
                     cardStyle={{
-                      backgroundColor: colors.unselectedBackground,
-                      textColor: colors.white,
-                      borderColor: colors.vilate20,
+                      backgroundColor: '#1A0037',
+                      textColor: '#FFFFFF',
+                      borderColor: '#8D34FF',
                       borderWidth: 1,
                       borderRadius: 12,
+                      placeholderColor: '#868C98',
                     }}
                     style={paymentsStyles.cardField}
                     onCardChange={cardDetails => {
@@ -820,7 +820,11 @@ const PaymentsScreen: React.FC = () => {
                 selectedPaymentMethod === "apple" &&
                   paymentsStyles.selectedPaymentOption,
               ]}
-              onPress={() => handlePaymentMethodPress("apple")}
+              onPress={() => 
+                //handlePaymentMethodPress("apple")
+                //Alert.alert("Apple Pay is not supported")
+                Alert.alert("Apple Pay profile is pending")
+              }
             >
               <View style={paymentsStyles.paymentOptionLeft}>
                 <View style={paymentsStyles.appleLogo}>
@@ -848,7 +852,10 @@ const PaymentsScreen: React.FC = () => {
                 selectedPaymentMethod === "google" &&
                   paymentsStyles.selectedPaymentOption,
               ]}
-              onPress={() => handlePaymentMethodPress("google")}
+              onPress={() => 
+                // handlePaymentMethodPress("google")}
+                Alert.alert("Google Business profile is pending")
+              }
             >
               <View style={paymentsStyles.paymentOptionLeft}>
                 <View style={paymentsStyles.googleLogo}>

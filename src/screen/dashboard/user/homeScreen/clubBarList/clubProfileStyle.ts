@@ -84,16 +84,17 @@ export default StyleSheet.create({
     backgroundColor: colors.cardBackground,
     borderRadius: verticalScale(12),
     padding: verticalScale(12),
-    marginBottom: verticalScale(16),
+    marginBottom: verticalScale(20),
     marginHorizontal: horizontalScale(16),
     borderWidth: 1,
     borderColor: colors.purpleBorder,
     alignItems: "center",
     justifyContent: "center",
     width: horizontalScale(200),
-    height: verticalScale(110),
+    height: verticalScale(130),
     marginTop: verticalScale(-80),
     alignSelf: "center",
+
   },
   smallContainerText: {
     fontSize: fontScale(14),
@@ -410,6 +411,7 @@ export default StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    marginTop: verticalScale(10),
   },
   profileContainer: {
     flexDirection: "row",

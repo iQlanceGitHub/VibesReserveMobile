@@ -531,7 +531,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
               value={customReason}
               onChangeText={setCustomReason}
               multiline
-              numberOfLines={4}
+              numberOfLines={2}
               textAlignVertical="top"
             />
 
