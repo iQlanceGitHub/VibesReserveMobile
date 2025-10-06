@@ -118,10 +118,14 @@ export const {
   reviewSummaryData,
   reviewSummaryError,
 
+  getBookingList,
+  bookingListData,
+  bookingListError,
+
   onHostProfile,
   hostProfileData,
   hostProfileError,
-  
+
   onCreateBooking,
   createBookingData,
   createBookingError,
@@ -291,6 +295,9 @@ export const {
   "REVIEW_SUMMARY_DATA",
   "REVIEW_SUMMARY_ERROR",
 
+  "GET_BOOKING_LIST",
+  "BOOKING_LIST_DATA",
+  "BOOKING_LIST_ERROR",
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",

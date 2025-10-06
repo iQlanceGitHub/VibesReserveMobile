@@ -63,22 +63,20 @@ import {
   reviewSummaryError,
   hostProfileData,
   hostProfileError,
-
   createBookingData,
   createBookingError,
   fetchPromoCodesData,
   fetchPromoCodesError,
   applyPromoCodeData,
   applyPromoCodeError,
-  
   getProfileDetailData,
   getProfileDetailError,
-
   updateProfileData,
   updateProfileError,
   checkBookedDateBoothData,
   checkBookedDateBoothError,
-
+  bookingListData,
+  bookingListError,
 } from "./actions";
 
 export const initialState = {
@@ -174,6 +172,9 @@ export const initialState = {
 
   checkBookedDateBooth: "",
   checkBookedDateBoothErr: "",
+
+  bookingList: null,
+  bookingListErr: null,
 
   user: "",
 };
@@ -528,6 +529,16 @@ const authReducer = handleActions(
     [checkBookedDateBoothError().type]: produce((draft, action) => {
       console.log("payload checkBookedDateBooth Error", action.payload);
       draft.checkBookedDateBoothErr = action.payload;
+    }),
+
+    // payload bookingList
+    [bookingListData().type]: produce((draft, action) => {
+      console.log("payload bookingList", action.payload);
+      draft.bookingList = action.payload;
+    }),
+    [bookingListError().type]: produce((draft, action) => {
+      console.log("payload bookingList Error", action.payload);
+      draft.bookingListErr = action.payload;
     }),
   },
   initialState

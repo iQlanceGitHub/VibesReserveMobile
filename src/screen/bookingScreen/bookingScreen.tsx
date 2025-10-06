@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,83 +10,64 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
 import ClockIcon from "../../assets/svg/clockIcon";
 import LocationFavourite from "../../assets/svg/locationFavourite";
+import { useDispatch, useSelector } from "react-redux";
+import { getBookingList } from "../../redux/auth/actions";
 
 interface BookingScreenProps {
   navigation?: any;
 }
 
-// Sample booking data
-const sampleBookings = [
-  {
-    id: "1",
-    name: "Neon Nights",
-    category: "DJ Nights",
-    location: "Bartonfort, Canada",
-    date: "Aug 29",
-    time: "10:00 PM",
-    price: "$500",
-    image: {
-      uri: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=300&fit=crop&auto=format",
-    },
-    status: "upcoming",
-  },
-  {
-    id: "2",
-    name: "Sunset Jazz Fest",
-    category: "Live Music",
-    location: "Montreal, QC",
-    date: "Sept 5",
-    time: "4:00 PM",
-    price: "$225",
-    image: {
-      uri: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop",
-    },
-    status: "upcoming",
-  },
-];
-
-const completedBookings = [
-  {
-    id: "3",
-    name: "Summer Concert",
-    category: "Concerts",
-    location: "Toronto, ON",
-    date: "Aug 15",
-    time: "7:00 PM",
-    price: "$150",
-    image: {
-      uri: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop",
-    },
-    status: "completed",
-  },
-];
-
-const cancelledBookings = [
-  {
-    id: "4",
-    name: "Pool Party",
-    category: "Parties",
-    location: "Miami, FL",
-    date: "Aug 20",
-    time: "2:00 PM",
-    price: "$80",
-    image: {
-      uri: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=300&h=300&fit=crop",
-    },
-    status: "cancelled",
-  },
-];
-
 const tabs = [
-  { id: "upcoming", title: "Upcoming" },
-  { id: "completed", title: "Completed" },
+  { id: "pending", title: "Pending" },
+  { id: "confirmed", title: "Completed" },
   { id: "cancelled", title: "Cancelled" },
 ];
+
+const formatBookingDate = (
+  startDate: string,
+  endDate: string,
+  openingTime: string
+) => {
+  try {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const isSameDay = start.toDateString() === end.toDateString();
+
+    let dateFormatted;
+    if (isSameDay) {
+      dateFormatted = start.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    } else {
+      dateFormatted = start.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    let timeFormatted = "Time not available";
+    if (openingTime) {
+      const [hours, minutes] = openingTime.split(":");
+      const hour24 = parseInt(hours);
+      const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+      const ampm = hour24 >= 12 ? "PM" : "AM";
+      timeFormatted = `${hour12}:${minutes} ${ampm}`;
+    }
+
+    return `${dateFormatted} - ${timeFormatted}`;
+  } catch (error) {
+    console.log("Error formatting date:", error);
+    return "Date not available";
+  }
+};
 
 const BookingCard: React.FC<{
   booking: any;
@@ -95,7 +76,7 @@ const BookingCard: React.FC<{
 }> = ({ booking, onCancel, onLeaveReview }) => {
   const getButtonText = () => {
     switch (booking.status) {
-      case "completed":
+      case "confirmed":
         return "Leave Review";
       case "cancelled":
         return "Book Again";
@@ -105,7 +86,7 @@ const BookingCard: React.FC<{
   };
 
   const handleButtonPress = () => {
-    if (booking.status === "completed" && onLeaveReview) {
+    if (booking.status === "confirmed" && onLeaveReview) {
       onLeaveReview();
     } else {
       onCancel();
@@ -115,26 +96,37 @@ const BookingCard: React.FC<{
   return (
     <View style={styles.bookingCard}>
       <View style={styles.cardTopSection}>
-        <Image source={booking.image} style={styles.bookingImage} />
+        <Image
+          source={{
+            uri:
+              booking?.eventId?.photos?.[0] ||
+              "https://via.placeholder.com/150",
+          }}
+          style={styles.bookingImage}
+        />
         <View style={styles.bookingContent}>
           <View style={styles.bookingHeader}>
             <View style={styles.categoryTag}>
-              <Text style={styles.categoryText}>{booking.category}</Text>
+              <Text style={styles.categoryText}>{booking?.type}</Text>
             </View>
-            <Text style={styles.priceText}>{booking.price}</Text>
+            <Text style={styles.priceText}>${booking?.fees}</Text>
           </View>
 
-          <Text style={styles.eventName}>{booking.name}</Text>
+          <Text style={styles.eventName}>{booking?.eventId?.name}</Text>
 
           <View style={styles.detailsRow}>
             <LocationFavourite size={14} color={colors.violate} />
-            <Text style={styles.detailText}>{booking.location}</Text>
+            <Text style={styles.detailText}>{booking?.eventId?.address}</Text>
           </View>
 
           <View style={styles.detailsRow}>
             <ClockIcon size={14} color={colors.violate} />
             <Text style={styles.detailText}>
-              {booking.date} - {booking.time}
+              {formatBookingDate(
+                booking.bookingStartDate,
+                booking.bookingEndDate,
+                booking?.eventId?.openingTime
+              )}
             </Text>
           </View>
         </View>
@@ -157,11 +149,75 @@ const BookingCard: React.FC<{
 };
 
 const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
-  const [selectedTab, setSelectedTab] = useState("upcoming");
+  const dispatch = useDispatch();
+  const bookingList = useSelector((state: any) => state.auth.bookingList);
+  const bookingListErr = useSelector((state: any) => state.auth.bookingListErr);
+  const loading = useSelector((state: any) => state.auth.loader);
+
+  const [selectedTab, setSelectedTab] = useState("pending");
   const [refreshing, setRefreshing] = useState(false);
+  const [pendingBookings, setPendingBookings] = useState<any[]>([]);
+  const [confirmedBookings, setConfirmedBookings] = useState<any[]>([]);
+  const [cancelledBookings, setCancelledBookings] = useState<any[]>([]);
+  const [isDataLoaded, setIsDataLoaded] = useState({
+    pending: false,
+    confirmed: false,
+    cancelled: false,
+  });
+
+  const fetchBookingList = async (status: string) => {
+    const payload = {
+      status: status,
+    };
+    dispatch(getBookingList(payload));
+  };
+
+  const fetchDataForTab = (tabId: string) => {
+    fetchBookingList(tabId);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsDataLoaded({
+        pending: false,
+        confirmed: false,
+        cancelled: false,
+      });
+
+      setPendingBookings([]);
+      setConfirmedBookings([]);
+      setCancelledBookings([]);
+
+      fetchBookingList(selectedTab);
+    }, [selectedTab])
+  );
+
+  useEffect(() => {
+    if (bookingList && bookingList.data) {
+      const currentTabData = bookingList.data;
+
+      switch (selectedTab) {
+        case "pending":
+          setPendingBookings(currentTabData);
+          setIsDataLoaded((prev) => ({ ...prev, pending: true }));
+          break;
+        case "confirmed":
+          setConfirmedBookings(currentTabData);
+          setIsDataLoaded((prev) => ({ ...prev, confirmed: true }));
+          break;
+        case "cancelled":
+          setCancelledBookings(currentTabData);
+          setIsDataLoaded((prev) => ({ ...prev, cancelled: true }));
+          break;
+        default:
+          break;
+      }
+    }
+  }, [bookingList, selectedTab]);
 
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
+    fetchDataForTab(tabId);
   };
 
   const handleCancelBooking = (bookingId: string) => {};
@@ -172,20 +228,18 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Simulate API call delay
+    fetchBookingList(selectedTab);
     setTimeout(() => {
-      // Here you would typically fetch fresh data from your API
-      // For now, we'll just reset the refreshing state
       setRefreshing(false);
-    }, 2000);
+    }, 1000);
   };
 
   const getBookingsForTab = () => {
     switch (selectedTab) {
-      case "upcoming":
-        return sampleBookings;
-      case "completed":
-        return completedBookings;
+      case "pending":
+        return pendingBookings;
+      case "confirmed":
+        return confirmedBookings;
       case "cancelled":
         return cancelledBookings;
       default:
@@ -250,21 +304,31 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={[colors.violate]} // Android
-                tintColor={colors.violate} // iOS
+                colors={[colors.violate]}
+                tintColor={colors.violate}
                 title="Pull to refresh"
                 titleColor={colors.white}
               />
             }
           >
-            {currentBookings.map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                onCancel={() => handleCancelBooking(booking.id)}
-                onLeaveReview={() => handleLeaveReview(booking.id)}
-              />
-            ))}
+            {loading || refreshing ? (
+              <View style={styles.emptyContainer}></View>
+            ) : currentBookings && currentBookings.length > 0 ? (
+              currentBookings.map((booking) => (
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  onCancel={() => handleCancelBooking(booking.id)}
+                  onLeaveReview={() => handleLeaveReview(booking.id)}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  No {selectedTab} bookings found
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
