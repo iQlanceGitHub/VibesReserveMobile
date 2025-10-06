@@ -189,6 +189,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semiBold,
     color: colors.violate,
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: verticalScale(50),
+  },
+  emptyText: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.medium,
+    color: colors.whiteLight,
+    textAlign: "center",
+  },
 });
 
 export default styles;

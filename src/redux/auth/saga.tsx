@@ -1670,6 +1670,7 @@ function* authSaga() {
   yield takeLatest(onGetProfileDetail().type, GetProfileDetailSaga);
   yield takeLatest(onUpdateProfile().type, UpdateProfileSaga);
   yield takeLatest(onCheckBookedDateBooth().type, CheckBookedDateBoothSaga);
+  yield takeLatest(getBookingList().type, BookingListSaga);
 }
 
 export default authSaga;
