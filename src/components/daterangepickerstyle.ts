@@ -189,15 +189,18 @@ export const styles = StyleSheet.create({
     width: "100%",
     textAlignVertical: "center",
   },
-  // Booked date styling
+  // Booked date styling - individual round shapes
   bookedDay: {
-    backgroundColor: colors.gray100 || "#FF6B6B",
+    backgroundColor: colors.gray100 || "#9CA3AF",
     borderRadius: horizontalScale(20),
     height: verticalScale(41.55038833618164),
+    width: verticalScale(41.55038833618164),
     opacity: 0.8,
-    marginHorizontal: 0,
-    marginVertical: 0,
-    flex: 1,
+    marginHorizontal: 2,
+    marginVertical: 2,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bookedDayText: {
     color: colors.white,
@@ -205,7 +208,6 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.Medium,
     fontSize: fontScale(13.85),
     textAlign: "center",
-    width: "100%",
     textAlignVertical: "center",
   },
   // Booked date range styling (joined red dates)

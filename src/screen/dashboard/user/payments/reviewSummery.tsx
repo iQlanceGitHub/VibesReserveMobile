@@ -27,7 +27,7 @@ import ClockIcon from "../../../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../../../assets/svg/arrowRightIcon";
 import DottedLine from "../../../../assets/svg/dottedLine";
 import { styles } from "./reviewSummeryStyle";
-import { onReviewSummary, onCreateBooking, onFetchPromoCodes, onApplyPromoCode } from "../../../../redux/auth/actions";
+import { onReviewSummary, onCreateBooking, onFetchPromoCodes, onApplyPromoCode, onTogglefavorite, togglefavoriteData, togglefavoriteError } from "../../../../redux/auth/actions";
 import { 
   useStripe, 
   ApplePay, 
@@ -36,7 +36,9 @@ import {
   PlatformPayButton, 
   PlatformPay 
 } from '@stripe/stripe-react-native';
-import { stripeTestKey } from "../../../../utilis/appConstant";
+import { stripeTestKey, horizontalScale, fontScale } from "../../../../utilis/appConstant";
+import { handleRestrictedAction } from "../../../../utilis/userPermissionUtils";
+import CustomAlert from "../../../../components/CustomAlert";
 
 interface PaymentCard {
   id: string;
@@ -129,7 +131,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const dispatch = useDispatch();
   const route = useRoute();
   const nav = useNavigation();
-  const { reviewSummary, reviewSummaryErr, loader, createBooking, createBookingErr } = useSelector(
+  const { reviewSummary, reviewSummaryErr, loader, createBooking, createBookingErr, togglefavorite, togglefavoriteErr } = useSelector(
     (state: any) => state.auth
   );
   
@@ -140,6 +142,18 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Payment processing state
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isGooglePaySupported, setIsGooglePaySupported] = useState(false);
+  
+  // Favorite state
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
 
   // Get payment data from route params
   const paymentData = route.params as PaymentData;
@@ -625,6 +639,32 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     }
   }, [createBooking, createBookingErr]);
 
+  // Handle favorite toggle response
+  useEffect(() => {
+    if (
+      togglefavorite?.status === true ||
+      togglefavorite?.status === 'true' ||
+      togglefavorite?.status === 1 ||
+      togglefavorite?.status === "1"
+    ) {
+      console.log("togglefavorite response in ReviewSummary:", togglefavorite);
+
+      // Update like state based on server response
+      if (togglefavorite?.data?.isFavorite !== undefined) {
+        const newLikeState = togglefavorite.data.isFavorite;
+        setIsFavorite(newLikeState);
+        console.log('Like state updated from server:', newLikeState);
+      }
+
+      dispatch(togglefavoriteData(''));
+    }
+
+    if (togglefavoriteErr) {
+      console.log("togglefavoriteErr in ReviewSummary:", togglefavoriteErr);
+      dispatch(togglefavoriteError(''));
+    }
+  }, [togglefavorite, togglefavoriteErr, dispatch]);
+
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
@@ -919,6 +959,55 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     dispatch(onApplyPromoCode(promoPayload));
   };
 
+  // Handle favorite toggle
+  const handleFavoritePress = async () => {
+    if (!eventData) {
+      Alert.alert('Error', 'Event data not available');
+      return;
+    }
+
+    const eventId = eventData._id;
+    if (!eventId) {
+      Alert.alert('Error', 'Event ID not available');
+      return;
+    }
+
+    // Check if user has permission to like/favorite
+    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
+    
+    if (!hasPermission) {
+      // Show custom alert for login required
+      setAlertConfig({
+        title: 'Login Required',
+        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
+        primaryButtonText: 'Sign In',
+        secondaryButtonText: 'Continue Exploring',
+        onPrimaryPress: () => {
+          setShowCustomAlert(false);
+          (navigation as any).navigate('SignInScreen');
+        },
+        onSecondaryPress: () => {
+          setShowCustomAlert(false);
+        },
+      });
+      setShowCustomAlert(true);
+      return;
+    }
+
+    try {
+      console.log('Toggling favorite for event ID:', eventId);
+
+      // Update local state immediately for better UX
+      setIsFavorite(!isFavorite);
+
+      // Then sync with server
+      dispatch(onTogglefavorite({ eventId }));
+    } catch (error) {
+      console.log('Error toggling like:', error);
+      Alert.alert('Error', 'Failed to update like status');
+    }
+  };
+
 
   return (
     <SafeAreaWrapper
@@ -961,9 +1050,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                   }}
                   style={styles.eventImage}
                 />
-                <TouchableOpacity style={styles.favoriteButton}>
-                  <HeartIcon color={colors.white} filled={false} />
-                </TouchableOpacity>
+                {/* <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoritePress}>
+                  <HeartIcon color={colors.white} filled={isFavorite} />
+                </TouchableOpacity> */}
               </View>
 
               <View style={styles.eventContent}>
@@ -990,9 +1079,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                   </View>
                 </View>
 
-                <TouchableOpacity style={styles.eventActionButton}>
+                {/* <TouchableOpacity style={styles.eventActionButton}>
                   <ArrowRightIcon color={colors.white} />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </TouchableOpacity>
           ) : (
@@ -1126,16 +1215,27 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                   <Text style={styles.applyButtonTextNew}>Browse Promo Codes</Text>
                 </TouchableOpacity>
           
-            <View style={styles.promoCodeSectionNew}>
+                <View style={styles.promoCodeSectionNew}>
               <View style={styles.promoCodeContainerNew}>
-              <TextInput
+              <TouchableOpacity
+                onPress={() => {
+                  // Navigate to promotional code screen when text field is clicked
+                  navigation.navigate('PromotionalCode' as never);
+                }}
                 style={styles.promoCodeInputNew}
-                placeholder="Enter promo code"
-                placeholderTextColor={colors.textcolor}
-                value={promoCode}
-                onChangeText={setPromoCode}
-                editable={false}
-              />
+              >
+                <Text style={[styles.promoCodeInputNew, { 
+                  color: promoCode ? colors.black : colors.textcolor,
+                  borderWidth: 0,
+                  backgroundColor: 'transparent',
+                  paddingRight: horizontalScale(80),
+                  textAlign: 'left',
+                  includeFontPadding: false,
+                  lineHeight: fontScale(18)
+                }]}>
+                  {promoCode || "Enter promo code"}
+                </Text>
+              </TouchableOpacity>
                   <TouchableOpacity
                   style={styles.applyButtonNew}
                   onPress={handleApplyPromoCode}
@@ -1387,6 +1487,17 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           )}
         </View>
       </Modal>
+      
+      <CustomAlert
+        visible={showCustomAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        primaryButtonText={alertConfig.primaryButtonText}
+        secondaryButtonText={alertConfig.secondaryButtonText}
+        onPrimaryPress={alertConfig.onPrimaryPress}
+        onSecondaryPress={alertConfig.onSecondaryPress}
+        onClose={() => setShowCustomAlert(false)}
+      />
     </SafeAreaWrapper>
   );
 };

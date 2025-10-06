@@ -104,6 +104,9 @@ import {
   onUpdateProfile,
   updateProfileData,
   updateProfileError,
+  onCheckBookedDateBooth,
+  checkBookedDateBoothData,
+  checkBookedDateBoothError,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -959,6 +962,7 @@ interface CreateeventPayload {
   name: string;
   details: string;
   entryFee: number;
+  eventCapacity: number;
   openingTime: string;
   closeTime: string;
   startDate: string;
@@ -1459,6 +1463,48 @@ function* UpdateProfileSaga({ payload }: { payload: UpdateProfilePayload }) {
   }
 }
 
+// Check Booked Date Booth Saga
+interface CheckBookedDateBoothPayload {
+  eventId?: string;
+  boothId?: string;
+}
+
+function* CheckBookedDateBoothSaga({ payload }: { payload: CheckBookedDateBoothPayload }) {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      eventId: payload?.eventId,
+      boothId: payload?.boothId,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/checkbookeddatebooth"}`,
+      params,
+    });
+
+    console.log("CheckBookedDateBoothSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(checkBookedDateBoothData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(checkBookedDateBoothError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(checkBookedDateBoothError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -1494,6 +1540,7 @@ function* authSaga() {
   yield takeLatest(onApplyPromoCode().type, ApplyPromoCodeSaga);
   yield takeLatest(onGetProfileDetail().type, GetProfileDetailSaga);
   yield takeLatest(onUpdateProfile().type, UpdateProfileSaga);
+  yield takeLatest(onCheckBookedDateBooth().type, CheckBookedDateBoothSaga);
 }
 
 export default authSaga;

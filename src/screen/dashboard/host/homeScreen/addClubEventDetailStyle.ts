@@ -7,7 +7,7 @@ import {
   fontScale,
 } from "../../../../utilis/appConstant";
 
-const addClubDetailStyle = StyleSheet.create({
+const addClubEventDetailStyle = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.gradient_dark_purple,
@@ -605,6 +605,52 @@ const addClubDetailStyle = StyleSheet.create({
     fontFamily: fonts.SemiBold,
     fontWeight: '600',
   },
+  // Toggle Button Styles
+  toggleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: verticalScale(12),
+  },
+  toggleLabel: {
+    color: colors.white,
+    fontSize: fontScale(16),
+    fontFamily: fonts.medium,
+    flex: 1,
+  },
+  toggleButton: {
+    backgroundColor: colors.gray,
+    paddingHorizontal: horizontalScale(16),
+    paddingVertical: verticalScale(8),
+    borderRadius: horizontalScale(20),
+    borderWidth: 1,
+    borderColor: colors.gray,
+  },
+  toggleButtonActive: {
+    backgroundColor: colors.violate,
+    borderColor: colors.violate,
+  },
+  toggleButtonText: {
+    color: colors.white,
+    fontSize: fontScale(14),
+    fontFamily: fonts.medium,
+  },
+  toggleButtonTextActive: {
+    color: colors.white,
+  },
+  textInput: {
+    backgroundColor: colors.vilate20,
+    borderRadius: horizontalScale(8),
+    paddingHorizontal: horizontalScale(16),
+    paddingVertical: verticalScale(12),
+    fontSize: fontScale(16),
+    color: colors.white,
+    borderWidth: 1,
+    borderColor: colors.whiteLight + '33',
+  },
+  textInputError: {
+    borderColor: colors.red,
+  },
 });
 
-export default addClubDetailStyle;
+export default addClubEventDetailStyle;

@@ -38,10 +38,8 @@ export const PaymentSuccess: FC<PaymentSuccessProps> = ({
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={
-          Platform.OS === "ios" ? "transparent" : colors.gradient_dark_purple
-        }
-        translucent={Platform.OS === "ios"}
+        backgroundColor={colors.gradient_dark_purple}
+        translucent={false}
       />
       <LinearGradient
         colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
@@ -50,10 +48,10 @@ export const PaymentSuccess: FC<PaymentSuccessProps> = ({
         end={{ x: 0, y: 1 }}
       >
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.headerContainer}>
+          {/* <View style={styles.headerContainer}>
             <View style={styles.statusBar} />
             <BackButton navigation={navigation} />
-          </View>
+          </View> */}
 
           <View style={styles.contentContainer}>
             <View style={styles.topContentContainer}>

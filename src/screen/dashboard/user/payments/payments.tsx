@@ -16,6 +16,7 @@ import { BackButton } from "../../../../components/BackButton";
 import { Buttons } from "../../../../components/buttons";
 import { colors } from "../../../../utilis/colors";
 import { stripeTestKey } from "../../../../utilis/appConstant";
+import { showToast } from "../../../../utilis/toastUtils";
 import ApplePayIcon from "../../../../assets/svg/applePayIcon";
 import GoogleIcon from "../../../../assets/svg/googleIcon";
 import VisaIcon from "../../../../assets/svg/visaIcon";
@@ -75,6 +76,13 @@ const PaymentsScreen: React.FC = () => {
   const [isGooglePaySupported, setIsGooglePaySupported] = useState<boolean>(false);
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [isProcessingPayment, setIsProcessingPayment] = useState<boolean>(false);
+  const [isPaymentSelected, setIsPaymentSelected] = useState<boolean>(false);
+
+  // Initialize payment selection state
+  useEffect(() => {
+    const hasSelection = (selectedCardId !== null && selectedCardId !== '') || (selectedPaymentMethod !== null && selectedPaymentMethod !== '');
+    setIsPaymentSelected(hasSelection);
+  }, []);
 
   // Get payment data from route params (when navigating back from review summary)
   const paymentData = route.params as PaymentData;
@@ -146,8 +154,12 @@ const PaymentsScreen: React.FC = () => {
 
   useEffect(() => {
     if (paymentData) {
-      setSelectedCardId(paymentData.selectedCardId);
-      setSelectedPaymentMethod(paymentData.selectedPaymentMethod);
+      setSelectedCardId(paymentData.selectedCardId || null);
+      setSelectedPaymentMethod(paymentData.selectedPaymentMethod || null);
+    } else {
+      // Ensure initial state is properly set to null
+      setSelectedCardId(null);
+      setSelectedPaymentMethod(null);
     }
     // Load cards when component mounts
     loadSavedCards();
@@ -272,8 +284,24 @@ const PaymentsScreen: React.FC = () => {
     setSelectedCardId(null);
   };
 
+  // Update payment selection state whenever selection changes
+  useEffect(() => {
+    const hasSelection = (selectedCardId !== null && selectedCardId !== '') || (selectedPaymentMethod !== null && selectedPaymentMethod !== '');
+    setIsPaymentSelected(hasSelection);
+  }, [selectedCardId, selectedPaymentMethod]);
+
+  // Check if any payment option is selected
+  const isPaymentOptionSelected = () => {
+    return (selectedCardId !== null && selectedCardId !== '') || (selectedPaymentMethod !== null && selectedPaymentMethod !== '');
+  };
 
   const handleNext = () => {
+    // Check if any payment option is selected
+    if (!isPaymentOptionSelected()) {
+      showToast('error', 'Please select a payment method to continue');
+      return;
+    }
+
     const selectedCard = savedCards.find((card) => card.id === selectedCardId);
     const paymentData = {
       selectedCardId,
@@ -507,7 +535,6 @@ const PaymentsScreen: React.FC = () => {
           paymentIntent,
           paymentMethod: 'apple_pay',
           amount: paymentAmount,
-          // Include complete booking data
           bookingData: actualBookingData,
           eventData: actualBookingData?.eventData,
           memberCount: actualBookingData?.memberCount,
@@ -770,11 +797,12 @@ const PaymentsScreen: React.FC = () => {
                       number: '4242 4242 4242 4242',
                     }}
                     cardStyle={{
-                      backgroundColor: colors.unselectedBackground,
-                      textColor: colors.white,
-                      borderColor: colors.vilate20,
+                      backgroundColor: '#1A0037',
+                      textColor: '#FFFFFF',
+                      borderColor: '#8D34FF',
                       borderWidth: 1,
                       borderRadius: 12,
+                      placeholderColor: '#868C98',
                     }}
                     style={paymentsStyles.cardField}
                     onCardChange={cardDetails => {
@@ -820,7 +848,12 @@ const PaymentsScreen: React.FC = () => {
                 selectedPaymentMethod === "apple" &&
                   paymentsStyles.selectedPaymentOption,
               ]}
-              onPress={() => handlePaymentMethodPress("apple")}
+              onPress={() => {
+                handlePaymentMethodPress("apple");
+                Alert.alert("Apple Pay profile is pending");
+                setSelectedCardId(null);
+                setSelectedPaymentMethod(null);
+              }}
             >
               <View style={paymentsStyles.paymentOptionLeft}>
                 <View style={paymentsStyles.appleLogo}>
@@ -848,7 +881,12 @@ const PaymentsScreen: React.FC = () => {
                 selectedPaymentMethod === "google" &&
                   paymentsStyles.selectedPaymentOption,
               ]}
-              onPress={() => handlePaymentMethodPress("google")}
+              onPress={() => {
+                handlePaymentMethodPress("google");
+                Alert.alert("Google Business profile is pending");
+                setSelectedCardId(null);
+                setSelectedPaymentMethod(null);
+              }}
             >
               <View style={paymentsStyles.paymentOptionLeft}>
                 <View style={paymentsStyles.googleLogo}>
@@ -873,7 +911,7 @@ const PaymentsScreen: React.FC = () => {
             <Buttons 
               title={isProcessingPayment ? "Processing..." : "Next"} 
               onPress={handleNext}
-              disabled={isProcessingPayment}
+              disabled={isProcessingPayment || !isPaymentSelected}
             />
           </View>
         </ScrollView>
