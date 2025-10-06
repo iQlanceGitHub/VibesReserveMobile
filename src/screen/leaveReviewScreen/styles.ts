@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(6),
   },
   detailText: {
-    fontSize: fontScale(12),
+    fontSize: fontScale(10),
     fontWeight: "400",
     fontFamily: fonts.Regular,
     color: colors.white,
@@ -136,10 +136,10 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: horizontalScale(24),
-    height: verticalScale(24),
+    bottom: verticalScale(-4),
+    right: horizontalScale(3),
+    width: horizontalScale(20),
+    height: verticalScale(20),
     borderRadius: verticalScale(12),
     backgroundColor: colors.violate,
     justifyContent: "center",

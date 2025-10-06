@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: horizontalScale(40),
     borderBottomWidth: 1,
     borderBottomColor: colors.purpleBorder,
+    marginBottom: verticalScale(20),
   },
   profileContent: {
     flexDirection: "row",

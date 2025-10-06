@@ -150,6 +150,14 @@ export const {
   checkBookedDateBoothData,
   checkBookedDateBoothError,
 
+  onRatingReview,
+  ratingReviewData,
+  ratingReviewError,
+
+  onCancelBooking,
+  cancelBookingData,
+  cancelBookingError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -278,6 +286,14 @@ export const {
   "ON_CHECK_BOOKED_DATE_BOOTH",
   "CHECK_BOOKED_DATE_BOOTH_DATA",
   "CHECK_BOOKED_DATE_BOOTH_ERROR",
+
+  "ON_RATING_REVIEW",
+  "RATING_REVIEW_DATA",
+  "RATING_REVIEW_ERROR",
+
+  "ON_CANCEL_BOOKING",
+  "CANCEL_BOOKING_DATA",
+  "CANCEL_BOOKING_ERROR",
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",

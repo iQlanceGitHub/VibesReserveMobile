@@ -95,7 +95,7 @@ export type RootStackParamList = {
   FeedQuestionScreen: undefined;
   CongratulationDiscovery: undefined;
   HomeTabs: undefined;
-  LeaveReviewScreen: undefined;
+  LeaveReviewScreen: { bookingData: any };
   ProfileScreen: undefined;
   EditProfileScreen: undefined;
   WelcomeScreen: undefined;
@@ -114,7 +114,7 @@ export type RootStackParamList = {
     clubId: string;
     hostData?: any;
     eventsData?: any[];
-    bookingData?: any 
+    bookingData?: any;
   };
   ClubBookingScreen: { eventData: any };
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
@@ -366,10 +366,10 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="BookingDetailScreen"
             component={BookingDetailScreen}
-            options={{ 
+            options={{
               headerShown: false,
               gestureEnabled: true, // Enable gesture navigation for this screen
-              presentation: 'card' // Ensure proper card presentation
+              presentation: "card", // Ensure proper card presentation
             }}
           />
           <Stack.Screen

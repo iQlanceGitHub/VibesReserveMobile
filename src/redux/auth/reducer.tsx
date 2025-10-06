@@ -75,6 +75,10 @@ import {
   updateProfileError,
   checkBookedDateBoothData,
   checkBookedDateBoothError,
+  ratingReviewData,
+  ratingReviewError,
+  cancelBookingData,
+  cancelBookingError,
   bookingListData,
   bookingListError,
 } from "./actions";
@@ -172,6 +176,12 @@ export const initialState = {
 
   checkBookedDateBooth: "",
   checkBookedDateBoothErr: "",
+
+  ratingReview: "",
+  ratingReviewErr: "",
+
+  cancelBooking: "",
+  cancelBookingErr: "",
 
   bookingList: null,
   bookingListErr: null,
@@ -529,6 +539,26 @@ const authReducer = handleActions(
     [checkBookedDateBoothError().type]: produce((draft, action) => {
       console.log("payload checkBookedDateBooth Error", action.payload);
       draft.checkBookedDateBoothErr = action.payload;
+    }),
+
+    // payload ratingReview
+    [ratingReviewData().type]: produce((draft, action) => {
+      console.log("payload ratingReview", action.payload);
+      draft.ratingReview = action.payload;
+    }),
+    [ratingReviewError().type]: produce((draft, action) => {
+      console.log("payload ratingReview Error", action.payload);
+      draft.ratingReviewErr = action.payload;
+    }),
+
+    // payload cancelBooking
+    [cancelBookingData().type]: produce((draft, action) => {
+      console.log("payload cancelBooking", action.payload);
+      draft.cancelBooking = action.payload;
+    }),
+    [cancelBookingError().type]: produce((draft, action) => {
+      console.log("payload cancelBooking Error", action.payload);
+      draft.cancelBookingErr = action.payload;
     }),
 
     // payload bookingList
