@@ -2,13 +2,17 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   StatusBar,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { showToast } from "../../../../../../utilis/toastUtils";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
 import DateRangePicker from "../../../../../../components/DateRangePicker";
 import { colors } from "../../../../../../utilis/colors";
 import { BackButton } from "../../../../../../components/BackButton";
@@ -18,14 +22,19 @@ import MinusSVG from "../../../../../../assets/svg/MinusSVG";
 import PlusSVG from "../../../../../../assets/svg/PlusSVG";
 import clubBookingStyles from "./styles";
 import { verticalScale } from "../../../../../../utilis/appConstant";
+import { onCheckBookedDateBooth } from "../../../../../../redux/auth/actions";
 
 const ClubBookingScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
 
   // Get event data from route params
   const { eventData } = (route.params as any) || {};
   const { selected } = (route.params as any) || {};
+
+  // Redux state
+  const { checkBookedDateBooth, checkBookedDateBoothErr } = useSelector((state: any) => state.auth);
 
   // Debug: Log route params to see what's being passed
   console.log("ClubBookingScreen route.params:", route.params);
@@ -141,10 +150,16 @@ const ClubBookingScreen: React.FC = () => {
   const [bookingData, setBookingData] = useState({
     startDate: "2025-09-01T00:00:00.000Z",
     endDate: "2025-09-30T00:00:00.000Z",
-    bookedDates: [],
+    bookedDates: [] as string[],
   });
   const [eventStartDate, setEventStartDate] = useState<Date>(new Date());
   const [eventEndDate, setEventEndDate] = useState<Date>(new Date());
+
+  // Function to call checkBookedDateBooth API
+  const callCheckBookedDateBoothAPI = (eventId: string, boothId: string) => {
+    console.log("Calling checkBookedDateBooth API with:", { eventId, boothId });
+    dispatch(onCheckBookedDateBooth({ eventId, boothId }));
+  };
 
   // Process event data in useEffect to prevent infinite re-renders
   useEffect(() => {
@@ -186,12 +201,45 @@ const ClubBookingScreen: React.FC = () => {
       setSelectedEndDate(endDate);
 
       setBookingData({
-        startDate: currentEventData?.startDate || "2025-09-01T00:00:00.000Z",
-        endDate: currentEventData?.endDate || "2025-09-30T00:00:00.000Z",
-        bookedDates: [], // No booked dates for now, can be added later if needed
+        startDate: currentEventData?.startDate || new Date().toISOString(),
+        endDate: currentEventData?.endDate || new Date().toISOString(),
+        bookedDates: [], // Will be updated when API response is received
       });
+
+      // Call API to get booked dates if we have eventId and boothId
+      const eventId = currentEventData?._id || (currentEventData as any)?.id;
+      const boothId = (currentEventData as any)?.selectedTicket?.boothId || 
+                     (currentEventData as any)?.selectedTicket?.id ||
+                     (currentEventData?.booths?.[0] as any)?._id ||
+                     (currentEventData?.booths?.[0] as any)?.id;
+
+      if (eventId && boothId) {
+        console.log("Calling checkBookedDateBooth API with eventId:", eventId, "boothId:", boothId);
+        callCheckBookedDateBoothAPI(eventId, boothId);
+      } else {
+        console.log("Missing eventId or boothId, skipping API call");
+        console.log("eventId:", eventId, "boothId:", boothId);
+      }
     }
   }, [currentEventData]);
+
+  // Handle API response for booked dates
+  useEffect(() => {
+    if (checkBookedDateBooth && checkBookedDateBooth.status === 1) {
+      console.log("Received booked dates from API:", checkBookedDateBooth);
+      const bookedDates = checkBookedDateBooth.bookedDates || [];
+      
+      setBookingData(prevData => ({
+        ...prevData,
+        bookedDates: bookedDates
+      }));
+      
+      console.log("Updated bookingData with booked dates:", bookedDates);
+    } else if (checkBookedDateBoothErr) {
+      console.log("Error fetching booked dates:", checkBookedDateBoothErr);
+      showToast('error', 'Failed to load booked dates. Please try again.');
+    }
+  }, [checkBookedDateBooth, checkBookedDateBoothErr]);
 
   const [memberCount, setMemberCount] = useState(1);
 
@@ -415,15 +463,30 @@ const ClubBookingScreen: React.FC = () => {
   return (
     <SafeAreaView style={clubBookingStyles.container}>
       <StatusBar
+        translucent
+        backgroundColor="transparent"
         barStyle="light-content"
-        backgroundColor={colors.gradient_dark_purple}
+        {...(Platform.OS === 'android' && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: 'transparent',
+        })}
       />
-
-      <View style={clubBookingStyles.header}>
-        <BackButton navigation={navigation} />
-        <Text style={clubBookingStyles.headerTitle}>Select Date</Text>
-        <View style={clubBookingStyles.placeholder} />
-      </View>
+      <KeyboardAvoidingView
+        style={clubBookingStyles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <ScrollView
+          style={clubBookingStyles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={clubBookingStyles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={clubBookingStyles.header}>
+            <BackButton navigation={navigation} />
+            <Text style={clubBookingStyles.headerTitle}>Select Date</Text>
+            <View style={clubBookingStyles.headerRight} />
+          </View>
 
       <View style={clubBookingStyles.locationContainer}>
         <View style={clubBookingStyles.locationLeft}>
@@ -483,8 +546,8 @@ const ClubBookingScreen: React.FC = () => {
       <View style={clubBookingStyles.calendarContainer}>
         <DateRangePicker
           onDateRangeSelect={handleDateRangeSelect}
-          initialStartDate={selectedStartDate}
-          initialEndDate={selectedEndDate}
+          initialStartDate={selectedStartDate || undefined}
+          initialEndDate={selectedEndDate || undefined}
           startDate={bookingData.startDate}
           endDate={bookingData.endDate}
           bookedDates={bookingData.bookedDates}
@@ -556,7 +619,8 @@ const ClubBookingScreen: React.FC = () => {
             </Text>
         <View style={{ marginBottom: verticalScale(50), marginTop: verticalScale(10)}}></View>
       </View>
-
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

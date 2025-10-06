@@ -145,6 +145,10 @@ export const {
   updateProfileData,
   updateProfileError,
 
+  onCheckBookedDateBooth,
+  checkBookedDateBoothData,
+  checkBookedDateBoothError,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -269,6 +273,10 @@ export const {
   "ON_UPDATE_PROFILE",
   "UPDATE_PROFILE_DATA",
   "UPDATE_PROFILE_ERROR",
+
+  "ON_CHECK_BOOKED_DATE_BOOTH",
+  "CHECK_BOOKED_DATE_BOOTH_DATA",
+  "CHECK_BOOKED_DATE_BOOTH_ERROR",
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",

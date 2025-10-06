@@ -61,6 +61,7 @@ import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
 import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
 import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -127,6 +128,9 @@ export type RootStackParamList = {
   BookingDetailScreen: { bookingId: string };
   PaymentScreen: { bookingData?: any };
   ReviewSummary: undefined;
+  HostEditProfileScreen: undefined;
+  PaymentSuccessScreen: undefined;
+  ClubBarListScreen: undefined;
 };
 
 function MyTabs() {
@@ -201,7 +205,7 @@ const NavigationStack: React.FC = () => {
       >
         <Stack.Navigator
           screenOptions={{
-            gestureEnabled: false,
+            gestureEnabled: true, // Enable gesture navigation globally
           }}
         >
           <Stack.Screen
@@ -362,7 +366,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="BookingDetailScreen"
             component={BookingDetailScreen}
-            options={{ headerShown: false }}
+            options={{ 
+              headerShown: false,
+              gestureEnabled: true, // Enable gesture navigation for this screen
+              presentation: 'card' // Ensure proper card presentation
+            }}
           />
           <Stack.Screen
             name="PaymentScreen"
@@ -372,6 +380,21 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ReviewSummary"
             component={ReviewSummary}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HostEditProfileScreen"
+            component={HostEditProfileScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PaymentSuccessScreen"
+            component={PaymentSuccessScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ClubBarListScreen"
+            component={ClubBarListScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

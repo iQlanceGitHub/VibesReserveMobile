@@ -109,6 +109,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [entryFee, setEntryFee] = useState("");
+  const [eventCapacity, setEventCapacity] = useState("");
   const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState({
     type: "Point",
@@ -138,12 +139,17 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   
+  // Optional sections state
+  const [enableBooths, setEnableBooths] = useState(false);
+  const [enableTickets, setEnableTickets] = useState(false);
+  
 
   // Validation errors
   const [errors, setErrors] = useState({
     name: false,
     details: false,
     entryFee: false,
+    eventCapacity: false,
     // Remove date/time error fields since we're using fallback values
     address: false,
     uploadPhotos: false,
@@ -212,6 +218,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       setName(eventData.name || "");
       setDetails(eventData.details || "");
       setEntryFee(eventData.entryFee?.toString() || "");
+      setEventCapacity(eventData.eventCapacity?.toString() || "");
       setStartTime(eventData.openingTime || "");
       setEndTime(eventData.closeTime || "");
       setStartDate(eventData.startDate ? new Date(eventData.startDate).toLocaleDateString('en-GB') : "");
@@ -263,6 +270,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     console.log('Name:', name);
     console.log('Details:', details);
     console.log('Entry Fee:', entryFee);
+    console.log('Event Capacity:', eventCapacity);
     console.log('Start Time:', startTime);
     console.log('End Time:', endTime);
     console.log('Start Date:', startDate);
@@ -276,6 +284,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       name: !name.trim(),
       details: !details.trim(),
       entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
+      eventCapacity: !eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0,
       // Remove date/time validation since we're using fallback values
       address: !address.trim(),
       // Remove ticket validation - tickets are handled in dynamic forms
@@ -295,6 +304,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     if (!name.trim()) missingFields.push("Name");
     if (!details.trim()) missingFields.push("Details");
     if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Entry Fee");
+    if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) missingFields.push("Event Capacity");
     if (!startTime.trim()) missingFields.push("Start Time");
     if (!endTime.trim()) missingFields.push("End Time");
     if (!startDate.trim()) missingFields.push("Start Date");
@@ -309,12 +319,12 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       return false;
     }
 
-    // Check for missing booths/tickets based on type
+    // Check for missing booths/tickets based on type and enabled state
     if (type === "Club" || type === "Pub") {
-      if (booths.length === 0) missingFields.push("Booths");
+      if (enableBooths && booths.length === 0) missingFields.push("Booths");
     }
     if (type === "Event") {
-      if (events.length === 0) missingFields.push("Tickets");
+      if (enableTickets && events.length === 0) missingFields.push("Tickets");
     }
 
     if (missingFields.length > 0) {
@@ -323,8 +333,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       return false;
     }
 
-    // Validate booth fields if type is Club or Pub and booths exist
-    if (type === "Club" || type === "Pub") {
+    // Validate booth fields if type is Club or Pub, booths are enabled, and booths exist
+    if ((type === "Club" || type === "Pub") && enableBooths) {
       // Check each booth individually for specific missing fields
       for (let i = 0; i < booths.length; i++) {
         const booth = booths[i];
@@ -345,8 +355,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       }
     }
 
-    // Validate ticket fields if type is Event and tickets exist
-    if (type === "Event") {
+    // Validate ticket fields if type is Event, tickets are enabled, and tickets exist
+    if (type === "Event" && enableTickets) {
       // Check each ticket individually for specific missing fields
       for (let i = 0; i < events.length; i++) {
         const event = events[i];
@@ -1000,6 +1010,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       name: name,
       details: details,
       entryFee: Number(entryFee),
+      eventCapacity: Number(eventCapacity),
       openingTime: finalStartTime,
       closeTime: finalEndTime,
       startDate: finalStartDate,
@@ -1010,8 +1021,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       facilities: selectedFacilities,
     };
 
-    // Add booth or ticket specific data
-    if (type === "Club" || type === "Pub") {
+    // Add booth or ticket specific data only if sections are enabled
+    if ((type === "Club" || type === "Pub") && enableBooths) {
       eventData.booths = booths.map(booth => ({
         boothName: booth.boothName,
         boothType: booth.boothType, // Use dynamic category ID
@@ -1020,7 +1031,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         discountedPrice: Number(booth.discountedPrice),
         boothImage: booth.boothImages
       }));
-    } else if (type === "Event") {
+    } else if (type === "Event" && enableTickets) {
       eventData.tickets = events.map(event => ({
         ticketType: event.ticketType, // Pass as string ID
         ticketPrice: Number(event.ticketPrice),
@@ -1204,6 +1215,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               label="Details"
               placeholder="Enter here"
               value={details}
+              
               onChangeText={(text) => {
                 setDetails(text);
                 if (errors.details) {
@@ -1227,6 +1239,24 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 }}
                 error={errors.entryFee}
                 message={errors.entryFee ? "Valid entry fee is required" : ""}
+                leftImage=""
+                kType="numeric"
+              />
+            </View>
+
+            <View style={addClubEventDetailStyle.formElement}>
+              <CustomeTextInput
+                label="Event Capacity"
+                placeholder="Enter capacity"
+                value={eventCapacity}
+                onChangeText={(text) => {
+                  setEventCapacity(text);
+                  if (errors.eventCapacity) {
+                    setErrors(prev => ({ ...prev, eventCapacity: false }));
+                  }
+                }}
+                error={errors.eventCapacity}
+                message={errors.eventCapacity ? "Valid event capacity is required" : ""}
                 leftImage=""
                 kType="numeric"
               />
@@ -1398,27 +1428,57 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             {/* Dynamic Booth Forms for Club and Pub */}
             {(type === "Club" || type === "Pub") && (
               <>
-                {booths.map((booth, index) => (
-                  <BoothForm
-                    key={booth.id}
-                    booth={booth}
-                    boothIndex={index}
-                    onUpdate={updateBooth}
-                    onRemove={removeBooth}
-                    onImagePicker={handleImagePicker}
-                    onDeleteImage={(boothIndex, imageIndex) => handleDeleteImage(imageIndex, "booth", boothIndex)}
-                    boothTypes={boothTypes}
-                  />
-                ))}
-                <TouchableOpacity
-                  style={addClubEventDetailStyle.addNewButton}
-                  onPress={addNewBooth}
-                >
-                  <PlusIcon />
-                  <Text style={addClubEventDetailStyle.addNewButtonText}>
-                    Add New Booth
-                  </Text>
-                </TouchableOpacity>
+                <View style={addClubEventDetailStyle.formElement}>
+                  <View style={addClubEventDetailStyle.toggleContainer}>
+                    <Text style={addClubEventDetailStyle.toggleLabel}>Enable Booths (Optional)</Text>
+                    <TouchableOpacity
+                      style={[
+                        addClubEventDetailStyle.toggleButton,
+                        enableBooths && addClubEventDetailStyle.toggleButtonActive
+                      ]}
+                      onPress={() => {
+                        setEnableBooths(!enableBooths);
+                        // Clear booths when disabling
+                        if (enableBooths) {
+                          setBooths([]);
+                        }
+                      }}
+                    >
+                      <Text style={[
+                        addClubEventDetailStyle.toggleButtonText,
+                        enableBooths && addClubEventDetailStyle.toggleButtonTextActive
+                      ]}>
+                        {enableBooths ? 'Enabled' : 'Disabled'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                
+                {enableBooths && (
+                  <>
+                    {booths.map((booth, index) => (
+                      <BoothForm
+                        key={booth.id}
+                        booth={booth}
+                        boothIndex={index}
+                        onUpdate={updateBooth}
+                        onRemove={removeBooth}
+                        onImagePicker={handleImagePicker}
+                        onDeleteImage={(boothIndex, imageIndex) => handleDeleteImage(imageIndex, "booth", boothIndex)}
+                        boothTypes={boothTypes}
+                      />
+                    ))}
+                    <TouchableOpacity
+                      style={addClubEventDetailStyle.addNewButton}
+                      onPress={addNewBooth}
+                    >
+                      <PlusIcon />
+                      <Text style={addClubEventDetailStyle.addNewButtonText}>
+                        Add New Booth
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </>
             )}
 
@@ -1426,26 +1486,56 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             {/* Dynamic Ticket Forms for Event */}
             {type === "Event" && (
               <>
-                {events.map((event, index) => (
-                  <EventForm
-                    key={event.id}
-                    event={event}
-                    eventIndex={index}
-                    onUpdate={updateEvent}
-                    onRemove={removeEvent}
-                    onImagePicker={handleImagePicker}
-                    ticketTypes={eventTypes}
-                  />
-                ))}
-                <TouchableOpacity
-                  style={addClubEventDetailStyle.addNewButton}
-                  onPress={addNewEvent}
-                >
-                  <PlusIcon />
-                  <Text style={addClubEventDetailStyle.addNewButtonText}>
-                    Add New Ticket
-                  </Text>
-                </TouchableOpacity>
+                <View style={addClubEventDetailStyle.formElement}>
+                  <View style={addClubEventDetailStyle.toggleContainer}>
+                    <Text style={addClubEventDetailStyle.toggleLabel}>Enable Tickets (Optional)</Text>
+                    <TouchableOpacity
+                      style={[
+                        addClubEventDetailStyle.toggleButton,
+                        enableTickets && addClubEventDetailStyle.toggleButtonActive
+                      ]}
+                      onPress={() => {
+                        setEnableTickets(!enableTickets);
+                        // Clear events when disabling
+                        if (enableTickets) {
+                          setEvents([]);
+                        }
+                      }}
+                    >
+                      <Text style={[
+                        addClubEventDetailStyle.toggleButtonText,
+                        enableTickets && addClubEventDetailStyle.toggleButtonTextActive
+                      ]}>
+                        {enableTickets ? 'Enabled' : 'Disabled'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                
+                {enableTickets && (
+                  <>
+                    {events.map((event, index) => (
+                      <EventForm
+                        key={event.id}
+                        event={event}
+                        eventIndex={index}
+                        onUpdate={updateEvent}
+                        onRemove={removeEvent}
+                        onImagePicker={handleImagePicker}
+                        ticketTypes={eventTypes}
+                      />
+                    ))}
+                    <TouchableOpacity
+                      style={addClubEventDetailStyle.addNewButton}
+                      onPress={addNewEvent}
+                    >
+                      <PlusIcon />
+                      <Text style={addClubEventDetailStyle.addNewButtonText}>
+                        Add New Ticket
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </>
             )}
 

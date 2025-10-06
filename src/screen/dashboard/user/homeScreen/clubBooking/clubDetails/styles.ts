@@ -58,11 +58,14 @@ export default StyleSheet.create({
     marginBottom: verticalScale(12),
   },
   eventCard: {
+    backgroundColor: 'transparent', // Make transparent since it's inside eventCardNew
+    marginTop: 0, // Remove margin since it's inside the scrollable container
+  },
+  eventCardNew: {
     borderWidth: 1,
     borderColor: colors.violate,
     backgroundColor: colors.backgroundColor,
     borderRadius: verticalScale(16),
-    padding: horizontalScale(20),
     marginHorizontal: horizontalScale(15),
     shadowColor: colors.black,
     shadowOffset: {
@@ -72,6 +75,28 @@ export default StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    height: verticalScale(500),
+    marginTop: verticalScale(-140),
+    overflow: 'hidden', // Ensure content doesn't overflow the rounded corners
+    position: 'relative', // For loading overlay positioning
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    borderRadius: verticalScale(16),
+  },
+  loadingText: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.Medium,
+    color: colors.white,
+    marginTop: verticalScale(12),
   },
   eventHeader: {
     flexDirection: 'row',
@@ -144,10 +169,9 @@ export default StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: verticalScale(100), // Add space for bottom bar
-    marginTop: verticalScale(-140), // Start scroll above the image
-   
-    //marginBottom: verticalScale(100),
+    paddingBottom: verticalScale(20), // Reduced padding for scroll inside card
+    paddingTop: verticalScale(20), // Add top padding
+    paddingHorizontal: horizontalScale(20), // Add horizontal padding
   },
   section: {
     marginBottom: verticalScale(24),
@@ -398,6 +422,10 @@ export default StyleSheet.create({
     paddingVertical: verticalScale(16),
     paddingHorizontal: horizontalScale(32),
     borderRadius: verticalScale(25),
+  },
+  bookNowButtonDisabled: {
+    backgroundColor: colors.lightGray,
+    opacity: 0.6,
   },
   bookNowText: {
     fontSize: fontScale(16),

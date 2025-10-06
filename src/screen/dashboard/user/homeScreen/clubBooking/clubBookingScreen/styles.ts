@@ -12,24 +12,29 @@ const clubBookingStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.gradient_dark_purple,
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: verticalScale(20),
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: horizontalScale(20),
     paddingVertical: verticalScale(16),
-    paddingTop: verticalScale(10),
+    borderBottomWidth: 1,
+    borderBottomColor: colors.vilate10,
   },
   headerTitle: {
     fontSize: fontScale(18),
-    fontWeight: "600",
-    fontFamily: fonts.SemiBold,
+    fontFamily: fonts.Bold,
     color: colors.white,
     flex: 1,
     textAlign: "center",
-    marginHorizontal: horizontalScale(20),
   },
-  placeholder: {
+  headerRight: {
     width: horizontalScale(40),
   },
   locationContainer: {

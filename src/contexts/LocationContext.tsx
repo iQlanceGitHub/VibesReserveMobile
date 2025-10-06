@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LocationData, getCurrentLocation, checkLocationPermission, getLocationDisplayText, getShortLocationDisplayText } from '../utilis/locationUtils';
+import { LocationData, getCurrentLocation, checkLocationPermission, requestLocationPermission, getLocationDisplayText, getShortLocationDisplayText } from '../utilis/locationUtils';
+import LocationPermissionManager from '../utilis/locationPermissionUtils';
 
 interface LocationContextType {
   locationData: LocationData | null;
@@ -29,9 +30,11 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   const locationDisplayText = locationData ? getLocationDisplayText(locationData) : 'Location not available';
   const shortLocationDisplayText = locationData ? getShortLocationDisplayText(locationData) : 'Location not available';
 
-  // Load location from storage on mount
+  // Load location from storage on mount and request permission if needed
   useEffect(() => {
     loadLocationFromStorage();
+    // Automatically request location permission on app startup
+    requestLocationPermissionOnStartup();
   }, []);
 
   const loadLocationFromStorage = async () => {
@@ -44,6 +47,48 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
       }
     } catch (error) {
       console.log('Error loading location from storage:', error);
+    }
+  };
+
+  const requestLocationPermissionOnStartup = async () => {
+    try {
+      // Check if permission is already granted
+      const permissionResult = await checkLocationPermission();
+      
+      if (!permissionResult.granted) {
+        console.log('Location permission not granted, requesting permission...');
+        
+        // Request permission
+        const requestResult = await requestLocationPermission();
+        
+        if (requestResult.granted) {
+          console.log('Location permission granted, getting current location...');
+          // Permission granted, try to get location
+          await refreshLocation();
+        } else {
+          console.log('Location permission denied:', requestResult.message);
+          // Show permission denied alert with option to open settings
+          LocationPermissionManager.showPermissionDeniedAlert(
+            'Location Permission Required',
+            'This app needs location access to find nearby events and clubs. Please enable location permission in Settings to get the best experience.',
+            () => {
+              console.log('User cancelled permission request');
+              setError('Location permission denied');
+            },
+            () => {
+              console.log('User chose to open settings');
+            }
+          );
+          setError('Location permission denied');
+        }
+      } else {
+        console.log('Location permission already granted, getting current location...');
+        // Permission already granted, try to get location
+        await refreshLocation();
+      }
+    } catch (error) {
+      console.log('Error in requestLocationPermissionOnStartup:', error);
+      setError('Failed to request location permission');
     }
   };
 
@@ -65,8 +110,21 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
       const permissionResult = await checkLocationPermission();
       
       if (!permissionResult.granted) {
-        setError(permissionResult.message || 'Location permission denied');
+        const errorMessage = permissionResult.message || 'Location permission denied';
+        setError(errorMessage);
         setIsLoading(false);
+        
+        // Show permission denied alert
+        LocationPermissionManager.showPermissionDeniedAlert(
+          'Location Permission Required',
+          'This app needs location access to find nearby events and clubs. Please enable location permission in Settings to get the best experience.',
+          () => {
+            console.log('User cancelled permission request');
+          },
+          () => {
+            console.log('User chose to open settings');
+          }
+        );
         return;
       }
 
@@ -82,7 +140,20 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
       console.log('Location refreshed:', location);
     } catch (error) {
       console.log('Error refreshing location:', error);
-      setError('Failed to get current location');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get current location';
+      setError(errorMessage);
+      
+      // Show location error alert with retry option
+      LocationPermissionManager.showLocationErrorAlert(
+        errorMessage,
+        () => {
+          console.log('User chose to retry location');
+          refreshLocation();
+        },
+        () => {
+          console.log('User cancelled location retry');
+        }
+      );
     } finally {
       setIsLoading(false);
     }

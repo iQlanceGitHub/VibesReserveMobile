@@ -11,6 +11,7 @@ import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import CategoryButton from "../../components/CategoryButton";
 import NearbyEventCard from "../dashboard/user/homeScreen/card/nearbyEvent/nearbyEvent";
+import NearbyEventCardNew from "../dashboard/user/homeScreen/card/nearbyEventCardNew/nearbyEventCardNew";
 import styles from "./styles";
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -275,7 +276,7 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
                   };
                   
                   return (
-                    <NearbyEventCard
+                    <NearbyEventCardNew
                       event={eventData}
                       onPress={() => handleEventPress(eventId)}
                       onFavoritePress={() => handleFavoritePress(eventId)}

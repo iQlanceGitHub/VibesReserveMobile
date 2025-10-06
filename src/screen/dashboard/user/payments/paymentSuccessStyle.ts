@@ -9,16 +9,16 @@ import {
 
 export const styles = StyleSheet.create({
   container: {
-    flex: Platform.OS === "ios" ? 1 : 0,
+    flex: 1,
   },
   gradientContainer: {
-    flex: Platform.OS === "ios" ? 1 : 0,
+    flex: 1,
   },
   safeArea: {
-    flex: Platform.OS === "ios" ? 1 : 0,
+    flex: 1,
   },
   statusBar: {
-    height: Platform.OS === "ios" ? verticalScale(44) : 0,
+    height: Platform.OS === "ios" ? verticalScale(44) : verticalScale(24),
   },
   headerContainer: {
     flexDirection: "row",
@@ -26,13 +26,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: horizontalScale(20),
   },
   contentContainer: {
-    flex: Platform.OS === "ios" ? 1 : 0,
+    flex: 1,
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: horizontalScale(40),
   },
   topContentContainer: {
-    flex: Platform.OS === "ios" ? 1 : 0,
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },

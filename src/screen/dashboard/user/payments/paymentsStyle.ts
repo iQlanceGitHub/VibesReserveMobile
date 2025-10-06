@@ -62,12 +62,12 @@ export default StyleSheet.create({
   },
   addCardButton: {
     backgroundColor: colors.violate,
-    paddingHorizontal: horizontalScale(12),
-    paddingVertical: verticalScale(6),
+    paddingHorizontal: horizontalScale(16),
+    paddingVertical: verticalScale(10),
     borderRadius: horizontalScale(16),
   },
   addCardButtonText: {
-    fontSize: fontScale(12),
+    fontSize: fontScale(14),
     fontFamily: fonts.Medium,
     color: colors.white,
   },
@@ -132,9 +132,13 @@ export default StyleSheet.create({
   },
   refreshButton: {
     backgroundColor: colors.vilate20,
-    paddingHorizontal: horizontalScale(8),
-    paddingVertical: verticalScale(4),
+    paddingHorizontal: horizontalScale(12),
+    paddingVertical: verticalScale(8),
     borderRadius: horizontalScale(12),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: horizontalScale(32),
+    minHeight: verticalScale(32),
   },
   refreshButtonText: {
     fontSize: fontScale(10),
@@ -379,6 +383,7 @@ export default StyleSheet.create({
     fontSize: fontScale(16),
     fontFamily: fonts.Medium,
     color: colors.white,
+    lineHeight: fontScale(20),
   },
   radioButton: {
     width: horizontalScale(20),

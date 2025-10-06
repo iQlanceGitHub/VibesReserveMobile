@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   nameText: {
-    fontSize: fontScale(16),
+    fontSize: fontScale(18),
     fontWeight: "700",
     fontFamily: fonts.Bold,
     color: colors.white,

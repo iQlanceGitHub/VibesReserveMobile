@@ -44,7 +44,10 @@ const LocationDisplay: React.FC<LocationDisplayProps> = ({
       return 'Getting location...';
     }
     if (error) {
-      return 'Location unavailable';
+      if (error.includes('permission denied')) {
+        return 'Tap to enable location';
+      }
+      return 'Tap to refresh location';
     }
     return shortLocationDisplayText;
   };
@@ -54,6 +57,9 @@ const LocationDisplay: React.FC<LocationDisplayProps> = ({
       return colors.gray;
     }
     if (error) {
+      if (error.includes('permission denied')) {
+        return colors.violate; // Make it more prominent for permission issues
+      }
       return colors.red;
     }
     return colors.white;
@@ -71,7 +77,7 @@ const LocationDisplay: React.FC<LocationDisplayProps> = ({
         style,
       ]}
       onPress={handlePress}
-      disabled={!onPress && !showRefreshButton}
+      disabled={!onPress && !showRefreshButton && !error}
       activeOpacity={0.7}
     >
       {showIcon && (

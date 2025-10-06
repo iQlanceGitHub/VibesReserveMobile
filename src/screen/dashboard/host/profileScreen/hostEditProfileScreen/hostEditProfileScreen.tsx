@@ -35,6 +35,8 @@ import { styles } from "./styles";
 import {
   onGetProfileDetail,
   onUpdateProfile,
+  updateProfileData,
+  updateProfileError,
 } from "../../../../../redux/auth/actions";
 import { PermissionManager } from "../../../../../utilis/permissionUtils";
 import { uploadFileToS3 } from "../../../../../utilis/s3Upload";
@@ -121,10 +123,17 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
 
   // Handle update profile response
   useEffect(() => {
-    if (updateProfile?.data) {
+    if (updateProfile) {
       showToast('success', 'Profile updated successfully!');
+      // Navigate back to the previous screen after successful update
+      navigation.goBack();
+      dispatch(updateProfileData(''));
     }
-  }, [updateProfile]);
+    if (updateProfileErr) {
+      showToast('error', 'Failed to update profile');
+      dispatch(updateProfileError(''));
+    }
+  }, [updateProfile, updateProfileErr]);
 
   // Handle errors
   useEffect(() => {
@@ -133,6 +142,7 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
     }
     if (updateProfileErr) {
       showToast('error', 'Failed to update profile');
+      // Don't navigate on error - let user retry
     }
   }, [getProfileDetailErr, updateProfileErr]);
 
