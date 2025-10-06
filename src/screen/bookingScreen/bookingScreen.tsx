@@ -215,8 +215,6 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
     }
   }, [bookingList, selectedTab]);
 
-  console.log("bookingList...", bookingList);
-
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
     fetchDataForTab(tabId);
