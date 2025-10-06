@@ -27,7 +27,7 @@ import ClockIcon from "../../../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../../../assets/svg/arrowRightIcon";
 import DottedLine from "../../../../assets/svg/dottedLine";
 import { styles } from "./reviewSummeryStyle";
-import { onReviewSummary, onCreateBooking, onFetchPromoCodes, onApplyPromoCode, onTogglefavorite, togglefavoriteData, togglefavoriteError } from "../../../../redux/auth/actions";
+import { onReviewSummary, onCreateBooking, onFetchPromoCodes, onApplyPromoCode, onTogglefavorite, togglefavoriteData, togglefavoriteError, onGetProfileDetail, getProfileDetailData, getProfileDetailError } from "../../../../redux/auth/actions";
 import { 
   useStripe, 
   ApplePay, 
@@ -131,7 +131,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const dispatch = useDispatch();
   const route = useRoute();
   const nav = useNavigation();
-  const { reviewSummary, reviewSummaryErr, loader, createBooking, createBookingErr, togglefavorite, togglefavoriteErr } = useSelector(
+  const { reviewSummary, reviewSummaryErr, loader, createBooking, createBookingErr, togglefavorite, togglefavoriteErr, getProfileDetail, getProfileDetailErr } = useSelector(
     (state: any) => state.auth
   );
   
@@ -154,6 +154,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     onPrimaryPress: () => {},
     onSecondaryPress: () => {},
   });
+
+  // Profile details state
+  const [profileDetail, setProfileDetail] = useState<any>(null);
+  const [stripeCustomerId, setStripeCustomerId] = useState<string>('');
 
   // Get payment data from route params
   const paymentData = route.params as PaymentData;
@@ -257,13 +261,16 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       if (applyPromoCode.summary) {
         const summary = applyPromoCode.summary;
         console.log("📊 Summary from API:", summary);
+        console.log("📊 ticketCost from API:", summary.ticketCost);
+        console.log("📊 boothCost from API:", summary.boothCost);
         const updatedPricing = {
           entryFee: summary.memberCost || 0,
-          ticketPrice: summary.boothCost || 0,
+          ticketPrice: summary.ticketCost || summary.boothCost || 0, // Use ticketCost for tickets, boothCost for booths
           discount: parseFloat(summary.discount) || 0,
           fees: parseFloat(summary.fees) || 0,
           total: summary.total || 0
         };
+        console.log("📊 Updated pricing object:", updatedPricing);
         
         // Store API pricing for use in UI
         setApiPricing(updatedPricing);
@@ -271,7 +278,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         // Update price breakdown
         setPriceBreakdown({
           memberCost: updatedPricing.entryFee,
-          boothCost: updatedPricing.ticketPrice,
+          boothCost: updatedPricing.ticketPrice, // This will be ticketCost for tickets, boothCost for booths
           discount: updatedPricing.discount.toFixed(2),
           fees: updatedPricing.fees.toFixed(2),
           total: updatedPricing.total,
@@ -558,23 +565,63 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   useEffect(() => {
     // Check platform pay support
     checkPlatformPaySupport();
+    // Fetch profile details to get stripeCustomerId
+    fetchProfileDetail();
   }, []);
+
+  // Handle profile details response
+  useEffect(() => {
+    if (
+      getProfileDetail?.status === true ||
+      getProfileDetail?.status === "true" ||
+      getProfileDetail?.status === 1 ||
+      getProfileDetail?.status === "1"
+    ) {
+      console.log("Profile detail response:", getProfileDetail);
+      console.log("Stripe Customer ID:", getProfileDetail?.data?.stripeCustomerId);
+      setProfileDetail(getProfileDetail?.data);
+      setStripeCustomerId(getProfileDetail?.data?.stripeCustomerId || '');
+      dispatch(getProfileDetailData(""));
+    }
+
+    if (getProfileDetailErr) {
+      console.log("Profile detail error:", getProfileDetailErr);
+      // Don't show error toast for profile details as it's not critical for payment
+      dispatch(getProfileDetailError(""));
+    }
+  }, [getProfileDetail, getProfileDetailErr, dispatch]);
+
+  const fetchProfileDetail = () => {
+    dispatch(onGetProfileDetail({}));
+  };
+
 
   useEffect(() => {
     const promoPayload: any = {
-      eventid: eventData?._id || ticketId || "",
+      eventid: eventData?._id || "",
       members: memberCount || 1,
       days: numberOfDays || 1,
     };
     
-    // Only include boothid if it's a booth selection and we have valid booth data
-    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
-    if (hasValidBoothData) {
-      promoPayload.boothid = boothId;
-    }
+    // Check if it's a booth booking or ticket booking
+    const isBoothBooking = selectedTicket?.boothType !== undefined;
+    const isTicketBooking = selectedTicket?.ticketType !== undefined || (!isBoothBooking && ticketId && ticketId.trim() !== "");
     
+    if (isBoothBooking && boothId && boothId.trim() !== "") {
+      // For booth bookings, include boothid
+      promoPayload.boothid = boothId;
+      console.log("🔍 Promo payload for booth booking:", promoPayload);
+    } else if (isTicketBooking && ticketId && ticketId.trim() !== "") {
+      // For ticket bookings, include ticketid
+      promoPayload.ticketid = ticketId;
+      console.log("🔍 Promo payload for ticket booking:", promoPayload);
+    } else {
+      // When nothing is selected, only pass eventid, members, and days
+      console.log("🔍 Promo payload for event-only booking (no ticket/booth selected):", promoPayload);
+    }
+    console.log("===> promoPayload", promoPayload);
     dispatch(onApplyPromoCode(promoPayload));
-  }, [eventData, memberCount, numberOfDays, boothId, selectedTicket]);
+  }, [eventData, memberCount, numberOfDays, boothId, ticketId, selectedTicket]);
 
   // Check platform pay support
   const checkPlatformPaySupport = async () => {
@@ -751,6 +798,18 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       return;
     }
 
+    // Check if profile details are still loading
+    if (loader) {
+      Alert.alert('Please Wait', 'Loading customer information...');
+      return;
+    }
+
+    // Check if stripeCustomerId is available for payment methods that require it
+    if ((paymentData?.selectedCard || paymentData?.selectedPaymentMethod === 'apple_pay' || paymentData?.selectedPaymentMethod === 'google_pay') && !stripeCustomerId) {
+      Alert.alert('Error', 'Customer information not available. Please try again.');
+      return;
+    }
+
     if (paymentData?.selectedCard) {
       // Process card payment
       await processCardPayment();
@@ -771,8 +830,14 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
   // Process card payment
   const processCardPayment = async () => {
+ 
     if (!paymentData?.selectedCard) {
       Alert.alert('Error', 'No card selected');
+      return;
+    }
+
+    if (!stripeCustomerId) {
+      Alert.alert('Error', 'Customer information not available. Please try again.');
       return;
     }
 
@@ -792,7 +857,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           body: new URLSearchParams({
             amount: amountInCents.toString(),
             currency: 'usd',
-            customer: 'cus_T7lZ5LfIt7RqBf',
+            customer: stripeCustomerId, // Use dynamic customer ID
             payment_method: paymentData.selectedCard.id,
             off_session: 'true',
             confirm: 'true',
@@ -821,6 +886,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
   // Process Apple Pay
   const processApplePay = async () => {
+    if (!stripeCustomerId) {
+      Alert.alert('Error', 'Customer information not available. Please try again.');
+      return;
+    }
+
     try {
       const amount = dynamicPricing.total
       const amountInCents = Math.round(amount * 100);
@@ -834,7 +904,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         body: new URLSearchParams({
           amount: amountInCents.toString(),
           currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
+          customer: stripeCustomerId, // Use dynamic customer ID
         }).toString(),
       });
 
@@ -871,6 +941,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
   // Process Google Pay
   const processGooglePay = async () => {
+    if (!stripeCustomerId) {
+      Alert.alert('Error', 'Customer information not available. Please try again.');
+      return;
+    }
+
     try {
       const amount = paymentData?.paymentAmount || priceBreakdown?.total || 0;
       const amountInCents = Math.round(amount * 100);
@@ -884,7 +959,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         body: new URLSearchParams({
           amount: amountInCents.toString(),
           currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
+          customer: stripeCustomerId, // Use dynamic customer ID
         }).toString(),
       });
 
@@ -917,16 +992,27 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const handleApplyPromoCode = () => {
     if (promoCode.trim()) {
       const promoPayload: any = {
-        eventid: eventData?._id || ticketId || "",
+        eventid: eventData?._id || "",
         members: memberCount || 1,
         days: numberOfDays || 1,
         promocode: promoCode.trim()
       };
       
-      // Only include boothid if it's a booth selection and we have valid booth data
-      const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
-      if (hasValidBoothData) {
+      // Check if it's a booth booking or ticket booking
+      const isBoothBooking = selectedTicket?.boothType !== undefined;
+      const isTicketBooking = selectedTicket?.ticketType !== undefined || (!isBoothBooking && ticketId && ticketId.trim() !== "");
+      
+      if (isBoothBooking && boothId && boothId.trim() !== "") {
+        // For booth bookings, include boothid
         promoPayload.boothid = boothId;
+        console.log("🔍 Manual promo payload for booth booking:", promoPayload);
+      } else if (isTicketBooking && ticketId && ticketId.trim() !== "") {
+        // For ticket bookings, include ticketid
+        promoPayload.ticketid = ticketId;
+        console.log("🔍 Manual promo payload for ticket booking:", promoPayload);
+      } else {
+        // When nothing is selected, only pass eventid, members, and days
+        console.log("🔍 Manual promo payload for event-only booking (no ticket/booth selected):", promoPayload);
       }
       
       // Dispatch apply promo code action
@@ -943,16 +1029,27 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     setShowPromoCodeList(false);
     
     const promoPayload: any = {
-      eventid: eventData?._id || ticketId || "",
+      eventid: eventData?._id || "",
       members: memberCount || 1,
       days: numberOfDays || 1,
       promocode: promoCodeData.code
     };
     
-    // Only include boothid if it's a booth selection and we have valid booth data
-    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
-    if (hasValidBoothData) {
+    // Check if it's a booth booking or ticket booking
+    const isBoothBooking = selectedTicket?.boothType !== undefined;
+    const isTicketBooking = selectedTicket?.ticketType !== undefined || (!isBoothBooking && ticketId && ticketId.trim() !== "");
+    
+    if (isBoothBooking && boothId && boothId.trim() !== "") {
+      // For booth bookings, include boothid
       promoPayload.boothid = boothId;
+      console.log("🔍 Promo select payload for booth booking:", promoPayload);
+    } else if (isTicketBooking && ticketId && ticketId.trim() !== "") {
+      // For ticket bookings, include ticketid
+      promoPayload.ticketid = ticketId;
+      console.log("🔍 Promo select payload for ticket booking:", promoPayload);
+    } else {
+      // When nothing is selected, only pass eventid, members, and days
+      console.log("🔍 Promo select payload for event-only booking (no ticket/booth selected):", promoPayload);
     }
     
     // Dispatch apply promo code action
@@ -1259,15 +1356,26 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                     setSelectedDiscount(null);
 
                     const promoPayload: any = {
-                      eventid: eventData?._id || ticketId || "",
+                      eventid: eventData?._id || "",
                       members: memberCount || 1,
                       days: numberOfDays || 1,
                     };
                     
-                    // Only include boothid if it's a booth selection and we have valid booth data
-                    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
-                    if (hasValidBoothData) {
+                    // Check if it's a booth booking or ticket booking
+                    const isBoothBooking = selectedTicket?.boothType !== undefined;
+                    const isTicketBooking = selectedTicket?.ticketType !== undefined || (!isBoothBooking && ticketId && ticketId.trim() !== "");
+                    
+                    if (isBoothBooking && boothId && boothId.trim() !== "") {
+                      // For booth bookings, include boothid
                       promoPayload.boothid = boothId;
+                      console.log("🔍 Promo remove payload for booth booking:", promoPayload);
+                    } else if (isTicketBooking && ticketId && ticketId.trim() !== "") {
+                      // For ticket bookings, include ticketid
+                      promoPayload.ticketid = ticketId;
+                      console.log("🔍 Promo remove payload for ticket booking:", promoPayload);
+                    } else {
+                      // When nothing is selected, only pass eventid, members, and days
+                      console.log("🔍 Promo remove payload for event-only booking (no ticket/booth selected):", promoPayload);
                     }
                     
                     dispatch(onApplyPromoCode(promoPayload));

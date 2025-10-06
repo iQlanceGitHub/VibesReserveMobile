@@ -24,8 +24,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   bookedDates = [],
 }) => {
   // Initialize calendar to show the month of the selected start date
-  const defaultStartDate = initialStartDate || new Date();
-  const defaultEndDate = initialEndDate || new Date();
+  const defaultStartDate = initialStartDate;
+  const defaultEndDate = initialEndDate;
   
   const [currentDate, setCurrentDate] = useState(() => {
     if (defaultStartDate) {
@@ -35,10 +35,10 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   });
 
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(
-    defaultStartDate
+    defaultStartDate || null
   );
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(
-    defaultEndDate
+    defaultEndDate || null
   );
 
   const screenWidth = Dimensions.get("window").width;
@@ -181,21 +181,33 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       return;
     }
 
+    // Always ensure at least one date is selected
     if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
+      // First selection or reset selection
       setSelectedStartDate(date);
       setSelectedEndDate(null);
+      
+      // Call onDateRangeSelect with single date (same as start and end)
+      if (onDateRangeSelect) {
+        onDateRangeSelect(date, date);
+      }
     } else if (selectedStartDate && !selectedEndDate) {
+      // Second selection - set end date
       if (date < selectedStartDate) {
         setSelectedEndDate(selectedStartDate);
         setSelectedStartDate(date);
+        
+        if (onDateRangeSelect) {
+          onDateRangeSelect(date, selectedStartDate);
+        }
+      } else if (date.getTime() === selectedStartDate.getTime()) {
+        // If clicking the same start date, keep it selected (don't deselect)
+        // This ensures we always have at least one date selected
+        return;
       } else {
         setSelectedEndDate(date);
-      }
-
-      if (onDateRangeSelect) {
-        if (date < selectedStartDate) {
-          onDateRangeSelect(date, selectedStartDate);
-        } else {
+        
+        if (onDateRangeSelect) {
           onDateRangeSelect(selectedStartDate, date);
         }
       }

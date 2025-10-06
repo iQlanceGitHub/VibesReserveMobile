@@ -42,30 +42,38 @@ const NearbyEventsSeeAllScreen: React.FC<NearbyEventsSeeAllScreenProps> = () => 
   
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
-
-  const handleBookNow = (eventId?: string) => {
-    console.log('Book Now clicked for event:', eventId);
-    (navigation as any).navigate("ClubDetailScreen", { clubId: eventId || '68b6eceba9ae1fc590695248' });
+  
+  const handleNearbyBookNow = (eventId?: string) => {
+    console.log("Book Now clicked for nearby event:", eventId);
+    // Navigate to ClubProfileScreen for profile details (Nearby events)
+    (navigation as any).navigate("ClubProfileScreen", {
+      clubId: eventId,
+    });
   };
 
   const handleFavoritePress = async (eventId: string) => {
-    console.log('Toggling favorite for event ID:', eventId);
-    
+    console.log("Toggling favorite for event ID:", eventId);
+
     // Check if user has permission to like/favorite
-    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
-    
+    const hasPermission = await handleRestrictedAction(
+      "canLike",
+      navigation,
+      "like this event"
+    );
+
     if (hasPermission) {
       dispatch(onTogglefavorite({ eventId }));
     } else {
       // Show custom alert for login required
       setAlertConfig({
-        title: 'Login Required',
-        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
-        primaryButtonText: 'Sign In',
-        secondaryButtonText: 'Continue Exploring',
+        title: "Login Required",
+        message:
+          "Please sign in to like this event. You can explore the app without an account, but some features require login.",
+        primaryButtonText: "Sign In",
+        secondaryButtonText: "Continue Exploring",
         onPrimaryPress: () => {
           setShowCustomAlert(false);
-          (navigation as any).navigate('SignInScreen');
+          (navigation as any).navigate("SignInScreen");
         },
         onSecondaryPress: () => {
           setShowCustomAlert(false);
@@ -76,11 +84,16 @@ const NearbyEventsSeeAllScreen: React.FC<NearbyEventsSeeAllScreenProps> = () => 
   };
 
   const renderEventItem = ({ item }: { item: any }) => (
+
     <NearbyEventCard
-      event={item}
-      onPress={() => handleBookNow((item as any)._id || (item as any).id)}
-      onFavoritePress={() => handleFavoritePress((item as any)._id || (item as any).id)}
-    />
+    event={item}
+    onPress={() =>
+      handleNearbyBookNow((item as any)._id || (item as any).id)
+    }
+    onFavoritePress={() =>
+      handleFavoritePress((item as any)._id || (item as any).id)
+    }
+  />
   );
 
   return (
