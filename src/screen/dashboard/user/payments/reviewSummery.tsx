@@ -831,6 +831,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Process card payment
   const processCardPayment = async () => {
  
+    const bookingPayload = generateBookingPayload(dynamicPricing);
+    console.log("=== SENDING BOOKING TO API VIA REDUX ===");
+    console.log("API Endpoint: POST /user/booking");
+    console.log("Payload:====>", JSON.stringify(bookingPayload, null, 2));
+
     if (!paymentData?.selectedCard) {
       Alert.alert('Error', 'No card selected');
       return;

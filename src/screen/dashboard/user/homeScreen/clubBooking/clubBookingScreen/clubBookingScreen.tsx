@@ -23,7 +23,7 @@ import MinusSVG from "../../../../../../assets/svg/MinusSVG";
 import PlusSVG from "../../../../../../assets/svg/PlusSVG";
 import clubBookingStyles from "./styles";
 import { verticalScale } from "../../../../../../utilis/appConstant";
-import { onCheckBookedDateBooth, onCheckBookedDate, checkBookedDateData } from "../../../../../../redux/auth/actions";
+import { onCheckBookedDateBooth, onCheckBookedDate, checkBookedDateData, checkBookedDateBoothData } from "../../../../../../redux/auth/actions";
 
 const ClubBookingScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -224,13 +224,25 @@ const ClubBookingScreen: React.FC = () => {
 
       if (eventId && boothId) {
         console.log("Calling checkBookedDateBooth API with eventId:", eventId, "boothId:", boothId);
-        callCheckBookedDateBoothAPI(eventId, boothId);
+       // callCheckBookedDateBoothAPI(eventId, boothId);
       } else {
         console.log("Missing eventId or boothId, skipping API call");
         console.log("eventId:", eventId, "boothId:", boothId);
       }
     }
   }, [currentEventData]);
+  useEffect(() => {
+    if ((currentEventData as any)?.selectedTicket?.capacity) {
+      const eventId = currentEventData?._id || (currentEventData as any)?.id;
+      const boothId = (currentEventData as any)?.selectedTicket?.boothId || 
+                     (currentEventData as any)?.selectedTicket?.id ||
+                     (currentEventData?.booths?.[0] as any)?._id ||
+                     (currentEventData?.booths?.[0] as any)?.id;
+     callCheckBookedDateBoothAPI(eventId, boothId);
+    }
+  }, [currentEventData]);
+
+  
 
   // Handle API response for booked dates
   useEffect(() => {
@@ -298,6 +310,7 @@ const ClubBookingScreen: React.FC = () => {
             `Booking not available. Insufficient capacity on: ${insufficientDatesText}. Please try different dates or reduce members.`,
             8000 // 8 seconds duration
           );
+          dispatch(checkBookedDateData(''));
         }
       } 
       // Fallback to old format (simple available boolean)
@@ -351,10 +364,14 @@ const ClubBookingScreen: React.FC = () => {
       return isNaN(capacity) ? 10 : capacity;
     }
     // Then try from tickets array
-    if (currentEventData?.tickets?.[0]?.capacity) {
-      const capacity = parseInt(String(currentEventData.tickets[0].capacity));
-      console.log("Using tickets[0] capacity:", capacity);
-      return isNaN(capacity) ? 10 : capacity;
+    // if (currentEventData?.tickets?.[0]?.capacity) {
+    //   const capacity = parseInt(String(currentEventData.tickets[0].capacity));
+    //   console.log("Using tickets[0] capacity:", capacity);
+    //   return isNaN(capacity) ? 10 : capacity;
+    // }
+    if (currentEventData) {
+      const capacity = parseInt(String(currentEventData?.eventCapacity));
+      return isNaN(capacity) ? 0 : capacity;
     }
     // Fallback to 10
     console.log("Using fallback capacity: 10");
@@ -480,17 +497,27 @@ const ClubBookingScreen: React.FC = () => {
     // Prepare booking data to pass to next screen
     const totalPrice = calculateTotalPrice();
     const selectedTicket = (currentEventData as any)?.selectedTicket;
+
+    const startDateISO = String(finalStartDate.getFullYear()) + '-' + 
+                        String(finalStartDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(finalStartDate.getDate()).padStart(2, '0') + 'T00:00:00.000Z';
+    const endDateISO = String(finalEndDate.getFullYear()) + '-' + 
+                      String(finalEndDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(finalEndDate.getDate()).padStart(2, '0') + 'T00:00:00.000Z';
+    console.log("startDateISONew", startDateISO);
+    console.log("endDateISONew", endDateISO);
     
     const bookingData = {
       // Event information
       eventData: currentEventData,
       
+      
       // Selected dates (converted to strings to avoid serialization warnings)
-      selectedStartDate: finalStartDate?.toISOString() || null,
-      selectedEndDate: finalEndDate?.toISOString() || null,
+      selectedStartDate: startDateISO?.toString() || null,
+      selectedEndDate: endDateISO?.toString() || null,
       selectedDateRange: {
-        start: finalStartDate?.toISOString() || '',
-        end: finalEndDate?.toISOString() || '',
+        start: startDateISO?.toString() || '',
+        end: endDateISO?.toString() || '',
         formatted: formatSelectedDateRange()
       },
       
@@ -514,7 +541,7 @@ const ClubBookingScreen: React.FC = () => {
         eventPrice: entryFee,
         ticketPrice: ticketPrice,
         eventTime: currentEventData?.openingTime || "10:00",
-        eventDate: finalStartDate?.toISOString() || '',
+        eventDate: startDateISO?.toString() || '',
         memberCount: memberCount,
         totalPrice: totalPrice,
         maxCapacity: maxCapacity,
@@ -526,7 +553,7 @@ const ClubBookingScreen: React.FC = () => {
     };
     
     console.log("Complete booking data being passed to next screen:", bookingData);
-    console.log("Selected dates:", { start: finalStartDate, end: finalEndDate });
+    console.log("Selected dates:", { start: startDateISO, end: endDateISO });
     console.log("Number of tickets:", memberCount);
     console.log("Ticket price per person:", ticketPrice);
     console.log("Total price:", totalPrice);
