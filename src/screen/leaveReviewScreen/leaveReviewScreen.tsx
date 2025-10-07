@@ -11,7 +11,9 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../utilis/colors";
+import { verticalScale } from "../../utilis/appConstant";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
 import { BackButton } from "../../components/BackButton";
@@ -38,6 +40,9 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
   const { ratingReview, ratingReviewErr, loader } = useSelector(
     (state: any) => state.auth
   );
+
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -102,8 +107,13 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
+        backgroundColor="transparent"
         translucent={true}
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === "android" && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: "transparent",
+        })}
       />
       <LinearGradient
         colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
@@ -111,7 +121,7 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { paddingTop: insets.top }]}>
           <View style={styles.header}>
             <View style={styles.statusBar}></View>
             <BackButton navigation={navigation} />
@@ -261,7 +271,8 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
               ]}
             />
           </View>
-        </SafeAreaView>
+          <View style={{ marginBottom: verticalScale(40) }} />
+        </View>
       </LinearGradient>
     </View>
   );

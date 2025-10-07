@@ -14,7 +14,9 @@ import {
   Keyboard,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../utilis/colors";
+import { verticalScale } from "../../utilis/appConstant";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
 import ClockIcon from "../../assets/svg/clockIcon";
@@ -203,6 +205,9 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
     (state: any) => state.auth.cancelBookingErr
   );
 
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
+
   const [selectedTab, setSelectedTab] = useState("pending");
   const [refreshing, setRefreshing] = useState(false);
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
@@ -365,8 +370,13 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
+        backgroundColor="transparent"
         translucent={true}
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === "android" && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: "transparent",
+        })}
       />
       <LinearGradient
         colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
@@ -374,7 +384,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { paddingTop: insets.top }]}>
           <View style={styles.header}>
             <View style={styles.statusBar}></View>
             <Text style={styles.title}>Bookings</Text>
@@ -442,7 +452,8 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
               </View>
             )}
           </ScrollView>
-        </SafeAreaView>
+          <View style={{ marginBottom: verticalScale(40) }} />
+        </View>
 
         {/* Cancel Booking Modal */}
         <Modal
