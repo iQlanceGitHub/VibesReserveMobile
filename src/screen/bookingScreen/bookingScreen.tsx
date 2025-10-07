@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StatusBar,
-  SafeAreaView,
   Platform,
   TouchableOpacity,
   Image,
@@ -130,7 +129,7 @@ const BookingCard: React.FC<{
             <View style={styles.categoryTag}>
               <Text style={styles.categoryText}>{booking?.type}</Text>
             </View>
-            <Text style={styles.priceText}>${booking?.fees}</Text>
+            <Text style={styles.priceText}>${booking?.totalAmount}</Text>
           </View>
 
           <Text style={styles.eventName}>{booking?.eventId?.name}</Text>
