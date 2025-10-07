@@ -117,12 +117,26 @@ import {
   onCancelBooking,
   cancelBookingData,
   cancelBookingError,
+  // Chat imports
+  onSendMessage,
+  sendMessageData,
+  sendMessageError,
+  onGetConversation,
+  getConversationData,
+  getConversationError,
+  onGetChatList,
+  getChatListData,
+  getChatListError,
+  onStartLongPolling,
+  onStopLongPolling,
+  onUpdateMessages,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
 
 import { base_url_client, base_url_qa } from "../apiConstant";
 import { fetchPost, fetchGet, fetchPut } from "../services";
+import { longPollingService } from "../../services/longPollingService";
 
 const baseurl = base_url_client;
 
@@ -1734,6 +1748,80 @@ function* CancelBookingSaga({
   }
 }
 
+// Chat Saga Functions
+interface SendMessagePayload {
+  receiverId: string;
+  message: string;
+}
+
+function* SendMessageSaga({ payload }: { payload: SendMessagePayload }): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+    const response = yield call(fetchPost, {
+      url: `${baseurl}user/sendmessage`,
+      params: payload,
+    });
+    if (response.status === true || response.status === "true" || response.status === 1) {
+      yield put(sendMessageData(response));
+    } else {
+      yield put(sendMessageError(response.message || "Failed to send message"));
+    }
+  } catch (error) {
+    yield put(sendMessageError(error));
+  } finally {
+    yield put(displayLoading(false));
+  }
+}
+
+interface GetConversationPayload {
+  otherUserId: string;
+}
+
+function* GetConversationSaga({ payload }: { payload: GetConversationPayload }): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+    const response = yield call(fetchPost, {
+      url: `${baseurl}user/conversation`,
+      params: payload,
+    });
+    if (response.status === true || response.status === "true" || response.status === 1) {
+      yield put(getConversationData(response.data || response.messages || []));
+    } else {
+      yield put(getConversationError(response.message || "Failed to get conversation"));
+    }
+  } catch (error) {
+    yield put(getConversationError(error));
+  } finally {
+    yield put(displayLoading(false));
+  }
+}
+
+function* GetChatListSaga(): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+    const response = yield call(fetchGet, {
+      url: `${baseurl}user/chatlist`,
+    });
+    if (response.status === true || response.status === "true" || response.status === 1) {
+      yield put(getChatListData(response.data || response.chats || []));
+    } else {
+      yield put(getChatListError(response.message || "Failed to get chat list"));
+    }
+  } catch (error) {
+    yield put(getChatListError(error));
+  } finally {
+    yield put(displayLoading(false));
+  }
+}
+
+function* StartLongPollingSaga(): SagaIterator {
+  longPollingService.startPolling();
+}
+
+function* StopLongPollingSaga(): SagaIterator {
+  longPollingService.stopPolling();
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -1773,6 +1861,13 @@ function* authSaga() {
   yield takeLatest(onRatingReview().type, RatingReviewSaga);
   yield takeLatest(onCancelBooking().type, CancelBookingSaga);
   yield takeLatest(getBookingList().type, BookingListSaga);
+  
+  // Chat sagas
+  yield takeLatest(onSendMessage, SendMessageSaga);
+  yield takeLatest(onGetConversation, GetConversationSaga);
+  yield takeLatest(onGetChatList, GetChatListSaga);
+  yield takeLatest(onStartLongPolling, StartLongPollingSaga);
+  yield takeLatest(onStopLongPolling, StopLongPollingSaga);
 }
 
 export default authSaga;

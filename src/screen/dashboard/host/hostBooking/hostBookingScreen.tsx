@@ -238,10 +238,16 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     console.log("Call booking:", bookingId);
   };
 
-  const handleChat = (bookingId: string) => {
-    console.log("Chat booking:", bookingId);
+  const handleChat = (profile: any) => {
+    console.log("Chat booking:", profile);
+    if (profile?.id) {
+      (navigation as any).navigate("ChatScreen", {
+        otherUserId: profile.id,
+        otherUserName: profile.userName,
+        otherUserProfilePicture: "",
+      });
+    }
   };
-
   const handleAccept = (bookingId: string) => {
     console.log("Accept booking:", bookingId);
   };
@@ -290,7 +296,8 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.actionButton}
-                  onPress={() => handleChat(booking.id)}
+                  // onPress={() => handleChat(booking.id)}
+                  onPress={() => handleChat(booking)}
                 >
                   <ChatIcon size={16} color={colors.white} />
                 </TouchableOpacity>

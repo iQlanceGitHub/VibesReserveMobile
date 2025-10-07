@@ -158,6 +158,23 @@ export const {
   cancelBookingData,
   cancelBookingError,
 
+  // Chat Actions
+  onSendMessage,
+  sendMessageData,
+  sendMessageError,
+
+  onGetConversation,
+  getConversationData,
+  getConversationError,
+
+  onGetChatList,
+  getChatListData,
+  getChatListError,
+
+  onStartLongPolling,
+  onStopLongPolling,
+  onUpdateMessages,
+
   setLoginToken,
 
   setLoginUserDetails,
@@ -317,6 +334,23 @@ export const {
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",
+
+  // Chat Action Types
+  "ON_SEND_MESSAGE",
+  "SEND_MESSAGE_DATA",
+  "SEND_MESSAGE_ERROR",
+
+  "ON_GET_CONVERSATION",
+  "GET_CONVERSATION_DATA",
+  "GET_CONVERSATION_ERROR",
+
+  "ON_GET_CHAT_LIST",
+  "GET_CHAT_LIST_DATA",
+  "GET_CHAT_LIST_ERROR",
+
+  "ON_START_LONG_POLLING",
+  "ON_STOP_LONG_POLLING",
+  "ON_UPDATE_MESSAGES",
 
   "SET_LOGIN_TOKEN",
 

@@ -61,6 +61,8 @@ import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
 import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
 import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
+import ChatListScreen from "../screen/dashboard/user/chatScreen/chatListScreen";
+import ChatScreen from "../screen/dashboard/user/chatScreen/chatScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -131,6 +133,13 @@ export type RootStackParamList = {
   HostEditProfileScreen: undefined;
   PaymentSuccessScreen: undefined;
   ClubBarListScreen: undefined;
+  ChatListScreen: undefined;
+  ChatScreen: {
+    otherUserId: string;
+    otherUserName: string;
+    otherUserProfilePicture?: string;
+    conversationId?: string;
+  };
 };
 
 function MyTabs() {
@@ -153,12 +162,12 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={LogoutScreen}
+        component={ChatListScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Setting"
-        component={ProfileScreen}
+        component={LogoutScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
@@ -395,6 +404,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ClubBarListScreen"
             component={ClubBarListScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ChatScreen"
+            component={ChatScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
