@@ -205,6 +205,78 @@ const clubBookingStyles = StyleSheet.create({
     fontFamily: fonts.SemiBold,
     color: colors.white,
   },
+  nextButtonDisabled: {
+    backgroundColor: colors.whiteTransparentMedium,
+    opacity: 0.6,
+  },
+  // Date Availability styles
+  dateAvailabilityContainer: {
+    paddingHorizontal: horizontalScale(20),
+    paddingVertical: verticalScale(16),
+    backgroundColor: "rgba(18, 1, 40, 0.8)",
+    marginHorizontal: horizontalScale(20),
+    borderRadius: horizontalScale(12),
+    marginBottom: verticalScale(16),
+  },
+  dateAvailabilityTitle: {
+    fontSize: fontScale(16),
+    fontWeight: "600",
+    fontFamily: fonts.SemiBold,
+    color: colors.white,
+    marginBottom: verticalScale(12),
+    textAlign: "center",
+  },
+  dateAvailabilityRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    flexWrap: "wrap",
+    gap: horizontalScale(8),
+  },
+  dateAvailabilityItem: {
+    alignItems: "center",
+    minWidth: horizontalScale(60),
+    marginBottom: verticalScale(8),
+  },
+  availabilityBadge: {
+    paddingHorizontal: horizontalScale(8),
+    paddingVertical: verticalScale(4),
+    borderRadius: horizontalScale(12),
+    marginTop: verticalScale(4),
+    minWidth: horizontalScale(70),
+    alignItems: "center",
+  },
+  availableBadge: {
+    backgroundColor: colors.green + "20",
+    borderWidth: 1,
+    borderColor: colors.green,
+  },
+  soldOutBadge: {
+    backgroundColor: colors.red + "20",
+    borderWidth: 1,
+    borderColor: colors.red,
+  },
+  availabilityText: {
+    fontSize: fontScale(10),
+    fontWeight: "500",
+    fontFamily: fonts.Medium,
+    textAlign: "center",
+  },
+  availableText: {
+    color: colors.green,
+  },
+  soldOutText: {
+    color: colors.red,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    paddingVertical: verticalScale(20),
+  },
+  loadingText: {
+    fontSize: fontScale(14),
+    fontWeight: "400",
+    fontFamily: fonts.Regular,
+    color: colors.whiteTransparentMedium,
+  },
 });
 
 export default clubBookingStyles;
