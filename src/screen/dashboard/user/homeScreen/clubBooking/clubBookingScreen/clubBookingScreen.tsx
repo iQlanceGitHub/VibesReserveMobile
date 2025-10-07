@@ -62,6 +62,7 @@ const DateAvailabilityCard: React.FC<{
       </View>
     );
   }
+  
 
   return (
     <View style={clubBookingStyles.dateAvailabilityContainer}>
@@ -78,6 +79,7 @@ const DateAvailabilityCard: React.FC<{
                 clubBookingStyles.availabilityText,
                 item.isSoldOut ? clubBookingStyles.soldOutText : clubBookingStyles.availableText
               ]}>
+                
                 {item.isSoldOut ? 'Sold out' : `Avl: ${item.availableCapacity}`}
               </Text>
             </View>
@@ -214,7 +216,10 @@ const ClubBookingScreen: React.FC = () => {
   const [bookingData, setBookingData] = useState({
     startDate: "2025-09-01T00:00:00.000Z",
     endDate: "2025-09-30T00:00:00.000Z",
-    bookedDates: [] as string[],
+    bookedDates: [
+      "2025-10-09T00:00:00.000Z", // Oct 9 - booked
+      "2025-10-10T00:00:00.000Z"  // Oct 10 - booked
+    ] as string[],
   });
   const [eventStartDate, setEventStartDate] = useState<Date>(new Date());
   const [eventEndDate, setEventEndDate] = useState<Date>(new Date());
@@ -270,16 +275,28 @@ const ClubBookingScreen: React.FC = () => {
           month: 'short',
           day: 'numeric'
         });
-        console.log("🔍 Generated date:", { dateStr, formattedDate, currentDate: new Date(currentDate) });
-        dates.push({
-          date: dateStr,
-          availableCapacity: 0,
-          isSoldOut: false,
-          formattedDate: formattedDate
+        
+        // Check if this date is booked
+        const isBooked = bookingData.bookedDates.some(bookedDate => {
+          const bookedDateStr = bookedDate.split('T')[0]; // Get YYYY-MM-DD part
+          const currentDateStr = dateStr.split('T')[0]; // Get YYYY-MM-DD part
+          return bookedDateStr === currentDateStr;
         });
+        
+        console.log("🔍 Generated date:", { dateStr, formattedDate, currentDate: new Date(currentDate), isBooked });
+        
+        // Only add non-booked dates to the availability list
+        if (!isBooked) {
+          dates.push({
+            date: dateStr,
+            availableCapacity: 0,
+            isSoldOut: false,
+            formattedDate: formattedDate
+          });
+        }
         currentDate.setDate(currentDate.getDate() + 1);
       }
-      console.log("🔍 All generated dates:", dates);
+      console.log("🔍 All generated dates (excluding booked):", dates);
 
       // Call the actual API to get availability data
       // Create date strings manually to avoid timezone conversion issues
@@ -458,6 +475,20 @@ const ClubBookingScreen: React.FC = () => {
         console.log("🔍 Previous availability:", prevAvailability);
         const updatedAvailability = prevAvailability.map(availabilityItem => {
           console.log("🔍 Processing availability item:", availabilityItem);
+          
+          // Check if this date is booked before processing API data
+          const isBooked = bookingData.bookedDates.some(bookedDate => {
+            const bookedDateStr = bookedDate.split('T')[0]; // Get YYYY-MM-DD part
+            const availabilityDateStr = availabilityItem.date.split('T')[0]; // Get YYYY-MM-DD part
+            return bookedDateStr === availabilityDateStr;
+          });
+          
+          // If date is booked, don't include it in availability
+          if (isBooked) {
+            console.log("🔍 Date is booked, excluding from availability:", availabilityItem.formattedDate);
+            return null; // This will be filtered out
+          }
+          
           const apiData = checkBookedDate.data.find((item: any) => {
             // Extract date part directly from strings to avoid timezone issues
             const apiDateStr = item.date.split('T')[0]; // Get YYYY-MM-DD part
@@ -496,9 +527,9 @@ const ClubBookingScreen: React.FC = () => {
 
           console.log("🔍 No matching API data found for:", availabilityItem);
           return availabilityItem;
-        });
+        }).filter(item => item !== null); // Remove null items (booked dates)
         
-        console.log("🔍 Updated availability after API processing:", updatedAvailability);
+        console.log("🔍 Updated availability after API processing (excluding booked dates):", updatedAvailability);
         return updatedAvailability;
       });
 
@@ -1012,12 +1043,16 @@ const ClubBookingScreen: React.FC = () => {
             />
           </View>
 
+         
           {/* Date Availability Display */}
+
+          {!((currentEventData as any)?.selectedTicket?.capacity) && (
           <DateAvailabilityCard
             availability={dateAvailability}
             isLoading={isLoadingAvailability}
             hasSelectedDates={!!selectedStartDate}
           />
+          )}
 
           <View style={clubBookingStyles.memberSection}>
             <Text style={clubBookingStyles.memberTitle}>Add Member</Text>

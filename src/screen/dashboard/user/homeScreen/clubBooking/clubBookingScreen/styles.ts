@@ -61,7 +61,7 @@ const clubBookingStyles = StyleSheet.create({
     alignItems: "center",
   },
   dateText: {
-    fontSize: fontScale(14),
+    fontSize: fontScale(18),
     fontWeight: "500",
     fontFamily: fonts.Medium,
     color: colors.white,
@@ -256,7 +256,7 @@ const clubBookingStyles = StyleSheet.create({
     borderColor: colors.red,
   },
   availabilityText: {
-    fontSize: fontScale(10),
+    fontSize: fontScale(14),
     fontWeight: "500",
     fontFamily: fonts.Medium,
     textAlign: "center",
@@ -265,7 +265,7 @@ const clubBookingStyles = StyleSheet.create({
     color: colors.green,
   },
   soldOutText: {
-    color: colors.red,
+    color: colors.white,
   },
   loadingContainer: {
     alignItems: "center",
