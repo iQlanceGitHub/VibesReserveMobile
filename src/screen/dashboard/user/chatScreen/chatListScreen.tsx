@@ -53,6 +53,9 @@ const ChatListScreen = () => {
     useCallback(() => {
       dispatch(onStartLongPolling());
       
+      // Refresh chat list when screen comes into focus
+      dispatch(onGetChatList());
+      
       return () => {
         dispatch(onStopLongPolling());
       };

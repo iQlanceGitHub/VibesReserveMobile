@@ -1756,7 +1756,7 @@ interface SendMessagePayload {
 
 function* SendMessageSaga({ payload }: { payload: SendMessagePayload }): SagaIterator {
   try {
-    yield put(displayLoading(true));
+    //yield put(displayLoading(true));
     const response = yield call(fetchPost, {
       url: `${baseurl}user/sendmessage`,
       params: payload,
@@ -1769,7 +1769,7 @@ function* SendMessageSaga({ payload }: { payload: SendMessagePayload }): SagaIte
   } catch (error) {
     yield put(sendMessageError(error));
   } finally {
-    yield put(displayLoading(false));
+    //yield put(displayLoading(false));
   }
 }
 
@@ -1779,7 +1779,7 @@ interface GetConversationPayload {
 
 function* GetConversationSaga({ payload }: { payload: GetConversationPayload }): SagaIterator {
   try {
-    yield put(displayLoading(true));
+   // yield put(displayLoading(true));
     const response = yield call(fetchPost, {
       url: `${baseurl}user/conversation`,
       params: payload,
@@ -1792,7 +1792,7 @@ function* GetConversationSaga({ payload }: { payload: GetConversationPayload }):
   } catch (error) {
     yield put(getConversationError(error));
   } finally {
-    yield put(displayLoading(false));
+   // yield put(displayLoading(false));
   }
 }
 

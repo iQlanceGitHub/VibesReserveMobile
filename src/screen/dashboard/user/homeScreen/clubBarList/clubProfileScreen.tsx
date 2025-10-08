@@ -328,6 +328,7 @@ const ClubProfileScreen = () => {
                     otherUserId: hostProfile._id,
                     otherUserName: hostProfile.businessName || hostProfile.fullName,
                     otherUserProfilePicture: hostProfile.businessPicture || hostProfile.profilePicture,
+                    conversationId: hostProfile?.conversationId,
                   });
                 }
               }}

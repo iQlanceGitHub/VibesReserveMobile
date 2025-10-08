@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StatusBar, Platform } from "react-native";
+import { View, StatusBar, Platform, AppState } from "react-native";
 import NavigationStack from "./src/navigation/navigation";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -11,6 +11,7 @@ import { toastConfig } from "./src/utilis/toastUtils.tsx";
 import AppInitializer from "./src/components/AppInitializer";
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {stripeTestKey} from './src/utilis/appConstant';
+import { longPollingService } from './src/services/longPollingService';
 
 
 const initialState = {};
@@ -29,6 +30,24 @@ function App(): React.JSX.Element {
   useEffect(() => {
     // Hide splash screen when app is ready
     SplashScreen.hide();
+
+    // Handle app state changes for chat polling
+    const handleAppStateChange = (nextAppState: string) => {
+      console.log('App state changed to:', nextAppState);
+      if (nextAppState === 'active') {
+        // App came to foreground, ensure long polling is active
+        if (longPollingService.isPollingActive()) {
+          console.log('App became active, triggering immediate poll...');
+          // The long polling service will handle the immediate poll
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   return (

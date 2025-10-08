@@ -1,11 +1,17 @@
-import { store } from '../reduxSaga/configureStore';
-import { onUpdateMessages, onGetChatList } from '../redux/auth/actions';
-import { fetchGet } from '../redux/services';
+import { store } from '../reduxSaga/StoreProvider';
+import { onUpdateMessages, onGetChatList, onGetConversation, getConversationData } from '../redux/auth/actions';
+import { fetchGet, fetchPost } from '../redux/services';
+import { AppState } from 'react-native';
+import { base_url_client } from '../redux/apiConstant';
 
 class LongPollingService {
   private intervalId: NodeJS.Timeout | null = null;
   private isActive = false;
-  private baseUrl = 'http://54.241.179.201/vr-api/';
+  private baseUrl = base_url_client;
+  private currentConversationId: string | null = null;
+  private currentOtherUserId: string | null = null;
+  private appStateSubscription: any = null;
+  private lastPollTime = 0;
 
   startPolling() {
     if (this.isActive) return;
@@ -13,13 +19,16 @@ class LongPollingService {
     this.isActive = true;
     console.log('Starting long polling service...');
     
-    // Poll every 6 seconds
+    // Poll every 6 seconds for faster updates
     this.intervalId = setInterval(() => {
       this.pollForUpdates();
-    }, 6000);
+    }, 4000);
     
     // Initial poll
     this.pollForUpdates();
+    
+    // Listen for app state changes
+    this.setupAppStateListener();
   }
 
   stopPolling() {
@@ -29,18 +38,54 @@ class LongPollingService {
     }
     this.isActive = false;
     console.log('Stopped long polling service...');
+    
+    // Remove app state listener
+    if (this.appStateSubscription) {
+      this.appStateSubscription.remove();
+      this.appStateSubscription = null;
+    }
+  }
+
+  setCurrentConversation(conversationId: string | null, otherUserId: string | null = null) {
+    this.currentConversationId = conversationId;
+    this.currentOtherUserId = otherUserId;
+    console.log('Current conversation set to:', conversationId, 'otherUserId:', otherUserId);
+  }
+
+  private setupAppStateListener() {
+    this.appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+      console.log('App state changed to:', nextAppState);
+      if (nextAppState === 'active' && this.isActive) {
+        // App came to foreground, immediately poll for updates
+        console.log('App became active, polling for updates...');
+        this.pollForUpdates();
+      }
+    });
   }
 
   private async pollForUpdates() {
+    const now = Date.now();
+    // Prevent too frequent polling (match 6s interval)
+    if (now - this.lastPollTime < 4000) {
+      console.log('Skipping poll - too frequent');
+      return;
+    }
+    this.lastPollTime = now;
+    
+    console.log('=== Long Polling Update ===');
+    console.log('Current conversation ID:', this.currentConversationId);
+    console.log('Current other user ID:', this.currentOtherUserId);
+
     try {
-      const response = await fetchGet({
+      // Poll chat list for new conversations and updates
+      const chatListResponse = await fetchGet({
         url: `${this.baseUrl}user/chatlist`,
       });
 
-      if (response.status === true || response.status === "true" || response.status === 1) {
-        const currentState = store.getState();
-        const currentChatList = currentState.auth.chatList || [];
-        const newChatList = response.data || response.chats || [];
+      if (chatListResponse.status === true || chatListResponse.status === "true" || chatListResponse.status === 1) {
+        const currentState = (store as any).getState();
+        const currentChatList: any[] = currentState.auth?.chatList || [];
+        const newChatList: any[] = chatListResponse.data || chatListResponse.chats || [];
         
         // Check for new messages in each conversation
         newChatList.forEach((newChat: any) => {
@@ -65,7 +110,7 @@ class LongPollingService {
             if (newMessagesToAdd.length > 0) {
               console.log(`Found ${newMessagesToAdd.length} new messages for conversation ${newChat.conversationId || newChat.otherUserId}`);
               
-              store.dispatch(onUpdateMessages({
+              (store as any).dispatch(onUpdateMessages({
                 conversationId: newChat.conversationId || newChat.otherUserId,
                 newMessages: newMessagesToAdd
               }));
@@ -74,7 +119,7 @@ class LongPollingService {
             // New conversation with messages
             console.log(`New conversation found with ${newChat.messages.length} messages`);
             
-            store.dispatch(onUpdateMessages({
+            (store as any).dispatch(onUpdateMessages({
               conversationId: newChat.conversationId || newChat.otherUserId,
               newMessages: newChat.messages
             }));
@@ -83,7 +128,29 @@ class LongPollingService {
 
         // Update the entire chat list if there are structural changes
         if (newChatList.length !== currentChatList.length) {
-          store.dispatch(onGetChatList());
+          (store as any).dispatch(onGetChatList());
+        }
+      }
+
+      // If we're currently viewing a specific conversation, also poll for its messages
+      if (this.currentOtherUserId) {
+        try {
+          console.log('Polling conversation for otherUserId:', this.currentOtherUserId);
+          const conversationResponse = await fetchPost({
+            url: `${this.baseUrl}user/conversation`,
+            params: { otherUserId: this.currentOtherUserId }
+          });
+
+          if (conversationResponse.status === true || conversationResponse.status === "true" || conversationResponse.status === 1) {
+            const conversationData = conversationResponse.data || conversationResponse.messages || [];
+            if (conversationData && Array.isArray(conversationData)) {
+              console.log('Found conversation data:', conversationData.length, 'messages');
+              // Directly update the conversation data in Redux without going through saga
+              (store as any).dispatch(getConversationData(conversationData));
+            }
+          }
+        } catch (conversationError) {
+          console.log('Error polling conversation:', conversationError);
         }
       }
     } catch (error) {

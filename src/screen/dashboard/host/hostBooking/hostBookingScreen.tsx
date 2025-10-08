@@ -242,9 +242,10 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     console.log("Chat booking:", profile);
     if (profile?.id) {
       (navigation as any).navigate("ChatScreen", {
-        otherUserId: profile.id,
-        otherUserName: profile.userName,
-        otherUserProfilePicture: "",
+        otherUserId: '68dfe7d88f4790a4542c0c2a',
+        otherUserName: 'Mac',
+        otherUserProfilePicture: profile?.userImage?.uri || "",
+        conversationId: profile?.conversationId,
       });
     }
   };
@@ -292,14 +293,14 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
                   style={styles.actionButton}
                   onPress={() => handleCall(booking.id)}
                 >
-                  <PhoneIcon size={16} color={colors.white} />
+                  <PhoneIcon width={16} height={16} color={colors.white} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.actionButton}
                   // onPress={() => handleChat(booking.id)}
                   onPress={() => handleChat(booking)}
                 >
-                  <ChatIcon size={16} color={colors.white} />
+                  <ChatIcon width={16} height={16} color={colors.white} />
                 </TouchableOpacity>
               </View>
             )}

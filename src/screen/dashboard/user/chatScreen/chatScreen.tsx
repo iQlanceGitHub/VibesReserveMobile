@@ -11,11 +11,13 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../../../utilis/colors";
 import { BackButton } from "../../../../components/BackButton";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   onSendMessage,
   sendMessageData,
@@ -26,13 +28,15 @@ import {
   onStartLongPolling,
   onStopLongPolling,
 } from "../../../../redux/auth/actions";
+import { longPollingService } from "../../../../services/longPollingService";
 
 interface Message {
   _id: string;
-  senderId: string;
-  receiverId: string;
+  senderId: string | { _id: string; fullName?: string };
+  receiverId: string | { _id: string; fullName?: string };
   message: string;
-  timestamp: string;
+  timestamp?: string; // some APIs return timestamp
+  createdAt?: string; // backend sample uses createdAt
   isRead?: boolean;
 }
 
@@ -55,12 +59,44 @@ const ChatScreen = () => {
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMessageCountRef = useRef<number>(0);
+  const lastMessageIdRef = useRef<string>("");
 
   // Redux state
   const conversation = useSelector((state: any) => state.auth.conversation) || [];
   const sendMessage = useSelector((state: any) => state.auth.sendMessage);
   const sendMessageErr = useSelector((state: any) => state.auth.sendMessageErr);
   const conversationErr = useSelector((state: any) => state.auth.conversationErr);
+
+  // Determine current user ID from storage
+  useEffect(() => {
+    const loadUserId = async () => {
+      try {
+        const userDataStr = await AsyncStorage.getItem("user_data");
+        if (userDataStr) {
+          const parsed = JSON.parse(userDataStr);
+          const id = parsed?.id || parsed?._id || "";
+          if (id) {
+            setCurrentUserId(id);
+            return;
+          }
+        }
+        const userStr = await AsyncStorage.getItem("user");
+        if (userStr) {
+          const parsed = JSON.parse(userStr);
+          const id = parsed?.id || parsed?._id || "";
+          if (id) setCurrentUserId(id);
+        }
+      } catch (e) {
+        // noop
+      }
+    };
+    loadUserId();
+  }, []);
 
   // Load conversation on component mount
   useEffect(() => {
@@ -69,14 +105,59 @@ const ChatScreen = () => {
     }
   }, [otherUserId, dispatch]);
 
+  // Function to check if there are new messages
+  const hasNewMessages = (newMessages: Message[]): boolean => {
+    if (newMessages.length === 0) return false;
+    
+    // If this is the first time loading messages, consider it new
+    if (lastMessageCountRef.current === 0) {
+      return true;
+    }
+    
+    // Check if message count increased
+    if (newMessages.length > lastMessageCountRef.current) {
+      return true;
+    }
+    
+    // Check if the last message ID changed (new message added)
+    const lastMessage = newMessages[newMessages.length - 1];
+    const currentLastMessageId = lastMessage._id || lastMessage.timestamp || lastMessage.createdAt;
+    
+    if (currentLastMessageId !== lastMessageIdRef.current && lastMessageIdRef.current !== "") {
+      return true;
+    }
+    
+    return false;
+  };
+
   // Update messages when conversation data changes
   useEffect(() => {
-    if (conversation && conversation.length > 0) {
-      setMessages(conversation);
-      // Scroll to bottom after messages are loaded
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+    const raw = Array.isArray(conversation)
+      ? conversation
+      : (conversation?.data as Message[]) || [];
+    
+    if (raw && raw.length > 0) {
+      // Check if there are new messages before updating
+      const hasNew = hasNewMessages(raw);
+      
+      setMessages(raw);
+      
+      // Only scroll if there are new messages
+      if (hasNew) {
+        console.log('New messages detected - scrolling to bottom');
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      } else {
+        console.log('No new messages - not scrolling');
+      }
+      
+      // Update refs for next comparison
+      lastMessageCountRef.current = raw.length;
+      if (raw.length > 0) {
+        const lastMessage = raw[raw.length - 1];
+        lastMessageIdRef.current = lastMessage._id || lastMessage.timestamp || lastMessage.createdAt;
+      }
     }
   }, [conversation]);
 
@@ -85,14 +166,32 @@ const ChatScreen = () => {
     if (sendMessage && sendMessage.status) {
       // Message sent successfully, clear input
       setMessageText("");
+      setIsLoading(false);
+      
+      // Clear timeout
+      if (sendTimeoutRef.current) {
+        clearTimeout(sendTimeoutRef.current);
+        sendTimeoutRef.current = null;
+      }
+      
       // Refresh conversation to get updated messages
-      dispatch(onGetConversation({ otherUserId }));
+      if (otherUserId) {
+        dispatch(onGetConversation({ otherUserId }));
+      }
     }
-  }, [sendMessage, otherUserId, dispatch]);
+  }, [sendMessage, conversationId, otherUserId, dispatch]);
 
   // Handle send message error
   useEffect(() => {
     if (sendMessageErr) {
+      setIsLoading(false);
+      
+      // Clear timeout
+      if (sendTimeoutRef.current) {
+        clearTimeout(sendTimeoutRef.current);
+        sendTimeoutRef.current = null;
+      }
+      
       Alert.alert("Error", sendMessageErr);
     }
   }, [sendMessageErr]);
@@ -104,39 +203,127 @@ const ChatScreen = () => {
     }
   }, [conversationErr]);
 
+  // Cleanup interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+      if (sendTimeoutRef.current) {
+        clearTimeout(sendTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Start/stop long polling based on screen focus
   useFocusEffect(
     useCallback(() => {
       dispatch(onStartLongPolling());
       
-      return () => {
-        dispatch(onStopLongPolling());
+      // Set current conversation for long polling service
+      if (conversationId) {
+        longPollingService.setCurrentConversation(conversationId, otherUserId);
+      } else if (otherUserId) {
+        longPollingService.setCurrentConversation(null, otherUserId);
+      }
+      
+      // Refresh conversation when screen comes into focus
+      if (otherUserId) {
+        dispatch(onGetConversation({ otherUserId }));
+      }
+
+      // Start local refresh interval as backup
+      const startLocalRefresh = () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+        }
+        refreshIntervalRef.current = setInterval(() => {
+          console.log('Local refresh triggered for otherUserId:', otherUserId);
+          if (otherUserId) {
+            dispatch(onGetConversation({ otherUserId }));
+          }
+        }, 6000);
       };
-    }, [dispatch])
+
+      startLocalRefresh();
+      
+      return () => {
+        // Clear current conversation when leaving screen
+        longPollingService.setCurrentConversation(null);
+        dispatch(onStopLongPolling());
+        
+        // Clear local refresh interval
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+          refreshIntervalRef.current = null;
+        }
+      };
+    }, [dispatch, conversationId, otherUserId])
   );
 
   // Send message
   const handleSendMessage = () => {
-    if (messageText.trim() === "") return;
+    if (messageText.trim() === "" || isLoading) return;
     
+    const textToSend = messageText.trim();
     setIsLoading(true);
+    
+    // Optimistically append message locally for instant UI feedback
+    const tempMessage: Message = {
+      _id: `temp-${Date.now()}`,
+      senderId: currentUserId,
+      receiverId: otherUserId,
+      message: textToSend,
+      createdAt: new Date().toISOString(),
+      isRead: true,
+    };
+    setMessages((prev) => [...prev, tempMessage]);
+    setMessageText("")
+    
+    // Set timeout to prevent button from being stuck in loading state
+    if (sendTimeoutRef.current) {
+      clearTimeout(sendTimeoutRef.current);
+    }
+    sendTimeoutRef.current = setTimeout(() => {
+      console.log('Send message timeout - resetting loading state');
+      setIsLoading(false);
+    }, 10000); // 10 second timeout
+    
+    // Always scroll to bottom when user sends a message
+    console.log('User sending message - will scroll to bottom');
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+    
     dispatch(onSendMessage({
       receiverId: otherUserId,
-      message: messageText.trim(),
+      message: textToSend,
+      ...(conversationId ? { conversationId } : {}),
     }));
   };
 
+  // Handle refresh
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    console.log('Manual refresh triggered');
+    if (otherUserId) {
+      dispatch(onGetConversation({ otherUserId }));
+    }
+    setTimeout(() => setRefreshing(false), 1000);
+  }, [dispatch, otherUserId]);
+
   // Format time for message display
-  const formatMessageTime = (timestamp: string) => {
+  const formatMessageTime = (timestamp?: string) => {
+    if (!timestamp) return "";
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   // Check if message is from current user
-  const isCurrentUser = (senderId: string) => {
-    // You might need to get current user ID from Redux state
-    // For now, we'll assume it's different from otherUserId
-    return senderId !== otherUserId;
+  const isCurrentUser = (senderId: Message["senderId"]) => {
+    const sender = typeof senderId === "string" ? senderId : senderId?._id;
+    if (!sender || !currentUserId) return false;
+    return sender === currentUserId;
   };
 
   // Render message item
@@ -170,7 +357,7 @@ const ChatScreen = () => {
               isUser ? styles.userMessageTime : styles.otherMessageTime,
             ]}
           >
-            {formatMessageTime(item.timestamp)}
+            {formatMessageTime(item.timestamp || item.createdAt)}
           </Text>
         </View>
       </View>
@@ -211,6 +398,14 @@ const ChatScreen = () => {
         contentContainerStyle={styles.messagesContainer}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.white}
+            colors={[colors.white]}
+          />
+        }
       />
 
       {/* Message Input */}
@@ -228,11 +423,19 @@ const ChatScreen = () => {
           style={[
             styles.sendButton,
             messageText.trim() === "" && styles.sendButtonDisabled,
+            isLoading && styles.sendButtonLoading,
           ]}
           onPress={handleSendMessage}
           disabled={messageText.trim() === "" || isLoading}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={[
+            styles.sendButtonText,
+            isLoading && styles.sendButtonTextLoading
+          ]}>
+            {isLoading ? "Sending..." : "Send"}
+          </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -355,14 +558,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 20,
+    minWidth: 80,
+    alignItems: "center",
+    justifyContent: "center",
   },
   sendButtonDisabled: {
     backgroundColor: "rgba(255, 255, 255, 0.3)",
+  },
+  sendButtonLoading: {
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
   },
   sendButtonText: {
     color: colors.violate,
     fontSize: 14,
     fontWeight: "600",
+  },
+  sendButtonTextLoading: {
+    color: "rgba(108, 92, 231, 0.7)",
   },
 });
 
