@@ -961,6 +961,28 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  // Parse the value prop to set the initial selectedDate
+  useEffect(() => {
+    if (value && value.trim()) {
+      try {
+        // Parse DD/MM/YYYY format
+        const [day, month, year] = value.split("/");
+        if (day && month && year) {
+          const parsedDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+          );
+          if (!isNaN(parsedDate.getTime())) {
+            setSelectedDate(parsedDate);
+          }
+        }
+      } catch (error) {
+        console.log("Error parsing date value:", error);
+      }
+    }
+  }, [value]);
+
   // Set date constraints based on props
   const maxDate =
     customMaxDate || (allowFutureDates ? new Date(2035, 11, 31) : new Date());

@@ -1282,6 +1282,8 @@ function* ReviewSummarySaga({
 
 interface BookingListPayload {
   status?: string;
+  page?: number;
+  limit?: number;
 }
 
 function* BookingListSaga({
@@ -1295,7 +1297,7 @@ function* BookingListSaga({
       status: payload?.status,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"user/bookinglist"}`,
+      url: `${baseurl}${`user/bookinglist?page=${payload?.page}&limit=${payload?.limit}`}`,
       params,
     });
 

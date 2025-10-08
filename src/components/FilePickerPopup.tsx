@@ -21,6 +21,7 @@ interface FilePickerPopupProps {
   onCameraPress: () => void;
   onGalleryPress: () => void;
   onDocumentPress: () => void;
+  hideDocumentOption?: boolean;
 }
 
 const FilePickerPopup: React.FC<FilePickerPopupProps> = ({
@@ -29,6 +30,7 @@ const FilePickerPopup: React.FC<FilePickerPopupProps> = ({
   onCameraPress,
   onGalleryPress,
   onDocumentPress,
+  hideDocumentOption = false,
 }) => {
   return (
     <Modal
@@ -73,19 +75,21 @@ const FilePickerPopup: React.FC<FilePickerPopupProps> = ({
               <Text style={styles.optionText}>Gallery</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.optionButton}
-              onPress={() => {
-                console.log("Document option pressed in FilePickerPopup");
-                onDocumentPress();
-                onClose();
-              }}
-            >
-              <View style={styles.optionIcon}>
-                <DocumentIcon />
-              </View>
-              <Text style={styles.optionText}>Document</Text>
-            </TouchableOpacity>
+            {!hideDocumentOption && (
+              <TouchableOpacity
+                style={styles.optionButton}
+                onPress={() => {
+                  console.log("Document option pressed in FilePickerPopup");
+                  onDocumentPress();
+                  onClose();
+                }}
+              >
+                <View style={styles.optionIcon}>
+                  <DocumentIcon />
+                </View>
+                <Text style={styles.optionText}>Document</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>

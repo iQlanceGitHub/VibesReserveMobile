@@ -24,7 +24,7 @@ import ClockIcon from "../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../assets/svg/arrowRightIcon";
 import StarRating from "../../components/StarRating";
 import { handleRestrictedAction } from "../../utilis/userPermissionUtils";
-import { onRatingReview } from "../../redux/auth/actions";
+import { onRatingReview, ratingReviewData } from "../../redux/auth/actions";
 import { showToast } from "../../utilis/toastUtils";
 
 interface LeaveReviewScreenProps {
@@ -77,6 +77,7 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
         navigation?.goBack();
       }, 2000);
     }
+    dispatch(ratingReviewData(""));
   }, [ratingReview]);
 
   useEffect(() => {

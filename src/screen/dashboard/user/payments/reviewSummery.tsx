@@ -27,16 +27,29 @@ import ClockIcon from "../../../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../../../assets/svg/arrowRightIcon";
 import DottedLine from "../../../../assets/svg/dottedLine";
 import { styles } from "./reviewSummeryStyle";
-import { onReviewSummary, onCreateBooking, onFetchPromoCodes, onApplyPromoCode, onTogglefavorite, togglefavoriteData, togglefavoriteError } from "../../../../redux/auth/actions";
-import { 
-  useStripe, 
-  ApplePay, 
-  isPlatformPaySupported, 
-  usePlatformPay, 
-  PlatformPayButton, 
-  PlatformPay 
-} from '@stripe/stripe-react-native';
-import { stripeTestKey, horizontalScale, fontScale } from "../../../../utilis/appConstant";
+import {
+  onReviewSummary,
+  onCreateBooking,
+  onFetchPromoCodes,
+  onApplyPromoCode,
+  onTogglefavorite,
+  togglefavoriteData,
+  togglefavoriteError,
+} from "../../../../redux/auth/actions";
+import {
+  useStripe,
+  ApplePay,
+  isPlatformPaySupported,
+  usePlatformPay,
+  PlatformPayButton,
+  PlatformPay,
+} from "@stripe/stripe-react-native";
+import {
+  stripeTestKey,
+  horizontalScale,
+  fontScale,
+  verticalScale,
+} from "../../../../utilis/appConstant";
 import { handleRestrictedAction } from "../../../../utilis/userPermissionUtils";
 import CustomAlert from "../../../../components/CustomAlert";
 
@@ -131,26 +144,32 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const dispatch = useDispatch();
   const route = useRoute();
   const nav = useNavigation();
-  const { reviewSummary, reviewSummaryErr, loader, createBooking, createBookingErr, togglefavorite, togglefavoriteErr } = useSelector(
-    (state: any) => state.auth
-  );
-  
+  const {
+    reviewSummary,
+    reviewSummaryErr,
+    loader,
+    createBooking,
+    createBookingErr,
+    togglefavorite,
+    togglefavoriteErr,
+  } = useSelector((state: any) => state.auth);
+
   // Stripe hooks
   const { confirmPayment } = useStripe();
   const { confirmPlatformPayPayment } = usePlatformPay();
-  
+
   // Payment processing state
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isGooglePaySupported, setIsGooglePaySupported] = useState(false);
-  
+
   // Favorite state
   const [isFavorite, setIsFavorite] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
-    title: '',
-    message: '',
-    primaryButtonText: '',
-    secondaryButtonText: '',
+    title: "",
+    message: "",
+    primaryButtonText: "",
+    secondaryButtonText: "",
     onPrimaryPress: () => {},
     onSecondaryPress: () => {},
   });
@@ -172,17 +191,24 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const selectedStartDate = bookingData?.selectedStartDate;
   const selectedEndDate = bookingData?.selectedEndDate;
   const selectedTicket = bookingData?.selectedTicket;
-  const ticketType = bookingData?.ticketType || selectedTicket?.title || selectedTicket?.name || 'General';
-  const ticketId = bookingData?.ticketId || selectedTicket?.id || selectedTicket?._id || '';
-  
+  const ticketType =
+    bookingData?.ticketType ||
+    selectedTicket?.title ||
+    selectedTicket?.name ||
+    "General";
+  const ticketId =
+    bookingData?.ticketId || selectedTicket?.id || selectedTicket?._id || "";
+
   // Helper function to determine if we should include boothid
   const shouldIncludeBoothId = () => {
     // Only include boothid if selectedTicket exists and has boothType (indicating it's a booth)
     return selectedTicket && selectedTicket.boothType !== undefined;
   };
-  
+
   // Get boothid only if it's a booth selection
-  const boothId = shouldIncludeBoothId() ? (selectedTicket?._id || selectedTicket?.id || ticketId) : undefined;
+  const boothId = shouldIncludeBoothId()
+    ? selectedTicket?._id || selectedTicket?.id || ticketId
+    : undefined;
 
   // Calculate number of days selected
   const calculateDays = () => {
@@ -216,7 +242,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   console.log("SelectedTicket _ID:", selectedTicket?._id);
   console.log("BookingData ticketId:", bookingData?.ticketId);
   console.log("=== END REVIEW SUMMARY DATA ===");
-  
+
   // Debug discount calculation inputs
   console.log("=== DISCOUNT INPUT DEBUG ===");
   console.log("entryFee:", entryFee, "type:", typeof entryFee);
@@ -229,13 +255,20 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   const [promoCode, setPromoCode] = useState(routePromoCode || "");
   const [selectedPromoCode, setSelectedPromoCode] = useState<any>(null);
   const [showPromoCodeList, setShowPromoCodeList] = useState(false);
-  const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(null);
+  const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(
+    null
+  );
   const [userData, setUserData] = useState<UserData | null>(null);
   const [selectedDiscount, setSelectedDiscount] = useState<string | null>(null);
   const [apiPricing, setApiPricing] = useState<any>(null);
 
   // Redux selectors
-  const { fetchPromoCodes, fetchPromoCodesErr, applyPromoCode, applyPromoCodeErr } = useSelector((state: any) => state.auth);
+  const {
+    fetchPromoCodes,
+    fetchPromoCodesErr,
+    applyPromoCode,
+    applyPromoCodeErr,
+  } = useSelector((state: any) => state.auth);
 
   // Handle fetch promo codes response
   useEffect(() => {
@@ -250,9 +283,12 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Handle apply promo code response
   useEffect(() => {
     if (applyPromoCode && applyPromoCode.status === 1) {
-      console.log("✅ Promo code applied successfully:===>", applyPromoCode.data);
+      console.log(
+        "✅ Promo code applied successfully:===>",
+        applyPromoCode.data
+      );
       console.log("✅ Promo code applied summary:===>", applyPromoCode.summary);
-      
+
       // Update pricing with promo code discount from API response
       if (applyPromoCode.summary) {
         const summary = applyPromoCode.summary;
@@ -262,12 +298,12 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           ticketPrice: summary.boothCost || 0,
           discount: parseFloat(summary.discount) || 0,
           fees: parseFloat(summary.fees) || 0,
-          total: summary.total || 0
+          total: summary.total || 0,
         };
-        
+
         // Store API pricing for use in UI
         setApiPricing(updatedPricing);
-        
+
         // Update price breakdown
         setPriceBreakdown({
           memberCost: updatedPricing.entryFee,
@@ -276,10 +312,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           fees: updatedPricing.fees.toFixed(2),
           total: updatedPricing.total,
         });
-        
+
         console.log("📊 Updated pricing from API:", updatedPricing);
       }
-      
+
       setSelectedDiscount(promoCode);
       // Alert.alert("Success", "Promo code applied successfully!");
     } else if (applyPromoCodeErr) {
@@ -295,9 +331,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
   // Generate booking payload for API
   const generateBookingPayload = (pricing: any) => {
-    const baseEntryFee = (entryFee || 0) * (memberCount || 1) * (numberOfDays || 1);
-    const baseTicketPrice = (ticketPrice || 0) * (memberCount || 1) * (numberOfDays || 1);
-    
+    const baseEntryFee =
+      (entryFee || 0) * (memberCount || 1) * (numberOfDays || 1);
+    const baseTicketPrice =
+      (ticketPrice || 0) * (memberCount || 1) * (numberOfDays || 1);
+
     // Debug: Log the values we're working with
     console.log("=== BOOTH/TICKET ID DEBUG ===");
     console.log("selectedTicket:", selectedTicket);
@@ -307,10 +345,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     console.log("selectedTicket?.boothType:", selectedTicket?.boothType);
     console.log("selectedTicket?.ticketType:", selectedTicket?.ticketType);
     console.log("=== END BOOTH/TICKET ID DEBUG ===");
-    
+
     // Determine if this is a booth or ticket based on selectedTicket data
     const isBooth = selectedTicket?.boothType !== undefined;
-    
+
     const basePayload = {
       eventId: eventData?._id || ticketId || "",
       hostId: eventData?.userId?._id || "",
@@ -320,12 +358,13 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       totalAmount: Math.round(pricing.total),
       transactionInfo: `TXN${Date.now()}`, // Generate unique transaction ID
       bookingStartDate: selectedStartDate || new Date().toISOString(),
-      bookingEndDate: selectedEndDate || new Date().toISOString()
+      bookingEndDate: selectedEndDate || new Date().toISOString(),
     };
-    
+
     // Extract IDs with better fallbacks
-    let extractedId = selectedTicket?.id || selectedTicket?._id || ticketId || "";
-    
+    let extractedId =
+      selectedTicket?.id || selectedTicket?._id || ticketId || "";
+
     // If no ID found, try to get it from event data
     if (!extractedId) {
       if (isBooth && eventData?.booths?.[0]) {
@@ -336,20 +375,24 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         console.log("Using ticket ID from event data:", extractedId);
       }
     }
-    
-    const extractedBoothTypeId = selectedTicket?.boothType?._id || selectedTicket?.boothType || "";
-    const extractedTicketTypeId = selectedTicket?.ticketType?._id || selectedTicket?.ticketType || "";
-    
+
+    const extractedBoothTypeId =
+      selectedTicket?.boothType?._id || selectedTicket?.boothType || "";
+    const extractedTicketTypeId =
+      selectedTicket?.ticketType?._id || selectedTicket?.ticketType || "";
+
     console.log("=== EXTRACTED IDS ===");
     console.log("extractedId:", extractedId);
     console.log("extractedBoothTypeId:", extractedBoothTypeId);
     console.log("extractedTicketTypeId:", extractedTicketTypeId);
     console.log("=== END EXTRACTED IDS ===");
-    
+
     // Only include booth/ticket data if we have valid data
-    const hasValidBoothData = isBooth && extractedId && extractedBoothTypeId && baseTicketPrice > 0;
-    const hasValidTicketData = !isBooth && extractedId && extractedTicketTypeId && baseTicketPrice > 0;
-    
+    const hasValidBoothData =
+      isBooth && extractedId && extractedBoothTypeId && baseTicketPrice > 0;
+    const hasValidTicketData =
+      !isBooth && extractedId && extractedTicketTypeId && baseTicketPrice > 0;
+
     // Add booth-specific or ticket-specific fields only if data is available
     if (hasValidBoothData) {
       return {
@@ -367,7 +410,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       };
     } else {
       // Return base payload without booth/ticket specific fields if no valid data
-      console.log("No valid booth or ticket data available, returning base payload only");
+      console.log(
+        "No valid booth or ticket data available, returning base payload only"
+      );
       return basePayload;
     }
   };
@@ -375,16 +420,28 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Calculate discount only if explicitly provided from previous screens
   const calculateDynamicDiscount = () => {
     let discount = 0;
-    
+
     // Check if discount was explicitly selected in previous screens or current screen
-    const hasDiscountFromBooking = bookingData?.discount || bookingData?.selectedDiscount || bookingData?.promoCode;
-    const hasDiscountFromPayment = (paymentData as any)?.discount || (paymentData as any)?.selectedDiscount || paymentData?.promoCode;
+    const hasDiscountFromBooking =
+      bookingData?.discount ||
+      bookingData?.selectedDiscount ||
+      bookingData?.promoCode;
+    const hasDiscountFromPayment =
+      (paymentData as any)?.discount ||
+      (paymentData as any)?.selectedDiscount ||
+      paymentData?.promoCode;
     const hasLocalDiscount = selectedDiscount || promoCode;
-    
+
     // Only apply discount if it was selected in previous screens or current screen
-    if (!hasDiscountFromBooking && !hasDiscountFromPayment && !hasLocalDiscount) {
+    if (
+      !hasDiscountFromBooking &&
+      !hasDiscountFromPayment &&
+      !hasLocalDiscount
+    ) {
       console.log("=== NO DISCOUNT SELECTED ===");
-      console.log("No discount was selected in previous screens or current screen");
+      console.log(
+        "No discount was selected in previous screens or current screen"
+      );
       console.log("BookingData discount:", bookingData?.discount);
       console.log("PaymentData discount:", (paymentData as any)?.discount);
       console.log("Local selectedDiscount:", selectedDiscount);
@@ -392,47 +449,54 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       console.log("=== END NO DISCOUNT ===");
       return 0;
     }
-    
+
     // Ensure all values are numbers
     const safeEntryFee = Number(entryFee) || 0;
     const safeTicketPrice = Number(ticketPrice) || 0;
     const safeMemberCount = Number(memberCount) || 1;
     const safeNumberOfDays = Number(numberOfDays) || 1;
-    
+
     const baseEntryFee = safeEntryFee * safeMemberCount * safeNumberOfDays;
-    const baseTicketPrice = safeTicketPrice * safeMemberCount * safeNumberOfDays;
+    const baseTicketPrice =
+      safeTicketPrice * safeMemberCount * safeNumberOfDays;
     const baseAmount = baseEntryFee + baseTicketPrice;
-    
+
     // Apply discount only if it was selected
     if (hasDiscountFromBooking || hasDiscountFromPayment || hasLocalDiscount) {
       // Discount based on member count (only if selected)
       if (safeMemberCount >= 4) {
         discount += baseAmount * 0.15; // 15% discount for 4+ members
       } else if (safeMemberCount >= 2) {
-        discount += baseAmount * 0.10; // 10% discount for 2+ members
+        discount += baseAmount * 0.1; // 10% discount for 2+ members
       }
-      
+
       // Discount based on number of days (only if selected)
       if (safeNumberOfDays >= 3) {
-        discount += baseAmount * 0.20; // 20% discount for 3+ days
+        discount += baseAmount * 0.2; // 20% discount for 3+ days
       } else if (safeNumberOfDays >= 2) {
         discount += baseAmount * 0.15; // 15% discount for 2+ days
       }
-      
+
       // Discount based on ticket type (only if selected)
-      if (ticketType?.toLowerCase().includes('vip') || ticketType?.toLowerCase().includes('premium')) {
+      if (
+        ticketType?.toLowerCase().includes("vip") ||
+        ticketType?.toLowerCase().includes("premium")
+      ) {
         discount += baseAmount * 0.15; // 15% discount for VIP/Premium tickets
-      } else if (ticketType?.toLowerCase().includes('gala') || ticketType?.toLowerCase().includes('special')) {
+      } else if (
+        ticketType?.toLowerCase().includes("gala") ||
+        ticketType?.toLowerCase().includes("special")
+      ) {
         discount += baseAmount * 0.12; // 12% discount for Gala/Special events
-      } else if (ticketType?.toLowerCase().includes('dj')) {
-        discount += baseAmount * 0.10; // 10% discount for DJ events
+      } else if (ticketType?.toLowerCase().includes("dj")) {
+        discount += baseAmount * 0.1; // 10% discount for DJ events
       }
     }
-    
+
     // Maximum discount cap (30% of total amount)
     const maxDiscount = baseAmount * 0.3;
     const finalDiscount = Math.min(discount, maxDiscount);
-    
+
     console.log("=== DISCOUNT CALCULATION DEBUG ===");
     console.log("Has discount from booking:", hasDiscountFromBooking);
     console.log("Has discount from payment:", hasDiscountFromPayment);
@@ -447,57 +511,84 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     console.log("Max Discount (30%):", maxDiscount);
     console.log("Final Discount Applied:", finalDiscount);
     console.log("=== END DISCOUNT DEBUG ===");
-    
+
     return finalDiscount;
   };
 
   // Get discount breakdown for display (only if discount was selected)
   const getDiscountBreakdown = () => {
     const breakdown = [];
-    
+
     // Check if discount was explicitly selected in previous screens
-    const hasDiscountFromBooking = bookingData?.discount || bookingData?.selectedDiscount || bookingData?.promoCode;
-    const hasDiscountFromPayment = (paymentData as any)?.discount || (paymentData as any)?.selectedDiscount || paymentData?.promoCode;
-    
+    const hasDiscountFromBooking =
+      bookingData?.discount ||
+      bookingData?.selectedDiscount ||
+      bookingData?.promoCode;
+    const hasDiscountFromPayment =
+      (paymentData as any)?.discount ||
+      (paymentData as any)?.selectedDiscount ||
+      paymentData?.promoCode;
+
     // Only show breakdown if discount was selected
     if (!hasDiscountFromBooking && !hasDiscountFromPayment) {
       return "No discount selected";
     }
-    
+
     // Ensure all values are numbers
     const safeEntryFee = Number(entryFee) || 0;
     const safeTicketPrice = Number(ticketPrice) || 0;
     const safeMemberCount = Number(memberCount) || 1;
     const safeNumberOfDays = Number(numberOfDays) || 1;
-    
+
     const baseEntryFee = safeEntryFee * safeMemberCount * safeNumberOfDays;
-    const baseTicketPrice = safeTicketPrice * safeMemberCount * safeNumberOfDays;
+    const baseTicketPrice =
+      safeTicketPrice * safeMemberCount * safeNumberOfDays;
     const baseAmount = baseEntryFee + baseTicketPrice;
-    
+
     // Member count discount
     if (safeMemberCount >= 4) {
-      breakdown.push(`${Math.round((baseAmount * 0.15) / baseAmount * 100)}% group`);
+      breakdown.push(
+        `${Math.round(((baseAmount * 0.15) / baseAmount) * 100)}% group`
+      );
     } else if (safeMemberCount >= 2) {
-      breakdown.push(`${Math.round((baseAmount * 0.10) / baseAmount * 100)}% group`);
+      breakdown.push(
+        `${Math.round(((baseAmount * 0.1) / baseAmount) * 100)}% group`
+      );
     }
-    
+
     // Days discount
     if (safeNumberOfDays >= 3) {
-      breakdown.push(`${Math.round((baseAmount * 0.20) / baseAmount * 100)}% multi-day`);
+      breakdown.push(
+        `${Math.round(((baseAmount * 0.2) / baseAmount) * 100)}% multi-day`
+      );
     } else if (safeNumberOfDays >= 2) {
-      breakdown.push(`${Math.round((baseAmount * 0.15) / baseAmount * 100)}% multi-day`);
+      breakdown.push(
+        `${Math.round(((baseAmount * 0.15) / baseAmount) * 100)}% multi-day`
+      );
     }
-    
+
     // Ticket type discount
-    if (ticketType?.toLowerCase().includes('vip') || ticketType?.toLowerCase().includes('premium')) {
-      breakdown.push(`${Math.round((baseAmount * 0.15) / baseAmount * 100)}% VIP`);
-    } else if (ticketType?.toLowerCase().includes('gala') || ticketType?.toLowerCase().includes('special')) {
-      breakdown.push(`${Math.round((baseAmount * 0.12) / baseAmount * 100)}% special`);
-    } else if (ticketType?.toLowerCase().includes('dj')) {
-      breakdown.push(`${Math.round((baseAmount * 0.10) / baseAmount * 100)}% DJ`);
+    if (
+      ticketType?.toLowerCase().includes("vip") ||
+      ticketType?.toLowerCase().includes("premium")
+    ) {
+      breakdown.push(
+        `${Math.round(((baseAmount * 0.15) / baseAmount) * 100)}% VIP`
+      );
+    } else if (
+      ticketType?.toLowerCase().includes("gala") ||
+      ticketType?.toLowerCase().includes("special")
+    ) {
+      breakdown.push(
+        `${Math.round(((baseAmount * 0.12) / baseAmount) * 100)}% special`
+      );
+    } else if (ticketType?.toLowerCase().includes("dj")) {
+      breakdown.push(
+        `${Math.round(((baseAmount * 0.1) / baseAmount) * 100)}% DJ`
+      );
     }
-    
-    return breakdown.join(', ');
+
+    return breakdown.join(", ");
   };
 
   // Calculate dynamic pricing based on member count and days using useMemo
@@ -508,7 +599,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       console.log("API Pricing:", apiPricing);
       return apiPricing;
     }
-    
+
     // Otherwise calculate normally
     const baseEntryFee = entryFee * memberCount * numberOfDays;
     const baseTicketPrice = ticketPrice * memberCount * numberOfDays;
@@ -524,12 +615,26 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     console.log("Ticket Type:", ticketType);
     console.log("Base Entry Fee Total:", baseEntryFee);
     console.log("Base Ticket Price Total:", baseTicketPrice);
-    console.log("Base Amount (Entry + Ticket):", baseEntryFee + baseTicketPrice);
+    console.log(
+      "Base Amount (Entry + Ticket):",
+      baseEntryFee + baseTicketPrice
+    );
     console.log("Calculated Discount:", discount);
     console.log("Fees (5% of base):", fees);
-    console.log("Calculation: (", baseEntryFee, "+", baseTicketPrice, ") -", discount, "+", fees, "=", total);
+    console.log(
+      "Calculation: (",
+      baseEntryFee,
+      "+",
+      baseTicketPrice,
+      ") -",
+      discount,
+      "+",
+      fees,
+      "=",
+      total
+    );
     console.log("=== END DISCOUNT CALCULATION ===");
-    
+
     const pricing = {
       entryFee: baseEntryFee,
       ticketPrice: baseTicketPrice,
@@ -547,7 +652,14 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     console.log("=== END BOOKING API PAYLOAD ===");
 
     return pricing;
-  }, [entryFee, memberCount, numberOfDays, ticketPrice, ticketType, apiPricing]);
+  }, [
+    entryFee,
+    memberCount,
+    numberOfDays,
+    ticketPrice,
+    ticketType,
+    apiPricing,
+  ]);
 
   // Debug: Track dynamicPricing changes
   useEffect(() => {
@@ -566,13 +678,16 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       members: memberCount || 1,
       days: numberOfDays || 1,
     };
-    
+
     // Only include boothid if it's a booth selection and we have valid booth data
-    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+    const hasValidBoothData =
+      selectedTicket?.boothType !== undefined &&
+      boothId &&
+      boothId.trim() !== "";
     if (hasValidBoothData) {
       promoPayload.boothid = boothId;
     }
-    
+
     dispatch(onApplyPromoCode(promoPayload));
   }, [eventData, memberCount, numberOfDays, boothId, selectedTicket]);
 
@@ -582,11 +697,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       const supported = await isPlatformPaySupported({
         googlePay: {
           testEnv: false,
-        }
+        },
       });
       setIsGooglePaySupported(supported);
     } catch (error) {
-      console.error('Error checking platform pay support:', error);
+      console.error("Error checking platform pay support:", error);
     }
   };
 
@@ -603,7 +718,12 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
   // Set user data from API response if available, otherwise use fallback
   useEffect(() => {
-    if (reviewSummary && reviewSummary.status === 1 && reviewSummary.data && reviewSummary.data.userId) {
+    if (
+      reviewSummary &&
+      reviewSummary.status === 1 &&
+      reviewSummary.data &&
+      reviewSummary.data.userId
+    ) {
       setUserData({
         fullName: reviewSummary.data.userId.fullName || "N/A",
         phoneNumber: reviewSummary.data.userId.phone || "N/A",
@@ -625,15 +745,24 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   useEffect(() => {
     if (createBooking && createBooking.status === 1) {
       console.log("🎉 BOOKING CREATION SUCCESSFUL!");
-      console.log("📋 Full Booking Response:", JSON.stringify(createBooking, null, 2));
-      console.log("✅ Booking ID:", createBooking.data?._id || createBooking.data?.id);
+      console.log(
+        "📋 Full Booking Response:",
+        JSON.stringify(createBooking, null, 2)
+      );
+      console.log(
+        "✅ Booking ID:",
+        createBooking.data?._id || createBooking.data?.id
+      );
       console.log("✅ Booking Status:", createBooking.status);
       console.log("✅ Total Amount:", createBooking.data?.totalAmount);
       // Handle successful booking creation
       // You can navigate to success screen or show success message
     } else if (createBookingErr) {
       console.log("❌ BOOKING CREATION FAILED!");
-      console.log("📋 Error Details:", JSON.stringify(createBookingErr, null, 2));
+      console.log(
+        "📋 Error Details:",
+        JSON.stringify(createBookingErr, null, 2)
+      );
       // Handle booking creation error
       // You can show error message to user
     }
@@ -643,7 +772,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   useEffect(() => {
     if (
       togglefavorite?.status === true ||
-      togglefavorite?.status === 'true' ||
+      togglefavorite?.status === "true" ||
       togglefavorite?.status === 1 ||
       togglefavorite?.status === "1"
     ) {
@@ -653,15 +782,15 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       if (togglefavorite?.data?.isFavorite !== undefined) {
         const newLikeState = togglefavorite.data.isFavorite;
         setIsFavorite(newLikeState);
-        console.log('Like state updated from server:', newLikeState);
+        console.log("Like state updated from server:", newLikeState);
       }
 
-      dispatch(togglefavoriteData(''));
+      dispatch(togglefavoriteData(""));
     }
 
     if (togglefavoriteErr) {
       console.log("togglefavoriteErr in ReviewSummary:", togglefavoriteErr);
-      dispatch(togglefavoriteError(''));
+      dispatch(togglefavoriteError(""));
     }
   }, [togglefavorite, togglefavoriteErr, dispatch]);
 
@@ -685,8 +814,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     console.log("=== SENDING BOOKING TO API VIA REDUX ===");
     console.log("API Endpoint: POST /user/booking");
     console.log("Payload:====>", JSON.stringify(bookingPayload, null, 2));
-    
-    
+
     dispatch(onCreateBooking(bookingPayload));
     console.log("✅ BOOKING API CALL DISPATCHED SUCCESSFULLY");
   };
@@ -754,10 +882,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     if (paymentData?.selectedCard) {
       // Process card payment
       await processCardPayment();
-    } else if (paymentData?.selectedPaymentMethod === 'apple_pay') {
+    } else if (paymentData?.selectedPaymentMethod === "apple_pay") {
       // Process Apple Pay
       await processApplePay();
-    } else if (paymentData?.selectedPaymentMethod === 'google_pay') {
+    } else if (paymentData?.selectedPaymentMethod === "google_pay") {
       // Process Google Pay
       await processGooglePay();
     } else {
@@ -772,38 +900,38 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Process card payment
   const processCardPayment = async () => {
     if (!paymentData?.selectedCard) {
-      Alert.alert('Error', 'No card selected');
+      Alert.alert("Error", "No card selected");
       return;
     }
 
     setIsProcessingPayment(true);
     try {
-      const amount = dynamicPricing.total
+      const amount = dynamicPricing.total;
       const amountInCents = Math.round(amount * 100);
-      
+
       const paymentIntentResponse = await fetch(
-        'https://api.stripe.com/v1/payment_intents',
+        "https://api.stripe.com/v1/payment_intents",
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            "Content-Type": "application/x-www-form-urlencoded",
             Authorization: `Bearer ${stripeTestKey.secreteKey}`,
           },
           body: new URLSearchParams({
             amount: amountInCents.toString(),
-            currency: 'usd',
-            customer: 'cus_T7lZ5LfIt7RqBf',
+            currency: "usd",
+            customer: "cus_T7lZ5LfIt7RqBf",
             payment_method: paymentData.selectedCard.id,
-            off_session: 'true',
-            confirm: 'true',
+            off_session: "true",
+            confirm: "true",
           }).toString(),
-        },
+        }
       );
 
       const paymentIntent = await paymentIntentResponse.json();
 
       if (paymentIntent.error) {
-        Alert.alert('Payment Error', paymentIntent.error.message);
+        Alert.alert("Payment Error", paymentIntent.error.message);
       } else {
         // Send booking data to API after successful payment
         console.log("💳 CARD PAYMENT SUCCESSFUL - Creating booking...");
@@ -812,8 +940,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         navigation.navigate("PaymentSuccessScreen");
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      Alert.alert('Error', 'Payment failed. Please try again.');
+      console.error("Payment error:", error);
+      Alert.alert("Error", "Payment failed. Please try again.");
     } finally {
       setIsProcessingPayment(false);
     }
@@ -822,40 +950,46 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Process Apple Pay
   const processApplePay = async () => {
     try {
-      const amount = dynamicPricing.total
+      const amount = dynamicPricing.total;
       const amountInCents = Math.round(amount * 100);
-      
-      const paymentIntentResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Bearer ${stripeTestKey.secreteKey}`,
-        },
-        body: new URLSearchParams({
-          amount: amountInCents.toString(),
-          currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
-        }).toString(),
-      });
+
+      const paymentIntentResponse = await fetch(
+        "https://api.stripe.com/v1/payment_intents",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Bearer ${stripeTestKey.secreteKey}`,
+          },
+          body: new URLSearchParams({
+            amount: amountInCents.toString(),
+            currency: "usd",
+            customer: "cus_T7lZ5LfIt7RqBf",
+          }).toString(),
+        }
+      );
 
       const { client_secret } = await paymentIntentResponse.json();
-      
-      const { error, paymentIntent } = await confirmPlatformPayPayment(client_secret, {
-        applePay: {
-          cartItems: [
-            {
-              label: 'Event Booking',
-              amount: amount.toFixed(2),
-              paymentType: 'Immediate',
-            } as any,
-          ],
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-        },
-      });
+
+      const { error, paymentIntent } = await confirmPlatformPayPayment(
+        client_secret,
+        {
+          applePay: {
+            cartItems: [
+              {
+                label: "Event Booking",
+                amount: amount.toFixed(2),
+                paymentType: "Immediate",
+              } as any,
+            ],
+            merchantCountryCode: "US",
+            currencyCode: "USD",
+          },
+        }
+      );
 
       if (error) {
-        Alert.alert('Apple Pay Error', error.localizedMessage || error.message);
+        Alert.alert("Apple Pay Error", error.localizedMessage || error.message);
       } else {
         // Send booking data to API after successful payment
         console.log("🍎 APPLE PAY SUCCESSFUL - Creating booking...");
@@ -864,8 +998,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         navigation.navigate("PaymentSuccessScreen");
       }
     } catch (error: any) {
-      console.error('Apple Pay error:', error);
-      Alert.alert('Error', 'Apple Pay payment failed. Please try again.');
+      console.error("Apple Pay error:", error);
+      Alert.alert("Error", "Apple Pay payment failed. Please try again.");
     }
   };
 
@@ -874,43 +1008,49 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     try {
       const amount = paymentData?.paymentAmount || priceBreakdown?.total || 0;
       const amountInCents = Math.round(amount * 100);
-      
-      const paymentIntentResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Bearer ${stripeTestKey.secreteKey}`,
-        },
-        body: new URLSearchParams({
-          amount: amountInCents.toString(),
-          currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
-        }).toString(),
-      });
+
+      const paymentIntentResponse = await fetch(
+        "https://api.stripe.com/v1/payment_intents",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Bearer ${stripeTestKey.secreteKey}`,
+          },
+          body: new URLSearchParams({
+            amount: amountInCents.toString(),
+            currency: "usd",
+            customer: "cus_T7lZ5LfIt7RqBf",
+          }).toString(),
+        }
+      );
 
       const { client_secret } = await paymentIntentResponse.json();
-      
-      const { error, paymentIntent } = await confirmPlatformPayPayment(client_secret, {
-        googlePay: {
-          merchantName: 'VibesReserve',
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-          testEnv: false,
-        },
-      });
+
+      const { error, paymentIntent } = await confirmPlatformPayPayment(
+        client_secret,
+        {
+          googlePay: {
+            merchantName: "VibesReserve",
+            merchantCountryCode: "US",
+            currencyCode: "USD",
+            testEnv: false,
+          },
+        }
+      );
 
       if (error) {
-        Alert.alert('Google Pay Error', error.message);
+        Alert.alert("Google Pay Error", error.message);
       } else {
         // Send booking data to API after successful payment
         console.log("📱 GOOGLE PAY SUCCESSFUL - Creating booking...");
         sendBookingToAPI();
-        Alert.alert('Success', 'Google Pay payment successful!');
+        Alert.alert("Success", "Google Pay payment successful!");
         navigation.navigate("PaymentSuccessScreen");
       }
     } catch (error: any) {
-      console.error('Google Pay error:', error);
-      Alert.alert('Error', 'Google Pay payment failed. Please try again.');
+      console.error("Google Pay error:", error);
+      Alert.alert("Error", "Google Pay payment failed. Please try again.");
     }
   };
 
@@ -920,15 +1060,18 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         eventid: eventData?._id || ticketId || "",
         members: memberCount || 1,
         days: numberOfDays || 1,
-        promocode: promoCode.trim()
+        promocode: promoCode.trim(),
       };
-      
+
       // Only include boothid if it's a booth selection and we have valid booth data
-      const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+      const hasValidBoothData =
+        selectedTicket?.boothType !== undefined &&
+        boothId &&
+        boothId.trim() !== "";
       if (hasValidBoothData) {
         promoPayload.boothid = boothId;
       }
-      
+
       // Dispatch apply promo code action
       dispatch(onApplyPromoCode(promoPayload));
     } else {
@@ -936,25 +1079,27 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     }
   };
 
-
   const handlePromoCodeSelect = (promoCodeData: any) => {
     setSelectedPromoCode(promoCodeData);
     setPromoCode(promoCodeData.code);
     setShowPromoCodeList(false);
-    
+
     const promoPayload: any = {
       eventid: eventData?._id || ticketId || "",
       members: memberCount || 1,
       days: numberOfDays || 1,
-      promocode: promoCodeData.code
+      promocode: promoCodeData.code,
     };
-    
+
     // Only include boothid if it's a booth selection and we have valid booth data
-    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+    const hasValidBoothData =
+      selectedTicket?.boothType !== undefined &&
+      boothId &&
+      boothId.trim() !== "";
     if (hasValidBoothData) {
       promoPayload.boothid = boothId;
     }
-    
+
     // Dispatch apply promo code action
     dispatch(onApplyPromoCode(promoPayload));
   };
@@ -962,29 +1107,34 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   // Handle favorite toggle
   const handleFavoritePress = async () => {
     if (!eventData) {
-      Alert.alert('Error', 'Event data not available');
+      Alert.alert("Error", "Event data not available");
       return;
     }
 
     const eventId = eventData._id;
     if (!eventId) {
-      Alert.alert('Error', 'Event ID not available');
+      Alert.alert("Error", "Event ID not available");
       return;
     }
 
     // Check if user has permission to like/favorite
-    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
-    
+    const hasPermission = await handleRestrictedAction(
+      "canLike",
+      navigation,
+      "like this event"
+    );
+
     if (!hasPermission) {
       // Show custom alert for login required
       setAlertConfig({
-        title: 'Login Required',
-        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
-        primaryButtonText: 'Sign In',
-        secondaryButtonText: 'Continue Exploring',
+        title: "Login Required",
+        message:
+          "Please sign in to like this event. You can explore the app without an account, but some features require login.",
+        primaryButtonText: "Sign In",
+        secondaryButtonText: "Continue Exploring",
         onPrimaryPress: () => {
           setShowCustomAlert(false);
-          (navigation as any).navigate('SignInScreen');
+          (navigation as any).navigate("SignInScreen");
         },
         onSecondaryPress: () => {
           setShowCustomAlert(false);
@@ -995,7 +1145,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     }
 
     try {
-      console.log('Toggling favorite for event ID:', eventId);
+      console.log("Toggling favorite for event ID:", eventId);
 
       // Update local state immediately for better UX
       setIsFavorite(!isFavorite);
@@ -1003,11 +1153,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       // Then sync with server
       dispatch(onTogglefavorite({ eventId }));
     } catch (error) {
-      console.log('Error toggling like:', error);
-      Alert.alert('Error', 'Failed to update like status');
+      console.log("Error toggling like:", error);
+      Alert.alert("Error", "Failed to update like status");
     }
   };
-
 
   return (
     <SafeAreaWrapper
@@ -1107,7 +1256,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Full Name</Text>
               <Text style={styles.infoValue}>
-                {eventData ? eventData?.userId?.fullName : loader ? "Loading..." : "N/A"}
+                {eventData
+                  ? eventData?.userId?.fullName
+                  : loader
+                  ? "Loading..."
+                  : "N/A"}
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -1123,7 +1276,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email</Text>
               <Text style={styles.infoValue}>
-                {eventData ? eventData?.userId?.email : loader ? "Loading..." : "N/A"}
+                {eventData
+                  ? eventData?.userId?.email
+                  : loader
+                  ? "Loading..."
+                  : "N/A"}
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -1203,46 +1360,61 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Promo Code</Text>
             <TouchableOpacity
-                  style={styles.browseButtonNew}
-                  onPress={() => {
-                    dispatch(onFetchPromoCodes({
-                      hostId: eventData?.userId?._id || ""
-                    }));
-                    setShowPromoCodeList(true);
-                  }}
-                  
-                >
-                  <Text style={styles.applyButtonTextNew}>Browse Promo Codes</Text>
-                </TouchableOpacity>
-          
-                <View style={styles.promoCodeSectionNew}>
+              style={styles.browseButtonNew}
+              onPress={() => {
+                dispatch(
+                  onFetchPromoCodes({
+                    hostId: eventData?.userId?._id || "",
+                  })
+                );
+                setShowPromoCodeList(true);
+              }}
+            >
+              <Text style={styles.applyButtonTextNew}>Browse Promo Codes</Text>
+            </TouchableOpacity>
+
+            <View style={styles.promoCodeSectionNew}>
               <View style={styles.promoCodeContainerNew}>
-              <TouchableOpacity
-                onPress={() => {
-                  // Navigate to promotional code screen when text field is clicked
-                  navigation.navigate('PromotionalCode' as never);
-                }}
-                style={styles.promoCodeInputNew}
-              >
-                <Text style={[styles.promoCodeInputNew, { 
-                  color: promoCode ? colors.black : colors.textcolor,
-                  borderWidth: 0,
-                  backgroundColor: 'transparent',
-                  paddingRight: horizontalScale(80),
-                  textAlign: 'left',
-                  includeFontPadding: false,
-                  lineHeight: fontScale(18)
-                }]}>
-                  {promoCode || "Enter promo code"}
-                </Text>
-              </TouchableOpacity>
-                  <TouchableOpacity
+                <TouchableOpacity
+                  onPress={() => {
+                    // Navigate to promotional code screen when text field is clicked
+                    navigation.navigate("PromotionalCode" as never);
+                  }}
+                  style={
+                    Platform.OS === "ios"
+                      ? styles.promoCodeInputNewIOS
+                      : styles.promoCodeInputNew
+                  }
+                >
+                  <Text
+                    style={[
+                      Platform.OS === "ios"
+                        ? styles.promoCodeInputNewIOS
+                        : styles.promoCodeInputNew,
+                      {
+                        color: promoCode ? colors.black : colors.textcolor,
+                        borderWidth: 0,
+                        backgroundColor: "transparent",
+                        paddingRight: horizontalScale(80),
+                        textAlign: "left",
+                        includeFontPadding: false,
+                        textAlignVertical: "center",
+                        marginTop:
+                          Platform.OS === "ios"
+                            ? verticalScale(1)
+                            : verticalScale(-1),
+                      },
+                    ]}
+                  >
+                    {promoCode || "Enter promo code"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
                   style={styles.applyButtonNew}
                   onPress={handleApplyPromoCode}
                 >
                   <Text style={styles.applyButtonTextNew}>Apply</Text>
                 </TouchableOpacity>
-              
               </View>
             </View>
 
@@ -1263,22 +1435,29 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                       members: memberCount || 1,
                       days: numberOfDays || 1,
                     };
-                    
+
                     // Only include boothid if it's a booth selection and we have valid booth data
-                    const hasValidBoothData = selectedTicket?.boothType !== undefined && boothId && boothId.trim() !== "";
+                    const hasValidBoothData =
+                      selectedTicket?.boothType !== undefined &&
+                      boothId &&
+                      boothId.trim() !== "";
                     if (hasValidBoothData) {
                       promoPayload.boothid = boothId;
                     }
-                    
+
                     dispatch(onApplyPromoCode(promoPayload));
-                    
+
                     // Recalculate pricing without promo code
                     const baseEntryFee = entryFee * memberCount * numberOfDays;
-                    const baseTicketPrice = ticketPrice * memberCount * numberOfDays;
+                    const baseTicketPrice =
+                      ticketPrice * memberCount * numberOfDays;
                     const discount = 0; // No discount when promo code is removed
-                    const fees = Math.round((baseEntryFee + baseTicketPrice) * 0.05); // 5% service fee
-                    const total = baseEntryFee + baseTicketPrice - discount + fees;
-                    
+                    const fees = Math.round(
+                      (baseEntryFee + baseTicketPrice) * 0.05
+                    ); // 5% service fee
+                    const total =
+                      baseEntryFee + baseTicketPrice - discount + fees;
+
                     const recalculatedPricing = {
                       entryFee: baseEntryFee,
                       ticketPrice: baseTicketPrice,
@@ -1286,10 +1465,10 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                       fees: fees,
                       total: total,
                     };
-                    
+
                     // Set the recalculated pricing as API pricing to override dynamicPricing
                     setApiPricing(recalculatedPricing);
-                    
+
                     // Update price breakdown with recalculated values
                     setPriceBreakdown({
                       memberCost: recalculatedPricing.entryFee,
@@ -1298,9 +1477,15 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                       fees: recalculatedPricing.fees.toFixed(2),
                       total: recalculatedPricing.total,
                     });
-                    
-                    console.log("🔄 Recalculated pricing after removing promo code:", recalculatedPricing);
-                    console.log("🔄 Discount value after removal:", recalculatedPricing.discount);
+
+                    console.log(
+                      "🔄 Recalculated pricing after removing promo code:",
+                      recalculatedPricing
+                    );
+                    console.log(
+                      "🔄 Discount value after removal:",
+                      recalculatedPricing.discount
+                    );
                   }}
                 >
                   <Text style={styles.removePromoCodeText}>Remove</Text>
@@ -1310,31 +1495,49 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           </View>
 
           <View style={styles.sectionContainerNoBorderReduced}>
-          {dynamicPricing.entryFee != 0 ? (
+            {dynamicPricing.entryFee != 0 ? (
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>
+                  Entry Fee ({memberCount} members × {numberOfDays} days)
+                </Text>
+                <Text style={styles.priceValue}>
+                  ${dynamicPricing.entryFee.toFixed(2)}
+                </Text>
+              </View>
+            ) : (
+              <></>
+            )}
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Entry Fee ({memberCount} members × {numberOfDays} days)</Text>
-              <Text style={styles.priceValue}>${dynamicPricing.entryFee.toFixed(2)}</Text> 
-            </View>
-          ) : (
-            <></>
-          )}
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Ticket Price ({memberCount} members × {numberOfDays} days)</Text>
+              <Text style={styles.priceLabel}>
+                Ticket Price ({memberCount} members × {numberOfDays} days)
+              </Text>
               <Text style={styles.priceValue}>
                 ${dynamicPricing.ticketPrice.toFixed(2)}
               </Text>
             </View>
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>
-                Discount {dynamicPricing.discount > 0 ? `(${getDiscountBreakdown()})` : '(No discount applied)'}
+                Discount{" "}
+                {dynamicPricing.discount > 0
+                  ? `(${getDiscountBreakdown()})`
+                  : "(No discount applied)"}
               </Text>
-              <Text style={[styles.priceValue, dynamicPricing.discount > 0 && { color: '#4CAF50' }]}>
-                {dynamicPricing.discount > 0 ? `-$${dynamicPricing.discount.toFixed(2)}` : `$${dynamicPricing.discount.toFixed(2)}`}
+              <Text
+                style={[
+                  styles.priceValue,
+                  dynamicPricing.discount > 0 && { color: "#4CAF50" },
+                ]}
+              >
+                {dynamicPricing.discount > 0
+                  ? `-$${dynamicPricing.discount.toFixed(2)}`
+                  : `$${dynamicPricing.discount.toFixed(2)}`}
               </Text>
             </View>
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>Fees</Text>
-              <Text style={styles.priceValue}>${dynamicPricing.fees.toFixed(2)}</Text>
+              <Text style={styles.priceValue}>
+                ${dynamicPricing.fees.toFixed(2)}
+              </Text>
             </View>
             <View style={styles.dottedLineContainer}>
               <DottedLine />
@@ -1351,28 +1554,34 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           <View style={styles.sectionContainer}>
             <View style={styles.paymentMethodRow}>
               <View style={styles.paymentMethodLeft}>
-                {selectedPaymentMethod === "apple" || selectedPaymentMethod === "apple_pay" ? (
+                {selectedPaymentMethod === "apple" ||
+                selectedPaymentMethod === "apple_pay" ? (
                   <ApplePayIcon />
-                ) : selectedPaymentMethod === "google" || selectedPaymentMethod === "google_pay" ? (
+                ) : selectedPaymentMethod === "google" ||
+                  selectedPaymentMethod === "google_pay" ? (
                   <GoogleIcon />
                 ) : selectedCard ? (
                   renderCardLogo(selectedCard.cardType)
-                ) : Platform.OS === 'ios' ? (
+                ) : Platform.OS === "ios" ? (
                   <ApplePayIcon />
                 ) : (
                   <GoogleIcon />
                 )}
-                
+
                 <Text style={styles.paymentMethodText}>
-                  {selectedPaymentMethod === "apple" || selectedPaymentMethod === "apple_pay"
+                  {selectedPaymentMethod === "apple" ||
+                  selectedPaymentMethod === "apple_pay"
                     ? "Apple Pay"
-                    : selectedPaymentMethod === "google" || selectedPaymentMethod === "google_pay"
+                    : selectedPaymentMethod === "google" ||
+                      selectedPaymentMethod === "google_pay"
                     ? "Google Pay"
                     : selectedCard
                     ? `${selectedCard.cardType.toUpperCase()} •••• ${selectedCard.cardNumber.slice(
                         -4
                       )}`
-                    : Platform.OS === 'ios' ? "Apple Pay" : "Google Pay"}
+                    : Platform.OS === "ios"
+                    ? "Apple Pay"
+                    : "Google Pay"}
                 </Text>
               </View>
               <TouchableOpacity onPress={handlePaymentMethodChange}>
@@ -1384,7 +1593,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           {/* Platform-specific payment buttons */}
           <View style={styles.platformPaymentSection}>
             {/* Apple Pay Button - Show on iOS or when Apple Pay is selected */}
-            {(selectedPaymentMethod === 'apple' || selectedPaymentMethod === 'apple_pay' || (Platform.OS === 'ios' && !selectedPaymentMethod && !selectedCard)) && (
+            {(selectedPaymentMethod === "apple" ||
+              selectedPaymentMethod === "apple_pay" ||
+              (Platform.OS === "ios" &&
+                !selectedPaymentMethod &&
+                !selectedCard)) && (
               <View style={styles.platformPayContainer}>
                 <PlatformPayButton
                   onPress={processApplePay}
@@ -1396,7 +1609,12 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             )}
 
             {/* Google Pay Button - Show on Android or when Google Pay is selected */}
-            {(selectedPaymentMethod === 'google' || selectedPaymentMethod === 'google_pay' || (Platform.OS === 'android' && !selectedPaymentMethod && !selectedCard && isGooglePaySupported)) && (
+            {(selectedPaymentMethod === "google" ||
+              selectedPaymentMethod === "google_pay" ||
+              (Platform.OS === "android" &&
+                !selectedPaymentMethod &&
+                !selectedCard &&
+                isGooglePaySupported)) && (
               <View style={styles.platformPayContainer}>
                 <PlatformPayButton
                   onPress={processGooglePay}
@@ -1411,7 +1629,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             {selectedCard && (
               <View style={styles.cardPaymentContainer}>
                 <Buttons
-                  title={isProcessingPayment ? "Processing Card Payment..." : "Confirm Payment"}
+                  title={
+                    isProcessingPayment
+                      ? "Processing Card Payment..."
+                      : "Confirm Payment"
+                  }
                   onPress={processCardPayment}
                   style={styles.cardPaymentButton}
                   disabled={isProcessingPayment}
@@ -1429,7 +1651,6 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               />
             </View>
           )}
-          
         </ScrollView>
       </LinearGradient>
 
@@ -1450,7 +1671,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
-          
+
           {fetchPromoCodes?.status === 0 ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.primary_pink} />
@@ -1471,23 +1692,29 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                       {item.discountType === 'percentage' ? `${item.discountValue}% OFF` : `₹${item.discountValue} OFF`}
                     </Text> */}
                   </View>
-                  <Text style={styles.promoCodeDescription}>{item.description}</Text>
+                  <Text style={styles.promoCodeDescription}>
+                    {item.description}
+                  </Text>
                   {item.minAmount && (
-                    <Text style={styles.minAmountText}>Min. order: ₹{item.minAmount}</Text>
+                    <Text style={styles.minAmountText}>
+                      Min. order: ₹{item.minAmount}
+                    </Text>
                   )}
                 </TouchableOpacity>
               )}
               contentContainerStyle={styles.promoCodeList}
               ListEmptyComponent={() => (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No promo codes available</Text>
+                  <Text style={styles.emptyStateText}>
+                    No promo codes available
+                  </Text>
                 </View>
               )}
             />
           )}
         </View>
       </Modal>
-      
+
       <CustomAlert
         visible={showCustomAlert}
         title={alertConfig.title}
