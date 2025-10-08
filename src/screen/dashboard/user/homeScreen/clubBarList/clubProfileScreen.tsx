@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Alert,
+} from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./clubProfileStyle";
@@ -50,7 +57,7 @@ const ClubProfileScreen = () => {
   const hostProfileRedux = useSelector((state: any) => state.auth.hostProfile);
   const hostProfileErr = useSelector((state: any) => state.auth.hostProfileErr);
 
-  const tabs = ["Club", "Pub", "Event"];
+  const tabs = ["Club", "Booth", "Event", "VIP"];
 
   // Log the received data
   useEffect(() => {
@@ -95,6 +102,114 @@ const ClubProfileScreen = () => {
     }
   }, [hostProfileRedux, hostProfileErr, dispatch]);
 
+  const handleNextPress = (event: any) => {
+    // Check if data is still loading
+    if (!hostProfile) {
+      Alert.alert(
+        "Please Wait",
+        "Club details are still loading. Please wait a moment and try again.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // Check if data failed to load
+    if (!event) {
+      Alert.alert(
+        "Data Not Available",
+        "Unable to load event details. Please try again or go back and select a different event.",
+        [
+          {
+            text: "Try Again",
+            onPress: () => {
+              // Retry loading data
+              dispatch(onHostProfile({ hostId: clubId }));
+            },
+          },
+          { text: "Go Back", onPress: () => navigation.goBack() },
+        ]
+      );
+      return;
+    }
+
+    let selectedData: any = null;
+    let isBooth = false;
+
+    // Check if this is a booth or VIP event
+    if (event.type === "Booth" || event.type === "VIP Entry") {
+      // For booth and VIP events, we need to check if they have booth/VIP data
+      // This would typically come from the event's booths or tickets array
+      if (event.booths && event.booths.length > 0) {
+        selectedData = event.booths[0]; // Use first booth if available
+        isBooth = true;
+      } else if (event.tickets && event.tickets.length > 0) {
+        selectedData = event.tickets[0]; // Use first ticket if available
+        isBooth = false;
+      }
+    }
+
+    console.log("selectedData:=>", selectedData);
+    console.log("event:=>", event);
+
+    // If no booth/ticket selected, use entryFee as the price
+    const entryFee = event?.entryFee || 0;
+
+    // Combine event data with selected information
+    const baseEventData = event || {};
+    const combinedEventData = {
+      ...baseEventData,
+      selectedTicket: selectedData, // Keep the same name for consistency
+      // If no selection, don't include booth/ticket specific fields
+      ...(selectedData
+        ? {
+            [isBooth ? "booths" : "tickets"]: [
+              {
+                [isBooth ? "boothType" : "ticketType"]: {
+                  _id: selectedData.id || selectedData._id || "",
+                  name:
+                    selectedData.title ||
+                    selectedData.name ||
+                    (isBooth ? "Selected Booth" : "Selected Ticket"),
+                },
+                [isBooth ? "boothPrice" : "ticketPrice"]:
+                  selectedData.price ||
+                  selectedData.boothPrice ||
+                  selectedData.ticketPrice ||
+                  0,
+                capacity: selectedData.capacity || 1,
+                _id: selectedData.id || selectedData._id || "",
+                // Add booth-specific fields if it's a booth
+                ...(isBooth
+                  ? {
+                      boothName:
+                        selectedData.name ||
+                        selectedData.title ||
+                        selectedData.boothName,
+                      discountedPrice:
+                        selectedData.discountedPrice ||
+                        selectedData.price ||
+                        selectedData.boothPrice,
+                      boothImage: selectedData.image
+                        ? [selectedData.image]
+                        : selectedData.boothImage || [],
+                    }
+                  : {}),
+              },
+            ],
+          }
+        : {
+            // When no booth/ticket selected, use entryFee and don't include booth/ticket specific fields
+            entryFee: entryFee,
+            // Don't include boothCost, boothType, boothId, ticketCost, ticketType, ticketid
+          }),
+    };
+
+    console.log("Combined event data for booking:", combinedEventData);
+    (navigation as any).navigate("ClubBookingScreen", {
+      eventData: combinedEventData,
+    });
+  };
+
   const renderTabButton = (tab: string) => (
     <TouchableOpacity
       key={tab}
@@ -112,43 +227,42 @@ const ClubProfileScreen = () => {
     </TouchableOpacity>
   );
 
-  const renderBoothsContent = () => {
+  const renderClubContent = () => {
     // Get only Club type events
-   // const clubEvents = hostEvents.filter((event) => event.type === "Club");
-   const clubEvents = hostEvents.filter((event) => event.type === "Club");
-   const allBooths = clubEvents.flatMap((event) => event.booths || []);
+    const clubEvents = hostEvents.filter((event) => event.type === "Club");
 
- 
     return (
-      console.log('clubEvents::===>', clubEvents),
       <View style={styles.tabContent}>
         <Text style={styles.sectionTitle}>
-          Club Services ({clubEvents.length})
+          Club Events ({clubEvents.length})
         </Text>
-         {allBooths.length > 0 ? (
-          allBooths.map((booth, index) => (
-            console.log('booth::===>', booth),
-            <TouchableOpacity onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-              clubId:clubEvents[0]._id,
-            })} key={booth._id || index} style={styles.boothCard}>
+        {clubEvents.length > 0 ? (
+          clubEvents.map((event, index) => (
+            <TouchableOpacity
+              onPress={() =>
+                (navigation as any).navigate("ClubDetailScreen", {
+                  clubId: event._id,
+                })
+              }
+              key={event._id || index}
+              style={styles.boothCard}
+            >
               <View style={styles.boothInfo}>
                 <View style={styles.boothHeader}>
-                  <Text style={styles.boothName}>{booth.boothName || 'Booth for Guest'}</Text>
-                  {booth.boothTypeName && (
-                    <Text style={styles.categoryTag}>
-                      {booth.boothTypeName}
-                    </Text>
-                  )}
+                  <Text style={styles.boothName}>
+                    {event.name || "Club Event"}
+                  </Text>
+                  <Text style={styles.categoryTag}>{event.type}</Text>
                 </View>
                 <View style={styles.boothDetails}>
                   <Text style={styles.boothCapacity}>
-                    Capacity: {booth.capacity} people
+                    Entry Fee: ${event.entryFee}
                   </Text>
                   <View style={styles.boothPriceContainer}>
                     <Text style={styles.boothPrice}>
-                      {booth.discountedPrice
-                        ? `$${booth.discountedPrice}`
-                        : `$${booth.boothPrice}`}
+                      {event.startDate
+                        ? new Date(event.startDate).toLocaleDateString()
+                        : "TBD"}
                     </Text>
                     <ArrowRightIcon size={16} color={colors.white} />
                   </View>
@@ -157,7 +271,53 @@ const ClubProfileScreen = () => {
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={styles.noDataText}>No booths available</Text>
+          <Text style={styles.noDataText}>No club events available</Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderBoothContent = () => {
+    // Get only Booth type events
+    const boothEvents = hostEvents.filter((event) => event.type === "Booth");
+
+    return (
+      <View style={styles.tabContent}>
+        <Text style={styles.sectionTitle}>
+          Booth Events ({boothEvents.length})
+        </Text>
+        {boothEvents.length > 0 ? (
+          boothEvents.map((event, index) => (
+            <TouchableOpacity
+              onPress={() => handleNextPress(event)}
+              key={event._id || index}
+              style={styles.boothCard}
+            >
+              <View style={styles.boothInfo}>
+                <View style={styles.boothHeader}>
+                  <Text style={styles.boothName}>
+                    {event.name || "Booth Event"}
+                  </Text>
+                  <Text style={styles.categoryTag}>{event.type}</Text>
+                </View>
+                <View style={styles.boothDetails}>
+                  <Text style={styles.boothCapacity}>
+                    Entry Fee: ${event.entryFee}
+                  </Text>
+                  <View style={styles.boothPriceContainer}>
+                    <Text style={styles.boothPrice}>
+                      {event.startDate
+                        ? new Date(event.startDate).toLocaleDateString()
+                        : "TBD"}
+                    </Text>
+                    <ArrowRightIcon size={16} color={colors.white} />
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noDataText}>No booth events available</Text>
         )}
       </View>
     );
@@ -168,34 +328,39 @@ const ClubProfileScreen = () => {
     const eventTypeEvents = hostEvents.filter(
       (event) => event.type === "Event"
     );
-    const allTickets = eventTypeEvents.flatMap((event) => event.tickets || []);
 
     return (
       <View style={styles.tabContent}>
         <Text style={styles.sectionTitle}>
-          Event Services ({allTickets.length})
+          Event Services ({eventTypeEvents.length})
         </Text>
 
-        {allTickets.length > 0 ? (
-          allTickets.map((ticket, index) => (
+        {eventTypeEvents.length > 0 ? (
+          eventTypeEvents.map((event, index) => (
             <TouchableOpacity
-              key={ticket._id || index}
+              key={event._id || index}
               style={styles.eventCard}
-              onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-                clubId:eventTypeEvents[0]._id,
-              })}
+              onPress={() =>
+                (navigation as any).navigate("ClubDetailScreen", {
+                  clubId: event._id,
+                })
+              }
             >
               <View style={styles.eventInfo}>
                 <View style={styles.eventHeader}>
-                  <Text style={styles.eventName}>{ticket.ticketTypeName}</Text>
-                  <Text style={styles.categoryTag}>Event</Text>
+                  <Text style={styles.eventName}>{event.name || "Event"}</Text>
+                  <Text style={styles.categoryTag}>{event.type}</Text>
                 </View>
                 <View style={styles.eventDetails}>
                   <Text style={styles.eventCapacity}>
-                    Capacity: {ticket.capacity} people
+                    Entry Fee: ${event.entryFee}
                   </Text>
                   <View style={styles.eventPriceContainer}>
-                    <Text style={styles.eventPrice}>${ticket.ticketPrice}</Text>
+                    <Text style={styles.eventPrice}>
+                      {event.startDate
+                        ? new Date(event.startDate).toLocaleDateString()
+                        : "TBD"}
+                    </Text>
                     <ArrowRightIcon size={16} color={colors.white} />
                   </View>
                 </View>
@@ -209,44 +374,37 @@ const ClubProfileScreen = () => {
     );
   };
 
-  const renderPubsContent = () => {
-    // Get only Pub type events
-    const pubTypeEvents = hostEvents.filter((event) => event.type === "Pub");
-    const allBooths = pubTypeEvents.flatMap((event) => event.booths || []);
+  const renderVipContent = () => {
+    // Get VIP type events
+    const vipEvents = hostEvents.filter((event) => event.type === "VIP Entry");
 
     return (
       <View style={styles.tabContent}>
-        <Text style={styles.sectionTitle}>
-          Pub Services ({allBooths.length})
-        </Text>
+        <Text style={styles.sectionTitle}>VIP Events ({vipEvents.length})</Text>
 
-        {allBooths.length > 0 ? (
-          allBooths.map((booth, index) => (
-            <TouchableOpacity 
-              key={booth._id || index} 
+        {vipEvents.length > 0 ? (
+          vipEvents.map((event, index) => (
+            <TouchableOpacity
+              key={event._id || index}
               style={styles.boothCard}
-              onPress={() => (navigation as any).navigate("ClubDetailScreen", {
-                clubId: pubTypeEvents[0]._id,
-              })}
+              onPress={() => handleNextPress(event)}
             >
               <View style={styles.boothInfo}>
                 <View style={styles.boothHeader}>
-                  <Text style={styles.boothName}>{booth.boothName || 'Booth for Guest'}</Text>
-                  {booth.boothTypeName && (
-                    <Text style={styles.categoryTag}>
-                      {booth.boothTypeName}
-                    </Text>
-                  )}
+                  <Text style={styles.boothName}>
+                    {event.name || "VIP Event"}
+                  </Text>
+                  <Text style={styles.categoryTag}>{event.type}</Text>
                 </View>
                 <View style={styles.boothDetails}>
                   <Text style={styles.boothCapacity}>
-                    Capacity: {booth.capacity} people
+                    Entry Fee: ${event.entryFee}
                   </Text>
                   <View style={styles.boothPriceContainer}>
                     <Text style={styles.boothPrice}>
-                      {booth.discountedPrice
-                        ? `$${booth.discountedPrice}`
-                        : `$${booth.boothPrice}`}
+                      {event.startDate
+                        ? new Date(event.startDate).toLocaleDateString()
+                        : "TBD"}
                     </Text>
                     <ArrowRightIcon size={16} color={colors.white} />
                   </View>
@@ -255,7 +413,7 @@ const ClubProfileScreen = () => {
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={styles.noDataText}>No pub booths available</Text>
+          <Text style={styles.noDataText}>No VIP events available</Text>
         )}
       </View>
     );
@@ -264,13 +422,15 @@ const ClubProfileScreen = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "Club":
-        return renderBoothsContent();
-      case "Pub":
-        return renderPubsContent();
+        return renderClubContent();
+      case "Booth":
+        return renderBoothContent();
       case "Event":
         return renderEventTicketsContent();
+      case "VIP":
+        return renderVipContent();
       default:
-        return renderBoothsContent();
+        return renderClubContent();
     }
   };
 
@@ -287,23 +447,29 @@ const ClubProfileScreen = () => {
           <View style={styles.profileImageContainer}>
             <Image
               source={{
-                uri: hostProfile?.businessPicture || hostProfile?.profilePicture,
+                uri:
+                  hostProfile?.businessPicture || hostProfile?.profilePicture,
               }}
               style={styles.profileImage}
             />
           </View>
-          
+
           <View style={styles.profileDetails}>
             <Text style={styles.profileName}>
               {hostProfile?.businessName ||
                 hostProfile?.fullName ||
                 clubProfileData.name}
             </Text>
-                
-           
+
             <View style={styles.locationRow}>
               <LocationFavourite size={14} color={colors.violate} />
-              <Text numberOfLines={3} ellipsizeMode="tail" style={styles.locationText}>{hostProfile?.address}</Text>
+              <Text
+                numberOfLines={3}
+                ellipsizeMode="tail"
+                style={styles.locationText}
+              >
+                {hostProfile?.address}
+              </Text>
             </View>
             <Text
               style={styles.descriptionText}
@@ -318,18 +484,18 @@ const ClubProfileScreen = () => {
 
       <View style={styles.smallContainer}>
         <Text style={styles.smallContainerText}>Contact Info</Text>
-        <Text style={styles.hostNameContainerText}>{hostProfile?.fullName}</Text>
+        <Text style={styles.hostNameContainerText}>
+          {hostProfile?.fullName}
+        </Text>
         <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity style={styles.actionButton}>
-              <MessageIcon width={20} height={20} color={colors.violate} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <PhoneIcon width={20} height={20} color={colors.violate} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.actionButton}>
+            <MessageIcon width={20} height={20} color={colors.violate} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <PhoneIcon width={20} height={20} color={colors.violate} />
+          </TouchableOpacity>
+        </View>
       </View>
-
-      
 
       <View style={styles.tabsContainer}>{tabs.map(renderTabButton)}</View>
       <ScrollView
