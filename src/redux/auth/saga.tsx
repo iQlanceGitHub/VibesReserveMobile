@@ -111,6 +111,12 @@ import {
   onCheckBookedDateBooth,
   checkBookedDateBoothData,
   checkBookedDateBoothError,
+  onRatingReview,
+  ratingReviewData,
+  ratingReviewError,
+  onCancelBooking,
+  cancelBookingData,
+  cancelBookingError,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -1636,6 +1642,100 @@ function* CheckBookedDateBoothSaga({
   }
 }
 
+interface RatingReviewPayload {
+  bookingId?: string;
+  eventId?: string;
+  rating?: number;
+  review?: string;
+}
+
+function* RatingReviewSaga({
+  payload,
+}: {
+  payload: RatingReviewPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      bookingId: payload?.bookingId,
+      eventId: payload?.eventId,
+      rating: payload?.rating,
+      review: payload?.review,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/ratingreview"}`,
+      params,
+    });
+
+    console.log("RatingReviewSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(ratingReviewData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(ratingReviewError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(ratingReviewError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface CancelBookingPayload {
+  bookingId?: string;
+  reason?: string;
+}
+
+function* CancelBookingSaga({
+  payload,
+}: {
+  payload: CancelBookingPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      bookingId: payload?.bookingId,
+      reason: payload?.reason,
+    };
+
+    const response = yield call(fetchPut, {
+      url: `${baseurl}${"user/cancelbooking"}`,
+      params,
+    });
+
+    console.log("CancelBookingSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(cancelBookingData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(cancelBookingError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(cancelBookingError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type, onResendVerifyOtpSaga);
@@ -1672,6 +1772,9 @@ function* authSaga() {
   yield takeLatest(onGetProfileDetail().type, GetProfileDetailSaga);
   yield takeLatest(onUpdateProfile().type, UpdateProfileSaga);
   yield takeLatest(onCheckBookedDateBooth().type, CheckBookedDateBoothSaga);
+  yield takeLatest(onRatingReview().type, RatingReviewSaga);
+  yield takeLatest(onCancelBooking().type, CancelBookingSaga);
+  yield takeLatest(getBookingList().type, BookingListSaga);
 }
 
 export default authSaga;
