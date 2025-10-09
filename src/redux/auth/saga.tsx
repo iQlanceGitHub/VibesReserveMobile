@@ -117,6 +117,9 @@ import {
   onCancelBooking,
   cancelBookingData,
   cancelBookingError,
+  onCheckBookedDate,
+  checkBookedDateData,
+  checkBookedDateError,
   setLoginToken,
   setLoginUserDetails,
 } from "./actions";
@@ -1642,6 +1645,54 @@ function* CheckBookedDateBoothSaga({
   }
 }
 
+// Check Booked Date Saga
+interface CheckBookedDatePayload {
+  eventId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+function* CheckBookedDateSaga({
+  payload,
+}: {
+  payload: CheckBookedDatePayload;
+}) {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      eventId: payload?.eventId,
+      startDate: payload?.startDate,
+      endDate: payload?.endDate,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/checkbookeddate"}`,
+      params,
+    });
+
+    console.log("CheckBookedDateSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(checkBookedDateData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(checkBookedDateError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(checkBookedDateError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 interface RatingReviewPayload {
   bookingId?: string;
   eventId?: string;
@@ -1775,6 +1826,7 @@ function* authSaga() {
   yield takeLatest(onRatingReview().type, RatingReviewSaga);
   yield takeLatest(onCancelBooking().type, CancelBookingSaga);
   yield takeLatest(getBookingList().type, BookingListSaga);
+  yield takeLatest(onCheckBookedDate().type, CheckBookedDateSaga);
 }
 
 export default authSaga;
