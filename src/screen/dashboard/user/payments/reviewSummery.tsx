@@ -362,7 +362,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
     const basePayload = {
       eventId: eventData?._id || ticketId || "",
-      hostId: eventData?.userId?._id || "",
+      hostId: eventData?.userId?._id || eventData?.userId,
       members: memberCount || 1,
       discount: Math.round(pricing.discount),
       fees: pricing.fees,
