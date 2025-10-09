@@ -36,6 +36,11 @@ const nearbyEventCardNew: React.FC<NearbyEventCardNewProps> = ({
   onPress,
   onFavoritePress,
 }) => {
+  console.log('NearbyEventCardNew: Component rendered with event:', event);
+  console.log('NearbyEventCardNew: Event name:', event?.name);
+  console.log('NearbyEventCardNew: Event category:', event?.category);
+  console.log('NearbyEventCardNew: Event type:', (event as any)?.type);
+  
   // Use isFavorite directly from event data
   const isFavorite = (event as any).isFavorite || false;
 
@@ -85,10 +90,14 @@ const nearbyEventCardNew: React.FC<NearbyEventCardNewProps> = ({
     }
   };
 
+  console.log('NearbyEventCardNew: About to render TouchableOpacity');
+  
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
+      {console.log('NearbyEventCardNew: Rendering TouchableOpacity')}
       {/* Event Image */}
       <View style={styles.imageContainer}>
+        {console.log('NearbyEventCardNew: Rendering imageContainer')}
         <Image 
           source={(event as any).photos?.[0] ? { uri: (event as any).photos[0] } : { uri: 'https://via.placeholder.com/120x90/2D014D/8D34FF?text=Event' }} 
           style={styles.eventImage} 

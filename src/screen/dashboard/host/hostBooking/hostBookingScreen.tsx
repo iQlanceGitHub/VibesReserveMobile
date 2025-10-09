@@ -308,7 +308,7 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
 
             <View style={styles.detailRow}>
               <LocationFavourite width={14} height={14} color={colors.white} />
-              <Text numberOfLines={2} style={styles.detailText}>{booking.location}</Text>
+              <Text numberOfLines={1} style={styles.detailText}>{booking.location}</Text>
             </View>
 
             <View style={styles.detailRow}>

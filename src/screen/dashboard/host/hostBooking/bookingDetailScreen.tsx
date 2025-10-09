@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, BackHandler, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../../../utilis/colors";
 import BackIcon from "../../../../assets/svg/backIcon";
 import EventInfo from "../../../../components/EventInfo";
@@ -31,12 +32,6 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
   
   // Use navigation hook for better type safety
   const nav = useNavigation();
-  
-  // Get navigation state to check stack
-  const navigationState = useNavigationState(state => state);
-  console.log('Navigation state:', navigationState);
-  console.log('Current route name:', navigationState?.routes?.[navigationState?.index]?.name);
-  console.log('Navigation stack length:', navigationState?.routes?.length);
 
   const {
     bookingDetail,
@@ -173,19 +168,13 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
   };
 
   const handleBackPress = () => {
-    console.log('Back button pressed');
-    console.log('Navigation object:', navigation);
-    console.log('Nav object:', nav);
-    console.log('Navigation state:', navigationState);
-    console.log('Current route name:', navigationState?.routes?.[navigationState?.index]?.name);
-    console.log('Navigation stack length:', navigationState?.routes?.length);
-    
-    // Simple approach - just try to go back
+    // Optimized back navigation
     if (navigation && typeof navigation.goBack === 'function') {
-      console.log('Using navigation.goBack()');
       navigation.goBack();
+    } else if (nav && typeof nav.goBack === 'function') {
+      nav.goBack();
     } else {
-      console.log('navigation.goBack() not available, using fallback');
+      // Fallback navigation
       navigation.navigate('HostTabs', { screen: 'Search' });
     }
   };
@@ -200,7 +189,7 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
 
       const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
       return () => subscription.remove();
-    }, [])
+    }, [navigation, nav])
   );
 
   const handleChatPress = () => {};
@@ -209,7 +198,7 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
 
   if (!bookingData && !loading && !reduxLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
             <BackIcon size={20} color={colors.white} />
@@ -233,12 +222,12 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <BackIcon />
@@ -303,7 +292,7 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

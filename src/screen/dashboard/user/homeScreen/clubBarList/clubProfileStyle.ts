@@ -153,7 +153,7 @@ export default StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.cardBackground,
     borderRadius: verticalScale(16),
-    padding: verticalScale(4),
+    padding: verticalScale(2),
     marginBottom: verticalScale(20),
     borderWidth: 1,
     borderColor: colors.purpleBorder,

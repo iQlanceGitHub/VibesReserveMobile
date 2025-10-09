@@ -43,6 +43,9 @@ import {
   onTogglefavorite,
   togglefavoriteData,
   togglefavoriteError,
+  onFavoriteslist,
+  favoriteslistData,
+  favoriteslistError,
 } from "../../../../redux/auth/actions";
 import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -136,6 +139,7 @@ const HomeScreenContent = () => {
   const [featured, setFeatured] = useState<any[]>([]);
   const [nearby, setNearby] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [favoriteEvents, setFavoriteEvents] = useState<any[]>([]);
   const [userId, setUserId] = useState("");
 
   const dispatch = useDispatch();
@@ -147,6 +151,8 @@ const HomeScreenContent = () => {
   const togglefavoriteErr = useSelector(
     (state: any) => state.auth.togglefavoriteErr
   );
+  const favoriteslist = useSelector((state: any) => state.auth.favoriteslist);
+  const favoriteslistErr = useSelector((state: any) => state.auth.favoriteslistErr);
   const [msg, setMsg] = useState("");
   const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -235,11 +241,40 @@ const HomeScreenContent = () => {
     }
   };
 
+  // Fetch favorites list
+  const fetchFavoritesList = async () => {
+    const userId = await getUser();
+    const payload = {
+      userId: userId || "68c17979f763e99ba95a6de4", // fallback userId
+    };
+    dispatch(onFavoriteslist(payload));
+  };
+
   // Fetch categories and home data when component mounts
   useEffect(() => {
     fetchCategories();
     getUser();
   }, [fetchCategories]);
+
+  // Fetch data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadData = async () => {
+        const userId = await getUser();
+        // Fetch home data
+        dispatch(
+          onHomenew({
+            lat: defaultLat,
+            long: defaultLong,
+            userId: userId,
+          })
+        );
+        // Fetch favorites data
+        fetchFavoritesList();
+      };
+      loadData();
+    }, [])
+  );
 
   useEffect(() => {
     fetchFacilities();
@@ -398,6 +433,8 @@ const HomeScreenContent = () => {
             userId: userId, // fallback userId
           })
         );
+        // Also refresh favorites list
+        fetchFavoritesList();
         dispatch(togglefavoriteData(""));
       }
 
@@ -410,6 +447,27 @@ const HomeScreenContent = () => {
 
     handleToggleFavoriteResponse();
   }, [togglefavorite, togglefavoriteErr, dispatch]);
+
+  // Handle favorites list API response
+  useEffect(() => {
+    if (
+      favoriteslist?.status === true ||
+      favoriteslist?.status === 'true' ||
+      favoriteslist?.status === 1 ||
+      favoriteslist?.status === "1"
+    ) {
+      console.log("favoriteslist response in home:", favoriteslist);
+      if (favoriteslist?.data) {
+        setFavoriteEvents(favoriteslist.data);
+      }
+      dispatch(favoriteslistData(''));
+    }
+
+    if (favoriteslistErr) {
+      console.log("favoriteslistErr in home:", favoriteslistErr);
+      dispatch(favoriteslistError(''));
+    }
+  }, [favoriteslist, favoriteslistErr, dispatch]);
 
   const handleFilterPress = () => {
     setIsFilterVisible(true);

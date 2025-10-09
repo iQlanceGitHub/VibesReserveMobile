@@ -157,6 +157,9 @@ export const {
   onCancelBooking,
   cancelBookingData,
   cancelBookingError,
+  onCheckBookedDate,
+  checkBookedDateData,
+  checkBookedDateError,
 
   setLoginToken,
 
@@ -294,6 +297,9 @@ export const {
   "ON_CANCEL_BOOKING",
   "CANCEL_BOOKING_DATA",
   "CANCEL_BOOKING_ERROR",
+  "ON_CHECK_BOOKED_DATE",
+  "CHECK_BOOKED_DATE_DATA",
+  "CHECK_BOOKED_DATE_ERROR",
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",

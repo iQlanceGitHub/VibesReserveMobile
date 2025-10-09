@@ -12,11 +12,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
 import { BackButton } from "../../../../components/BackButton";
 import { Buttons } from "../../../../components/buttons";
 import { colors } from "../../../../utilis/colors";
 import { stripeTestKey } from "../../../../utilis/appConstant";
 import { showToast } from "../../../../utilis/toastUtils";
+import { onGetProfileDetail, getProfileDetailData, getProfileDetailError } from "../../../../redux/auth/actions";
 import ApplePayIcon from "../../../../assets/svg/applePayIcon";
 import GoogleIcon from "../../../../assets/svg/googleIcon";
 import VisaIcon from "../../../../assets/svg/visaIcon";
@@ -59,9 +61,15 @@ interface PaymentData {
 const PaymentsScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
   const { confirmSetupIntent } = useStripe();
   const { confirmPlatformPayPayment } = usePlatformPay();
   const cardFieldRef = useRef<any>(null);
+  
+  // Redux selectors
+  const { getProfileDetail, getProfileDetailErr, loader } = useSelector(
+    (state: any) => state.auth
+  );
   
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
@@ -77,6 +85,10 @@ const PaymentsScreen: React.FC = () => {
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [isProcessingPayment, setIsProcessingPayment] = useState<boolean>(false);
   const [isPaymentSelected, setIsPaymentSelected] = useState<boolean>(false);
+  
+  // Profile details state
+  const [profileDetail, setProfileDetail] = useState<any>(null);
+  const [stripeCustomerId, setStripeCustomerId] = useState<string>('');
 
   // Initialize payment selection state
   useEffect(() => {
@@ -161,8 +173,9 @@ const PaymentsScreen: React.FC = () => {
       setSelectedCardId(null);
       setSelectedPaymentMethod(null);
     }
-    // Load cards when component mounts
-    loadSavedCards();
+    
+    // Fetch profile details to get stripeCustomerId
+    fetchProfileDetail();
     
     // Check platform pay support
     checkPlatformPaySupport();
@@ -176,6 +189,59 @@ const PaymentsScreen: React.FC = () => {
     console.log("=== END PAYMENT AMOUNT ===");
     setPaymentAmount(totalPrice || 250); // Use total price from booking data
   }, [paymentData]);
+
+  // Handle profile details response
+  useEffect(() => {
+    if (
+      getProfileDetail?.status === true ||
+      getProfileDetail?.status === "true" ||
+      getProfileDetail?.status === 1 ||
+      getProfileDetail?.status === "1"
+    ) {
+      console.log("Profile detail response in PaymentsScreen:", getProfileDetail);
+      console.log("Stripe Customer ID:", getProfileDetail?.data?.stripeCustomerId);
+      setProfileDetail(getProfileDetail?.data);
+      setStripeCustomerId(getProfileDetail?.data?.stripeCustomerId || '');
+      
+      // Load cards after getting customer ID
+      if (getProfileDetail?.data?.stripeCustomerId) {
+        loadSavedCards();
+      }
+      
+      dispatch(getProfileDetailData(""));
+    }
+
+    if (getProfileDetailErr) {
+      console.log("Profile detail error in PaymentsScreen:", getProfileDetailErr);
+      // Don't show error toast for profile details as it's not critical for payment
+      dispatch(getProfileDetailError(""));
+    }
+  }, [getProfileDetail, getProfileDetailErr, dispatch]);
+
+  const fetchProfileDetail = () => {
+    dispatch(onGetProfileDetail({}));
+  };
+
+  const handleRefreshCards = () => {
+    if (!stripeCustomerId) {
+      // If no customer ID, try to fetch profile details first
+      console.log("No stripeCustomerId available, fetching profile details...");
+      fetchProfileDetail();
+      showToast('info', 'Loading customer information...');
+      return;
+    }
+    
+    // If customer ID is available, load cards directly
+    loadSavedCards();
+  };
+
+  // Auto-load cards when stripeCustomerId becomes available
+  useEffect(() => {
+    if (stripeCustomerId && stripeCustomerId.trim() !== '') {
+      console.log("stripeCustomerId is now available, loading cards...");
+      loadSavedCards();
+    }
+  }, [stripeCustomerId]);
 
   // Check platform pay support
   const checkPlatformPaySupport = async () => {
@@ -193,12 +259,17 @@ const PaymentsScreen: React.FC = () => {
 
   // Load saved cards from API
   const loadSavedCards = async () => {
+    if (!stripeCustomerId) {
+      console.log("No stripeCustomerId available, skipping card loading");
+      setError("Customer information not available. Please try refreshing.");
+      setLoadingCards(false);
+      return;
+    }
+
     setLoadingCards(true);
     setError(null);
     try {
-      // Replace with your actual API endpoint cus_Qku0xGw4IT9bke
- 
-      const response = await fetch('https://api.stripe.com/v1/payment_methods?customer=cus_T7lZ5LfIt7RqBf&type=card', {
+      const response = await fetch(`https://api.stripe.com/v1/payment_methods?customer=${stripeCustomerId}&type=card`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${stripeTestKey.secreteKey}`,
@@ -296,6 +367,18 @@ const PaymentsScreen: React.FC = () => {
   };
 
   const handleNext = () => {
+    // Check if profile details are still loading
+    if (loader) {
+      showToast('error', 'Loading customer information...');
+      return;
+    }
+
+    // Check if stripeCustomerId is available for payment methods that require it
+    if ((selectedCardId || selectedPaymentMethod === 'apple' || selectedPaymentMethod === 'google') && !stripeCustomerId) {
+      showToast('error', 'Customer information not available. Please try again.');
+      return;
+    }
+
     // Check if any payment option is selected
     if (!isPaymentOptionSelected()) {
       showToast('error', 'Please select a payment method to continue');
@@ -329,65 +412,65 @@ const PaymentsScreen: React.FC = () => {
   };
 
   // Process card payment
-  const processCardPayment = async (cardId: string, amount: number) => {
-    setIsProcessingPayment(true);
-    try {
-      const amountInCents = Math.round(amount * 100);
+  // const processCardPayment = async (cardId: string, amount: number) => {
+  //   setIsProcessingPayment(true);
+  //   try {
+  //     const amountInCents = Math.round(amount * 100);
       
-      const paymentIntentResponse = await fetch(
-        'https://api.stripe.com/v1/payment_intents',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Bearer ${stripeTestKey.secreteKey}`,
-          },
-          body: new URLSearchParams({
-            amount: amountInCents.toString(),
-            currency: 'usd',
-            customer: 'cus_T7lZ5LfIt7RqBf', // Use your customer ID
-            payment_method: cardId,
-            off_session: 'true',
-            confirm: 'true',
-          }).toString(),
-        },
-      );
+  //     const paymentIntentResponse = await fetch(
+  //       'https://api.stripe.com/v1/payment_intents',
+  //       {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/x-www-form-urlencoded',
+  //           Authorization: `Bearer ${stripeTestKey.secreteKey}`,
+  //         },
+  //         body: new URLSearchParams({
+  //           amount: amountInCents.toString(),
+  //           currency: 'usd',
+  //           customer: 'cus_T7lZ5LfIt7RqBf', // Use your customer ID
+  //           payment_method: cardId,
+  //           off_session: 'true',
+  //           confirm: 'true',
+  //         }).toString(),
+  //       },
+  //     );
 
-      const paymentIntent = await paymentIntentResponse.json();
+  //     const paymentIntent = await paymentIntentResponse.json();
 
-      if (paymentIntent.error) {
-        Alert.alert('Payment Error', paymentIntent.error.message);
-      } else {
-        Alert.alert('Success', 'Payment processed successfully!');
-        // Navigate to success screen or handle success
-        (navigation as any).navigate("ReviewSummary", { 
-          paymentIntent,
-          paymentMethod: 'card',
-          amount: amount,
-          // Include complete booking data
-          bookingData: actualBookingData,
-          eventData: actualBookingData?.eventData,
-          memberCount: actualBookingData?.memberCount,
-          entryFee: actualBookingData?.entryFee,
-          ticketPrice: actualBookingData?.ticketPrice,
-          totalPrice: actualBookingData?.totalPrice,
-          maxCapacity: actualBookingData?.maxCapacity,
-          selectedStartDate: actualBookingData?.selectedStartDate,
-          selectedEndDate: actualBookingData?.selectedEndDate,
-          selectedDateRange: actualBookingData?.selectedDateRange,
-          selectedTicket: actualBookingData?.selectedTicket,
-          ticketId: actualBookingData?.ticketId,
-          ticketType: actualBookingData?.ticketType,
-          bookingDetails: actualBookingData?.bookingDetails,
-        });
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      Alert.alert('Error', 'Payment failed. Please try again.');
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
+  //     if (paymentIntent.error) {
+  //       Alert.alert('Payment Error', paymentIntent.error.message);
+  //     } else {
+  //       Alert.alert('Success', 'Payment processed successfully!');
+  //       // Navigate to success screen or handle success
+  //       (navigation as any).navigate("ReviewSummary", { 
+  //         paymentIntent,
+  //         paymentMethod: 'card',
+  //         amount: amount,
+  //         // Include complete booking data
+  //         bookingData: actualBookingData,
+  //         eventData: actualBookingData?.eventData,
+  //         memberCount: actualBookingData?.memberCount,
+  //         entryFee: actualBookingData?.entryFee,
+  //         ticketPrice: actualBookingData?.ticketPrice,
+  //         totalPrice: actualBookingData?.totalPrice,
+  //         maxCapacity: actualBookingData?.maxCapacity,
+  //         selectedStartDate: actualBookingData?.selectedStartDate,
+  //         selectedEndDate: actualBookingData?.selectedEndDate,
+  //         selectedDateRange: actualBookingData?.selectedDateRange,
+  //         selectedTicket: actualBookingData?.selectedTicket,
+  //         ticketId: actualBookingData?.ticketId,
+  //         ticketType: actualBookingData?.ticketType,
+  //         bookingDetails: actualBookingData?.bookingDetails,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error('Payment error:', error);
+  //     Alert.alert('Error', 'Payment failed. Please try again.');
+  //   } finally {
+  //     setIsProcessingPayment(false);
+  //   }
+  // };
 
   const handleDeleteCard = (cardId: string) => {
     Alert.alert("Delete Card", "Are you sure you want to delete this card?", [
@@ -429,6 +512,11 @@ const PaymentsScreen: React.FC = () => {
       return;
     }
 
+    if (!stripeCustomerId) {
+      Alert.alert('Error', 'Customer information not available. Please try again.');
+      return;
+    }
+
     setLoading(true);
     try {
       // Create a SetupIntent on the client side
@@ -441,7 +529,7 @@ const PaymentsScreen: React.FC = () => {
             Authorization: `Bearer ${stripeTestKey.secreteKey}`,
           },
           body: new URLSearchParams({
-            customer: 'cus_T7lZ5LfIt7RqBf', // Replace with actual customer ID
+            customer: stripeCustomerId, // Use dynamic customer ID
             'payment_method_types[]': 'card',
           }).toString(),
         },
@@ -495,6 +583,11 @@ const PaymentsScreen: React.FC = () => {
 
   // Apple Pay payment
   const payWithApplePay = async () => {
+    if (!stripeCustomerId) {
+      Alert.alert('Error', 'Customer information not available. Please try again.');
+      return;
+    }
+
     try {
       const amountInCents = Math.round(paymentAmount * 100);
       
@@ -507,7 +600,7 @@ const PaymentsScreen: React.FC = () => {
         body: new URLSearchParams({
           amount: amountInCents.toString(),
           currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
+          customer: stripeCustomerId, // Use dynamic customer ID
         }).toString(),
       });
 
@@ -559,6 +652,11 @@ const PaymentsScreen: React.FC = () => {
 
   // Google Pay payment
   const payWithGooglePay = async () => {
+    if (!stripeCustomerId) {
+      Alert.alert('Error', 'Customer information not available. Please try again.');
+      return;
+    }
+
     try {
       const amountInCents = Math.round(paymentAmount * 100);
       
@@ -571,7 +669,7 @@ const PaymentsScreen: React.FC = () => {
         body: new URLSearchParams({
           amount: amountInCents.toString(),
           currency: 'usd',
-          customer: 'cus_T7lZ5LfIt7RqBf',
+          customer: stripeCustomerId, // Use dynamic customer ID
         }).toString(),
       });
 
@@ -732,7 +830,7 @@ const PaymentsScreen: React.FC = () => {
               <Text style={paymentsStyles.sectioncards}>Saved Cards</Text>
               <View style={paymentsStyles.headerButtons}>
                 <TouchableOpacity
-                  onPress={loadSavedCards}
+                  onPress={handleRefreshCards}
                   style={paymentsStyles.refreshButton}
                   disabled={loadingCards}
                 >
@@ -762,7 +860,7 @@ const PaymentsScreen: React.FC = () => {
               <View style={paymentsStyles.errorContainer}>
                 <Text style={paymentsStyles.errorText}>{error}</Text>
                 <TouchableOpacity
-                  onPress={loadSavedCards}
+                  onPress={handleRefreshCards}
                   style={paymentsStyles.retryButton}
                 >
                   <Text style={paymentsStyles.retryButtonText}>Retry</Text>

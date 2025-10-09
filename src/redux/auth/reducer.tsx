@@ -81,6 +81,9 @@ import {
   cancelBookingError,
   bookingListData,
   bookingListError,
+  checkBookedDateData,
+  checkBookedDateError,
+
 } from "./actions";
 
 export const initialState = {
@@ -185,6 +188,8 @@ export const initialState = {
 
   bookingList: null,
   bookingListErr: null,
+  checkBookedDate: "",
+  checkBookedDateErr: "",
 
   user: "",
 };
@@ -569,6 +574,14 @@ const authReducer = handleActions(
     [bookingListError().type]: produce((draft, action) => {
       console.log("payload bookingList Error", action.payload);
       draft.bookingListErr = action.payload;
+    // payload checkBookedDate
+    [checkBookedDateData().type]: produce((draft, action) => {
+      console.log("payload checkBookedDate", action.payload);
+      draft.checkBookedDate = action.payload;
+    }),
+    [checkBookedDateError().type]: produce((draft, action) => {
+      console.log("payload checkBookedDate Error", action.payload);
+      draft.checkBookedDateErr = action.payload;
     }),
   },
   initialState
