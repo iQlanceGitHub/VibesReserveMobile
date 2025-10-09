@@ -159,7 +159,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Setting"
-        component={LogoutScreen}
+        component={profileScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
