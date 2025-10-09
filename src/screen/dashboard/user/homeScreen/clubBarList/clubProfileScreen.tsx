@@ -57,7 +57,7 @@ const ClubProfileScreen = () => {
   const hostProfileRedux = useSelector((state: any) => state.auth.hostProfile);
   const hostProfileErr = useSelector((state: any) => state.auth.hostProfileErr);
 
-  const tabs = ["Club", "Booth", "Event", "VIP"];
+  const tabs = ["Club", "Booth", "Event", "VIP Entry"];
 
   // Log the received data
   useEffect(() => {
@@ -427,7 +427,7 @@ const ClubProfileScreen = () => {
         return renderBoothContent();
       case "Event":
         return renderEventTicketsContent();
-      case "VIP":
+      case "VIP Entry":
         return renderVipContent();
       default:
         return renderClubContent();
