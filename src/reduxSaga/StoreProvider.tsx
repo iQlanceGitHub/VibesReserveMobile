@@ -5,7 +5,7 @@ import App from '../../App';
 import configureStore from './configureStore';
 
 const initialState = {};
-const store = configureStore(initialState);
+export const store = configureStore(initialState);
 
 
 const StoreProvider = () => {

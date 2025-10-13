@@ -41,19 +41,9 @@ const styles = StyleSheet.create({
     paddingBottom: verticalScale(20),
   },
   profileSection: {
-    // backgroundColor: colors.profileCardBackground,
-    // width: horizontalScale(375),
-    // height: verticalScale(300),
-    // opacity: 1,
-    // borderTopLeftRadius: horizontalScale(30),
-    // borderTopRightRadius: horizontalScale(30),
-    // borderBottomRightRadius: horizontalScale(40),
-    // borderBottomLeftRadius: horizontalScale(40),
-    // borderBottomWidth: 1,
-    // borderBottomColor: colors.purpleBorder,
     backgroundColor: colors.profileCardBackground,
     width: horizontalScale(375),
-    height: verticalScale(300),
+    height: verticalScale(265),
     opacity: 1,
     borderTopLeftRadius: horizontalScale(30),
     borderTopRightRadius: horizontalScale(30),
@@ -61,6 +51,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: horizontalScale(40),
     borderBottomWidth: 1,
     borderBottomColor: colors.purpleBorder,
+    marginBottom: verticalScale(20),
   },
   profileContent: {
     flexDirection: "row",
@@ -119,7 +110,7 @@ const styles = StyleSheet.create({
   },
   licenseSection: {
     paddingHorizontal: horizontalScale(20),
-    marginTop: verticalScale(-80),
+    marginTop: verticalScale(-100),
     marginBottom: verticalScale(30),
     alignItems: "center",
     position: "relative",
@@ -134,20 +125,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  licenseContainer: {
-    backgroundColor: colors.white,
+  documentImage: {
     width: horizontalScale(224),
     height: verticalScale(131),
     borderRadius: horizontalScale(13.41),
-    padding: horizontalScale(16),
-    shadowColor: colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+  },
+  noDocumentContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  noDocumentText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.medium,
+    color: colors.gray || "#666",
+    textAlign: "center",
   },
   menuSection: {
     width: horizontalScale(336),
@@ -214,6 +206,18 @@ const styles = StyleSheet.create({
     fontSize: fontScale(20),
     color: colors.white,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: verticalScale(40),
+  },
+  loadingText: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.medium,
+    color: colors.white,
+    marginTop: verticalScale(10),
   },
 });
 

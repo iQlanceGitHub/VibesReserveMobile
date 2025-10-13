@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   StatusBar,
   SafeAreaView,
   Platform,
-  TouchableOpacity,
   Image,
   TextInput,
   KeyboardAvoidingView,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../utilis/colors";
+import { verticalScale } from "../../utilis/appConstant";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
 import { BackButton } from "../../components/BackButton";
@@ -22,77 +24,82 @@ import ClockIcon from "../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../assets/svg/arrowRightIcon";
 import StarRating from "../../components/StarRating";
 import { handleRestrictedAction } from "../../utilis/userPermissionUtils";
-import CustomAlert from "../../components/CustomAlert";
+import { onRatingReview } from "../../redux/auth/actions";
+import { showToast } from "../../utilis/toastUtils";
 
 interface LeaveReviewScreenProps {
   navigation?: any;
+  route?: any;
 }
-
-// Sample event data
-const sampleEvent = {
-  id: "1",
-  name: "Gala Night of Hilarious Comedy at The Club",
-  category: "DJ Nights",
-  location: "New York, USA",
-  date: "Sep 4",
-  time: "10:00 PM",
-  price: "$500",
-  image: {
-    uri: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=300&fit=crop&auto=format",
-  },
-  isFavorite: true,
-};
 
 const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
   navigation,
+  route,
 }) => {
+  const dispatch = useDispatch();
+  const { ratingReview, ratingReviewErr, loader } = useSelector(
+    (state: any) => state.auth
+  );
+
+  // Get safe area insets for Android 15 compatibility
+  const insets = useSafeAreaInsets();
+
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-  const [showCustomAlert, setShowCustomAlert] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({
-    title: '',
-    message: '',
-    primaryButtonText: '',
-    secondaryButtonText: '',
-    onPrimaryPress: () => {},
-    onSecondaryPress: () => {},
-  });
+
+  const bookingData = route?.params?.bookingData;
 
   const handleSubmit = () => {
-    navigation?.goBack();
+    if (rating === 0) {
+      showToast(
+        "error",
+        "Please select a rating before submitting your review."
+      );
+      return;
+    }
+
+    if (bookingData) {
+      const ratingData = {
+        bookingId: bookingData._id || bookingData.id,
+        eventId: bookingData.eventId?._id || bookingData.eventId?.id,
+        rating: rating,
+        review: reviewText.trim(),
+      };
+
+      dispatch(onRatingReview(ratingData));
+    }
   };
 
+  useEffect(() => {
+    if (ratingReview && ratingReview.status === 1 && ratingReview.data) {
+      showToast("success", ratingReview.message);
+      setTimeout(() => {
+        navigation?.goBack();
+      }, 2000);
+    }
+  }, [ratingReview]);
+
+  useEffect(() => {
+    if (ratingReviewErr) {
+      showToast("error", "Failed to submit review. Please try again.");
+    }
+  }, [ratingReviewErr]);
+
   const handleFavoritePress = async () => {
-    // Handle favorite toggle
-    console.log("Toggle favorite");
-    
-    // Check if user has permission to like/favorite
-    const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
-    
+    const hasPermission = await handleRestrictedAction(
+      "canLike",
+      navigation,
+      "like this event"
+    );
+
     if (hasPermission) {
-      // Handle favorite toggle logic here
       console.log("User has permission to like");
     } else {
-      // Show custom alert for login required
-      setAlertConfig({
-        title: 'Login Required',
-        message: 'Please sign in to like this event. You can explore the app without an account, but some features require login.',
-        primaryButtonText: 'Sign In',
-        secondaryButtonText: 'Continue Exploring',
-        onPrimaryPress: () => {
-          setShowCustomAlert(false);
-          (navigation as any).navigate('SignInScreen');
-        },
-        onSecondaryPress: () => {
-          setShowCustomAlert(false);
-        },
-      });
-      setShowCustomAlert(true);
+      showToast("error", "Please sign in to like this event.");
     }
   };
 
   const handleEventPress = () => {
-    // Handle event details navigation
     console.log("Navigate to event details");
   };
 
@@ -100,8 +107,13 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
+        backgroundColor="transparent"
         translucent={true}
+        // Enhanced StatusBar configuration for Android 15
+        {...(Platform.OS === "android" && {
+          statusBarTranslucent: true,
+          statusBarBackgroundColor: "transparent",
+        })}
       />
       <LinearGradient
         colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
@@ -109,7 +121,7 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { paddingTop: insets.top }]}>
           <View style={styles.header}>
             <View style={styles.statusBar}></View>
             <BackButton navigation={navigation} />
@@ -132,53 +144,85 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
                 <View style={styles.cardTopSection}>
                   <View style={styles.imageContainer}>
                     <Image
-                      source={sampleEvent.image}
+                      source={{
+                        uri:
+                          bookingData?.eventId?.photos?.[0] ||
+                          "https://via.placeholder.com/150",
+                      }}
                       style={styles.eventImage}
                     />
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       style={styles.favoriteButton}
                       onPress={handleFavoritePress}
                     >
                       <HeartIcon
                         size={20}
                         color={colors.white}
-                        filled={sampleEvent.isFavorite}
+                        filled={false}
                       />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
 
                   <View style={styles.eventContent}>
                     <View style={styles.eventHeader}>
                       <View style={styles.categoryTag}>
                         <Text style={styles.categoryText}>
-                          {sampleEvent.category}
+                          {bookingData?.type || "Event"}
                         </Text>
                       </View>
-                      <Text style={styles.priceText}>{sampleEvent.price}</Text>
+                      <Text style={styles.priceText}>
+                        ${bookingData?.fees || "0"}
+                      </Text>
                     </View>
 
-                    <Text style={styles.eventName}>{sampleEvent.name}</Text>
+                    <Text style={styles.eventName}>
+                      {bookingData?.eventId?.name || "Event Name"}
+                    </Text>
 
                     <View style={styles.detailsRow}>
                       <LocationFavourite size={14} color={colors.violate} />
                       <Text style={styles.detailText}>
-                        {sampleEvent.location}
+                        {bookingData?.eventId?.address ||
+                          "Location not available"}
                       </Text>
                     </View>
 
                     <View style={styles.detailsRow}>
                       <ClockIcon size={14} color={colors.violate} />
                       <Text style={styles.detailText}>
-                        {sampleEvent.date} - {sampleEvent.time}
+                        {bookingData?.bookingStartDate
+                          ? new Date(
+                              bookingData.bookingStartDate
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            }) +
+                            " - " +
+                            (bookingData?.eventId?.openingTime
+                              ? (() => {
+                                  const [hours, minutes] =
+                                    bookingData.eventId.openingTime.split(":");
+                                  const hour24 = parseInt(hours);
+                                  const hour12 =
+                                    hour24 === 0
+                                      ? 12
+                                      : hour24 > 12
+                                      ? hour24 - 12
+                                      : hour24;
+                                  const ampm = hour24 >= 12 ? "PM" : "AM";
+                                  return `${hour12}:${minutes} ${ampm}`;
+                                })()
+                              : "Time not available")
+                          : "Date not available"}
                       </Text>
                     </View>
 
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       style={styles.actionButton}
                       onPress={handleEventPress}
                     >
                       <ArrowRightIcon size={16} color={colors.white} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
                 </View>
               </View>
@@ -213,28 +257,23 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
 
           <View style={styles.submitContainer}>
             <Buttons
-              title="Submit"
+              title={loader ? "Submitting..." : "Submit"}
               onPress={handleSubmit}
-              disabled={rating === 0 && reviewText.trim() === ""}
+              disabled={loader || (rating === 0 && reviewText.trim() === "")}
               style={[
                 styles.submitButton,
-                { opacity: rating === 0 && reviewText.trim() === "" ? 0.5 : 1 },
+                {
+                  opacity:
+                    loader || (rating === 0 && reviewText.trim() === "")
+                      ? 0.5
+                      : 1,
+                },
               ]}
             />
           </View>
-        </SafeAreaView>
+          <View style={{ marginBottom: verticalScale(40) }} />
+        </View>
       </LinearGradient>
-      
-      <CustomAlert
-        visible={showCustomAlert}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        primaryButtonText={alertConfig.primaryButtonText}
-        secondaryButtonText={alertConfig.secondaryButtonText}
-        onPrimaryPress={alertConfig.onPrimaryPress}
-        onSecondaryPress={alertConfig.onSecondaryPress}
-        onClose={() => setShowCustomAlert(false)}
-      />
     </View>
   );
 };

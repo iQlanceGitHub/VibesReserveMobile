@@ -61,6 +61,8 @@ import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
 import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
 import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
+import ChatListScreen from "../screen/dashboard/user/chatScreen/chatListScreen";
+import ChatScreen from "../screen/dashboard/user/chatScreen/chatScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -95,7 +97,7 @@ export type RootStackParamList = {
   FeedQuestionScreen: undefined;
   CongratulationDiscovery: undefined;
   HomeTabs: undefined;
-  LeaveReviewScreen: undefined;
+  LeaveReviewScreen: { bookingData: any };
   ProfileScreen: undefined;
   EditProfileScreen: undefined;
   WelcomeScreen: undefined;
@@ -114,7 +116,7 @@ export type RootStackParamList = {
     clubId: string;
     hostData?: any;
     eventsData?: any[];
-    bookingData?: any 
+    bookingData?: any;
   };
   ClubBookingScreen: { eventData: any };
   NearbyEventsSeeAllScreen: { nearbyEvents: any[] };
@@ -131,6 +133,13 @@ export type RootStackParamList = {
   HostEditProfileScreen: undefined;
   PaymentSuccessScreen: undefined;
   ClubBarListScreen: undefined;
+  ChatListScreen: undefined;
+  ChatScreen: {
+    otherUserId: string;
+    otherUserName: string;
+    otherUserProfilePicture?: string;
+    conversationId?: string;
+  };
 };
 
 function MyTabs() {
@@ -153,7 +162,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={LogoutScreen}
+        component={ChatListScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -366,10 +375,10 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="BookingDetailScreen"
             component={BookingDetailScreen}
-            options={{ 
+            options={{
               headerShown: false,
               gestureEnabled: true, // Enable gesture navigation for this screen
-              presentation: 'card' // Ensure proper card presentation
+              presentation: "card", // Ensure proper card presentation
             }}
           />
           <Stack.Screen
@@ -395,6 +404,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ClubBarListScreen"
             component={ClubBarListScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ChatScreen"
+            component={ChatScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

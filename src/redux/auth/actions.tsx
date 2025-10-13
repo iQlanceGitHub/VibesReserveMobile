@@ -118,10 +118,14 @@ export const {
   reviewSummaryData,
   reviewSummaryError,
 
+  getBookingList,
+  bookingListData,
+  bookingListError,
+
   onHostProfile,
   hostProfileData,
   hostProfileError,
-  
+
   onCreateBooking,
   createBookingData,
   createBookingError,
@@ -149,6 +153,31 @@ export const {
   onCheckBookedDate,
   checkBookedDateData,
   checkBookedDateError,
+  
+  onRatingReview,
+  ratingReviewData,
+  ratingReviewError,
+
+  onCancelBooking,
+  cancelBookingData,
+  cancelBookingError,
+
+  // Chat Actions
+  onSendMessage,
+  sendMessageData,
+  sendMessageError,
+
+  onGetConversation,
+  getConversationData,
+  getConversationError,
+
+  onGetChatList,
+  getChatListData,
+  getChatListError,
+
+  onStartLongPolling,
+  onStopLongPolling,
+  onUpdateMessages,
 
   setLoginToken,
 
@@ -282,6 +311,14 @@ export const {
   "ON_CHECK_BOOKED_DATE",
   "CHECK_BOOKED_DATE_DATA",
   "CHECK_BOOKED_DATE_ERROR",
+  
+  "ON_RATING_REVIEW",
+  "RATING_REVIEW_DATA",
+  "RATING_REVIEW_ERROR",
+
+  "ON_CANCEL_BOOKING",
+  "CANCEL_BOOKING_DATA",
+  "CANCEL_BOOKING_ERROR",
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",
@@ -299,9 +336,29 @@ export const {
   "REVIEW_SUMMARY_DATA",
   "REVIEW_SUMMARY_ERROR",
 
+  "GET_BOOKING_LIST",
+  "BOOKING_LIST_DATA",
+  "BOOKING_LIST_ERROR",
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",
+
+  // Chat Action Types
+  "ON_SEND_MESSAGE",
+  "SEND_MESSAGE_DATA",
+  "SEND_MESSAGE_ERROR",
+
+  "ON_GET_CONVERSATION",
+  "GET_CONVERSATION_DATA",
+  "GET_CONVERSATION_ERROR",
+
+  "ON_GET_CHAT_LIST",
+  "GET_CHAT_LIST_DATA",
+  "GET_CHAT_LIST_ERROR",
+
+  "ON_START_LONG_POLLING",
+  "ON_STOP_LONG_POLLING",
+  "ON_UPDATE_MESSAGES",
 
   "SET_LOGIN_TOKEN",
 

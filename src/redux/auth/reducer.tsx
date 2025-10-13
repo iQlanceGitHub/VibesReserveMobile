@@ -63,17 +63,14 @@ import {
   reviewSummaryError,
   hostProfileData,
   hostProfileError,
-
   createBookingData,
   createBookingError,
   fetchPromoCodesData,
   fetchPromoCodesError,
   applyPromoCodeData,
   applyPromoCodeError,
-  
   getProfileDetailData,
   getProfileDetailError,
-
   updateProfileData,
   updateProfileError,
   checkBookedDateBoothData,
@@ -81,6 +78,20 @@ import {
   checkBookedDateData,
   checkBookedDateError,
 
+  ratingReviewData,
+  ratingReviewError,
+  cancelBookingData,
+  cancelBookingError,
+  bookingListData,
+  bookingListError,
+  // Chat imports
+  sendMessageData,
+  sendMessageError,
+  getConversationData,
+  getConversationError,
+  getChatListData,
+  getChatListError,
+  onUpdateMessages,
 } from "./actions";
 
 export const initialState = {
@@ -179,6 +190,24 @@ export const initialState = {
 
   checkBookedDate: "",
   checkBookedDateErr: "",
+  ratingReview: "",
+  ratingReviewErr: "",
+
+  cancelBooking: "",
+  cancelBookingErr: "",
+
+  bookingList: null,
+  bookingListErr: null,
+
+  // Chat state
+  sendMessage: "",
+  sendMessageErr: "",
+  conversation: [],
+  conversationErr: "",
+  chatList: [],
+  chatListErr: "",
+  isLongPollingActive: false,
+  lastMessageTimestamp: null,
 
   user: "",
 };
@@ -543,6 +572,79 @@ const authReducer = handleActions(
     [checkBookedDateError().type]: produce((draft, action) => {
       console.log("payload checkBookedDate Error", action.payload);
       draft.checkBookedDateErr = action.payload;
+    }),
+    // payload ratingReview
+    [ratingReviewData().type]: produce((draft, action) => {
+      console.log("payload ratingReview", action.payload);
+      draft.ratingReview = action.payload;
+    }),
+    [ratingReviewError().type]: produce((draft, action) => {
+      console.log("payload ratingReview Error", action.payload);
+      draft.ratingReviewErr = action.payload;
+    }),
+
+    // payload cancelBooking
+    [cancelBookingData().type]: produce((draft, action) => {
+      console.log("payload cancelBooking", action.payload);
+      draft.cancelBooking = action.payload;
+    }),
+    [cancelBookingError().type]: produce((draft, action) => {
+      console.log("payload cancelBooking Error", action.payload);
+      draft.cancelBookingErr = action.payload;
+    }),
+
+    // payload bookingList
+    [bookingListData().type]: produce((draft, action) => {
+      console.log("payload bookingList", action.payload);
+      draft.bookingList = action.payload;
+    }),
+    [bookingListError().type]: produce((draft, action) => {
+      console.log("payload bookingList Error", action.payload);
+      draft.bookingListErr = action.payload;
+    }),
+
+    // Chat reducers
+    [sendMessageData().type]: produce((draft, action) => {
+      console.log("payload sendMessage", action.payload);
+      draft.sendMessage = action.payload;
+    }),
+    [sendMessageError().type]: produce((draft, action) => {
+      console.log("payload sendMessage Error", action.payload);
+      draft.sendMessageErr = action.payload;
+    }),
+
+    [getConversationData().type]: produce((draft, action) => {
+      console.log("payload getConversation", action.payload);
+      draft.conversation = action.payload;
+    }),
+    [getConversationError().type]: produce((draft, action) => {
+      console.log("payload getConversation Error", action.payload);
+      draft.conversationErr = action.payload;
+    }),
+
+    [getChatListData().type]: produce((draft, action) => {
+      console.log("payload getChatList", action.payload);
+      draft.chatList = action.payload;
+    }),
+    [getChatListError().type]: produce((draft, action) => {
+      console.log("payload getChatList Error", action.payload);
+      draft.chatListErr = action.payload;
+    }),
+
+    [onUpdateMessages().type]: produce((draft, action) => {
+      console.log("payload updateMessages", action.payload);
+      const { conversationId, newMessages } = action.payload;
+      
+      // Find the conversation and append new messages
+      const conversationIndex = draft.chatList.findIndex(chat => chat.conversationId === conversationId);
+      if (conversationIndex !== -1) {
+        draft.chatList[conversationIndex].messages = [
+          ...(draft.chatList[conversationIndex].messages || []),
+          ...newMessages
+        ];
+        draft.chatList[conversationIndex].lastMessage = newMessages[newMessages.length - 1];
+        draft.chatList[conversationIndex].lastMessageTime = newMessages[newMessages.length - 1].timestamp;
+      }
     }),
   },
   initialState

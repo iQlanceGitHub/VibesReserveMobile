@@ -9,14 +9,17 @@ import {
   TouchableOpacity,
   Image,
   Switch,
+  ActivityIndicator,
 } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import EditIcon from "../../assets/svg/editIcon";
 import RightArrow from "../../assets/svg/rightArrow";
 import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
 import { getUserStatus } from "../../utilis/userPermissionUtils";
+import { onGetProfileDetail } from "../../redux/auth/actions";
 import styles from "./styles";
 
 interface ProfileScreenProps {
@@ -24,11 +27,19 @@ interface ProfileScreenProps {
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const { getProfileDetail, getProfileDetailErr, loader } = useSelector(
+    (state: any) => state.auth
+  );
+
   const [exploreNightLife, setExploreNightLife] = useState(true);
   const [notifications, setNotifications] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
-  const [userStatus, setUserStatus] = useState<'logged_in' | 'skipped' | 'guest' | null>(null);
+  const [userStatus, setUserStatus] = useState<
+    "logged_in" | "skipped" | "guest" | null
+  >(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileData, setProfileData] = useState<any>(null);
 
   useEffect(() => {
     checkUserStatus();
@@ -41,19 +52,53 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     }, [])
   );
 
+  // Call profile detail API when user is logged in
+  useEffect(() => {
+    if (userStatus === "logged_in") {
+      fetchProfileDetail();
+    }
+  }, [userStatus]);
+
+  // Handle profile detail API response
+  useEffect(() => {
+    if (getProfileDetail && getProfileDetail.status === 1) {
+      setProfileData(getProfileDetail.data);
+      console.log("Profile detail data:", getProfileDetail.data);
+    } else if (getProfileDetailErr) {
+      console.log("Profile detail error:", getProfileDetailErr);
+    }
+  }, [getProfileDetail, getProfileDetailErr]);
+
   const checkUserStatus = async () => {
     try {
       const status = await getUserStatus();
       setUserStatus(status);
     } catch (error) {
-      console.error('Error checking user status:', error);
+      console.error("Error checking user status:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const fetchProfileDetail = () => {
+    dispatch(onGetProfileDetail());
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "01/01/1990";
+    }
+  };
+
   const handleLogin = () => {
-    navigation?.navigate('SignInScreen');
+    navigation?.navigate("SignInScreen");
   };
 
   const handleExploreNightLifeToggle = () => {
@@ -75,8 +120,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const handleLogoutConfirm = () => {
     console.log("Logout confirmed");
     setShowLogoutPopup(false);
-    // Add your logout logic here
-    // For example: navigation.navigate('SignInScreen');
   };
 
   const handleLogoutCancel = () => {
@@ -143,40 +186,125 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <Text style={styles.title}>Profile</Text>
                 <View style={styles.placeholder} />
               </View>
-              <View style={styles.profileContent}>
-                <View style={styles.profileImageContainer}>
-                  <Image
-                    source={{
-                      uri: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+              {loader && userStatus === "logged_in" ? (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingVertical: 40,
+                  }}
+                >
+                  <ActivityIndicator size="large" color={colors.white} />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: "Poppins-Medium",
+                      color: colors.white,
+                      marginTop: 10,
                     }}
-                    style={styles.profileImage}
-                  />
-                  <TouchableOpacity
-                    style={styles.editIconContainer}
-                    onPress={handleEditProfile}
                   >
-                    <EditIcon width={16} height={16} />
+                    Loading profile...
+                  </Text>
+                </View>
+              ) : getProfileDetailErr ? (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingVertical: 40,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontFamily: "Poppins-Medium",
+                      color: colors.red || "#FF6B6B",
+                      textAlign: "center",
+                      marginBottom: 10,
+                    }}
+                  >
+                    Failed to load profile
+                  </Text>
+                  <TouchableOpacity
+                    onPress={fetchProfileDetail}
+                    style={{
+                      backgroundColor: colors.BtnBackground || "#6C5CE7",
+                      paddingHorizontal: 20,
+                      paddingVertical: 10,
+                      borderRadius: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: "Poppins-Medium",
+                        color: colors.white,
+                      }}
+                    >
+                      Retry
+                    </Text>
                   </TouchableOpacity>
                 </View>
+              ) : (
+                <View style={styles.profileContent}>
+                  <View style={styles.profileImageContainer}>
+                    <Image
+                      source={{
+                        uri: profileData?.profilePicture,
+                      }}
+                      style={styles.profileImage}
+                    />
+                    <TouchableOpacity
+                      style={styles.editIconContainer}
+                      onPress={handleEditProfile}
+                    >
+                      <EditIcon width={16} height={16} />
+                    </TouchableOpacity>
+                  </View>
 
-                <View style={styles.userInfoContainer}>
-                  <Text style={styles.userInfoName}>Mike Hussey</Text>
-                  <Text style={styles.userInfoValue}>
-                    mike.hussey@gmail.com
-                  </Text>
-                  <Text style={styles.userInfoValue}>+62703-701-9964</Text>
-                  <Text style={styles.userInfoValue}>09/09/1990</Text>
+                  <View style={styles.userInfoContainer}>
+                    <Text style={styles.userInfoName}>
+                      {profileData?.fullName || "User Name"}
+                    </Text>
+                    <Text style={styles.userInfoValue}>
+                      {profileData?.email || "user@example.com"}
+                    </Text>
+                    <Text style={styles.userInfoValue}>
+                      {profileData?.countrycode && profileData?.phone
+                        ? `${profileData.countrycode}${profileData.phone}`
+                        : "+1234567890"}
+                    </Text>
+                    <Text style={styles.userInfoValue}>
+                      {profileData?.dateOfBirth
+                        ? formatDate(profileData.dateOfBirth)
+                        : "01/01/1990"}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
 
             <View style={styles.licenseSection}>
               <View style={styles.licenseBorderContainer}>
-                <View style={styles.licenseContainer}></View>
+                {profileData?.userDocument ? (
+                  <Image
+                    source={{ uri: profileData.userDocument }}
+                    style={styles.documentImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.noDocumentContainer}>
+                    <Text style={styles.noDocumentText}>
+                      No Document Available
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
             <View style={styles.menuSection}>
-              {userStatus === 'skipped' ? (
+              {userStatus === "skipped" ? (
                 // Show Login option for skipped users
                 renderMenuOption("Sign In", handleLogin, <RightArrow />, true)
               ) : (

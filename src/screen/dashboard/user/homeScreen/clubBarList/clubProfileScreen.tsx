@@ -488,13 +488,25 @@ const ClubProfileScreen = () => {
           {hostProfile?.fullName}
         </Text>
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity style={styles.actionButton}>
-            <MessageIcon width={20} height={20} color={colors.violate} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <PhoneIcon width={20} height={20} color={colors.violate} />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => {
+                if (hostProfile?._id) {
+                  (navigation as any).navigate("ChatScreen", {
+                    otherUserId: hostProfile._id,
+                    otherUserName: hostProfile.businessName || hostProfile.fullName,
+                    otherUserProfilePicture: hostProfile.businessPicture || hostProfile.profilePicture,
+                    conversationId: hostProfile?.conversationId,
+                  });
+                }
+              }}
+            >
+              <MessageIcon width={20} height={20} color={colors.violate} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <PhoneIcon width={20} height={20} color={colors.violate} />
+            </TouchableOpacity>
+          </View>
       </View>
 
       <View style={styles.tabsContainer}>{tabs.map(renderTabButton)}</View>
