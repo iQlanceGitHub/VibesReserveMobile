@@ -88,12 +88,14 @@ const ChatListScreen = () => {
 
   // Render chat item
   const renderChatItem = ({ item }: { item: ChatItem }) => (
+    
     <TouchableOpacity
       style={styles.chatItem}
       onPress={() => {
+        console.log("Chat item pressed:", item);
         navigation.navigate("ChatScreen", {
-          otherUserId: item.otherUserId,
-          otherUserName: item.otherUserName,
+          otherUserId: item.userId,
+          otherUserName: item.fullName,
           otherUserProfilePicture: item.otherUserProfilePicture,
           conversationId: item.conversationId,
         });
