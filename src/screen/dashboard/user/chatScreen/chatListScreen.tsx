@@ -100,8 +100,8 @@ const ChatListScreen = () => {
         console.log("Chat item pressed:", item);
         (navigation as any).navigate("ChatScreen", {
           otherUserId: item.userId || item.otherUserId,
-          otherUserName: item.fullName || item.otherUserName,
-          otherUserProfilePicture: item.otherUserProfilePicture,
+          otherUserName: item.businessName || item.fullName,
+          otherUserProfilePicture: item.businessPicture || "https://via.placeholder.com/50",
           conversationId: item.conversationId,
         });
       }}

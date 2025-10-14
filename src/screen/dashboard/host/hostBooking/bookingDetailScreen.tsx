@@ -28,6 +28,7 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [bookingData, setBookingData] = useState<any>(null);
+  const [rawBookingData, setRawBookingData] = useState<any>(null);
   const bookingId = route?.params?.bookingId;
   
   // Use navigation hook for better type safety
@@ -59,9 +60,12 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
       bookingDetail?.status === 1 ||
       bookingDetail?.status === "1"
     ) {
-      // Transform API data to component format
+      // Store raw API data and transform for display
       const apiData = bookingDetail?.data;
       if (apiData) {
+        // Store raw data for chat navigation
+        setRawBookingData(apiData);
+        
         const transformedData = {
           eventName: apiData.eventId?.name || "Event",
           location: apiData.eventId?.address
@@ -192,7 +196,20 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
     }, [navigation, nav])
   );
 
-  const handleChatPress = () => {};
+  const handleChatPress = () => {
+    console.log("Chat booking detail:", rawBookingData);
+    
+    if (rawBookingData?.userId?._id) {
+      (navigation as any).navigate("ChatScreen", {
+        otherUserId: rawBookingData.userId._id,
+        otherUserName: rawBookingData.userId.fullName,
+        otherUserProfilePicture: rawBookingData.userId.profilePicture,
+        conversationId: rawBookingData.conversationId,
+      });
+    } else {
+      showToast("error", "Unable to start chat. User information not available.");
+    }
+  };
 
   const handleCallPress = () => {};
 

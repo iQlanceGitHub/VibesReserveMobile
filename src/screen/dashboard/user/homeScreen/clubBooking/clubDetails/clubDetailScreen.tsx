@@ -1119,7 +1119,12 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                 <Text style={styles.organizerRole}>Organize Team</Text>
               </View>
               <View style={styles.contactIcons}>
-                <TouchableOpacity style={styles.contactButton}>
+                <TouchableOpacity style={styles.contactButton} onPress={() => (navigation as any).navigate("ChatScreen", {
+                  otherUserId: (clubDetails as any)?.userId?._id,
+                  otherUserName: (clubDetails as any)?.userId?.fullName,
+                  otherUserProfilePicture: (clubDetails as any)?.userId?.profilePicture,
+                  conversationId: (clubDetails as any)?.userId?.conversationId,
+                })}>
                   <MessageIcon width={20} height={20} color={colors.violate} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contactButton}>

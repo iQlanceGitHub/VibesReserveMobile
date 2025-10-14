@@ -29,13 +29,14 @@ export default StyleSheet.create({
   },
   headerTitle: {
     fontSize: fontScale(20),
-    lineHeight: verticalScale(24),
+    lineHeight: verticalScale(32),
     fontWeight: "600",
     fontFamily: fonts.semiBold,
     color: colors.white,
     flex: 1,
     textAlign: "center",
     marginLeft: horizontalScale(-20),
+    
   },
   content: {
     flex: 1,

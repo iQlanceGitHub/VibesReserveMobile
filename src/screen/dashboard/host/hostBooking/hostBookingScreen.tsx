@@ -53,6 +53,7 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     "accepted"
   );
   const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [rawBookings, setRawBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -100,6 +101,7 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
   // Clear booking data
   const clearBookingData = () => {
     setBookings([]);
+    setRawBookings([]);
     setLoading(false);
     setRefreshing(false);
     dispatch(bookingrequestData(""));
@@ -121,9 +123,9 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
       bookingrequest?.status === "1"
     ) {
       console.log("Booking requests fetched:", bookingrequest);
-      const transformedBookings = transformBookingData(
-        bookingrequest?.data || []
-      );
+      const rawData = bookingrequest?.data || [];
+      const transformedBookings = transformBookingData(rawData);
+      setRawBookings(rawData);
       setBookings(transformedBookings);
       setLoading(false);
       setRefreshing(false);
@@ -238,15 +240,19 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     console.log("Call booking:", bookingId);
   };
 
-  const handleChat = (profile: any) => {
-    console.log("Chat booking:", profile);
-    if (profile?.id) {
-      (navigation as any).navigate("ChatScreen", {
-        otherUserId: '68dfe7d88f4790a4542c0c2a',
-        otherUserName: 'Mac',
-        otherUserProfilePicture: profile?.userImage?.uri || "",
-        conversationId: profile?.conversationId,
-      });
+  const handleChat = (booking: any) => {
+    console.log("Chat booking:", booking);
+    
+    // Find the corresponding raw booking data using the booking ID
+    const rawBooking = rawBookings.find(raw => raw._id === booking.id);
+    
+    if (rawBooking?.userId?._id) {
+     (navigation as any).navigate("ChatScreen", {
+      otherUserId: rawBooking.userId._id,
+      otherUserName: rawBooking.userId.fullName,
+      otherUserProfilePicture: rawBooking.userId.profilePicture,
+      conversationId: rawBooking.conversationId,
+    });
     }
   };
   const handleAccept = (bookingId: string) => {
@@ -297,7 +303,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.actionButton}
-                  // onPress={() => handleChat(booking.id)}
                   onPress={() => handleChat(booking)}
                 >
                   <ChatIcon width={16} height={16} color={colors.white} />

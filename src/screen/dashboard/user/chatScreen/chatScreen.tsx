@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../../../utilis/colors";
 import { BackButton } from "../../../../components/BackButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -53,6 +54,7 @@ const ChatScreen = () => {
   const route = useRoute();
   const dispatch = useDispatch();
   const flatListRef = useRef<FlatList>(null);
+  const insets = useSafeAreaInsets();
   
   const { otherUserId, otherUserName, otherUserProfilePicture, conversationId } = 
     route.params as ChatScreenParams;
@@ -368,8 +370,8 @@ const ChatScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.container, { paddingBottom: insets.bottom }]}
+      behavior={Platform.OS === "ios" ? "padding" : ""}
     >
       <StatusBar barStyle="light-content" backgroundColor={colors.violate} />
       
@@ -411,7 +413,7 @@ const ChatScreen = () => {
       />
 
       {/* Message Input */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 15) }]}>
         <TextInput
           style={styles.textInput}
           placeholder="Write your message"
@@ -545,6 +547,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundColor,
     borderTopWidth: 1,
     borderTopColor: "rgba(255, 255, 255, 0.1)",
+    minHeight: 60, // Ensure minimum height for input area
   },
   textInput: {
     flex: 1,
