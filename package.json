@@ -18,7 +18,7 @@
     "@react-native-community/slider": "^4.5.7",
     "@react-native-community/viewpager": "^5.0.11",
     "@react-native-documents/picker": "^10.1.5",
-    "@react-native-google-signin/google-signin": "^15.0.0",
+    "@react-native-google-signin/google-signin": "^14.0.0",
     "@react-native-voice/voice": "^3.2.4",
     "@react-navigation/bottom-tabs": "^7.4.2",
     "@react-navigation/native": "^7.1.14",
@@ -60,7 +60,12 @@
     "redux-persist": "^6.0.0",
     "redux-saga": "^1.2.3",
     "rn-range-slider": "^2.2.2",
-    "yup": "^1.2.0"
+    "yup": "^1.2.0",
+    "@react-native-community/push-notification-ios": "^1.10.1",
+    "@react-native-firebase/app": "^23.4.1",
+    "@react-native-firebase/crashlytics": "^23.3.1",
+    "@react-native-firebase/messaging": "^23.4.1",
+    "react-native-push-notification": "^8.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

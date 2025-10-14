@@ -29,7 +29,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.233362513415-dlq70usscn8n825h5njp9osp4l6im5c7</string>
+				<string>com.googleusercontent.apps.581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m</string>
 			</array>
 		</dict>
 	</array>
@@ -39,6 +39,15 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	
+	<!-- Firebase Configuration -->
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:581614872749:ios:46fdc180306c2023effe24</string>
+	<key>GCM_SENDER_ID</key>
+	<string>581614872749</string>
+	
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
