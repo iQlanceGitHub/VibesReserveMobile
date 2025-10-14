@@ -27,8 +27,13 @@ interface ChatItem {
   otherUserId: string;
   otherUserName: string;
   otherUserProfilePicture?: string;
+  userId?: string;
+  fullName?: string;
+  businessName?: string;
+  businessPicture?: string;
   lastMessage?: string;
   lastMessageTime?: string;
+  lastMessageAt?: string;
   unreadCount?: number;
   messages?: any[];
 }
@@ -93,9 +98,9 @@ const ChatListScreen = () => {
       style={styles.chatItem}
       onPress={() => {
         console.log("Chat item pressed:", item);
-        navigation.navigate("ChatScreen", {
-          otherUserId: item.userId,
-          otherUserName: item.fullName,
+        (navigation as any).navigate("ChatScreen", {
+          otherUserId: item.userId || item.otherUserId,
+          otherUserName: item.fullName || item.otherUserName,
           otherUserProfilePicture: item.otherUserProfilePicture,
           conversationId: item.conversationId,
         });
@@ -105,24 +110,20 @@ const ChatListScreen = () => {
         <View style={styles.profileImageContainer}>
           <Image
             source={{
-              uri: item.otherUserProfilePicture || "https://via.placeholder.com/50",
+              uri: item.businessPicture || "https://via.placeholder.com/50",
             }}
             style={styles.profileImage}
           />
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unreadCount}</Text>
-            </View>
-          )}
+         
         </View>
         
         <View style={styles.chatDetails}>
           <View style={styles.chatHeader}>
             <Text style={styles.userName} numberOfLines={1}>
-              {item.otherUserName}
+              {item.businessName || item.fullName}
             </Text>
             <Text style={styles.timeText}>
-              {formatTime(item.lastMessageTime)}
+              {formatTime(item.lastMessageTime || item.lastMessageAt || "")}
             </Text>
           </View>
           
@@ -130,9 +131,14 @@ const ChatListScreen = () => {
             <Text style={styles.lastMessage} numberOfLines={2}>
               {item.lastMessage || "No messages yet"}
             </Text>
-            {item.unreadCount > 0 && (
+            {/* {(item.unreadCount || 0) > 0 && (
               <View style={styles.unreadDot} />
-            )}
+            )} */}
+             {(item.unreadCount || 0) > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>{item.unreadCount}</Text>
+            </View>
+          )}
           </View>
         </View>
       </View>
@@ -155,7 +161,7 @@ const ChatListScreen = () => {
       
       {/* Header */}
       <View style={styles.header}>
-        <BackButton navigation={navigation} />
+        {/* <BackButton navigation={navigation} /> */}
         <Text style={styles.headerTitle}>Chat</Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -184,7 +190,7 @@ const ChatListScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.violate,
+    backgroundColor: colors.backgroundColor,
   },
   header: {
     flexDirection: "row",
@@ -192,7 +198,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 20,
-    backgroundColor: colors.violate,
+    backgroundColor: colors.backgroundColor,
   },
   headerTitle: {
     fontSize: 24,
@@ -209,10 +215,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   chatItem: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: colors.purpleTransparent10,
     borderRadius: 12,
     marginBottom: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: colors.violate,
   },
   chatItemContent: {
     flexDirection: "row",
@@ -230,7 +238,7 @@ const styles = StyleSheet.create({
   },
   unreadBadge: {
     position: "absolute",
-    top: -5,
+    top: 5,
     right: -5,
     backgroundColor: colors.white,
     borderRadius: 10,
@@ -258,10 +266,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.white,
     flex: 1,
+    marginRight: 8,
   },
   timeText: {
     fontSize: 12,
     color: "rgba(255, 255, 255, 0.7)",
+    textAlign: "right",
   },
   messageContainer: {
     flexDirection: "row",

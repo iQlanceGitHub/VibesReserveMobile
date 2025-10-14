@@ -189,7 +189,7 @@ function HostTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={UpcomingScreen}
+        component={ChatListScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen

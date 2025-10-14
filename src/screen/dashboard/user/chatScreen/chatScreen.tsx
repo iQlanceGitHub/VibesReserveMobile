@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../../../utilis/colors";
 import { BackButton } from "../../../../components/BackButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PaperAirplaneIcon from "../../../../assets/svg/paperAirplaneIcon";
 import {
   onSendMessage,
   sendMessageData,
@@ -358,6 +359,7 @@ const ChatScreen = () => {
             ]}
           >
             {formatMessageTime(item.timestamp || item.createdAt)}
+            {item.isRead ? "" : ". Read"}
           </Text>
         </View>
       </View>
@@ -430,12 +432,11 @@ const ChatScreen = () => {
           activeOpacity={0.7}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={[
-            styles.sendButtonText,
-            isLoading && styles.sendButtonTextLoading
-          ]}>
-            {isLoading ? "Sending..." : "Send"}
-          </Text>
+          <PaperAirplaneIcon 
+            width={20} 
+            height={20} 
+            color={messageText.trim() === "" ? colors.vilate20 : colors.violate} 
+          />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -445,7 +446,7 @@ const ChatScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.violate,
+    backgroundColor: colors.backgroundColor,
   },
   header: {
     flexDirection: "row",
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 15,
-    backgroundColor: colors.violate,
+    backgroundColor: colors.backgroundColor,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
@@ -471,6 +472,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
+    
   },
   headerUserName: {
     fontSize: 16,
@@ -505,12 +507,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   userMessageBubble: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: colors.violate,
     borderBottomRightRadius: 5,
   },
   otherMessageBubble: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderBottomLeftRadius: 5,
+    backgroundColor: colors.backgroundColor,
+    borderColor: colors.violate,
+    borderWidth: 1,
   },
   messageText: {
     fontSize: 14,
@@ -538,43 +542,37 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: colors.violate,
+    backgroundColor: colors.backgroundColor,
     borderTopWidth: 1,
     borderTopColor: "rgba(255, 255, 255, 0.1)",
   },
   textInput: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: colors.white,
     fontSize: 14,
     maxHeight: 100,
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: colors.violate,
   },
   sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 25,
     backgroundColor: colors.white,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-    minWidth: 80,
     alignItems: "center",
     justifyContent: "center",
+    transform: [{rotate: '-30deg'}]
   },
   sendButtonDisabled: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: colors.vilate20,
   },
   sendButtonLoading: {
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
-  },
-  sendButtonText: {
-    color: colors.violate,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  sendButtonTextLoading: {
-    color: "rgba(108, 92, 231, 0.7)",
+    borderColor: colors.vilate20,
   },
 });
 
