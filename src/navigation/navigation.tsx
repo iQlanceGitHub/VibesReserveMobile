@@ -62,6 +62,7 @@ import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
 import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
 import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
 import profileScreen from "../screen/profileScreen/profileScreen";
+import logoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -159,7 +160,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Setting"
-        component={profileScreen}
+        component={logoutScreen}
         options={{ headerShown: false }}
       />
     </Tab.Navigator>
