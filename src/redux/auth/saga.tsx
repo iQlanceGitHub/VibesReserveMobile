@@ -1333,6 +1333,8 @@ function* ReviewSummarySaga({
 
 interface BookingListPayload {
   status?: string;
+  page?: number;
+  limit?: number;
 }
 
 function* BookingListSaga({
@@ -1346,7 +1348,7 @@ function* BookingListSaga({
       status: payload?.status,
     };
     const response = yield call(fetchPost, {
-      url: `${baseurl}${"user/bookinglist"}`,
+      url: `${baseurl}${`user/bookinglist?page=${payload?.page}&limit=${payload?.limit}`}`,
       params,
     });
 
@@ -1525,7 +1527,7 @@ function* ApplyPromoCodeSaga({ payload }: { payload: any }): SagaIterator {
         days: payload.days,
         promocode: payload.promocode,
         ticketid: payload.ticketid,
-      }
+      },
     });
 
     console.log("Apply Promo Code API Response:", response);
@@ -1699,7 +1701,11 @@ interface CheckBookedDatePayload {
   endDate?: string;
 }
 
-function* CheckBookedDateSaga({ payload }: { payload: CheckBookedDatePayload }): SagaIterator {
+function* CheckBookedDateSaga({
+  payload,
+}: {
+  payload: CheckBookedDatePayload;
+}): SagaIterator {
   try {
     yield put(displayLoading(true));
 

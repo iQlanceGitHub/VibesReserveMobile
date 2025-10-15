@@ -196,6 +196,7 @@ export const initialState = {
 
   checkBookedDate: "",
   checkBookedDateErr: "",
+  
   ratingReview: "",
   ratingReviewErr: "",
 

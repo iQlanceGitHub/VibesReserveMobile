@@ -344,14 +344,14 @@ export const styles = StyleSheet.create({
     marginBottom: verticalScale(12),
   },
   platformPayButton: {
-    width: '100%',
+    width: "100%",
     height: verticalScale(50),
   },
   cardPaymentContainer: {
     marginBottom: verticalScale(12),
   },
   cardPaymentButton: {
-    width: '100%',
+    width: "100%",
     height: verticalScale(50),
   },
   discountButton: {
@@ -360,7 +360,7 @@ export const styles = StyleSheet.create({
     borderRadius: horizontalScale(20),
     borderWidth: 1,
     borderColor: colors.violate,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     marginRight: horizontalScale(8),
     marginBottom: verticalScale(8),
   },
@@ -370,7 +370,7 @@ export const styles = StyleSheet.create({
   discountButtonText: {
     fontSize: fontScale(12),
     color: colors.primary_pink,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   discountButtonTextSelected: {
     color: colors.white,
@@ -383,8 +383,8 @@ export const styles = StyleSheet.create({
     marginBottom: verticalScale(5),
   },
   promoCodeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: verticalScale(10),
     gap: horizontalScale(8),
   },
@@ -410,7 +410,7 @@ export const styles = StyleSheet.create({
   browsePromoCodesText: {
     color: colors.white,
     fontSize: fontScale(14),
-    fontWeight: '600',
+    fontWeight: "600",
   },
   applyPromoCodeButton: {
     backgroundColor: colors.validationSuccess,
@@ -421,24 +421,24 @@ export const styles = StyleSheet.create({
   applyPromoCodeText: {
     color: colors.white,
     fontSize: fontScale(14),
-    fontWeight: '600',
+    fontWeight: "600",
   },
   selectedPromoCodeContainer: {
-   // marginTop: verticalScale(10),
+    // marginTop: verticalScale(10),
     padding: verticalScale(12),
     backgroundColor: colors.backgroundColor,
     borderRadius: verticalScale(22),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.purpleBorder,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   selectedPromoCodeText: {
     fontSize: fontScale(14),
     color: colors.violate,
-    fontWeight: '500',
+    fontWeight: "500",
     flex: 1,
   },
   removePromoCodeButton: {
@@ -450,7 +450,7 @@ export const styles = StyleSheet.create({
   removePromoCodeText: {
     color: colors.white,
     fontSize: fontScale(12),
-    fontWeight: '600',
+    fontWeight: "600",
   },
   // Modal Styles
   modalContainer: {
@@ -458,9 +458,9 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.backgroundColor,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: horizontalScale(20),
     paddingVertical: verticalScale(15),
     borderBottomWidth: 1,
@@ -476,18 +476,18 @@ export const styles = StyleSheet.create({
     height: verticalScale(30),
     borderRadius: verticalScale(15),
     backgroundColor: colors.lightGray,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   closeButtonText: {
     fontSize: fontScale(16),
     color: colors.textcolor,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: verticalScale(10),
@@ -504,7 +504,7 @@ export const styles = StyleSheet.create({
     marginBottom: verticalScale(12),
     borderWidth: 1,
     borderColor: colors.purpleBorder,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -514,19 +514,19 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   promoCodeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: verticalScale(8),
   },
   promoCodeText: {
     fontSize: fontScale(18),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.primary_pink,
   },
   discountText: {
     fontSize: fontScale(16),
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.green,
   },
   promoCodeDescription: {
@@ -540,16 +540,15 @@ export const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: verticalScale(50),
   },
   emptyStateText: {
     fontSize: fontScale(16),
     color: colors.gray,
-    textAlign: 'center',
+    textAlign: "center",
   },
-
 
   promoCodeSectionNew: {
     marginTop: verticalScale(20),
@@ -565,6 +564,24 @@ export const styles = StyleSheet.create({
     height: "100%",
     borderRadius: horizontalScale(90),
     paddingHorizontal: horizontalScale(8),
+    paddingVertical: verticalScale(6),
+    paddingRight: horizontalScale(80),
+    fontSize: fontScale(14),
+    fontFamily: fonts.Regular,
+    color: colors.white,
+    borderWidth: 1,
+    borderColor: colors.whiteTransparent,
+    textAlignVertical: "center",
+    includeFontPadding: false,
+    lineHeight: fontScale(14),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  promoCodeInputNewIOS: {
+    width: "100%",
+    height: "100%",
+    borderRadius: horizontalScale(90),
+    paddingHorizontal: horizontalScale(8),
     paddingVertical: verticalScale(8),
     paddingRight: horizontalScale(80),
     fontSize: fontScale(14),
@@ -572,6 +589,11 @@ export const styles = StyleSheet.create({
     color: colors.white,
     borderWidth: 1,
     borderColor: colors.whiteTransparent,
+    textAlignVertical: "center",
+    includeFontPadding: false,
+    lineHeight: fontScale(16),
+    justifyContent: "center",
+    alignItems: "center",
   },
   applyButtonNew: {
     position: "absolute",

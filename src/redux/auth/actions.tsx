@@ -150,10 +150,6 @@ export const {
   checkBookedDateBoothData,
   checkBookedDateBoothError,
 
-  onCheckBookedDate,
-  checkBookedDateData,
-  checkBookedDateError,
-  
   onRatingReview,
   ratingReviewData,
   ratingReviewError,
@@ -178,6 +174,10 @@ export const {
   onStartLongPolling,
   onStopLongPolling,
   onUpdateMessages,
+
+  onCheckBookedDate,
+  checkBookedDateData,
+  checkBookedDateError,
 
   setLoginToken,
 
@@ -331,6 +331,7 @@ export const {
   "CANCEL_BOOKING_DATA",
   "CANCEL_BOOKING_ERROR",
 
+
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",
   "ACCEPTREJECT_ERROR",
@@ -350,6 +351,7 @@ export const {
   "GET_BOOKING_LIST",
   "BOOKING_LIST_DATA",
   "BOOKING_LIST_ERROR",
+  
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",
@@ -370,6 +372,10 @@ export const {
   "ON_START_LONG_POLLING",
   "ON_STOP_LONG_POLLING",
   "ON_UPDATE_MESSAGES",
+
+  "ON_CHECK_BOOKED_DATE",
+  "CHECK_BOOKED_DATE_DATA",
+  "CHECK_BOOKED_DATE_ERROR",
 
   "SET_LOGIN_TOKEN",
 

@@ -64,6 +64,8 @@ import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/c
 import ChatListScreen from "../screen/dashboard/user/chatScreen/chatListScreen";
 import ChatScreen from "../screen/dashboard/user/chatScreen/chatScreen";
 import NotificationScreen from "../screen/notificationScreen/notificationScreen";
+import profileScreen from "../screen/profileScreen/profileScreen";
+import logoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
