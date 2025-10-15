@@ -103,6 +103,12 @@
 	<string>This app needs access to speech recognition to convert your voice into text.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>This app needs to send you notifications about events, bookings, and important updates.</string>
+  
+  <key>BGTaskSchedulerPermittedIdentifiers</key>
+  <array>
+      <string>com.yourapp.refresh</string>
+  </array>
+  
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>

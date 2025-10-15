@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   PermissionsAndroid,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../utilis/colors";
@@ -75,6 +76,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const { signup, signupErr, loader } = useSelector((state: any) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [phoneCode, setPhoneCode] = useState<string>("+1");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [phoneCodeFlag, setPhoneCodeFlag] = useState<string>("🇺🇸");
   const [formData, setFormData] = useState({
     fullName: "",
@@ -175,12 +177,14 @@ const storeUser = async (user: any) => {
       );
       navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: signup?.user?._id })
       dispatch(signupData(''));
+      setIsSubmitting(false);
     } else if (signupErr) {
       showToast(
         "error",
         signupErr?.message || "Something went wrong. Please try again."
       );
       dispatch(signupError(''));
+      setIsSubmitting(false);
     }
   }, [signup, signupErr]);
 
@@ -430,20 +434,31 @@ const storeUser = async (user: any) => {
   };
 
   const handleSignUp = async () => {
+    // Prevent multiple submissions
+    if (isSubmitting || loader || isUploading) {
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       let uploadedDocumentUrl = undefined;
       if (selectedDocument) {
         setIsUploading(true);
+        showToast("info", "Uploading document, please wait...");
+        
         uploadedDocumentUrl = await uploadFileToS3(
           selectedDocument.uri,
           selectedDocument.name,
           selectedDocument.type
         );
+        
         setIsUploading(false);
+        showToast("success", "Document uploaded successfully!");
       }
 
       const signupPayload = {
@@ -463,6 +478,7 @@ const storeUser = async (user: any) => {
     } catch (error) {
       showToast("error", "Failed to upload document. Please try again.");
       setIsUploading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -896,8 +912,9 @@ const storeUser = async (user: any) => {
           >
             <View style={styles.socialSection}>
               <TouchableOpacity
-                style={styles.socialButton}
+                style={[styles.socialButton, { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }]}
                 onPress={handleGoogleSignIn}
+                disabled={isSubmitting || loader || isUploading}
               >
                 <View style={styles.socialButtonContent}>
                   <View style={styles.appleIcons}>
@@ -910,8 +927,9 @@ const storeUser = async (user: any) => {
               </TouchableOpacity>
               {Platform.OS === 'ios' && (
               <TouchableOpacity
-                style={styles.socialButton}
+                style={[styles.socialButton, { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }]}
                 onPress={handleAppleSignIn}
+                disabled={isSubmitting || loader || isUploading}
               >
                 <View style={styles.socialButtonContent}>
                   <View style={styles.appleIcons}>
@@ -939,8 +957,10 @@ const storeUser = async (user: any) => {
                   style={[
                     styles.roleOption,
                     selectedRole === "explore" && styles.selectedRole,
+                    { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }
                   ]}
                   onPress={() => setSelectedRole("explore")}
+                  disabled={isSubmitting || loader || isUploading}
                 >
                   <View style={styles.roleContent}>
                     <View style={styles.roleRow}>
@@ -976,8 +996,10 @@ const storeUser = async (user: any) => {
                   style={[
                     styles.roleOption,
                     selectedRole === "host" && styles.selectedRole,
+                    { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }
                   ]}
                   onPress={() => setSelectedRole("host")}
+                  disabled={isSubmitting || loader || isUploading}
                 >
                   <View style={styles.roleContent}>
                     <View style={styles.roleRow}>
@@ -1237,10 +1259,16 @@ const storeUser = async (user: any) => {
 
             <View style={styles.buttonSection}>
               <Buttons
-                title={"Sign Up"}
+                title={
+                  isUploading 
+                    ? "Uploading Document..." 
+                    : isSubmitting || loader 
+                    ? "Signing Up..." 
+                    : "Sign Up"
+                }
                 onPress={handleSignUp}
                 style={styles.signUpButton}
-                disabled={loader}
+                disabled={isSubmitting || loader || isUploading}
               />
 
               <View style={styles.loginLink}>
@@ -1266,6 +1294,23 @@ const storeUser = async (user: any) => {
         onGalleryPress={handleGallerySelection}
         onDocumentPress={handleDocumentSelection}
       />
+
+      {/* Loading Overlay */}
+      {(isUploading || isSubmitting || loader) && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.white} />
+            <Text style={styles.loadingText}>
+              {isUploading 
+                ? "Uploading document..." 
+                : isSubmitting || loader 
+                ? "Creating account..." 
+                : "Please wait..."
+              }
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
