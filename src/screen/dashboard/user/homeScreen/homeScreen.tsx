@@ -607,16 +607,6 @@ const HomeScreenContent = () => {
           >
             <NotificationUnFillIcon />
           </TouchableOpacity>
-          {/* Debug button for testing long polling */}
-          <TouchableOpacity
-            style={[styles.mapIcon, { marginLeft: 8, backgroundColor: 'red', zIndex: 1000 }]}
-            onPress={() => {
-              Alert.alert('Test', 'Button works!');
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>TEST</Text>
-          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.topSection}>

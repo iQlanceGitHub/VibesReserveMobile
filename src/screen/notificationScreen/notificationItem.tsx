@@ -26,6 +26,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         return "💃";
       case "review":
         return "⭐";
+      case "message":
+        return "💬";
       default:
         return "📢";
     }

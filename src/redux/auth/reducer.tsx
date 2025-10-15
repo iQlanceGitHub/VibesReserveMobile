@@ -637,15 +637,7 @@ const authReducer = handleActions(
     }),
 
     [getChatListData().type]: produce((draft, action) => {
-      console.log("📦 Redux: getChatListData reducer called");
-      console.log("📦 Redux: payload getChatList", action.payload);
-      console.log("📦 Redux: Previous chatList length:", draft.chatList.length);
       draft.chatList = action.payload;
-      console.log("📦 Redux: New chatList length:", draft.chatList.length);
-      console.log("📦 Redux: New chatList unread counts:", draft.chatList.map((chat: any) => ({
-        name: chat.businessName || chat.fullName,
-        unreadCount: chat.unreadCount || 0
-      })));
     }),
     [getChatListError().type]: produce((draft, action) => {
       console.log("payload getChatList Error", action.payload);
@@ -675,8 +667,17 @@ const authReducer = handleActions(
 
     // Notification reducers
     [getNotificationListData().type]: produce((draft: any, action: any) => {
-      console.log("payload getNotificationList", action.payload);
-      draft.notificationList = action.payload?.data || action.payload || [];
+      console.log("🔔 REDUCER: payload getNotificationList", action.payload);
+      console.log("🔔 REDUCER: action.payload.notifications", action.payload?.notifications);
+      console.log("🔔 REDUCER: action.payload.data", action.payload?.data);
+      
+      // Handle the API response structure: { status: 1, message: "...", notifications: [...] }
+      const notifications = action.payload?.notifications || action.payload?.data || action.payload || [];
+      console.log("🔔 REDUCER: Final notifications array", notifications);
+      console.log("🔔 REDUCER: Notifications length", notifications?.length);
+      
+      draft.notificationList = notifications;
+      console.log("🔔 REDUCER: Set draft.notificationList to", draft.notificationList);
     }),
     [getNotificationListError().type]: produce((draft: any, action: any) => {
       console.log("payload getNotificationList Error", action.payload);

@@ -170,6 +170,13 @@ export default StyleSheet.create({
     marginBottom: verticalScale(10),
     textAlign: 'center',
   },
+  subTitle: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.bold,
+    color: colors.white,
+    marginBottom: verticalScale(10),
+    paddingHorizontal: horizontalScale(30),
+  },
   emptySubtitle: {
     fontSize: fontScale(14),
     fontFamily: fonts.regular,

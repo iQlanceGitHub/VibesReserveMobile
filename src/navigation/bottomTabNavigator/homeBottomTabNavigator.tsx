@@ -39,50 +39,36 @@ const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
   
   // Update chat list from store
   useEffect(() => {
-    console.log('🚀 Setting up store subscription...');
     
     const updateChatList = () => {
       const currentState = (store as any).getState();
       const newChatList = currentState.auth?.chatList || [];
-      console.log('🔄 Store subscription triggered - updating chat list:', newChatList.length, 'items');
-      console.log('🔄 New chat list data:', newChatList);
+      
       setChatList(newChatList);
     };
     
     // Initial update
-    console.log('🔄 Initial store update...');
+   
     updateChatList();
     
     // Subscribe to store changes
-    console.log('🔄 Subscribing to store changes...');
     const unsubscribe = (store as any).subscribe(updateChatList);
     
     return () => {
-      console.log('🔄 Unsubscribing from store...');
       unsubscribe();
     };
   }, []);
   
   // Debug: Log current chat list state
-  console.log('🔍 Current chat list state:', chatList);
-  console.log('🔍 Current chat list length:', chatList.length);
   
   // Calculate total unread count
   const totalUnreadCount = calculateTotalUnreadCount(chatList);
   
   // Debug: Log unread count calculation
-  console.log('🔢 Bottom Tab - Chat list length:', chatList.length);
-  console.log('🔢 Bottom Tab - Total unread count:', totalUnreadCount);
-  console.log('🔢 Bottom Tab - Chat list unread counts:', chatList.map((chat: any) => ({
-    name: chat.businessName || chat.fullName,
-    unreadCount: chat.unreadCount || 0
-  })));
+  
 
   // Track chat list changes
-  useEffect(() => {
-    console.log('📊 Bottom Tab - Chat list changed, new length:', chatList.length);
-    console.log('📊 Bottom Tab - New unread count:', totalUnreadCount);
-  }, [chatList, totalUnreadCount]);
+
 
   
   return (

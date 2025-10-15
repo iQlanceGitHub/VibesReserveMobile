@@ -1938,7 +1938,9 @@ function* GetNotificationListSaga({
       url: `${baseurl}${"user/notificationlist"}?page=${params.page}&limit=${params.limit}`,
     });
 
-    console.log("GetNotificationListSaga response:", response);
+    console.log("🔔 SAGA: GetNotificationListSaga response:", response);
+    console.log("🔔 SAGA: Response status:", response?.status);
+    console.log("🔔 SAGA: Response notifications:", response?.notifications);
 
     if (
       response?.status === true ||
@@ -1946,9 +1948,10 @@ function* GetNotificationListSaga({
       response?.status === 1 ||
       response?.status === "1"
     ) {
+      console.log("🔔 SAGA: Dispatching getNotificationListData with response:", response);
       yield put(getNotificationListData(response));
     } else {
-      console.log("Error:===2", response);
+      console.log("🔔 SAGA: Error response:", response);
       yield put(getNotificationListError(response));
     }
 

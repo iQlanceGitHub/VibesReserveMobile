@@ -305,9 +305,10 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
             <Text style={styles.title}>Favourite</Text>
           </View>
 
+          <Text style={styles.subTitle}>Favorited event</Text>
+
           {/* Events List */}
           <View style={styles.eventsContainer}>
-            {console.log('Rendering favorites screen with', events.length, 'events')}
             {events && events.length > 0 ? (
               <FlatList
                 data={events}

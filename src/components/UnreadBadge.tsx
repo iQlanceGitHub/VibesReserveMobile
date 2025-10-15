@@ -12,15 +12,11 @@ const UnreadBadge: React.FC<UnreadBadgeProps> = ({
   count, 
   size = 'small' 
 }) => {
-  console.log('🏷️ UnreadBadge rendered with count:', count);
   
   if (count <= 0) {
-    console.log('🏷️ UnreadBadge: Count is 0 or negative, not rendering');
     return null;
   }
   
-  console.log('🏷️ UnreadBadge: Rendering badge with count:', count);
-
   const getBadgeSize = () => {
     switch (size) {
       case 'small':
