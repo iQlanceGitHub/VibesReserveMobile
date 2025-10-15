@@ -1880,16 +1880,21 @@ function* GetConversationSaga({ payload }: { payload: GetConversationPayload }):
 
 function* GetChatListSaga(): SagaIterator {
   try {
+    console.log('🔄 Saga: GetChatListSaga called');
     yield put(displayLoading(true));
     const response = yield call(fetchGet, {
       url: `${baseurl}user/chatlist`,
     });
+    console.log('🔄 Saga: API response received:', response.status);
     if (response.status === true || response.status === "true" || response.status === 1) {
+      console.log('🔄 Saga: Dispatching getChatListData with:', response.data || response.chats || []);
       yield put(getChatListData(response.data || response.chats || []));
     } else {
+      console.log('🔄 Saga: API error, dispatching getChatListError');
       yield put(getChatListError(response.message || "Failed to get chat list"));
     }
   } catch (error) {
+    console.log('🔄 Saga: Exception in GetChatListSaga:', error);
     yield put(getChatListError(error));
   } finally {
     yield put(displayLoading(false));

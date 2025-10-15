@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import HomeIcon from "../../assets/svg/homeIcon";
 import FavouriteIcon from "../../assets/svg/favouriteIcon";
@@ -11,14 +11,79 @@ import SelectFavourite from "../../assets/svg/selectFavourite";
 import SelectBookings from "../../assets/svg/selectBookings";
 import SelectChat from "../../assets/svg/selectChat";
 import SelectProfile from "../../assets/svg/selectProfile";
+import UnreadBadge from "../../components/UnreadBadge";
+import { calculateTotalUnreadCount } from "../../utilis/chatUtils";
+import { store } from "../../reduxSaga/StoreProvider";
 import styles from "./styles";
 import * as appConstant from "../../utilis/appConstant";
 import { colors } from "../../utilis/colors";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
+  console.log('🔄 HomeBottomTabNavigator re-rendered at:', new Date().toISOString());
+  
+  // Force re-render every 5 seconds to test
+  const [forceRender, setForceRender] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setForceRender(prev => prev + 1);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+  
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
+  
+  // Get chat list from Redux state - use direct store access with state tracking
+  const [chatList, setChatList] = useState<any[]>([]);
+  
+  // Update chat list from store
+  useEffect(() => {
+    console.log('🚀 Setting up store subscription...');
+    
+    const updateChatList = () => {
+      const currentState = (store as any).getState();
+      const newChatList = currentState.auth?.chatList || [];
+      console.log('🔄 Store subscription triggered - updating chat list:', newChatList.length, 'items');
+      console.log('🔄 New chat list data:', newChatList);
+      setChatList(newChatList);
+    };
+    
+    // Initial update
+    console.log('🔄 Initial store update...');
+    updateChatList();
+    
+    // Subscribe to store changes
+    console.log('🔄 Subscribing to store changes...');
+    const unsubscribe = (store as any).subscribe(updateChatList);
+    
+    return () => {
+      console.log('🔄 Unsubscribing from store...');
+      unsubscribe();
+    };
+  }, []);
+  
+  // Debug: Log current chat list state
+  console.log('🔍 Current chat list state:', chatList);
+  console.log('🔍 Current chat list length:', chatList.length);
+  
+  // Calculate total unread count
+  const totalUnreadCount = calculateTotalUnreadCount(chatList);
+  
+  // Debug: Log unread count calculation
+  console.log('🔢 Bottom Tab - Chat list length:', chatList.length);
+  console.log('🔢 Bottom Tab - Total unread count:', totalUnreadCount);
+  console.log('🔢 Bottom Tab - Chat list unread counts:', chatList.map((chat: any) => ({
+    name: chat.businessName || chat.fullName,
+    unreadCount: chat.unreadCount || 0
+  })));
+
+  // Track chat list changes
+  useEffect(() => {
+    console.log('📊 Bottom Tab - Chat list changed, new length:', chatList.length);
+    console.log('📊 Bottom Tab - New unread count:', totalUnreadCount);
+  }, [chatList, totalUnreadCount]);
+
   
   return (
     <View style={[
@@ -74,11 +139,14 @@ const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
                       <BookingIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     )
                   ) : index == 3 ? (
-                    isFocused ? (
-                      <SelectChat width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
-                    ) : (
-                      <ChatIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
-                    )
+                    <View style={{ position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+                      {isFocused ? (
+                        <SelectChat width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      ) : (
+                        <ChatIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      )}
+                      <UnreadBadge count={totalUnreadCount} size="small" />
+                    </View>
                   ) : isFocused ? (
                     <SelectProfile width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                   ) : (

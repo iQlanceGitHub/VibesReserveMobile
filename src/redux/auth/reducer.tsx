@@ -636,8 +636,15 @@ const authReducer = handleActions(
     }),
 
     [getChatListData().type]: produce((draft, action) => {
-      console.log("payload getChatList", action.payload);
+      console.log("📦 Redux: getChatListData reducer called");
+      console.log("📦 Redux: payload getChatList", action.payload);
+      console.log("📦 Redux: Previous chatList length:", draft.chatList.length);
       draft.chatList = action.payload;
+      console.log("📦 Redux: New chatList length:", draft.chatList.length);
+      console.log("📦 Redux: New chatList unread counts:", draft.chatList.map((chat: any) => ({
+        name: chat.businessName || chat.fullName,
+        unreadCount: chat.unreadCount || 0
+      })));
     }),
     [getChatListError().type]: produce((draft, action) => {
       console.log("payload getChatList Error", action.payload);

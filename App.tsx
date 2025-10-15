@@ -32,6 +32,14 @@ function App(): React.JSX.Element {
     // Hide splash screen when app is ready
     SplashScreen.hide();
 
+    // Start long polling service for background chat updates after a small delay
+    console.log('🚀 App.tsx: Starting long polling service...');
+    setTimeout(() => {
+      console.log('⏰ App.tsx: Starting long polling service after delay...');
+      longPollingService.startPolling();
+      console.log('✅ App.tsx: Long polling service start called');
+    }, 2000); // 2 second delay to ensure store is ready
+
     // Handle app state changes for chat polling
     const handleAppStateChange = (nextAppState: string) => {
       console.log('App state changed to:', nextAppState);
@@ -48,6 +56,8 @@ function App(): React.JSX.Element {
 
     return () => {
       subscription?.remove();
+      // Stop long polling when app unmounts
+      longPollingService.stopPolling();
     };
   }, []);
 

@@ -8,6 +8,7 @@ import {
   Image,
   ScrollView,
   Modal,
+  Alert,
 } from "react-native";
 import styles from "./styles";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -26,6 +27,7 @@ import SearchIcon from "../../../../assets/svg/searchIcon";
 import FilterScreen from "./FilterScreen/FilterScreen";
 import { useCategory } from "../../../../hooks/useCategory";
 import { useFacility } from "../../../../hooks/useFacility";
+import { longPollingService } from "../../../../services/longPollingService";
 import {
   LocationProvider,
   useLocation,
@@ -604,6 +606,16 @@ const HomeScreenContent = () => {
             onPress={() => handleNextPress()}
           >
             <NotificationUnFillIcon />
+          </TouchableOpacity>
+          {/* Debug button for testing long polling */}
+          <TouchableOpacity
+            style={[styles.mapIcon, { marginLeft: 8, backgroundColor: 'red', zIndex: 1000 }]}
+            onPress={() => {
+              Alert.alert('Test', 'Button works!');
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>TEST</Text>
           </TouchableOpacity>
         </View>
       </View>
