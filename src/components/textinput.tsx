@@ -978,7 +978,6 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           }
         }
       } catch (error) {
-        console.log("Error parsing date value:", error);
       }
     }
   }, [value]);

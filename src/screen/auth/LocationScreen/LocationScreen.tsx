@@ -75,7 +75,6 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
       updateLocation?.status === 1 ||
       updateLocation?.status === "1"
     ) {
-      console.log("updateLocation:+>", updateLocation);
       navigation.navigate("VerificationSucessScreen", { id: uid });
       //  setMsg(updateLocation?.message?.toString());
       showToast(
@@ -86,7 +85,6 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
     }
 
     if (updateLocationErr) {
-      console.log("updateLocationErr:+>", updateLocationErr);
       showToast(
         "error",
         updateLocationErr?.message || "Something went wrong. Please try again."
@@ -110,7 +108,6 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
       }
       return null;
     } catch (error) {
-      console.log("Geocoding error:", error);
       return null;
     }
   };
@@ -120,14 +117,12 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
     longitude: number,
     id?: string
   ) => {
-    console.log("Location obtained:", latitude, longitude);
 
     try {
       // Get address using reverse geocoding
       const response = await Geocoder.from(latitude, longitude);
       const address = response.results[0]?.formatted_address || "";
       
-      console.log("Address obtained:", address);
 
       setFormData((prev) => ({
         ...prev,
@@ -137,7 +132,6 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
         id: id || prev.id, // Keep existing id or use new one
       }));
     } catch (error) {
-      console.log("Error getting address:", error);
       // Set location without address if geocoding fails
       setFormData((prev) => ({
         ...prev,
@@ -189,11 +183,6 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
 
       if (locationResult.success && locationResult.data) {
         const locationData = locationResult.data;
-        console.log(
-          "Location obtained:",
-          locationData.latitude,
-          locationData.longitude
-        );
 
         const fullAddress = await getAddressFromCoordinates(
           locationData.latitude,
@@ -224,13 +213,11 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
         showToast("error", locationResult.error || "Failed to get location");
       }
     } catch (err) {
-      console.log("Error in handleGetCurrentLocation:", err);
       showToast("error", "An error occurred while getting your location");
     }
   };
 
   const handleConfirmLocation = () => {
-    console.log("permisson", permissionMsg);
     const obj = {
       userId: formData.id, // uid from formData.id
       longitude: formData.longitude, // longitude from formData.longitude
@@ -238,8 +225,6 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
       address: formData.address, // address from formData.address
     };
 
-    console.log("Dispatching location update:", obj);
-    console.log("Address being sent:", obj.address);
     dispatch(onUpdateLocation(obj));
     setPermissionMsg("");
   };

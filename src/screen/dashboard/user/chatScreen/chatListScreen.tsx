@@ -89,7 +89,6 @@ const ChatListScreen = () => {
     <TouchableOpacity
       style={styles.chatItem}
       onPress={() => {
-        console.log("Chat item pressed:", item);
         (navigation as any).navigate("ChatScreen", {
           otherUserId: item.userId || item.otherUserId,
           otherUserName: item.businessName || item.fullName,

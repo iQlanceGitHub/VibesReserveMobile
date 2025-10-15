@@ -79,7 +79,6 @@ const FilePickerPopup: React.FC<FilePickerPopupProps> = ({
               <TouchableOpacity
                 style={styles.optionButton}
                 onPress={() => {
-                  console.log("Document option pressed in FilePickerPopup");
                   onDocumentPress();
                   onClose();
                 }}

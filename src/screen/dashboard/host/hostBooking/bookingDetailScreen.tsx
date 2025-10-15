@@ -197,7 +197,6 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
   );
 
   const handleChatPress = () => {
-    console.log("Chat booking detail:", rawBookingData);
     
     if (rawBookingData?.userId?._id) {
       (navigation as any).navigate("ChatScreen", {

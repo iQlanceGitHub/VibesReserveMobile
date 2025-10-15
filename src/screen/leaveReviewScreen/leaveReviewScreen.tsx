@@ -94,14 +94,14 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
     );
 
     if (hasPermission) {
-      console.log("User has permission to like");
+      // User has permission to like
     } else {
       showToast("error", "Please sign in to like this event.");
     }
   };
 
   const handleEventPress = () => {
-    console.log("Navigate to event details");
+    // Navigate to event details
   };
 
   return (

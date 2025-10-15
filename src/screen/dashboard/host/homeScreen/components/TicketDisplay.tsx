@@ -26,7 +26,6 @@ const TicketDisplay: React.FC<TicketDisplayProps> = ({
   onTicketSelect,
   showSelectButton = true,
 }) => {
-  console.log('TicketDisplay rendered with tickets:', tickets);
   
   const getSoldTickets = (ticket: TicketData) => {
     return ticket.soldTickets || 0;
@@ -77,7 +76,6 @@ const TicketDisplay: React.FC<TicketDisplayProps> = ({
   }
 
   // Debug: Always show something
-  console.log('Rendering tickets:', tickets.length);
 
   return (
     <View style={styles.container}>

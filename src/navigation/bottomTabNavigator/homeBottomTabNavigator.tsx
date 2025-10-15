@@ -20,7 +20,6 @@ import { colors } from "../../utilis/colors";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
-  console.log('🔄 HomeBottomTabNavigator re-rendered at:', new Date().toISOString());
   
   // Force re-render every 5 seconds to test
   const [forceRender, setForceRender] = useState(0);

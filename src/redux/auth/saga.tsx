@@ -179,9 +179,7 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }): SagaIterator {
       url: `${baseurl}${"user/signIn"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/signIn"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -190,13 +188,11 @@ function* onSigninSaga({ payload }: { payload: SigninPayload }): SagaIterator {
     ) {
       yield put(signinData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(signinError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(signinError(error));
     yield put(displayLoading(false));
   }
@@ -243,9 +239,7 @@ function* onSignupSaga({ payload }: { payload: SignupPayload }): SagaIterator {
       url: `${baseurl}${"user/signUp"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/signUp"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -254,13 +248,11 @@ function* onSignupSaga({ payload }: { payload: SignupPayload }): SagaIterator {
     ) {
       yield put(signupData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(signupError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(signupError(error));
     yield put(displayLoading(false));
   }
@@ -294,9 +286,7 @@ function* ForgotPasswordSaga({
       url: `${baseurl}${"user/forgotPassword"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/signIn"}`);
 
-    // console.log('response:->', response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -305,13 +295,11 @@ function* ForgotPasswordSaga({
     ) {
       yield put(forgotPasswordData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(forgotPasswordError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(forgotPasswordError(error));
     yield put(displayLoading(false));
   }
@@ -333,9 +321,7 @@ function* onResendVerifyOtpSaga({
       url: `${baseurl}${"user/resendOtp"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/resendOtp"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -344,13 +330,11 @@ function* onResendVerifyOtpSaga({
     ) {
       yield put(resendVerifyOtpData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(resendVerifyOtpError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(resendVerifyOtpError(error));
     yield put(displayLoading(false));
   }
@@ -372,9 +356,7 @@ function* UpdateProfileFieldsSaga({
       url: `${baseurl}${"update-profile-fields"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"update-profile-fields"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -383,13 +365,11 @@ function* UpdateProfileFieldsSaga({
     ) {
       yield put(updateProfileFieldsData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(updateProfileFieldsError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(updateProfileFieldsError(error));
     yield put(displayLoading(false));
   }
@@ -411,7 +391,6 @@ function* getDynamicContentSaga({
       url: `${baseurl}${`get-dynamic-content?type=${payload?.type}`}`,
     });
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -420,12 +399,10 @@ function* getDynamicContentSaga({
     ) {
       yield put(getDynamicContentData(response));
     } else {
-      console.log("Errors", response);
       yield put(getDynamicContentError(response));
     }
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error", error);
     yield put(getDynamicContentError(error));
     yield put(displayLoading(false));
   }
@@ -447,9 +424,7 @@ function* VerifyEmailSaga({
       url: `${baseurl}${"verify-email"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"verify-email"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -458,13 +433,11 @@ function* VerifyEmailSaga({
     ) {
       yield put(verifyEmailData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(verifyEmailError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(verifyEmailError(error));
     yield put(displayLoading(false));
   }
@@ -482,9 +455,7 @@ function* SendOtpSaga({ payload }: { payload: SendOtpPayload }): SagaIterator {
       url: `${baseurl}${"send-otp"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"send-otp"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -493,13 +464,11 @@ function* SendOtpSaga({ payload }: { payload: SendOtpPayload }): SagaIterator {
     ) {
       yield put(sendOtpData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(sendOtpError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(sendOtpError(error));
     yield put(displayLoading(false));
   }
@@ -521,9 +490,7 @@ function* VerifyOtpSaga({
       url: `${baseurl}${"user/otpVerify"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/otpVerify"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -532,13 +499,11 @@ function* VerifyOtpSaga({
     ) {
       yield put(verifyOtpData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(verifyOtpError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(verifyOtpError(error));
     yield put(displayLoading(false));
   }
@@ -558,9 +523,7 @@ function* ResetPasswordSaga({
       url: `${baseurl}${"user/ResetPassword"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/ResetPassword"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -569,13 +532,11 @@ function* ResetPasswordSaga({
     ) {
       yield put(resetPasswordData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(resetPasswordError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(resetPasswordError(error));
     yield put(displayLoading(false));
   }
@@ -604,9 +565,7 @@ function* SocialLoginSaga({
       url: `${baseurl}${"user/checkSocialid"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/checkSocialid"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -615,13 +574,11 @@ function* SocialLoginSaga({
     ) {
       yield put(socialLoginData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(socialLoginError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(socialLoginError(error));
     yield put(displayLoading(false));
   }
@@ -651,9 +608,7 @@ function* onUpdateLocationSaga({
       url: `${baseurl}${"user/updateLocation"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/updateLocation"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -662,13 +617,11 @@ function* onUpdateLocationSaga({
     ) {
       yield put(updateLocationData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(updateLocationError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(updateLocationError(error));
     yield put(displayLoading(false));
   }
@@ -696,9 +649,7 @@ function* HomeSaga({ payload }: { payload: HomePayload }): SagaIterator {
       url: `${baseurl}${"user/home"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/home"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -707,13 +658,11 @@ function* HomeSaga({ payload }: { payload: HomePayload }): SagaIterator {
     ) {
       yield put(homeData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(homeError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(homeError(error));
     yield put(displayLoading(false));
   }
@@ -741,9 +690,7 @@ function* HomenewSaga({ payload }: { payload: HomenewPayload }): SagaIterator {
       url: `${baseurl}${"user/homenew"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/homenew"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -752,13 +699,11 @@ function* HomenewSaga({ payload }: { payload: HomenewPayload }): SagaIterator {
     ) {
       yield put(homenewData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(homenewError(response));
     }
     //yield put(homenewData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(homenewError(error));
     yield put(displayLoading(false));
   }
@@ -794,9 +739,7 @@ function* FilterSaga({ payload }: { payload: FilterPayload }): SagaIterator {
       url: `${baseurl}${"user/filter"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/filter"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -805,13 +748,11 @@ function* FilterSaga({ payload }: { payload: FilterPayload }): SagaIterator {
     ) {
       yield put(filterData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(filterError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(filterError(error));
     yield put(displayLoading(false));
   }
@@ -831,7 +772,6 @@ function* getProfileSaga({
       url: `${baseurl}${`user-profile`}`,
     });
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -840,12 +780,10 @@ function* getProfileSaga({
     ) {
       yield put(profileData(response));
     } else {
-      console.log("Errors", response);
       yield put(profileError(response));
     }
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error", error);
     yield put(profileError(error));
     yield put(displayLoading(false));
   }
@@ -861,9 +799,7 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }): SagaIterator {
       url: `${baseurl}${"logout"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"logout"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -872,13 +808,11 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }): SagaIterator {
     ) {
       yield put(logoutData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(logoutError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(logoutError(error));
     yield put(displayLoading(false));
   }
@@ -906,7 +840,6 @@ function* ViewdetailsSaga({
       params,
     });
 
-    console.log("ViewdetailsSaga response:", response);
 
     if (
       response?.status === true ||
@@ -916,13 +849,11 @@ function* ViewdetailsSaga({
     ) {
       yield put(viewdetailsData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(viewdetailsError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(viewdetailsError(error));
     yield put(displayLoading(false));
   }
@@ -945,7 +876,6 @@ function* CategorySaga({
       url: `${baseurl}${`user/category?page=${payload?.page}&limit=${payload?.limit}`}`,
     });
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -954,12 +884,10 @@ function* CategorySaga({
     ) {
       yield put(categoryData(response));
     } else {
-      console.log("Errors", response);
       yield put(categoryError(response));
     }
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error", error);
     yield put(categoryError(error));
     yield put(displayLoading(false));
   }
@@ -982,7 +910,6 @@ function* FacilitySaga({
       url: `${baseurl}${`user/facility?page=${payload?.page}&limit=${payload?.limit}`}`,
     });
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -991,12 +918,10 @@ function* FacilitySaga({
     ) {
       yield put(facilityData(response));
     } else {
-      console.log("Errors", response);
       yield put(facilityError(response));
     }
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error", error);
     yield put(facilityError(error));
     yield put(displayLoading(false));
   }
@@ -1020,9 +945,7 @@ function* TogglefavoriteSaga({
       url: `${baseurl}${"user/togglefavorite"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/togglefavorite"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -1031,13 +954,11 @@ function* TogglefavoriteSaga({
     ) {
       yield put(togglefavoriteData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(togglefavoriteError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(togglefavoriteError(error));
     yield put(displayLoading(false));
   }
@@ -1096,9 +1017,7 @@ function* FavoriteslistSaga({
       url: `${baseurl}${"user/favoriteslist"}`,
       params,
     });
-    console.log(`==>> ${baseurl}${"user/favoriteslist"}`);
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -1107,13 +1026,11 @@ function* FavoriteslistSaga({
     ) {
       yield put(favoriteslistData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(favoriteslistError(response));
     }
     //yield put(signinData(response));
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(favoriteslistError(error));
     yield put(displayLoading(false));
   }
@@ -1148,7 +1065,6 @@ function* BookingrequestSaga({
       params,
     });
 
-    console.log("BookingrequestSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1158,13 +1074,11 @@ function* BookingrequestSaga({
     ) {
       yield put(bookingrequestData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(bookingrequestError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(bookingrequestError(error));
     yield put(displayLoading(false));
   }
@@ -1189,7 +1103,6 @@ function* AcceptrejectSaga({
       params,
     });
 
-    console.log("AcceptrejectSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1199,13 +1112,11 @@ function* AcceptrejectSaga({
     ) {
       yield put(acceptrejectData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(acceptrejectError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(acceptrejectError(error));
     yield put(displayLoading(false));
   }
@@ -1224,7 +1135,6 @@ function* CreateeventSaga({
       params: payload,
     });
 
-    console.log("CreateeventSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1234,13 +1144,11 @@ function* CreateeventSaga({
     ) {
       yield put(createeventData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(createeventError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(createeventError(error));
     yield put(displayLoading(false));
   }
@@ -1262,7 +1170,6 @@ function* BookingDetailSaga({
       url: `${baseurl}${`user/booking/${payload?.bookingId}`}`,
     });
 
-    console.log("BookingDetailSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1272,13 +1179,11 @@ function* BookingDetailSaga({
     ) {
       yield put(bookingDetailData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(bookingDetailError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(bookingDetailError(error));
     yield put(displayLoading(false));
   }
@@ -1309,7 +1214,6 @@ function* ReviewSummarySaga({
       params,
     });
 
-    console.log("ReviewSummarySaga response:", response);
 
     if (
       response?.status === true ||
@@ -1319,13 +1223,11 @@ function* ReviewSummarySaga({
     ) {
       yield put(reviewSummaryData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(reviewSummaryError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(reviewSummaryError(error));
     yield put(displayLoading(false));
   }
@@ -1352,7 +1254,6 @@ function* BookingListSaga({
       params,
     });
 
-    console.log("response:->", response);
     if (
       response?.status == 1 ||
       response?.status == true ||
@@ -1361,12 +1262,10 @@ function* BookingListSaga({
     ) {
       yield put(bookingListData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(bookingListError(response));
     }
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(bookingListError(error));
   }
 }
@@ -1393,7 +1292,6 @@ function* HostProfileSaga({
       params,
     });
 
-    console.log("HostProfileSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1403,13 +1301,11 @@ function* HostProfileSaga({
     ) {
       yield put(hostProfileData(response));
     } else {
-      console.log("HostProfileSaga error:", response);
       yield put(hostProfileError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("HostProfileSaga error:", error);
     yield put(hostProfileError(error));
     yield put(displayLoading(false));
   }
@@ -1446,9 +1342,6 @@ function* CreateBookingSaga({ payload }: { payload: any }): SagaIterator {
       params.ticketId = payload.ticketId; // Add ticketId
     }
 
-    console.log("=== CREATE BOOKING SAGA ===");
-    console.log("API Endpoint: POST /user/booking");
-    console.log("Payload:", JSON.stringify(params, null, 2));
 
     // const response = yield call(fetchPost, "/user/booking", params);
     const response = yield call(fetchPost, {
@@ -1456,25 +1349,15 @@ function* CreateBookingSaga({ payload }: { payload: any }): SagaIterator {
       params,
     });
 
-    console.log("Booking API Response:", response);
 
     if (response && response.status === 1) {
       yield put(createBookingData(response));
-      console.log("🎉 BOOKING CREATED SUCCESSFULLY!");
-      console.log(
-        "📋 Booking Details:",
-        JSON.stringify(response.data, null, 2)
-      );
-      console.log("✅ Redux state updated with booking data");
     } else {
       yield put(createBookingError(response?.message || "Booking failed"));
-      console.log("❌ BOOKING FAILED:", response?.message);
-      console.log("📋 Error Response:", JSON.stringify(response, null, 2));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("❌ Create Booking Error:", error);
     yield put(createBookingError(error));
     yield put(displayLoading(false));
   }
@@ -1493,19 +1376,15 @@ function* FetchPromoCodesSaga({ payload }: { payload: any }): SagaIterator {
       },
     });
 
-    console.log("Fetch Promo Codes API Response:", response);
 
     if (response && response.status === 1) {
       yield put(fetchPromoCodesData(response));
-      console.log("✅ PROMO CODES FETCHED SUCCESSFULLY!");
     } else {
       yield put(
         fetchPromoCodesError(response?.message || "Failed to fetch promo codes")
       );
-      console.log("❌ FETCH PROMO CODES FAILED:", response?.message);
     }
   } catch (error) {
-    console.log("Fetch Promo Codes Error:", error);
     yield put(fetchPromoCodesError("Failed to fetch promo codes"));
   } finally {
     yield put(displayLoading(false));
@@ -1514,7 +1393,6 @@ function* FetchPromoCodesSaga({ payload }: { payload: any }): SagaIterator {
 
 // Apply Promo Code Saga
 function* ApplyPromoCodeSaga({ payload }: { payload: any }): SagaIterator {
-  console.log("Apply Promo Code API params:", payload);
   try {
     yield put(displayLoading(true));
 
@@ -1530,16 +1408,13 @@ function* ApplyPromoCodeSaga({ payload }: { payload: any }): SagaIterator {
       },
     });
 
-    console.log("Apply Promo Code API Response:", response);
 
     if (response && response.status === 1) {
       yield put(applyPromoCodeData(response));
-      console.log("✅ PROMO CODE APPLIED SUCCESSFULLY!");
     } else {
       yield put(
         applyPromoCodeError(response?.message || "Failed to apply promo code")
       );
-      console.log("❌ APPLY PROMO CODE FAILED:", response?.message);
     }
   } catch (error) {
     console.error("Apply Promo Code Error:", error);
@@ -1564,7 +1439,6 @@ function* GetProfileDetailSaga({
       url: `${baseurl}${"user/profiledetail"}`,
     });
 
-    console.log("GetProfileDetailSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1574,13 +1448,11 @@ function* GetProfileDetailSaga({
     ) {
       yield put(getProfileDetailData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(getProfileDetailError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(getProfileDetailError(error));
     yield put(displayLoading(false));
   }
@@ -1626,7 +1498,6 @@ function* UpdateProfileSaga({
       params,
     });
 
-    console.log("UpdateProfileSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1636,13 +1507,11 @@ function* UpdateProfileSaga({
     ) {
       yield put(updateProfileData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(updateProfileError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(updateProfileError(error));
     yield put(displayLoading(false));
   }
@@ -1672,7 +1541,6 @@ function* CheckBookedDateBoothSaga({
       params,
     });
 
-    console.log("CheckBookedDateBoothSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1682,13 +1550,11 @@ function* CheckBookedDateBoothSaga({
     ) {
       yield put(checkBookedDateBoothData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(checkBookedDateBoothError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(checkBookedDateBoothError(error));
     yield put(displayLoading(false));
   }
@@ -1720,7 +1586,6 @@ function* CheckBookedDateSaga({
       params,
     });
 
-    console.log("CheckBookedDateSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1730,13 +1595,11 @@ function* CheckBookedDateSaga({
     ) {
       yield put(checkBookedDateData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(checkBookedDateError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(checkBookedDateError(error));
     yield put(displayLoading(false));
   }
@@ -1769,7 +1632,6 @@ function* RatingReviewSaga({
       params,
     });
 
-    console.log("RatingReviewSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1779,13 +1641,11 @@ function* RatingReviewSaga({
     ) {
       yield put(ratingReviewData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(ratingReviewError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(ratingReviewError(error));
     yield put(displayLoading(false));
   }
@@ -1814,7 +1674,6 @@ function* CancelBookingSaga({
       params,
     });
 
-    console.log("CancelBookingSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1824,13 +1683,11 @@ function* CancelBookingSaga({
     ) {
       yield put(cancelBookingData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(cancelBookingError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(cancelBookingError(error));
     yield put(displayLoading(false));
   }
@@ -1886,21 +1743,16 @@ function* GetConversationSaga({ payload }: { payload: GetConversationPayload }):
 
 function* GetChatListSaga(): SagaIterator {
   try {
-    console.log('🔄 Saga: GetChatListSaga called');
     yield put(displayLoading(true));
     const response = yield call(fetchGet, {
       url: `${baseurl}user/chatlist`,
     });
-    console.log('🔄 Saga: API response received:', response.status);
     if (response.status === true || response.status === "true" || response.status === 1) {
-      console.log('🔄 Saga: Dispatching getChatListData with:', response.data || response.chats || []);
       yield put(getChatListData(response.data || response.chats || []));
     } else {
-      console.log('🔄 Saga: API error, dispatching getChatListError');
       yield put(getChatListError(response.message || "Failed to get chat list"));
     }
   } catch (error) {
-    console.log('🔄 Saga: Exception in GetChatListSaga:', error);
     yield put(getChatListError(error));
   } finally {
     yield put(displayLoading(false));
@@ -1938,9 +1790,6 @@ function* GetNotificationListSaga({
       url: `${baseurl}${"user/notificationlist"}?page=${params.page}&limit=${params.limit}`,
     });
 
-    console.log("🔔 SAGA: GetNotificationListSaga response:", response);
-    console.log("🔔 SAGA: Response status:", response?.status);
-    console.log("🔔 SAGA: Response notifications:", response?.notifications);
 
     if (
       response?.status === true ||
@@ -1948,16 +1797,13 @@ function* GetNotificationListSaga({
       response?.status === 1 ||
       response?.status === "1"
     ) {
-      console.log("🔔 SAGA: Dispatching getNotificationListData with response:", response);
       yield put(getNotificationListData(response));
     } else {
-      console.log("🔔 SAGA: Error response:", response);
       yield put(getNotificationListError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(getNotificationListError(error));
     yield put(displayLoading(false));
   }
@@ -1984,7 +1830,6 @@ function* MarkNotificationAsReadSaga({
       params,
     });
 
-    console.log("MarkNotificationAsReadSaga response:", response);
 
     if (
       response?.status === true ||
@@ -1994,13 +1839,11 @@ function* MarkNotificationAsReadSaga({
     ) {
       yield put(markNotificationAsReadData(response));
     } else {
-      console.log("Error:===2", response);
       yield put(markNotificationAsReadError(response));
     }
 
     yield put(displayLoading(false));
   } catch (error) {
-    console.log("Error:===", error);
     yield put(markNotificationAsReadError(error));
     yield put(displayLoading(false));
   }

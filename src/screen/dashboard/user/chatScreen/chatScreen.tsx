@@ -147,12 +147,10 @@ const ChatScreen = () => {
       
       // Only scroll if there are new messages
       if (hasNew) {
-        console.log('New messages detected - scrolling to bottom');
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
       } else {
-        console.log('No new messages - not scrolling');
       }
       
       // Update refs for next comparison
@@ -241,7 +239,6 @@ const ChatScreen = () => {
           clearInterval(refreshIntervalRef.current);
         }
         refreshIntervalRef.current = setInterval(() => {
-          console.log('Local refresh triggered for otherUserId:', otherUserId);
           if (otherUserId) {
             dispatch(onGetConversation({ otherUserId }));
           }
@@ -288,12 +285,10 @@ const ChatScreen = () => {
       clearTimeout(sendTimeoutRef.current);
     }
     sendTimeoutRef.current = setTimeout(() => {
-      console.log('Send message timeout - resetting loading state');
       setIsLoading(false);
     }, 10000); // 10 second timeout
     
     // Always scroll to bottom when user sends a message
-    console.log('User sending message - will scroll to bottom');
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
@@ -308,7 +303,6 @@ const ChatScreen = () => {
   // Handle refresh
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    console.log('Manual refresh triggered');
     if (otherUserId) {
       dispatch(onGetConversation({ otherUserId }));
     }

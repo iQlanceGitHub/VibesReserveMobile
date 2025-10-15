@@ -79,7 +79,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
       }
       return null;
     } catch (error) {
-      console.log("Error getting user ID:", error);
       return null;
     }
   };
@@ -122,7 +121,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
       bookingrequest?.status === 1 ||
       bookingrequest?.status === "1"
     ) {
-      console.log("Booking requests fetched:", bookingrequest);
       const rawData = bookingrequest?.data || [];
       const transformedBookings = transformBookingData(rawData);
       setRawBookings(rawData);
@@ -133,7 +131,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     }
 
     if (bookingrequestErr) {
-      console.log("Booking request error:", bookingrequestErr);
       setLoading(false);
       setRefreshing(false);
       showToast("error", "Failed to fetch bookings. Please try again.");
@@ -185,7 +182,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
 
       return `${startMonth} ${startDay}-${endDay} ${formattedTime}`;
     } catch (error) {
-      console.log("Error formatting date:", error);
       return "Date not available";
     }
   };
@@ -237,11 +233,9 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
   const currentBookings = bookings;
 
   const handleCall = (bookingId: string) => {
-    console.log("Call booking:", bookingId);
   };
 
   const handleChat = (booking: any) => {
-    console.log("Chat booking:", booking);
     
     // Find the corresponding raw booking data using the booking ID
     const rawBooking = rawBookings.find(raw => raw._id === booking.id);
@@ -256,15 +250,12 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     }
   };
   const handleAccept = (bookingId: string) => {
-    console.log("Accept booking:", bookingId);
   };
 
   const handleCardPress = (bookingId: string) => {
-    console.log("Navigate to booking detail:", bookingId);
     try {
       navigation.navigate("BookingDetailScreen", { bookingId });
     } catch (error) {
-      console.log("Navigation error:", error);
     }
   };
 

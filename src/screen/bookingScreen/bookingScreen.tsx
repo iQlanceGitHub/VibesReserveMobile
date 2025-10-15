@@ -74,7 +74,6 @@ const formatBookingDate = (
 
     return `${dateFormatted} - ${timeFormatted}`;
   } catch (error) {
-    console.log("Error formatting date:", error);
     return "Date not available";
   }
 };

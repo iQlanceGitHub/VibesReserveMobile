@@ -71,7 +71,6 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
       }
       return null;
     } catch (error) {
-      console.log("Error getting user ID:", error);
       return null;
     }
   };
@@ -88,7 +87,6 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
   // Fetch favorites on component mount and every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      console.log('FavouriteScreen: Screen focused, fetching favorites...');
       getUserID();
       fetchFavoritesList();
     }, [])
@@ -102,19 +100,15 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
       favoriteslist?.status === 1 ||
       favoriteslist?.status === "1"
     ) {
-      console.log("favoriteslist response:", favoriteslist);
       if (favoriteslist?.data) {
-        console.log("Setting events data:", favoriteslist.data.length, "items");
         setEvents(favoriteslist.data);
       } else {
-        console.log("No data in response, setting empty array");
         setEvents([]);
       }
       dispatch(favoriteslistData(""));
     }
 
     if (favoriteslistErr) {
-      console.log("favoriteslistErr:", favoriteslistErr);
       dispatch(favoriteslistError(""));
     }
   }, [favoriteslist, favoriteslistErr, dispatch]);
@@ -127,10 +121,8 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
       togglefavorite?.status === 1 ||
       togglefavorite?.status === "1"
     ) {
-      console.log("togglefavorite response in favorites:", togglefavorite);
       // Immediately update local state if we know the item was removed
       if (togglefavorite?.data?.isFavorited === false) {
-        console.log("Item was unfavorited, removing from local state");
         setEvents(prevEvents => prevEvents.filter(event => {
           const eventId = event.eventId?._id || event._id;
           return eventId !== togglefavorite?.data?.eventId;
@@ -142,21 +134,18 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
     }
 
     if (togglefavoriteErr) {
-      console.log("togglefavoriteErr in favorites:", togglefavoriteErr);
       fetchFavoritesList();
       dispatch(togglefavoriteError(""));
     }
   }, [togglefavorite, togglefavoriteErr, dispatch]);
 
   const handleEventPress = (eventId: string) => {
-    console.log("Event pressed:", eventId);
     (navigation as any).navigate("ClubDetailScreen", {
       clubId: eventId || "68b6eceba9ae1fc590695248",
     });
   };
 
   const handleFavoritePress = async (eventId: string) => {
-    console.log("Toggling favorite for event ID:", eventId);
 
     // Check if user has permission to like/favorite
     const hasPermission = await handleRestrictedAction(

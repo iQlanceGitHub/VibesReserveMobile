@@ -98,7 +98,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     } catch (error) {
-      console.log("Error formatting date:", error);
       return isoString;
     }
   };
@@ -110,7 +109,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       return date.toISOString();
     } catch (error) {
-      console.log("Error converting date to ISO:", error);
       return dateString;
     }
   };
@@ -154,7 +152,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
   useEffect(() => {
     if (getProfileDetailErr) {
-      console.log("Error loading profile details:", getProfileDetailErr);
     }
   }, [getProfileDetailErr]);
 
@@ -171,7 +168,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "camera",
       () => openProfileImageCamera(),
       (error) => {
-        console.log("Camera permission error:", error);
         showToast("error", "Camera permission denied");
       }
     );
@@ -212,7 +208,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "storage",
       () => openProfileImageGallery(),
       (error) => {
-        console.log("Storage permission error:", error);
         showToast("error", "Storage permission denied");
       }
     );
@@ -301,7 +296,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
         permanentPath: destPath,
       };
     } catch (error) {
-      console.log("Error creating file copy:", error);
       return file;
     }
   };
@@ -311,7 +305,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "camera",
       () => openCamera(),
       (error) => {
-        console.log("Camera permission error:", error);
         showToast("error", "Camera permission denied");
       }
     );
@@ -352,7 +345,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "storage",
       () => openGallery(),
       (error) => {
-        console.log("Storage permission error:", error);
         showToast("error", "Storage permission denied");
       }
     );
@@ -477,7 +469,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       try {
         await RNFS.unlink(selectedDocument.permanentPath);
       } catch (error) {
-        console.log("Error cleaning up temporary file:", error);
       }
     }
   };
@@ -551,7 +542,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
           userDocument: uploadedDocumentUrl,
         };
 
-        console.log("Updating profile with payload:", updateProfilePayload);
         dispatch(onUpdateProfile(updateProfilePayload));
       } catch (error) {
         showToast("error", "Failed to upload document. Please try again.");

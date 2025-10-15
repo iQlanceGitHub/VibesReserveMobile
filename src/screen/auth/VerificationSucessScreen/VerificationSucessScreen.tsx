@@ -27,7 +27,6 @@ const VerificationSucessScreen: React.FC<VerificationSucessScreenProps> = ({
   route,
 }) => {
 
-  console.log("route?.params?.id", route?.params?.id)
 
   return (
     <View style={styles.container}>

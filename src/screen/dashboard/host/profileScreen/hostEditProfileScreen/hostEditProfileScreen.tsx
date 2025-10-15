@@ -246,7 +246,6 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
           launchCamera(options, callback);
         },
         (error) => {
-          console.log('Camera permission error:', error);
           showToast('error', 'Camera permission denied');
         }
       );
@@ -257,7 +256,6 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
           launchImageLibrary(options, callback);
         },
         (error) => {
-          console.log('Storage permission error:', error);
           showToast('error', 'Storage permission denied');
         }
       );
@@ -294,7 +292,6 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       
       showToast('success', 'Image uploaded successfully');
     } catch (error) {
-      console.log('Image upload error:', error);
       showToast('error', 'Failed to upload image');
     } finally {
       setIsUploading(false);
@@ -562,8 +559,6 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
     if (!hasError) {
       // Format date for API
       const formattedDate = formatDateForAPI(dateOfBirth);
-      console.log('Original date:', dateOfBirth);
-      console.log('Formatted date for API:', formattedDate);
       
       // Prepare update payload
       const updatePayload = {
@@ -579,7 +574,6 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
         businessDiscription: businessDescription.trim(),
       };
 
-      console.log('Update payload:', updatePayload);
       // Dispatch update action
       dispatch(onUpdateProfile(updatePayload));
     }

@@ -76,11 +76,9 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
         }));
         setPredictions(predictions);
       } else {
-        console.log('Google Places API error:', data.status);
         setPredictions([]);
       }
     } catch (error) {
-      console.log('Address search error:', error);
       setPredictions([]);
     } finally {
       setLoading(false);
@@ -107,7 +105,6 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
         return data.result;
       }
     } catch (error) {
-      console.log('Place details error:', error);
     }
     return null;
   };

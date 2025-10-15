@@ -62,17 +62,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const deviceToken = useSelector((state: any) => state.auth.deviceToken);
   
   // Debug logging for device token
-  console.log('🔍 SignIn Screen - deviceToken from Redux:', deviceToken);
-  console.log('🔍 SignIn Screen - deviceToken type:', typeof deviceToken);
-  console.log('🔍 SignIn Screen - deviceToken length:', deviceToken?.length);
-  console.log('🔍 SignIn Screen - COMPLETE TOKEN:', deviceToken);
-  console.log('🔍 SignIn Screen - Token Details:', {
-    token: deviceToken,
-    type: typeof deviceToken,
-    length: deviceToken?.length,
-    isEmpty: !deviceToken,
-    timestamp: new Date().toISOString()
-  });
   
   const [formData, setFormData] = useState({
     email: "",
@@ -180,7 +169,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     }
 
     // Handle successful sign in logic
-    console.log("Sign in data:", formData);
     dispatch(onSignin(formData));
   };
 
@@ -188,7 +176,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const storeUserToken = async (token: any) => {
     try {
       await AsyncStorage.setItem("user_token", token);
-      console.log("User token saved:", token);
       getUserToken();
     } catch (e) {
       console.error("Failed to save the user token.", e);
@@ -205,7 +192,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         ]);
         
         await AsyncStorage.setItem("user_status", status);
-        console.log("User status saved:", status);
 
         // Store additional metadata based on status
         if (status === 'skipped') {
@@ -236,7 +222,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const storeUser = async (user: any) => {
     try {
       await AsyncStorage.setItem("user", JSON.stringify(user));
-      console.log("User saved:", user);
     } catch (e) {
       console.error("Failed to save the user.", e);
     }
@@ -246,7 +231,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const storeUserId = async (userId: any) => {
     try {
       await AsyncStorage.setItem("user_id", userId);
-      console.log("User ID saved:", userId);
     } catch (e) {
       console.error("Failed to save the user ID.", e);
     }
@@ -257,7 +241,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem("user_token");
       if (token !== null) {
-        console.log("User token retrieved:", token);
         return token;
       }
     } catch (e) {
@@ -270,7 +253,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       const user = await AsyncStorage.getItem("user");
       if (user !== null) {
         const parsedUser = JSON.parse(user);
-        console.log("User retrieved:", parsedUser);
         return parsedUser;
       }
     } catch (e) {
@@ -285,18 +267,13 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
   // Update deviceToken when it changes in Redux state
   useEffect(() => {
-    console.log('🔄 SignIn Screen - deviceToken useEffect triggered');
-    console.log('🔄 SignIn Screen - deviceToken value:', deviceToken);
-    console.log('🔄 SignIn Screen - deviceToken truthy?', !!deviceToken);
     
     if (deviceToken) {
-      console.log('✅ SignIn Screen - Updating formData with deviceToken:', deviceToken);
       setFormData(prev => ({
         ...prev,
         deviceToken: deviceToken
       }));
     } else {
-      console.log('❌ SignIn Screen - deviceToken is empty, using fallback');
     }
   }, [deviceToken]);
 
@@ -308,7 +285,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         signin?.status === 1 ||
         signin?.status === "1"
       ) {
-        console.log("signin:+>", signin);
         setFormData({
           email: "",
           password: "",
@@ -354,11 +330,8 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     };
 
     getUserToken().then((token) => {
-      console.log("token:===>", token);
       if (token) {
         getUser().then((user) => {
-          console.log("user::===>", user);
-          console.log("user::===>", user?.currentRole);
           if (user?.currentRole === "user") {
             navigation.navigate("HomeTabs" as never);
           } else if (user?.currentRole === "host") {
@@ -372,20 +345,17 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     handleLoginSuccess();
 
     if (signinErr) {
-      console.log("signinErr:+>", signinErr);
       showToast(
         "error",
         signinErr?.message || "Something went wrong. Please try again."
       );
       // if (signinErr?.message == 'Your account is inactive. Please contact support.') {
-      //   console.log("=>>", uid)
 
       // }
       if (
         signinErr?.message ==
         "Your email has not been verified. An OTP has been sent to your registered email address."
       ) {
-        console.log("=>>", uid);
         navigation.navigate("OTPVerificationScreen", {
           email: formData?.email,
           type: "signup",
@@ -414,7 +384,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         socialLogin?.status === 1 ||
         socialLogin?.status === "1"
       ) {
-        console.log("socialLogin:+>", socialLogin);
         //  setMsg(socialLogin?.message?.toString());
         showToast(
           "success",
@@ -448,7 +417,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     handleSocialLoginSuccess();
 
     if (socialLoginErr) {
-      console.log("signinErr:+>", socialLoginErr);
       showToast(
         "error",
         socialLoginErr?.message || "Something went wrong. Please try again."
@@ -461,8 +429,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log("User Info:", userInfo?.data?.user?.email);
-      console.log("User Info:", userInfo);
 
       let obj = {
         email: userInfo?.data?.user?.email,
@@ -475,9 +441,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
         dispatch(onSocialLogin(obj));
       }
-      console.log("socialData+>>>>", socialData);
     } catch (error) {
-      console.log("Google Sign-In error:", error);
     }
   };
 
@@ -520,9 +484,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       }
     } catch (error: any) {
       if (error.code === appleAuth.Error.CANCELED) {
-        console.log("Apple Login: User cancelled the login flow.");
       } else {
-        console.log("Apple Login: Error occurred:", error.message);
       }
     }
   };
@@ -789,7 +751,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                 msg ==
                 "Your email has not been verified. An OTP has been sent to your registered email address."
               ) {
-                console.log("=>>", uid);
                 navigation.navigate("OTPVerificationScreen", {
                   email: formData?.email,
                   type: "signup",

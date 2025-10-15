@@ -102,7 +102,6 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
       forgotPassword?.status === 1 ||
       forgotPassword?.status === "1"
     ) {
-      console.log("forgotPassword:+>", forgotPassword);
       // setMsg(forgotPassword?.message?.toString());
       showToast(
         "success",
@@ -114,7 +113,6 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
     }
 
     if (forgotPasswordErr) {
-      console.log("forgotPasswordErr:+>", forgotPasswordErr);
       // setMsg(forgotPasswordErr?.message.toString())
       showToast(
         "error",

@@ -42,10 +42,6 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   const { notificationList, notificationListErr, loader } = authState;
   
   // Debug Redux state
-  console.log("🔔 Full auth state:", authState);
-  console.log("🔔 notificationList from Redux:", notificationList);
-  console.log("🔔 notificationListErr:", notificationListErr);
-  console.log("🔔 loader:", loader);
 
   const [notifications, setNotifications] = useState<{
     today: Notification[];
@@ -63,15 +59,8 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
 
   // Update notifications when Redux state changes
   useEffect(() => {
-    console.log("🔔 NotificationScreen: notificationList changed:", notificationList);
-    console.log("🔔 NotificationScreen: isArray?", Array.isArray(notificationList));
-    console.log("🔔 NotificationScreen: length?", notificationList?.length);
-    
     if (notificationList && Array.isArray(notificationList)) {
-      console.log("🔔 NotificationScreen: Organizing notifications...");
       organizeNotifications(notificationList);
-    } else {
-      console.log("🔔 NotificationScreen: No valid notification data");
     }
   }, [notificationList]);
 
@@ -86,8 +75,6 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   };
 
   const organizeNotifications = (notificationData: any[]) => {
-    console.log("🔔 organizeNotifications: Received data:", notificationData);
-    console.log("🔔 organizeNotifications: Data length:", notificationData?.length);
     
     const today = new Date();
     const yesterday = new Date(today);
@@ -97,7 +84,6 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
     const yesterdayNotifications: Notification[] = [];
 
     notificationData.forEach((notification, index) => {
-      console.log(`🔔 Processing notification ${index}:`, notification);
       
       // Map API response fields to expected interface
       const mappedNotification: Notification = {
@@ -110,16 +96,9 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
         createdAt: notification.createdAt || new Date().toISOString(),
       };
 
-      console.log(`🔔 Mapped notification ${index}:`, mappedNotification);
-
       const notificationDate = new Date(mappedNotification.createdAt || mappedNotification.time);
-      console.log(`🔔 Notification date:`, notificationDate);
-      console.log(`🔔 Today:`, today.toDateString());
-      console.log(`🔔 Yesterday:`, yesterday.toDateString());
-      console.log(`🔔 Notification date string:`, notificationDate.toDateString());
       
       // For now, add all notifications to today to test if data is being processed
-      console.log(`🔔 Adding to today (test):`, mappedNotification.title);
       todayNotifications.push({
         ...mappedNotification,
         time: formatTimeAgo(notificationDate),
@@ -127,24 +106,18 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
       
       // Original date-based logic (commented out for testing)
       // if (notificationDate.toDateString() === today.toDateString()) {
-      //   console.log(`🔔 Adding to today:`, mappedNotification.title);
       //   todayNotifications.push({
       //     ...mappedNotification,
       //     time: formatTimeAgo(notificationDate),
       //   });
       // } else if (notificationDate.toDateString() === yesterday.toDateString()) {
-      //   console.log(`🔔 Adding to yesterday:`, mappedNotification.title);
       //   yesterdayNotifications.push({
       //     ...mappedNotification,
       //     time: formatTimeAgo(notificationDate),
       //   });
       // } else {
-      //   console.log(`🔔 Notification not in today/yesterday:`, mappedNotification.title);
       // }
     });
-
-    console.log("🔔 Final today notifications:", todayNotifications);
-    console.log("🔔 Final yesterday notifications:", yesterdayNotifications);
 
     setNotifications({
       today: todayNotifications,

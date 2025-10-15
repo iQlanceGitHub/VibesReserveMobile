@@ -44,7 +44,6 @@ const NearbyEventsSeeAllScreen: React.FC<NearbyEventsSeeAllScreenProps> = () => 
   const insets = useSafeAreaInsets();
   
   const handleNearbyBookNow = (eventId?: string) => {
-    console.log("Book Now clicked for nearby event:", eventId);
     // Navigate to ClubProfileScreen for profile details (Nearby events)
     (navigation as any).navigate("ClubProfileScreen", {
       clubId: eventId,
@@ -52,7 +51,6 @@ const NearbyEventsSeeAllScreen: React.FC<NearbyEventsSeeAllScreenProps> = () => 
   };
 
   const handleFavoritePress = async (eventId: string) => {
-    console.log("Toggling favorite for event ID:", eventId);
 
     // Check if user has permission to like/favorite
     const hasPermission = await handleRestrictedAction(

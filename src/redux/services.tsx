@@ -25,13 +25,11 @@ export const fetchGet = async (payload) => {
         return jsonValue;
       }
     } catch (e) {
-      console.log("Error retrieving data:", e);
       return null;
     }
   };
 
   const retrievedData = await retrieveData("user_token");
-  console.log("retrievedData----->", retrievedData);
 
   let headders: any = {};
 
@@ -45,7 +43,6 @@ export const fetchGet = async (payload) => {
       Authorization: "Bearer " + retrievedData,
     };
   }
-  console.log("fetchGet...", payload?.url, headders);
 
   if (res) {
     try {
@@ -55,14 +52,11 @@ export const fetchGet = async (payload) => {
       });
       if (response.status >= 200 && response.status <= 299) {
         const jsonResponse = await response.json();
-        console.log("jsonResponse........success\n", jsonResponse);
         return Promise.resolve(jsonResponse);
       }
       const jsonResponse = await response.json();
-      console.log("jsonResponse........error\n", jsonResponse);
       const error = jsonResponse.jsonResponse;
       if (jsonResponse?.message == "Unauthorized user!") {
-        console.log("Hello");
         storeData("signin", "");
         storeData("profile", "");
       }
@@ -76,7 +70,6 @@ export const fetchGet = async (payload) => {
 };
 
 export const fetchPost = async (payload) => {
-  console.log("fetchPost...", payload);
   const res = await checkConnectivity();
   const authToken = await getAuthToken();
 
@@ -93,7 +86,6 @@ export const fetchPost = async (payload) => {
         return jsonValue;
       }
     } catch (e) {
-      console.log("Error retrieving data:", e);
       return null;
     }
   };
@@ -102,26 +94,16 @@ export const fetchPost = async (payload) => {
 
   const retrievedToken = await retrieveData("user_token");
 
-  console.log("=== FETCHPOST TOKEN DEBUG ===");
-  console.log("retrievedData (signin):", retrievedData);
-  console.log("retrievedToken (user_token):", retrievedToken);
-  console.log("retrievedToken type:", typeof retrievedToken);
-  console.log("retrievedToken length:", retrievedToken?.length);
 
   let headders: any = {};
 
   // Prioritize user_token over signin data
   const tokenToUse = retrievedToken || retrievedData?.token;
 
-  console.log("tokenToUse:", tokenToUse);
-  console.log("tokenToUse type:", typeof tokenToUse);
-  console.log("tokenToUse length:", tokenToUse?.length);
 
   if (!tokenToUse || tokenToUse === "" || tokenToUse === "null" || tokenToUse === "undefined") {
-    console.log("No valid token available - using headers without auth");
     headders = { "Content-Type": "application/json" };
   } else {
-    console.log("Using token for authorization");
     headders = {
       "Content-Type": "application/json",
       datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
@@ -129,11 +111,8 @@ export const fetchPost = async (payload) => {
       Authorization: `Bearer ${tokenToUse}`,
     };
   }
-  console.log("Final headers:", headders);
-  console.log("=============================");
   if (res) {
     try {
-      console.log("passed headders", headders);
       const response = await fetch(`${payload?.url}`, {
         method: "POST",
         headers: headders,
@@ -141,14 +120,11 @@ export const fetchPost = async (payload) => {
       });
       if (response.status >= 200 && response.status <= 299) {
         const jsonResponse = await response.json();
-        console.log("jsonResponse........success\n", jsonResponse);
         return Promise.resolve(jsonResponse);
       }
       const jsonResponse = await response.json();
-      console.log("jsonResponse........error\n", jsonResponse);
       const error = jsonResponse.message;
       if (jsonResponse?.message == "Unauthorized user!") {
-        console.log("Hello");
         storeData(asyncData.SIGNIN_DATA, "");
         storeData("signin", "");
         storeData("profile", "");
@@ -157,9 +133,6 @@ export const fetchPost = async (payload) => {
       }
       return Promise.reject(jsonResponse);
     } catch (error) {
-      console.log("==================================== ERROR");
-      console.log(error);
-      console.log("==================================== ERROR");
       return Promise.reject("Something went wrong");
     }
   } else {
@@ -174,13 +147,11 @@ export const fetchDelete = async (payload) => {
       const jsonValue = await AsyncStorage.getItem(key);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     } catch (e) {
-      console.log("Error retrieving data:", e);
       return null;
     }
   };
 
   const retrievedToken = await retrieveData("user_token");
-  console.log("retrievedToken----->", retrievedToken);
 
   let headers: any = {};
 
@@ -195,7 +166,6 @@ export const fetchDelete = async (payload) => {
     };
   }
 
-  console.log("fetchDelete...", payload?.url, headers);
 
   if (res) {
     try {
@@ -207,21 +177,17 @@ export const fetchDelete = async (payload) => {
       const jsonResponse = await response.json();
 
       if (response.status >= 200 && response.status <= 299) {
-        console.log("jsonResponse........success\n", jsonResponse);
         return Promise.resolve(jsonResponse);
       }
 
-      console.log("jsonResponse........error\n", jsonResponse);
 
       if (jsonResponse?.message === "Unauthorized user!") {
-        console.log("Unauthorized - clearing data");
         await storeData("signin", "");
         await storeData("profile", "");
       }
 
       return Promise.reject(jsonResponse?.message || "Delete failed");
     } catch (error) {
-      console.log("DELETE request error:", error);
       return Promise.reject("Something went wrong");
     }
   } else {
@@ -229,7 +195,6 @@ export const fetchDelete = async (payload) => {
   }
 };
 export const fetchPaymentProfilePost = async (payload) => {
-  console.log("fetchPost...", payload);
   const isConnected = await checkConnectivity();
 
   if (!isConnected) {
@@ -241,7 +206,6 @@ export const fetchPaymentProfilePost = async (payload) => {
   };
 
   try {
-    console.log("payload:->>>:pay====", payload);
 
     const response = await fetch(payload.url, {
       method: "POST",
@@ -249,22 +213,17 @@ export const fetchPaymentProfilePost = async (payload) => {
       body: JSON.stringify(payload.payload),
     });
 
-    console.log("Response:pay", response);
 
     // Removing BOM character from response
     const responseBody = await response.text();
     const jsonResponse = JSON.parse(responseBody.replace(/^\ufeff/, ""));
 
-    console.log("Response JSON:", jsonResponse);
 
     if (response.ok) {
-      console.log("jsonResponse success:", jsonResponse);
       return Promise.resolve(jsonResponse);
     } else {
-      console.log("jsonResponse error:", jsonResponse);
 
       if (jsonResponse?.messages?.message === "Unauthorized user!") {
-        console.log("Unauthorized user!");
         storeData(asyncData.SIGNIN_DATA, "");
         storeData(asyncData.PROFILE_DATA, "");
         // EventBus.getInstance().fireEvent("LogoutEvent", {
@@ -274,12 +233,10 @@ export const fetchPaymentProfilePost = async (payload) => {
       return Promise.reject(jsonResponse?.messages?.message || "Unknown error");
     }
   } catch (error) {
-    console.log("Error:", error);
     return Promise.reject("Something went wrong");
   }
 };
 export const fetchPut = async (payload) => {
-  console.log("fetchPut...", payload);
   const res = await checkConnectivity();
 
   const retrieveData = async (key) => {
@@ -295,13 +252,11 @@ export const fetchPut = async (payload) => {
         return jsonValue;
       }
     } catch (e) {
-      console.log("Error retrieving data:", e);
       return null;
     }
   };
 
   const retrievedToken = await retrieveData("user_token");
-  console.log("retrievedToken----->", retrievedToken);
 
   let headers: any = {};
 
@@ -316,7 +271,6 @@ export const fetchPut = async (payload) => {
     };
   }
 
-  console.log("passed headers", headers);
 
   if (res) {
     try {
@@ -328,22 +282,18 @@ export const fetchPut = async (payload) => {
 
       if (response.status >= 200 && response.status <= 299) {
         const jsonResponse = await response.json();
-        console.log("jsonResponse........success\n", jsonResponse);
         return Promise.resolve(jsonResponse);
       }
 
       const jsonResponse = await response.json();
-      console.log("jsonResponse........error\n", jsonResponse);
 
       if (jsonResponse?.message == "Unauthorized user!") {
-        console.log("Unauthorized - clearing data");
         await storeData("signin", "");
         await storeData("profile", "");
       }
 
       return Promise.reject(jsonResponse?.message || "Update failed");
     } catch (error) {
-      console.log("PUT request error:", error);
       return Promise.reject("Something went wrong");
     }
   } else {

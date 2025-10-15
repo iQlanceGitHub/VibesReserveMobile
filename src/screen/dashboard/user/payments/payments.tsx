@@ -109,59 +109,22 @@ const PaymentsScreen: React.FC = () => {
 
   // Print complete booking data for debugging
   useEffect(() => {
-    console.log("=== PAYMENT SCREEN - COMPLETE BOOKING DATA ===");
-    console.log("Full route.params:", route.params);
-    console.log("Complete bookingData:", bookingData);
-    console.log("PaymentData:", paymentData);
-    console.log("ActualBookingData:", actualBookingData);
     
     if (actualBookingData) {
-      console.log("📅 Selected Dates:");
-      console.log("  - Start Date:", actualBookingData.selectedStartDate);
-      console.log("  - End Date:", actualBookingData.selectedEndDate);
-      console.log("  - Date Range:", actualBookingData.selectedDateRange);
       
-      console.log("🎫 Ticket Information:");
-      console.log("  - Selected Ticket:", actualBookingData.selectedTicket);
-      console.log("  - Ticket ID:", actualBookingData.ticketId);
-      console.log("  - Ticket Type:", actualBookingData.ticketType);
       
-      console.log("👥 Booking Details:");
-      console.log("  - Member Count:", actualBookingData.memberCount);
-      console.log("  - Max Capacity:", actualBookingData.maxCapacity);
-      console.log("  - Ticket Price per person:", actualBookingData.ticketPrice);
-      console.log("  - Entry Fee:", actualBookingData.entryFee);
-      console.log("  - Total Price:", actualBookingData.totalPrice);
       
-      console.log("🏢 Event Information:");
-      console.log("  - Event Data:", actualBookingData.eventData);
-      console.log("  - Event Name:", actualBookingData.eventData?.name || actualBookingData.eventData?.title);
-      console.log("  - Event Address:", actualBookingData.eventData?.address || actualBookingData.eventData?.location);
       
-      console.log("📋 Additional Booking Details:");
-      console.log("  - Booking Details Object:", actualBookingData.bookingDetails);
       
       // Debug undefined values
       if (!actualBookingData.ticketId) {
-        console.log("⚠️ Ticket ID is undefined. Selected Ticket keys:", Object.keys(actualBookingData.selectedTicket || {}));
       }
       if (!actualBookingData.ticketType) {
-        console.log("⚠️ Ticket Type is undefined. Selected Ticket:", actualBookingData.selectedTicket);
       }
       if (!actualBookingData.eventData?.name) {
-        console.log("⚠️ Event Name is undefined. Event Data keys:", Object.keys(actualBookingData.eventData || {}));
       }
     } else {
-      console.log("❌ No booking data received!");
-      console.log("Debugging info:");
-      console.log("  - route.params type:", typeof route.params);
-      console.log("  - route.params keys:", Object.keys(route.params || {}));
-      console.log("  - bookingData from route.params:", (route.params as any)?.bookingData);
-      console.log("  - paymentData:", paymentData);
-      console.log("  - paymentData type:", typeof paymentData);
-      console.log("  - paymentData keys:", Object.keys(paymentData || {}));
     }
-    console.log("=== END BOOKING DATA ===");
   }, [actualBookingData]);
 
   useEffect(() => {
@@ -181,12 +144,6 @@ const PaymentsScreen: React.FC = () => {
     checkPlatformPaySupport();
     
     // Set payment amount from booking data
-    console.log("=== PAYMENT AMOUNT CALCULATION ===");
-    console.log("TotalPrice from booking data:", totalPrice);
-    console.log("PaymentData totalPrice:", paymentData?.totalPrice);
-    console.log("BookingData totalPrice:", actualBookingData?.totalPrice);
-    console.log("Final payment amount:", totalPrice || 250);
-    console.log("=== END PAYMENT AMOUNT ===");
     setPaymentAmount(totalPrice || 250); // Use total price from booking data
   }, [paymentData]);
 
@@ -198,8 +155,6 @@ const PaymentsScreen: React.FC = () => {
       getProfileDetail?.status === 1 ||
       getProfileDetail?.status === "1"
     ) {
-      console.log("Profile detail response in PaymentsScreen:", getProfileDetail);
-      console.log("Stripe Customer ID:", getProfileDetail?.data?.stripeCustomerId);
       setProfileDetail(getProfileDetail?.data);
       setStripeCustomerId(getProfileDetail?.data?.stripeCustomerId || '');
       
@@ -212,7 +167,6 @@ const PaymentsScreen: React.FC = () => {
     }
 
     if (getProfileDetailErr) {
-      console.log("Profile detail error in PaymentsScreen:", getProfileDetailErr);
       // Don't show error toast for profile details as it's not critical for payment
       dispatch(getProfileDetailError(""));
     }
@@ -225,7 +179,6 @@ const PaymentsScreen: React.FC = () => {
   const handleRefreshCards = () => {
     if (!stripeCustomerId) {
       // If no customer ID, try to fetch profile details first
-      console.log("No stripeCustomerId available, fetching profile details...");
       fetchProfileDetail();
       showToast('info', 'Loading customer information...');
       return;
@@ -238,7 +191,6 @@ const PaymentsScreen: React.FC = () => {
   // Auto-load cards when stripeCustomerId becomes available
   useEffect(() => {
     if (stripeCustomerId && stripeCustomerId.trim() !== '') {
-      console.log("stripeCustomerId is now available, loading cards...");
       loadSavedCards();
     }
   }, [stripeCustomerId]);
@@ -260,7 +212,6 @@ const PaymentsScreen: React.FC = () => {
   // Load saved cards from API
   const loadSavedCards = async () => {
     if (!stripeCustomerId) {
-      console.log("No stripeCustomerId available, skipping card loading");
       setError("Customer information not available. Please try refreshing.");
       setLoadingCards(false);
       return;

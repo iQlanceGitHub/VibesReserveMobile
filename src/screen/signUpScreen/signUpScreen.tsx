@@ -117,7 +117,6 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const storeUserToken = async (token: any) => {
     try {
       await AsyncStorage.setItem("user_token", token);
-      console.log("User token saved:", token);
       getUserToken();
     } catch (e) {
       console.error("Failed to save the user token.", e);
@@ -127,7 +126,6 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
 const storeUser = async (user: any) => {
   try {
     await AsyncStorage.setItem("user", JSON.stringify(user));
-    console.log("User saved:", user);
   } catch (e) {
     console.error("Failed to save the user.", e);
   }
@@ -138,7 +136,6 @@ const storeUser = async (user: any) => {
     try {
       const token = await AsyncStorage.getItem("user_token");
       if (token !== null) {
-        console.log("User token retrieved:", token);
         return token;
       }
     } catch (e) {
@@ -150,7 +147,6 @@ const storeUser = async (user: any) => {
   const storeUserId = async (userId: any) => {
     try {
       await AsyncStorage.setItem("user_id", userId);
-      console.log("User ID saved:", userId);
     } catch (e) {
       console.error("Failed to save the user ID.", e);
     }
@@ -158,17 +154,13 @@ const storeUser = async (user: any) => {
 
   // Update deviceToken when it changes in Redux state
   useEffect(() => {
-    console.log('🔄 SignUp Screen - deviceToken useEffect triggered');
-    console.log('🔄 SignUp Screen - deviceToken value:', deviceToken);
     
     if (deviceToken) {
-      console.log('✅ SignUp Screen - Updating formData with deviceToken:', deviceToken);
       setFormData(prev => ({
         ...prev,
         deviceToken: deviceToken
       }));
     } else {
-      console.log('❌ SignUp Screen - deviceToken is empty, using fallback');
     }
   }, [deviceToken]);
 
@@ -201,7 +193,6 @@ const storeUser = async (user: any) => {
       socialLogin?.status === 1 ||
       socialLogin?.status === "1"
     ) {
-      console.log("socialLogin:+>", socialLogin);
       //  setMsg(socialLogin?.message?.toString());
       showToast(
         "success",
@@ -224,7 +215,6 @@ const storeUser = async (user: any) => {
           socialLogin?.status === 1 ||
           socialLogin?.status === "1"
         ) {
-          console.log("socialLogin:+>", socialLogin);
           //  setMsg(socialLogin?.message?.toString());
           showToast(
             "success",
@@ -270,7 +260,6 @@ const storeUser = async (user: any) => {
     }
 
     if (socialLoginErr) {
-      console.log("signinErr:+>", socialLoginErr);
       showToast(
         "error",
         socialLoginErr?.message || "Something went wrong. Please try again."
@@ -481,8 +470,6 @@ const storeUser = async (user: any) => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log('User Info:', userInfo?.data?.user?.email);
-      console.log('User Info:', userInfo);
 
       let obj = {
         "email": userInfo?.data?.user?.email,
@@ -495,11 +482,9 @@ const storeUser = async (user: any) => {
       if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
         dispatch(onSocialLogin(obj));
       }
-      console.log("socialData+>>>>", socialData);
       //Alert.alert('Success', 'You have successfully signed in with Google!');
       // navigation.navigate('NameScreen')
     } catch (error) {
-      console.log('Google Sign-In error:', error);
     }
   };
 
@@ -533,9 +518,7 @@ const storeUser = async (user: any) => {
 
     } catch (error: any) {
       if (error.code === appleAuth.Error.CANCELED) {
-        console.log('Apple Login: User cancelled the login flow.');
       } else {
-        console.log('Apple Login: Error occurred:', error.message);
       }
     }
   };
@@ -545,7 +528,6 @@ const storeUser = async (user: any) => {
       const result = await PermissionManager.requestCameraPermission();
       return result.granted;
     } catch (error) {
-      console.log('Error requesting camera permission:', error);
       return false;
     }
   };
@@ -577,7 +559,6 @@ const storeUser = async (user: any) => {
       ]);
       
       await AsyncStorage.setItem("user_status", status);
-      console.log("User status saved:", status);
 
       // Store additional metadata based on status
       if (status === 'skipped') {
@@ -610,7 +591,6 @@ const storeUser = async (user: any) => {
       const result = await PermissionManager.requestStoragePermission();
       return result.granted;
     } catch (error) {
-      console.log('Error requesting storage permission:', error);
       return false;
     }
   };
@@ -635,7 +615,6 @@ const storeUser = async (user: any) => {
         permanentPath: destPath // Keep track of the permanent path
       };
     } catch (error) {
-      console.log('Error creating file copy:', error);
       return file; // Fallback to original file
     }
   };
@@ -649,7 +628,6 @@ const storeUser = async (user: any) => {
         openCamera();
       },
       (error) => {
-        console.log('Camera permission error:', error);
         showToast('error', 'Camera permission denied');
       }
     );
@@ -697,7 +675,6 @@ const storeUser = async (user: any) => {
         openGallery();
       },
       (error) => {
-        console.log('Storage permission error:', error);
         showToast('error', 'Storage permission denied');
       }
     );
@@ -772,7 +749,6 @@ const storeUser = async (user: any) => {
       try {
         await RNFS.unlink(selectedDocument.permanentPath);
       } catch (error) {
-        console.log('Error cleaning up temporary file:', error);
       }
     }
   };

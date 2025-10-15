@@ -33,20 +33,15 @@ function App(): React.JSX.Element {
     SplashScreen.hide();
 
     // Start long polling service for background chat updates after a small delay
-    console.log('🚀 App.tsx: Starting long polling service...');
     setTimeout(() => {
-      console.log('⏰ App.tsx: Starting long polling service after delay...');
       longPollingService.startPolling();
-      console.log('✅ App.tsx: Long polling service start called');
     }, 2000); // 2 second delay to ensure store is ready
 
     // Handle app state changes for chat polling
     const handleAppStateChange = (nextAppState: string) => {
-      console.log('App state changed to:', nextAppState);
       if (nextAppState === 'active') {
         // App came to foreground, ensure long polling is active
         if (longPollingService.isPollingActive()) {
-          console.log('App became active, triggering immediate poll...');
           // The long polling service will handle the immediate poll
         }
       }

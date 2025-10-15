@@ -76,7 +76,6 @@ class LongPollingService {
     try {
       // Check if store is available
       if (!store) {
-        console.log('❌ Store not available, skipping poll...');
         return;
       }
 

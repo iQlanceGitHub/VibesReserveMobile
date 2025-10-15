@@ -73,7 +73,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
   const deviceToken = useSelector((state: any) => state.auth.deviceToken);
   const [msg, setMsg] = useState('');
   // Print route params and email to console
-  // console.log("Route params email:", route?.params?.email);
 
   useEffect(() => {
 
@@ -83,7 +82,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       verifyOtp?.status === 1 ||
       verifyOtp?.status === "1"
     ) {
-      console.log("verifyOtp:+>", verifyOtp);
       showToast(
         "success",
         verifyOtp?.message || "Something went wrong. Please try again."
@@ -98,7 +96,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
     }
 
     if (verifyOtpErr) {
-      console.log("verifyOtpErr:+>", verifyOtpErr);
       //setMsg(verifyOtpErr?.message?.toString())
       showToast(
         "error",
@@ -116,7 +113,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       resendVerifyOtp?.status === 1 ||
       resendVerifyOtp?.status === "1"
     ) {
-      console.log("resendVerifyOtp:+>", resendVerifyOtp);
      showToast(
       "success",
       resendVerifyOtp?.message || "Something went wrong. Please try again."
@@ -125,7 +121,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       dispatch(resendVerifyOtpData(''));
     }
     if (resendVerifyOtpErr) {
-      console.log("resendVerifyOtpErr:+>", resendVerifyOtpErr);
      showToast(
       "error",
       resendVerifyOtpErr?.message || "Something went wrong. Please try again."
@@ -206,7 +201,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Here you would typically validate the OTP with your backend
-      console.log("OTP submitted:", otpString);
       const payload = {
        // "currentRole": "user", //user,host
         "userId": uid,
