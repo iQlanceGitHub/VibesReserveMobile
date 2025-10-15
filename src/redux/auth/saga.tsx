@@ -1,5 +1,6 @@
 import { call, put, takeLatest, select } from "redux-saga/effects";
 import { SagaIterator } from "redux-saga";
+import { Platform } from "react-native";
 
 import {
   clearAuthStore,
@@ -135,6 +136,13 @@ import {
   onUpdateMessages,
   setLoginToken,
   setLoginUserDetails,
+  // Notification imports
+  onGetNotificationList,
+  getNotificationListData,
+  getNotificationListError,
+  onMarkNotificationAsRead,
+  markNotificationAsReadData,
+  markNotificationAsReadError,
 } from "./actions";
 
 import { base_url_client, base_url_qa } from "../apiConstant";
@@ -154,12 +162,17 @@ interface SigninPayload {
 function* onSigninSaga({ payload }: { payload: SigninPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
+    
+    // Get device token from Redux state
+    const state = yield select();
+    const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
+    
     const params = {
       //"currentRole": "user",
       email: payload?.email?.toLowerCase(),
       password: payload?.password,
-      deviceToken: "abcd",
-      deviceType: "ios",
+      deviceToken: deviceToken,
+      deviceType: Platform.OS === "android" ? "android" : "ios",
       timeZone: payload?.timeZone,
     };
     const response = yield call(fetchPost, {
@@ -206,6 +219,11 @@ interface SignupPayload {
 function* onSignupSaga({ payload }: { payload: SignupPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
+    
+    // Get device token from Redux state
+    const state = yield select();
+    const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
+    
     const params = {
       currentRole: payload?.currentRole, //user,host <- U need small
       fullName: payload?.fullName,
@@ -218,6 +236,8 @@ function* onSignupSaga({ payload }: { payload: SignupPayload }): SagaIterator {
       userDocument: payload?.userDocument,
       timeZone: payload?.timeZone,
       loginType: payload?.loginType,
+      deviceToken: deviceToken,
+      deviceType: Platform.OS === "android" ? "android" : "ios",
     };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/signUp"}`,
@@ -257,12 +277,17 @@ function* ForgotPasswordSaga({
 }): SagaIterator {
   try {
     yield put(displayLoading(true));
+    
+    // Get device token from Redux state
+    const state = yield select();
+    const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
+    
     const params = {
       //"currentRole": "user",
       type: "email",
       typevalue: payload?.email?.toLowerCase(),
-      deviceToken: "abcd",
-      deviceType: "ios",
+      deviceToken: deviceToken,
+      deviceType: Platform.OS === "android" ? "android" : "ios",
       usingtype: "forgot_password", //forgot_password,signup
     };
     const response = yield call(fetchPost, {
@@ -565,7 +590,16 @@ function* SocialLoginSaga({
 }): SagaIterator {
   try {
     yield put(displayLoading(true));
-    const params = payload;
+    
+    // Get device token from Redux state
+    const state = yield select();
+    const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
+    
+    const params = {
+      ...payload,
+      deviceToken: deviceToken,
+      deviceType: Platform.OS === "android" ? "android" : "ios",
+    };
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/checkSocialid"}`,
       params,
@@ -1869,6 +1903,95 @@ function* StartLongPollingSaga(): SagaIterator {
 function* StopLongPollingSaga(): SagaIterator {
   longPollingService.stopPolling();
 }
+
+// Notification Saga Functions
+interface GetNotificationListPayload {
+  page?: number;
+  limit?: number;
+}
+
+function* GetNotificationListSaga({
+  payload,
+}: {
+  payload: GetNotificationListPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      page: payload?.page || 1,
+      limit: payload?.limit || 10,
+    };
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${"user/notificationlist"}?page=${params.page}&limit=${params.limit}`,
+    });
+
+    console.log("GetNotificationListSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(getNotificationListData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(getNotificationListError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(getNotificationListError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface MarkNotificationAsReadPayload {
+  notificationId: string;
+}
+
+function* MarkNotificationAsReadSaga({
+  payload,
+}: {
+  payload: MarkNotificationAsReadPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      notificationId: payload?.notificationId,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${"user/marknotificationasread"}`,
+      params,
+    });
+
+    console.log("MarkNotificationAsReadSaga response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(markNotificationAsReadData(response));
+    } else {
+      console.log("Error:===2", response);
+      yield put(markNotificationAsReadError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("Error:===", error);
+    yield put(markNotificationAsReadError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type as any, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type as any, onResendVerifyOtpSaga);
@@ -1916,6 +2039,10 @@ function* authSaga() {
   yield takeLatest(onGetChatList().type as any, GetChatListSaga);
   yield takeLatest(onStartLongPolling().type as any, StartLongPollingSaga);
   yield takeLatest(onStopLongPolling().type as any, StopLongPollingSaga);
+  
+  // Notification sagas
+  yield takeLatest(onGetNotificationList().type as any, GetNotificationListSaga);
+  yield takeLatest(onMarkNotificationAsRead().type as any, MarkNotificationAsReadSaga);
 }
 
 export default authSaga;

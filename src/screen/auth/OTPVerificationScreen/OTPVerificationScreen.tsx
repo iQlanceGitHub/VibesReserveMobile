@@ -70,6 +70,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
   const verifyOtpErr = useSelector((state: any) => state.auth.verifyOtpErr);
   const resendVerifyOtp = useSelector((state: any) => state.auth.resendVerifyOtp);
   const resendVerifyOtpErr = useSelector((state: any) => state.auth.resendVerifyOtpErr);
+  const deviceToken = useSelector((state: any) => state.auth.deviceToken);
   const [msg, setMsg] = useState('');
   // Print route params and email to console
   // console.log("Route params email:", route?.params?.email);
@@ -212,7 +213,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         "otp": otpString,
         "usingtype": route?.params?.type == 'signup' ? "signup" : "forgot_password",//forgot_password,signup
         "type": "email",//email,phone,
-        "deviceToken": "test12221212121212122"
+        "deviceToken": deviceToken || "test12221212121212122"
       }
       dispatch(onVerifyOtp(payload))
     } catch (error) {

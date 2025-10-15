@@ -182,6 +182,17 @@ export const {
   setLoginToken,
 
   setLoginUserDetails,
+
+  setDeviceToken,
+
+  // Notification Actions
+  onGetNotificationList,
+  getNotificationListData,
+  getNotificationListError,
+
+  onMarkNotificationAsRead,
+  markNotificationAsReadData,
+  markNotificationAsReadError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -362,5 +373,16 @@ export const {
 
   "SET_LOGIN_TOKEN",
 
-  "SET_LOGIN_USER_DETAILS"
+  "SET_LOGIN_USER_DETAILS",
+
+  "SET_DEVICE_TOKEN",
+
+  // Notification Action Types
+  "ON_GET_NOTIFICATION_LIST",
+  "GET_NOTIFICATION_LIST_DATA",
+  "GET_NOTIFICATION_LIST_ERROR",
+
+  "ON_MARK_NOTIFICATION_AS_READ",
+  "MARK_NOTIFICATION_AS_READ_DATA",
+  "MARK_NOTIFICATION_AS_READ_ERROR"
 );

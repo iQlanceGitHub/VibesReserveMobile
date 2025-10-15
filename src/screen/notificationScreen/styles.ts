@@ -53,6 +53,29 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(16),
     lineHeight: fontScale(22),
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: horizontalScale(40),
+    paddingVertical: verticalScale(60),
+  },
+  emptyTitle: {
+    fontSize: fontScale(20),
+    fontFamily: fonts.semiBold,
+    color: colors.white,
+    textAlign: "center",
+    marginBottom: verticalScale(12),
+    lineHeight: fontScale(24),
+  },
+  emptyMessage: {
+    fontSize: fontScale(14),
+    fontFamily: fonts.regular,
+    color: colors.whiteLight,
+    textAlign: "center",
+    lineHeight: fontScale(20),
+    opacity: 0.8,
+  },
 });
 
 export default styles;

@@ -70,6 +70,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
   const socialLogin = useSelector((state: any) => state.auth.socialLogin);
   const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
+  const deviceToken = useSelector((state: any) => state.auth.deviceToken);
 
   const { signup, signupErr, loader } = useSelector((state: any) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -82,6 +83,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     dateOfBirth: "",
     password: "",
     confirmPassword: "",
+    deviceToken: deviceToken || "abcd", // Use Redux state or fallback
   });
   const [errors, setErrors] = useState({
     fullName: false,
@@ -153,6 +155,22 @@ const storeUser = async (user: any) => {
       console.error("Failed to save the user ID.", e);
     }
   };
+
+  // Update deviceToken when it changes in Redux state
+  useEffect(() => {
+    console.log('🔄 SignUp Screen - deviceToken useEffect triggered');
+    console.log('🔄 SignUp Screen - deviceToken value:', deviceToken);
+    
+    if (deviceToken) {
+      console.log('✅ SignUp Screen - Updating formData with deviceToken:', deviceToken);
+      setFormData(prev => ({
+        ...prev,
+        deviceToken: deviceToken
+      }));
+    } else {
+      console.log('❌ SignUp Screen - deviceToken is empty, using fallback');
+    }
+  }, [deviceToken]);
 
   useEffect(() => {
     if (signup?.status === true ||

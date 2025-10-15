@@ -92,6 +92,12 @@ import {
   getChatListData,
   getChatListError,
   onUpdateMessages,
+  setDeviceToken,
+  // Notification imports
+  getNotificationListData,
+  getNotificationListError,
+  markNotificationAsReadData,
+  markNotificationAsReadError,
 } from "./actions";
 
 export const initialState = {
@@ -210,44 +216,51 @@ export const initialState = {
   lastMessageTimestamp: null,
 
   user: "",
+  deviceToken: "",
+
+  // Notification state
+  notificationList: [],
+  notificationListErr: "",
+  markNotificationAsRead: "",
+  markNotificationAsReadErr: "",
 };
 
 const authReducer = handleActions(
   {
-    [displayLoading().type]: produce((draft, action) => {
+    [displayLoading().type]: produce((draft: any, action: any) => {
       draft.loader = action.payload;
     }),
 
-    [onStatus().type]: produce((draft, action) => {
+    [onStatus().type]: produce((draft: any, action: any) => {
       draft.status = action.payload;
     }),
 
     //Set USer
-    [setUser().type]: produce((draft, action) => {
+    [setUser().type]: produce((draft: any, action: any) => {
       draft.user = action.payload;
     }),
 
     // INTERNET CONNECTIVITY
-    [internetConnectivity().type]: produce((draft, action) => {
+    [internetConnectivity().type]: produce((draft: any, action: any) => {
       draft.internetConnection = action.payload;
     }),
 
     // payload signin
-    [signinData().type]: produce((draft, action) => {
+    [signinData().type]: produce((draft: any, action: any) => {
       console.log("payload signin", action.payload);
       draft.signin = action.payload;
     }),
-    [signinError().type]: produce((draft, action) => {
+    [signinError().type]: produce((draft: any, action: any) => {
       console.log("payload signin Eror", action.payload);
       draft.signinErr = action.payload;
     }),
 
     // payload signup
-    [signupData().type]: produce((draft, action) => {
+    [signupData().type]: produce((draft: any, action: any) => {
       console.log("payload signup", action.payload);
       draft.signup = action.payload;
     }),
-    [signupError().type]: produce((draft, action) => {
+    [signupError().type]: produce((draft: any, action: any) => {
       console.log("payload signup Eror", action.payload);
       draft.signupErr = action.payload;
     }),
@@ -645,6 +658,30 @@ const authReducer = handleActions(
         draft.chatList[conversationIndex].lastMessage = newMessages[newMessages.length - 1];
         draft.chatList[conversationIndex].lastMessageTime = newMessages[newMessages.length - 1].timestamp;
       }
+    }),
+
+    // Set Device Token
+    [setDeviceToken().type]: produce((draft, action) => {
+      draft.deviceToken = action.payload;
+    }),
+
+    // Notification reducers
+    [getNotificationListData().type]: produce((draft: any, action: any) => {
+      console.log("payload getNotificationList", action.payload);
+      draft.notificationList = action.payload?.data || action.payload || [];
+    }),
+    [getNotificationListError().type]: produce((draft: any, action: any) => {
+      console.log("payload getNotificationList Error", action.payload);
+      draft.notificationListErr = action.payload;
+    }),
+
+    [markNotificationAsReadData().type]: produce((draft: any, action: any) => {
+      console.log("payload markNotificationAsRead", action.payload);
+      draft.markNotificationAsRead = action.payload;
+    }),
+    [markNotificationAsReadError().type]: produce((draft: any, action: any) => {
+      console.log("payload markNotificationAsRead Error", action.payload);
+      draft.markNotificationAsReadErr = action.payload;
     }),
   },
   initialState

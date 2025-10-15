@@ -54,10 +54,30 @@ interface SignInScreenProps {
 import styles from "./styles";
 
 const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const signin = useSelector((state: any) => state.auth.signin);
+  const signinErr = useSelector((state: any) => state.auth.signinErr);
+  const socialLogin = useSelector((state: any) => state.auth.socialLogin);
+  const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
+  const deviceToken = useSelector((state: any) => state.auth.deviceToken);
+  
+  // Debug logging for device token
+  console.log('🔍 SignIn Screen - deviceToken from Redux:', deviceToken);
+  console.log('🔍 SignIn Screen - deviceToken type:', typeof deviceToken);
+  console.log('🔍 SignIn Screen - deviceToken length:', deviceToken?.length);
+  console.log('🔍 SignIn Screen - COMPLETE TOKEN:', deviceToken);
+  console.log('🔍 SignIn Screen - Token Details:', {
+    token: deviceToken,
+    type: typeof deviceToken,
+    length: deviceToken?.length,
+    isEmpty: !deviceToken,
+    timestamp: new Date().toISOString()
+  });
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    deviceToken: "abcd",
+    deviceToken: deviceToken || "abcd", // Use Redux state or fallback
   });
   const [socialData, setSocialData] = useState({
     email: "",
@@ -84,12 +104,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     onPrimaryPress: () => {},
     onSecondaryPress: () => {},
   });
-
-  const dispatch = useDispatch();
-  const signin = useSelector((state: any) => state.auth.signin);
-  const signinErr = useSelector((state: any) => state.auth.signinErr);
-  const socialLogin = useSelector((state: any) => state.auth.socialLogin);
-  const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
   const [msg, setMsg] = useState("");
   const [uid, setUid] = useState("");
   // Validation functions
@@ -269,6 +283,23 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     getUser();
   }, []);
 
+  // Update deviceToken when it changes in Redux state
+  useEffect(() => {
+    console.log('🔄 SignIn Screen - deviceToken useEffect triggered');
+    console.log('🔄 SignIn Screen - deviceToken value:', deviceToken);
+    console.log('🔄 SignIn Screen - deviceToken truthy?', !!deviceToken);
+    
+    if (deviceToken) {
+      console.log('✅ SignIn Screen - Updating formData with deviceToken:', deviceToken);
+      setFormData(prev => ({
+        ...prev,
+        deviceToken: deviceToken
+      }));
+    } else {
+      console.log('❌ SignIn Screen - deviceToken is empty, using fallback');
+    }
+  }, [deviceToken]);
+
   useEffect(() => {
     const handleLoginSuccess = async () => {
       if (
@@ -281,6 +312,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         setFormData({
           email: "",
           password: "",
+          deviceToken: deviceToken || "abcd",
         });
         setErrors({
           email: false,
@@ -362,6 +394,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         setFormData({
           email: "",
           password: "",
+          deviceToken: deviceToken || "abcd",
         });
       } else {
       }
@@ -558,6 +591,16 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
               <Text style={styles.subtitle}>
                 Sign in to unlock your ultimate night out.
               </Text>
+              
+              {/* FCM Token Display */}
+              {deviceToken && (
+                <View style={styles.tokenContainer}>
+                  <Text style={styles.tokenLabel}>FCM Token:</Text>
+                  <Text style={styles.tokenText} numberOfLines={3}>
+                    {deviceToken}
+                  </Text>
+                </View>
+              )}
             </View>
             <ScrollView
             style={styles.scrollView}
@@ -755,6 +798,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                 setFormData({
                   email: "",
                   password: "",
+                  deviceToken: deviceToken || "abcd",
                 });
               } else {
               }

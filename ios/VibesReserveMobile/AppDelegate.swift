@@ -46,30 +46,222 @@
 //#endif
 //  }
 //}
-
 import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import Firebase
+import FirebaseMessaging
+import UserNotifications
 
 @main
-class AppDelegate: RCTAppDelegate {
+class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+  
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    print("🚀 AppDelegate: didFinishLaunchingWithOptions called")
+    NSLog("🚀 AppDelegate: didFinishLaunchingWithOptions called")
+    
     self.moduleName = "VibesReserveMobile"
     self.dependencyProvider = RCTAppDependencyProvider()
 
+    // Configure Firebase
+    print("🔥 AppDelegate: Configuring Firebase...")
+    NSLog("🔥 AppDelegate: Configuring Firebase...")
+    FirebaseApp.configure()
+    
+    // Configure Firebase Messaging
+    Messaging.messaging().delegate = self
+    print("✅ AppDelegate: Firebase configured successfully")
+    NSLog("✅ AppDelegate: Firebase configured successfully")
+    
+    // Configure push notifications
+    print("🔔 AppDelegate: Starting push notification configuration...")
+    NSLog("🔔 AppDelegate: Starting push notification configuration...")
+    configurePushNotifications(application: application)
+    
     // You can add your custom initial props in the dictionary below.
     // They will be passed down to the ViewController used by React Native.
     self.initialProps = [:]
-    Thread.sleep(forTimeInterval: 5.0)
+    
+    print("🏁 AppDelegate: didFinishLaunchingWithOptions completed")
+    NSLog("🏁 AppDelegate: didFinishLaunchingWithOptions completed")
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+  
+  // MARK: - Push Notification Configuration
+  private func configurePushNotifications(application: UIApplication) {
+    print("🔧 Starting push notification configuration...")
+    NSLog("🔧 Starting push notification configuration...")
+    
+    // Set UNUserNotificationCenter delegate
+    UNUserNotificationCenter.current().delegate = self
+    print("📱 Set UNUserNotificationCenter delegate")
+    NSLog("📱 Set UNUserNotificationCenter delegate")
+    
+    // Check current authorization status first
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      print("📱 Current notification settings: \(settings.authorizationStatus.rawValue)")
+      NSLog("📱 Current notification settings: \(settings.authorizationStatus.rawValue)")
+      
+      DispatchQueue.main.async {
+        // Request notification permissions FIRST
+        self.requestNotificationPermission(application: application, currentSettings: settings)
+      }
+    }
+  }
+  
+  private func requestNotificationPermission(application: UIApplication, currentSettings: UNNotificationSettings) {
+    let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+    
+    UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
+      DispatchQueue.main.async {
+        if let error = error {
+          print("❌ Notification permission error: \(error.localizedDescription)")
+          NSLog("❌ Notification permission error: \(error.localizedDescription)")
+          return
+        }
+        
+        if granted {
+          print("✅ Notification permission GRANTED")
+          NSLog("✅ Notification permission GRANTED")
+          
+          // ONLY AFTER permission is granted, register for remote notifications
+          print("📱 Registering for remote notifications...")
+          NSLog("📱 Registering for remote notifications...")
+          application.registerForRemoteNotifications()
+          
+        } else {
+          print("❌ Notification permission DENIED")
+          NSLog("❌ Notification permission DENIED")
+        }
+        
+        // Check final status
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+          self.checkAPNsRegistrationStatus(application: application)
+        }
+      }
+    }
+  }
+  
+  // MARK: - APNs Registration Status Check
+  private func checkAPNsRegistrationStatus(application: UIApplication) {
+    print("🔍 Checking APNs registration status...")
+    
+    // Check if the app is registered for remote notifications
+    if application.isRegisteredForRemoteNotifications {
+      print("✅ App is registered for remote notifications")
+    } else {
+      print("❌ App is NOT registered for remote notifications")
+    }
+    
+    // Check notification settings again
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      print("🔍 Final notification settings:")
+      print("📱 Authorization status: \(settings.authorizationStatus.rawValue)")
+      print("📱 Alert setting: \(settings.alertSetting.rawValue)")
+      print("📱 Badge setting: \(settings.badgeSetting.rawValue)")
+      print("📱 Sound setting: \(settings.soundSetting.rawValue)")
+    }
+  }
+  
+  // MARK: - UNUserNotificationCenterDelegate Methods
+  
+  // Handle notification when app is in foreground
+  func userNotificationCenter(_ center: UNUserNotificationCenter, 
+                            willPresent notification: UNNotification, 
+                            withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    print("📱 Received notification in foreground: \(notification.request.content.userInfo)")
+    
+    // Show notification even when app is in foreground
+    completionHandler([.alert, .badge, .sound])
+  }
+  
+  // Handle notification tap when app is in background or terminated
+  func userNotificationCenter(_ center: UNUserNotificationCenter, 
+                            didReceive response: UNNotificationResponse, 
+                            withCompletionHandler completionHandler: @escaping () -> Void) {
+    print("📱 User tapped notification: \(response.notification.request.content.userInfo)")
+    
+    completionHandler()
+  }
+  
+  // MARK: - Firebase MessagingDelegate Methods
+  
+  func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+    print("🔥 Firebase Messaging: FCM token received")
+    NSLog("🔥 Firebase Messaging: FCM token received")
+    
+    if let fcmToken = fcmToken {
+      print("📱 FCM Token: \(fcmToken)")
+      NSLog("📱 FCM Token: \(fcmToken)")
+    } else {
+      print("❌ FCM Token is nil")
+      NSLog("❌ FCM Token is nil")
+    }
+    
+    // You can send this token to your server if needed
+  }
+  
+  // MARK: - Remote Notification Registration
+  
+  // Called when APNs has assigned the device a unique token
+  override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    print("🎉 SUCCESS: APNs device token received!")
+    NSLog("🎉 SUCCESS: APNs device token received!")
+    
+    let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+    print("📱 APNs device token: \(tokenString)")
+    NSLog("📱 APNs device token: \(tokenString)")
+    print("📱 APNs token length: \(deviceToken.count) bytes")
+    NSLog("📱 APNs token length: \(deviceToken.count) bytes")
+    
+    // 🔥 CRITICAL: Set APNs token to Firebase Messaging
+    Messaging.messaging().apnsToken = deviceToken
+    print("✅ APNs token set to Firebase Messaging")
+    NSLog("✅ APNs token set to Firebase Messaging")
+    
+    // Get FCM token now that we have APNs token
+    Messaging.messaging().token { token, error in
+      if let error = error {
+        print("❌ Error getting FCM token: \(error.localizedDescription)")
+        NSLog("❌ Error getting FCM token: \(error.localizedDescription)")
+      } else if let token = token {
+        print("🔥 FCM Token retrieved: \(token)")
+        NSLog("🔥 FCM Token retrieved: \(token)")
+      }
+    }
+  }
+  
+  // Called when APNs failed to register the device for push notifications
+  override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+    print("❌ FAILED: APNs registration failed!")
+    NSLog("❌ FAILED: APNs registration failed!")
+    print("❌ Error: \(error.localizedDescription)")
+    NSLog("❌ Error: \(error.localizedDescription)")
+    
+    // Try to get FCM token anyway (might work for development)
+    Messaging.messaging().token { token, error in
+      if let error = error {
+        print("❌ FCM token also failed: \(error.localizedDescription)")
+      } else if let token = token {
+        print("⚠️ Got FCM token without APNs (development mode?): \(token)")
+      }
+    }
+  }
+  
+  // Handle remote notification when app is in background
+  override func application(_ application: UIApplication, 
+                          didReceiveRemoteNotification userInfo: [AnyHashable: Any], 
+                          fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    print("📱 Received remote notification in background: \(userInfo)")
+    
+    completionHandler(.newData)
   }
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     self.bundleURL()
   }
   
-
   override func bundleURL() -> URL? {
 #if DEBUG
     RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")

@@ -9,6 +9,7 @@ import SplashScreen from "react-native-splash-screen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/utilis/toastUtils.tsx";
 import AppInitializer from "./src/components/AppInitializer";
+import AppWrapper from "./src/utilis/AppWrapper";
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {stripeTestKey} from './src/utilis/appConstant';
 import { longPollingService } from './src/services/longPollingService';
@@ -61,6 +62,7 @@ function App(): React.JSX.Element {
         }}
       >
         <AppInitializer>
+          <AppWrapper />
           <View style={{ flex: 1 }}>
             <StatusBar
               translucent

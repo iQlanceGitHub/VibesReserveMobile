@@ -180,7 +180,8 @@ const HomeScreenContent = () => {
     locationData?.longitude?.toString() || "72.51123340677258";
 
   const handleNextPress = () => {
-    setShowComingSoonDialog(true);
+   // setShowComingSoonDialog(true);
+   navigation.navigate("NotificationScreen" as never);
   };
 
   // Refresh home data when location changes

@@ -63,6 +63,7 @@ import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/c
 import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
 import ChatListScreen from "../screen/dashboard/user/chatScreen/chatListScreen";
 import ChatScreen from "../screen/dashboard/user/chatScreen/chatScreen";
+import NotificationScreen from "../screen/notificationScreen/notificationScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -409,6 +410,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ChatScreen"
             component={ChatScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NotificationScreen"
+            component={NotificationScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
