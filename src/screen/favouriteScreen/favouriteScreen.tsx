@@ -315,7 +315,7 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
             <Text style={styles.title}>Favourite</Text>
           </View>
 
-          <Text style={styles.subTitle}>Favorited event</Text>
+          {/* <Text style={styles.subTitle}>Favorited event</Text> */}
 
           {/* Events List */}
           <View style={styles.eventsContainer}>
