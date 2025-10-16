@@ -50,16 +50,17 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingRight: horizontalScale(20),
-    gap: horizontalScale(10),
+    paddingHorizontal: horizontalScale(20),
+    marginBottom: verticalScale(20),
   },
   tab: {
-    width: horizontalScale(103),
-    height: verticalScale(34),
-    borderRadius: verticalScale(90),
+    flex: 1,
+    height: verticalScale(40),
+    borderRadius: verticalScale(20),
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
+    marginHorizontal: horizontalScale(4),
   },
   selectedTab: {
     backgroundColor: colors.violate,
@@ -91,9 +92,7 @@ const styles = StyleSheet.create({
     borderRadius: verticalScale(16),
     marginHorizontal: horizontalScale(20),
     marginBottom: verticalScale(16),
-    paddingTop: verticalScale(12),
-    paddingHorizontal: verticalScale(10),
-    paddingBottom: verticalScale(12),
+    padding: verticalScale(16),
     borderWidth: 1,
     borderColor: colors.purpleBorder,
     shadowColor: colors.purpleBorder,
@@ -118,10 +117,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   bookingImage: {
-    width: horizontalScale(120),
-    height: verticalScale(90),
-    borderRadius: verticalScale(14),
-    marginRight: horizontalScale(8),
+    width: horizontalScale(100),
+    height: verticalScale(80),
+    borderRadius: verticalScale(12),
+    marginRight: horizontalScale(12),
   },
   bookingContent: {
     flex: 1,
@@ -154,11 +153,12 @@ const styles = StyleSheet.create({
     lineHeight: fontScale(20),
   },
   eventName: {
-    fontSize: fontScale(16),
+    fontSize: fontScale(18),
     fontWeight: "700",
     fontFamily: fonts.Bold,
     color: colors.white,
-    marginBottom: verticalScale(5),
+    marginBottom: verticalScale(8),
+    lineHeight: fontScale(22),
   },
   detailsRow: {
     flexDirection: "row",
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: fontScale(12),
     fontFamily: fonts.Regular,
-    color: colors.white,
+    color: colors.textColor,
     marginLeft: horizontalScale(6),
     lineHeight: fontScale(16),
     flex: 1,
@@ -193,6 +193,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: horizontalScale(20),
+  },
+  keyboardAvoidingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  keyboardAvoidingView: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
     backgroundColor: colors.backgroundColor,
@@ -250,7 +261,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.unselectedBackground,
     marginBottom: verticalScale(20),
     textAlignVertical: "top",
-    minHeight: verticalScale(100),
+    minHeight: verticalScale(80),
+    maxHeight: verticalScale(120),
   },
   modalButtons: {
     flexDirection: "row",
@@ -306,6 +318,22 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: fonts.SemiBold,
     color: colors.white,
+  },
+  leaveReviewButton: {
+    backgroundColor: colors.violate,
+    borderColor: colors.violate,
+    borderRadius: horizontalScale(20),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: horizontalScale(24),
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: verticalScale(12),
+  },
+  leaveReviewButtonText: {
+    color: colors.white,
+    fontSize: fontScale(14),
+    fontFamily: fonts.SemiBold,
+    fontWeight: "600",
   },
 });
 

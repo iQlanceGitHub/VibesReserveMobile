@@ -282,7 +282,8 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
           </View>
 
           <View style={styles.eventFooter}>
-            <Text style={styles.eventPrice}>{getEventPrice(event)}</Text>
+            {/* <Text style={styles.eventPrice}>{getEventPrice(event)}</Text> */}
+            <Text style={styles.eventPrice}></Text>
             <TouchableOpacity style={styles.arrowButton} onPress={() => handleEventPress(eventId)}>
               <Text style={styles.arrowIcon}>→</Text>
             </TouchableOpacity>

@@ -150,11 +150,16 @@ export default StyleSheet.create({
     backgroundColor: colors.violate,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: verticalScale(-20),
   },
   arrowIcon: {
-    fontSize: fontScale(16),
+    fontSize: fontScale(20),
     color: colors.white,
     fontWeight: 'bold',
+    alignItems: 'center',
+    alignSelf: 'center',
+    alignContent: 'center',
+   //marginTop: verticalScale(0),
   },
   emptyContainer: {
     flex: 1,
