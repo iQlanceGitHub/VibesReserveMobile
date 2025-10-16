@@ -193,6 +193,11 @@ export const {
   onMarkNotificationAsRead,
   markNotificationAsReadData,
   markNotificationAsReadError,
+
+  // Chat Click Trigger Actions
+  onChatClick,
+  chatClickData,
+  chatClickError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -390,5 +395,10 @@ export const {
 
   "ON_MARK_NOTIFICATION_AS_READ",
   "MARK_NOTIFICATION_AS_READ_DATA",
-  "MARK_NOTIFICATION_AS_READ_ERROR"
+  "MARK_NOTIFICATION_AS_READ_ERROR",
+
+  // Chat Click Trigger Action Types
+  "ON_CHAT_CLICK",
+  "CHAT_CLICK_DATA",
+  "CHAT_CLICK_ERROR"
 );

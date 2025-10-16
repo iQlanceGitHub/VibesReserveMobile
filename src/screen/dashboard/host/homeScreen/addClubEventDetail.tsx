@@ -60,7 +60,7 @@ import GoogleAddressAutocomplete from "../../../../components/GoogleAddressAutoc
 import CustomTimePicker from "../../../../components/CustomTimePicker";
 
 // Google Maps API key
-const GOOGLE_MAPS_API_KEY = "AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY";
+const GOOGLE_MAPS_API_KEY = "AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8";
 
 interface BoothType {
   id: string;

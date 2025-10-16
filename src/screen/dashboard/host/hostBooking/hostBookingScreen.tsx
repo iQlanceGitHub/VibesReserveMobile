@@ -22,6 +22,7 @@ import {
   onBookingrequest,
   bookingrequestData,
   bookingrequestError,
+  onChatClick,
 } from "../../../../redux/auth/actions";
 import { showToast } from "../../../../utilis/toastUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -236,6 +237,9 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
   };
 
   const handleChat = (booking: any) => {
+    // Trigger chat click action to refresh bottom indicator
+    console.log('Host booking chat clicked, dispatching onChatClick action...');
+    dispatch(onChatClick({}));
     
     // Find the corresponding raw booking data using the booking ID
     const rawBooking = rawBookings.find(raw => raw._id === booking.id);

@@ -13,6 +13,7 @@ import AppWrapper from "./src/utilis/AppWrapper";
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {stripeTestKey} from './src/utilis/appConstant';
 import { longPollingService } from './src/services/longPollingService';
+import globalUnreadCountService from './src/services/globalUnreadCountService';
 
 
 const initialState = {};
@@ -37,6 +38,11 @@ function App(): React.JSX.Element {
       longPollingService.startPolling();
     }, 2000); // 2 second delay to ensure store is ready
 
+    // Start global unread count service
+    setTimeout(() => {
+      globalUnreadCountService.startService();
+    }, 3000); // 3 second delay to ensure store is ready
+
     // Handle app state changes for chat polling
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === 'active') {
@@ -53,6 +59,8 @@ function App(): React.JSX.Element {
       subscription?.remove();
       // Stop long polling when app unmounts
       longPollingService.stopPolling();
+      // Stop global unread count service when app unmounts
+      globalUnreadCountService.stopService();
     };
   }, []);
 

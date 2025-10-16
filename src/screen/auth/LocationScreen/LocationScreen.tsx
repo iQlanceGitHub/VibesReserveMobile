@@ -29,7 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { showToast } from "../../../utilis/toastUtils.tsx";
 
 // Initialize Geocoder
-Geocoder.init("AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y");
+Geocoder.init("AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8");
 
 interface LocationScreenProps {
   navigation?: any;
@@ -101,13 +101,40 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
   ) => {
     try {
       const response = await Geocoder.from(latitude, longitude);
+      console.log('Geocoding response:', JSON.stringify(response, null, 2));
 
-      if (response.results.length > 0) {
-        const address = response.results[0].formatted_address;
-        return address;
+      if (response.results && response.results.length > 0) {
+        const result = response.results[0];
+        const addressComponents = result.address_components;
+        
+        // Extract city, state, and country
+        let city = '';
+        let state = '';
+        let country = '';
+        
+        if (addressComponents && Array.isArray(addressComponents)) {
+          addressComponents.forEach((component: any) => {
+            const types = component.types;
+            if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+              city = component.long_name;
+            } else if (types.includes('administrative_area_level_1')) {
+              state = component.long_name;
+            } else if (types.includes('country')) {
+              country = component.long_name;
+            }
+          });
+        }
+        
+        // Format address as "City, State, Country"
+        const formattedAddress = [city, state, country].filter(Boolean).join(', ');
+        console.log('Formatted address:', formattedAddress);
+        
+        // Return formatted address or fallback to full formatted address
+        return formattedAddress || result.formatted_address || 'Address not available';
       }
       return null;
     } catch (error) {
+      console.log('Geocoding error:', error);
       return null;
     }
   };
@@ -184,31 +211,40 @@ const LocationScreen: React.FC<LocationScreenProps> = ({
       if (locationResult.success && locationResult.data) {
         const locationData = locationResult.data;
 
-        const fullAddress = await getAddressFromCoordinates(
+        // Always try to get address first
+        let fullAddress = await getAddressFromCoordinates(
           locationData.latitude,
           locationData.longitude
         );
+        console.log('First attempt address:', fullAddress);
 
-        if (fullAddress) {
-          await handleLocationObtained(
-            locationData.latitude,
-            locationData.longitude,
-            uid
-          );
-          setPermissionMsg(`Current detected location\n\n${fullAddress}`);
-        } else {
-          // Fallback if geocoding fails
-          await handleLocationObtained(
-            locationData.latitude,
-            locationData.longitude,
-            uid
-          );
-          setPermissionMsg(
-            `Current detected location\n\nLat: ${locationData.latitude.toFixed(
-              6
-            )}, Lng: ${locationData.longitude.toFixed(6)}`
-          );
+        // If geocoding fails, try again with a different approach
+        if (!fullAddress) {
+          try {
+            const response = await Geocoder.from(locationData.latitude, locationData.longitude);
+            console.log('Retry geocoding response:', JSON.stringify(response, null, 2));
+            if (response.results && response.results.length > 0) {
+              fullAddress = response.results[0].formatted_address;
+              console.log('Retry address:', fullAddress);
+            }
+          } catch (retryError) {
+            console.log('Retry geocoding failed:', retryError);
+          }
         }
+
+        // If still no address, show a generic message instead of coordinates
+        if (!fullAddress) {
+          fullAddress = "Location detected (Address unavailable)";
+        }
+
+        console.log('Final address to display:', fullAddress);
+
+        await handleLocationObtained(
+          locationData.latitude,
+          locationData.longitude,
+          uid
+        );
+        setPermissionMsg(`Current detected location\n\n${fullAddress}`);
       } else {
         showToast("error", locationResult.error || "Failed to get location");
       }

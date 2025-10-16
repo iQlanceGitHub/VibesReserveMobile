@@ -143,6 +143,9 @@ import {
   onMarkNotificationAsRead,
   markNotificationAsReadData,
   markNotificationAsReadError,
+  onChatClick,
+  chatClickData,
+  chatClickError,
 } from "./actions";
 
 import { base_url_client, base_url_qa } from "../apiConstant";
@@ -1899,6 +1902,47 @@ function* authSaga() {
   // Notification sagas
   yield takeLatest(onGetNotificationList().type as any, GetNotificationListSaga);
   yield takeLatest(onMarkNotificationAsRead().type as any, MarkNotificationAsReadSaga);
+  yield takeLatest(onChatClick().type as any, ChatClickSaga);
+}
+
+// Chat Click Saga
+function* ChatClickSaga({
+  payload,
+}: {
+  payload: any;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    // Get current user ID from state
+    const state = yield select();
+    const userId = state.auth?.user?.id || state.auth?.user?.userId;
+
+    if (!userId) {
+      yield put(chatClickError("User not found"));
+      return;
+    }
+
+    // Call API to refresh chat list
+    const response = yield call(fetchGet, {
+      url: `${base_url_client}/chat-list?userId=${userId}`,
+    });
+
+    if (response?.status === 1 || response?.status === true) {
+      // Update chat list in Redux
+      const chatListData = response?.data || response?.chatList || response || [];
+      console.log('Saga: Updating chat list with', chatListData.length, 'chats');
+      yield put(getChatListData(chatListData));
+      yield put(chatClickData("Chat list refreshed successfully"));
+    } else {
+      console.log('Saga: API call failed:', response);
+      yield put(chatClickError(response?.message || "Failed to refresh chat list"));
+    }
+  } catch (error: any) {
+    yield put(chatClickError(error?.message || "Network error"));
+  } finally {
+    yield put(displayLoading(false));
+  }
 }
 
 export default authSaga;

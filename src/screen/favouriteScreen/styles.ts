@@ -163,6 +163,13 @@ export default StyleSheet.create({
     paddingVertical: verticalScale(50),
     paddingHorizontal: horizontalScale(40),
   },
+  emptyScrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: horizontalScale(20),
+    paddingVertical: verticalScale(40),
+  },
   emptyTitle: {
     fontSize: fontScale(20),
     fontFamily: fonts.bold,

@@ -8,6 +8,7 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from "react-native";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -36,6 +37,7 @@ interface FavouriteScreenProps {
 const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
   const [events, setEvents] = useState<any[]>([]);
   const [userId, setUserId] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     title: "",
@@ -84,6 +86,21 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
     dispatch(onFavoriteslist(payload));
   };
 
+  // Handle pull to refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchFavoritesList();
+    } catch (error) {
+      console.error('Error refreshing favorites:', error);
+    } finally {
+      // Add a small delay to show the refresh indicator
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+    }
+  }, []);
+
   // Fetch favorites on component mount and every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -105,10 +122,14 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
       } else {
         setEvents([]);
       }
+      // Stop refreshing when data is loaded
+      setRefreshing(false);
       dispatch(favoriteslistData(""));
     }
 
     if (favoriteslistErr) {
+      // Stop refreshing on error
+      setRefreshing(false);
       dispatch(favoriteslistError(""));
     }
   }, [favoriteslist, favoriteslistErr, dispatch]);
@@ -309,15 +330,37 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
                   index.toString()
                 }
                 renderItem={renderEventCard}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor={colors.white}
+                    colors={[colors.white]}
+                    progressBackgroundColor={colors.gradient_light_purple}
+                  />
+                }
               />
             ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyTitle}>No Favorites</Text>
-                <Text style={styles.emptySubtitle}>
-                  You haven't added any events to your favorites yet.{'\n'}
-                  Start exploring and add events you love!
-                </Text>
-              </View>
+              <ScrollView
+                contentContainerStyle={styles.emptyScrollContainer}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor={colors.white}
+                    colors={[colors.white]}
+                    progressBackgroundColor={colors.gradient_light_purple}
+                  />
+                }
+              >
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyTitle}>No Favorites</Text>
+                  <Text style={styles.emptySubtitle}>
+                    You haven't added any events to your favorites yet.{'\n'}
+                    Start exploring and add events you love!
+                  </Text>
+                </View>
+              </ScrollView>
             )}
           </View>
           
