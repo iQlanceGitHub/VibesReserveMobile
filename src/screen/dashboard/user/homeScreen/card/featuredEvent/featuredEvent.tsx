@@ -52,7 +52,6 @@ const EventCard: React.FC<EventCardProps> = ({
       return;
     }
 
-    console.log("Featured Event - Toggling favorite for event ID:", eventId);
 
     // Call the parent's onFavoritePress function
     if (onFavoritePress) {

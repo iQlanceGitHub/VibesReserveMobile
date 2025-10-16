@@ -14,8 +14,6 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
-	<key>UIUserInterfaceStyle</key>
-    <string>Light</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -29,12 +27,20 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.233362513415-dlq70usscn8n825h5njp9osp4l6im5c7</string>
+				<string>com.googleusercontent.apps.581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<true/>
+	<key>GCM_SENDER_ID</key>
+	<string>581614872749</string>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:581614872749:ios:46fdc180306c2023effe24</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
@@ -95,6 +101,14 @@
 	<string>This app needs access to photo library to select images for your profile and documents</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app needs access to speech recognition to convert your voice into text.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>This app needs to send you notifications about events, bookings, and important updates.</string>
+  
+  <key>BGTaskSchedulerPermittedIdentifiers</key>
+  <array>
+      <string>com.yourapp.refresh</string>
+  </array>
+  
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
@@ -112,6 +126,9 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
@@ -131,6 +148,8 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

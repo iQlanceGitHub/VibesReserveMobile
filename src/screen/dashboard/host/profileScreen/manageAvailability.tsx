@@ -77,7 +77,6 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
   };
 
   const handleEventPress = (event: Event) => {
-    console.log("Event pressed:", event.name);
   };
 
   const renderEventCard = (event: Event) => {

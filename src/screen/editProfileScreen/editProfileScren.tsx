@@ -49,6 +49,7 @@ import PermissionManager from "../../utilis/permissionUtils";
 import FilePickerPopup from "../../components/FilePickerPopup";
 import RNFS from "react-native-fs";
 import { showToast } from "../../utilis/toastUtils";
+import Calender from "../../assets/svg/calender";
 
 interface EditProfileScreenProps {
   navigation?: any;
@@ -84,12 +85,10 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
   const [phoneError, setPhoneError] = useState(false);
   const [dateError, setDateError] = useState(false);
 
-  // Load profile data on component mount
   useEffect(() => {
     dispatch(onGetProfileDetail({}));
   }, [dispatch]);
 
-  // Format date from ISO string to DD/MM/YYYY format
   const formatDateFromISO = (isoString: string) => {
     if (!isoString) return "";
     try {
@@ -99,22 +98,18 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       const year = date.getFullYear();
       return `${day}/${month}/${year}`;
     } catch (error) {
-      console.log("Error formatting date:", error);
-      return isoString; // Return original if formatting fails
+      return isoString;
     }
   };
 
-  // Format date from DD/MM/YYYY to ISO string for API
   const formatDateToISO = (dateString: string) => {
     if (!dateString) return "";
     try {
-      // Parse DD/MM/YYYY format
       const [day, month, year] = dateString.split("/");
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       return date.toISOString();
     } catch (error) {
-      console.log("Error converting date to ISO:", error);
-      return dateString; // Return original if conversion fails
+      return dateString;
     }
   };
 
@@ -136,7 +131,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
     }
   }, [getProfileDetail]);
 
-  // Handle API responses
   useEffect(() => {
     if (updateProfile && updateProfile.status === 1) {
       showToast("success", updateProfile.message);
@@ -158,7 +152,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
   useEffect(() => {
     if (getProfileDetailErr) {
-      console.log("Error loading profile details:", getProfileDetailErr);
     }
   }, [getProfileDetailErr]);
 
@@ -175,7 +168,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "camera",
       () => openProfileImageCamera(),
       (error) => {
-        console.log("Camera permission error:", error);
         showToast("error", "Camera permission denied");
       }
     );
@@ -216,7 +208,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "storage",
       () => openProfileImageGallery(),
       (error) => {
-        console.log("Storage permission error:", error);
         showToast("error", "Storage permission denied");
       }
     );
@@ -305,7 +296,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
         permanentPath: destPath,
       };
     } catch (error) {
-      console.log("Error creating file copy:", error);
       return file;
     }
   };
@@ -315,7 +305,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "camera",
       () => openCamera(),
       (error) => {
-        console.log("Camera permission error:", error);
         showToast("error", "Camera permission denied");
       }
     );
@@ -356,7 +345,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       "storage",
       () => openGallery(),
       (error) => {
-        console.log("Storage permission error:", error);
         showToast("error", "Storage permission denied");
       }
     );
@@ -481,7 +469,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       try {
         await RNFS.unlink(selectedDocument.permanentPath);
       } catch (error) {
-        console.log("Error cleaning up temporary file:", error);
       }
     }
   };
@@ -493,7 +480,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
   }, [selectedDocument]);
 
   const handleSaveAndUpdate = async () => {
-    // Reset all errors first
     setFullNameError(false);
     setEmailError(false);
     setPhoneError(false);
@@ -501,26 +487,22 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
     let hasError = false;
 
-    // Validate full name
     if (!fullName.trim()) {
       setFullNameError(true);
       hasError = true;
     }
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim() || !emailRegex.test(email)) {
       setEmailError(true);
       hasError = true;
     }
 
-    // Validate phone number
     if (!phoneNumber.trim()) {
       setPhoneError(true);
       hasError = true;
     }
 
-    // Validate date of birth
     if (!dateOfBirth.trim()) {
       setDateError(true);
       hasError = true;
@@ -528,10 +510,9 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
     if (!hasError) {
       try {
-        let uploadedDocumentUrl = documentImage; // Keep existing document URL by default
-        let uploadedProfileImageUrl = profileImage; // Keep existing profile image URL by default
+        let uploadedDocumentUrl = documentImage;
+        let uploadedProfileImageUrl = profileImage;
 
-        // If a new document is selected, upload it
         if (selectedDocument) {
           setIsUploading(true);
           uploadedDocumentUrl = await uploadFileToS3(
@@ -541,7 +522,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
           );
         }
 
-        // If profile image is a local URI (newly selected), upload it
         if (profileImage && profileImage.startsWith("file://")) {
           setIsUploading(true);
           uploadedProfileImageUrl = await uploadFileToS3(
@@ -553,7 +533,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
         setIsUploading(false);
 
-        // Call update profile API
         const updateProfilePayload = {
           fullName: fullName.trim(),
           countrycode: phoneCode,
@@ -563,7 +542,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
           userDocument: uploadedDocumentUrl,
         };
 
-        console.log("Updating profile with payload:", updateProfilePayload);
         dispatch(onUpdateProfile(updateProfilePayload));
       } catch (error) {
         showToast("error", "Failed to upload document. Please try again.");
@@ -659,7 +637,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                 onChangeText={setDateOfBirth}
                 error={dateError}
                 message=""
-                leftImage={<CalendarIcon />}
+                leftImage={<Calender />}
                 style={styles.inputField}
               />
               <Text style={styles.documentLabel}>Upload Document</Text>

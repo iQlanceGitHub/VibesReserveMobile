@@ -15,8 +15,9 @@ export default StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: verticalScale(60),
+    paddingTop: verticalScale(20),
     paddingHorizontal: horizontalScale(20),
+    paddingBottom: verticalScale(10),
   },
   backButton: {
     width: horizontalScale(40),
@@ -28,13 +29,14 @@ export default StyleSheet.create({
   },
   headerTitle: {
     fontSize: fontScale(20),
-    lineHeight: verticalScale(24),
+    lineHeight: verticalScale(32),
     fontWeight: "600",
     fontFamily: fonts.semiBold,
     color: colors.white,
     flex: 1,
     textAlign: "center",
-    marginLeft: horizontalScale(-40),
+    marginLeft: horizontalScale(-20),
+    
   },
   content: {
     flex: 1,

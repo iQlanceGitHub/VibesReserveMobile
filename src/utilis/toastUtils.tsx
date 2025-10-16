@@ -2,6 +2,7 @@ import React from "react";
 import { Platform, PermissionsAndroid } from "react-native";
 import Toast, { BaseToast, ErrorToast } from "react-native-toast-message";
 import { colors } from "./colors";
+import { verticalScale } from "./appConstant";
 
 export const showToast = (type: string, text: string) => {
   const getTextColor = () => {
@@ -48,7 +49,7 @@ export const toastConfig = {
   error: (props: any) => (
     <ErrorToast
       {...props}
-      style={{ borderLeftColor: colors.red }}
+      style={{ borderLeftColor: colors.red , marginTop: verticalScale(15) }}
       text1NumberOfLines={2}
       text2NumberOfLines={4}
       text2Style={{
@@ -90,7 +91,6 @@ export async function requestSmsPermissions() {
         console.warn("SMS permissions not granted");
       }
     } catch (err) {
-      console.log("Permission error", err);
     }
   }
 }

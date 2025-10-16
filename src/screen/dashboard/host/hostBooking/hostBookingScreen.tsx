@@ -53,6 +53,7 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     "accepted"
   );
   const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [rawBookings, setRawBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -78,7 +79,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
       }
       return null;
     } catch (error) {
-      console.log("Error getting user ID:", error);
       return null;
     }
   };
@@ -100,6 +100,7 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
   // Clear booking data
   const clearBookingData = () => {
     setBookings([]);
+    setRawBookings([]);
     setLoading(false);
     setRefreshing(false);
     dispatch(bookingrequestData(""));
@@ -120,10 +121,9 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
       bookingrequest?.status === 1 ||
       bookingrequest?.status === "1"
     ) {
-      console.log("Booking requests fetched:", bookingrequest);
-      const transformedBookings = transformBookingData(
-        bookingrequest?.data || []
-      );
+      const rawData = bookingrequest?.data || [];
+      const transformedBookings = transformBookingData(rawData);
+      setRawBookings(rawData);
       setBookings(transformedBookings);
       setLoading(false);
       setRefreshing(false);
@@ -131,7 +131,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
     }
 
     if (bookingrequestErr) {
-      console.log("Booking request error:", bookingrequestErr);
       setLoading(false);
       setRefreshing(false);
       showToast("error", "Failed to fetch bookings. Please try again.");
@@ -183,7 +182,6 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
 
       return `${startMonth} ${startDay}-${endDay} ${formattedTime}`;
     } catch (error) {
-      console.log("Error formatting date:", error);
       return "Date not available";
     }
   };
@@ -235,23 +233,29 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
   const currentBookings = bookings;
 
   const handleCall = (bookingId: string) => {
-    console.log("Call booking:", bookingId);
   };
 
-  const handleChat = (bookingId: string) => {
-    console.log("Chat booking:", bookingId);
+  const handleChat = (booking: any) => {
+    
+    // Find the corresponding raw booking data using the booking ID
+    const rawBooking = rawBookings.find(raw => raw._id === booking.id);
+    
+    if (rawBooking?.userId?._id) {
+     (navigation as any).navigate("ChatScreen", {
+      otherUserId: rawBooking.userId._id,
+      otherUserName: rawBooking.userId.fullName,
+      otherUserProfilePicture: rawBooking.userId.profilePicture,
+      conversationId: rawBooking.conversationId,
+    });
+    }
   };
-
   const handleAccept = (bookingId: string) => {
-    console.log("Accept booking:", bookingId);
   };
 
   const handleCardPress = (bookingId: string) => {
-    console.log("Navigate to booking detail:", bookingId);
     try {
       navigation.navigate("BookingDetailScreen", { bookingId });
     } catch (error) {
-      console.log("Navigation error:", error);
     }
   };
 
@@ -286,13 +290,13 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
                   style={styles.actionButton}
                   onPress={() => handleCall(booking.id)}
                 >
-                  <PhoneIcon size={16} color={colors.white} />
+                  <PhoneIcon width={16} height={16} color={colors.white} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.actionButton}
-                  onPress={() => handleChat(booking.id)}
+                  onPress={() => handleChat(booking)}
                 >
-                  <ChatIcon size={16} color={colors.white} />
+                  <ChatIcon width={16} height={16} color={colors.white} />
                 </TouchableOpacity>
               </View>
             )}
@@ -308,7 +312,7 @@ const HostBookingScreen: React.FC<HostBookingScreenProps> = ({
 
             <View style={styles.detailRow}>
               <LocationFavourite width={14} height={14} color={colors.white} />
-              <Text numberOfLines={2} style={styles.detailText}>{booking.location}</Text>
+              <Text numberOfLines={1} style={styles.detailText}>{booking.location}</Text>
             </View>
 
             <View style={styles.detailRow}>

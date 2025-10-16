@@ -64,10 +64,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     if (getProfileDetail && getProfileDetail.status === 1) {
       setProfileData(getProfileDetail.data);
       setIsLoading(false);
-      console.log("Profile detail data:", getProfileDetail.data);
     } else if (getProfileDetailErr) {
       setIsLoading(false);
-      console.log("Profile detail error:", getProfileDetailErr);
     }
   }, [getProfileDetail, getProfileDetailErr]);
 
@@ -125,9 +123,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       const result = await Share.share(shareOptions);
 
       if (result.action === Share.sharedAction) {
-        console.log("Content shared successfully");
       } else if (result.action === Share.dismissedAction) {
-        console.log("Share dismissed");
       }
     } catch (error) {
       console.error("Error sharing:", error);
@@ -144,7 +140,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const handleLogoutConfirm = () => {
-    console.log("Logout confirmed");
     setShowLogoutPopup(false);
   };
 

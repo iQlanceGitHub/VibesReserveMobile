@@ -9,6 +9,9 @@ import NotificationFillIcon from "../../assets/svg/notificationFillIcon";
 import NotificationUnFillIcon from "../../assets/svg/notificationUnFillIcon";
 import ProfileFillIcon from "../../assets/svg/profileFillIcon";
 import ProfileUnFillIcon from "../../assets/svg/profileUnFillIcon";
+import SelectChat from "../../assets/svg/selectChat";
+import ChatIcon from "../../assets/svg/chatIcon";
+
 
 import styles from "./styles";
 import * as appConstant from "../../utilis/appConstant";
@@ -62,17 +65,22 @@ const HostBottomTabNavigator = (props: BottomTabBarProps) => {
                       <TaskUnFillIcon />
                     )
                   ) : index == 2 ? (
+                    // isFocused ? (
+                    //   <NotificationFillIcon
+                    //     width={appConstant.verticalScale(24)}
+                    //     height={appConstant.horizontalScale(24)}
+                    //   />
+                    // ) : (
+                    //   <NotificationUnFillIcon
+                    //     color={colors.gray100}
+                    //     width={appConstant.verticalScale(24)}
+                    //     height={appConstant.horizontalScale(24)}
+                    //   />
+                    // )
                     isFocused ? (
-                      <NotificationFillIcon
-                        width={appConstant.verticalScale(24)}
-                        height={appConstant.horizontalScale(24)}
-                      />
+                      <SelectChat width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     ) : (
-                      <NotificationUnFillIcon
-                        color={colors.gray100}
-                        width={appConstant.verticalScale(24)}
-                        height={appConstant.horizontalScale(24)}
-                      />
+                      <ChatIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     )
                   ) : isFocused ? (
                     <ProfileFillIcon

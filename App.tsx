@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StatusBar, Platform } from "react-native";
+import { View, StatusBar, Platform, AppState } from "react-native";
 import NavigationStack from "./src/navigation/navigation";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -9,8 +9,10 @@ import SplashScreen from "react-native-splash-screen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/utilis/toastUtils.tsx";
 import AppInitializer from "./src/components/AppInitializer";
+import AppWrapper from "./src/utilis/AppWrapper";
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {stripeTestKey} from './src/utilis/appConstant';
+import { longPollingService } from './src/services/longPollingService';
 
 
 const initialState = {};
@@ -29,6 +31,29 @@ function App(): React.JSX.Element {
   useEffect(() => {
     // Hide splash screen when app is ready
     SplashScreen.hide();
+
+    // Start long polling service for background chat updates after a small delay
+    setTimeout(() => {
+      longPollingService.startPolling();
+    }, 2000); // 2 second delay to ensure store is ready
+
+    // Handle app state changes for chat polling
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        // App came to foreground, ensure long polling is active
+        if (longPollingService.isPollingActive()) {
+          // The long polling service will handle the immediate poll
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription?.remove();
+      // Stop long polling when app unmounts
+      longPollingService.stopPolling();
+    };
   }, []);
 
   return (
@@ -42,6 +67,7 @@ function App(): React.JSX.Element {
         }}
       >
         <AppInitializer>
+          <AppWrapper />
           <View style={{ flex: 1 }}>
             <StatusBar
               translucent

@@ -16,12 +16,10 @@ const LocationPermissionExample: React.FC = () => {
       
       if (locationData) {
         showToast('success', `Location: ${locationData.latitude}, ${locationData.longitude}`);
-        console.log('Location data:', locationData);
       } else {
         showToast('error', 'Failed to get location');
       }
     } catch (error) {
-      console.log('Location error:', error);
       showToast('error', 'Failed to get location');
     }
   };
@@ -36,7 +34,6 @@ const LocationPermissionExample: React.FC = () => {
         showToast('error', 'Location permission denied');
       }
     } catch (error) {
-      console.log('Permission request error:', error);
       showToast('error', 'Failed to request permission');
     }
   };

@@ -184,7 +184,6 @@ const demo: React.FC<demoProps> = ({
       const result = await PermissionManager.requestStoragePermission();
       return result.granted;
     } catch (error) {
-      console.log('Error requesting storage permission:', error);
       return false;
     }
   };
@@ -228,7 +227,6 @@ const demo: React.FC<demoProps> = ({
           launchImageLibrary(options, callback);
         },
         (error) => {
-          console.log('Storage permission error:', error);
           showToast('error', 'Storage permission denied');
         }
       );
@@ -251,7 +249,6 @@ const demo: React.FC<demoProps> = ({
       
       showToast('success', 'Image uploaded successfully');
     } catch (error) {
-      console.log('Image upload error:', error);
       showToast('error', 'Failed to upload image');
     } finally {
       setLoading(false);
@@ -328,7 +325,6 @@ const demo: React.FC<demoProps> = ({
       tickets: tickets
     };
 
-    console.log('Creating event with data:', eventData);
     dispatch(onCreateevent(eventData));
   };
 

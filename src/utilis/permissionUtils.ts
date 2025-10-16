@@ -36,7 +36,6 @@ export class PermissionManager {
         error: result === RESULTS.GRANTED ? undefined : `Permission status: ${result}`
       };
     } catch (error) {
-      console.log('Error checking storage permission:', error);
       return { granted: false, error: 'Failed to check permission' };
     }
   }
@@ -69,7 +68,6 @@ export class PermissionManager {
         error: result === RESULTS.GRANTED ? undefined : `Permission request result: ${result}`
       };
     } catch (error) {
-      console.log('Error requesting storage permission:', error);
       return { granted: false, error: 'Failed to request permission' };
     }
   }
@@ -97,7 +95,6 @@ export class PermissionManager {
         error: result === RESULTS.GRANTED ? undefined : `Permission status: ${result}`
       };
     } catch (error) {
-      console.log('Error checking camera permission:', error);
       return { granted: false, error: 'Failed to check permission' };
     }
   }
@@ -125,7 +122,6 @@ export class PermissionManager {
         error: result === RESULTS.GRANTED ? undefined : `Permission request result: ${result}`
       };
     } catch (error) {
-      console.log('Error requesting camera permission:', error);
       return { granted: false, error: 'Failed to request permission' };
     }
   }
@@ -232,7 +228,6 @@ export class PermissionManager {
       }
     } catch (error) {
       const errorMessage = `Unexpected error requesting ${permissionType} permission`;
-      console.log(`Error in requestPermissionWithFlow for ${permissionType}:`, error);
       
       if (onError) {
         onError(errorMessage);

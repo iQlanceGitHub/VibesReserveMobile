@@ -92,7 +92,6 @@ const LogoutScreen: React.FC<LogoutScreenProps> = ({ navigation }) => {
       // Navigate to SignInScreen
       navigation?.navigate('SignInScreen');
       
-      console.log('User logged out successfully');
     } catch (error) {
       console.error('Error during logout:', error);
       Alert.alert('Error', 'Failed to logout. Please try again.');
@@ -137,7 +136,6 @@ const LogoutScreen: React.FC<LogoutScreenProps> = ({ navigation }) => {
       // Navigate to HomeTabs
       navigation?.navigate('HomeTabs');
       
-      console.log('User skipped successfully');
     } catch (error) {
       console.error('Error during skip:', error);
       Alert.alert('Error', 'Failed to skip. Please try again.');

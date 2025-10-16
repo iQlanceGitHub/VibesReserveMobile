@@ -39,7 +39,6 @@ export class LocationPermissionManager {
         error: result === RESULTS.GRANTED ? undefined : `Permission status: ${result}`
       };
     } catch (error) {
-      console.log('Error checking location permission:', error);
       return { granted: false, error: 'Failed to check permission' };
     }
   }
@@ -67,7 +66,6 @@ export class LocationPermissionManager {
         error: result === RESULTS.GRANTED ? undefined : `Permission request result: ${result}`
       };
     } catch (error) {
-      console.log('Error requesting location permission:', error);
       return { granted: false, error: 'Failed to request permission' };
     }
   }
@@ -143,7 +141,6 @@ export class LocationPermissionManager {
         );
       });
     } catch (error) {
-      console.log('Error in getCurrentLocation:', error);
       return {
         success: false,
         error: 'Unexpected error getting location'
@@ -250,7 +247,6 @@ export class LocationPermissionManager {
       }
     } catch (error) {
       const errorMessage = 'Unexpected error getting location';
-      console.log('Error in requestLocationWithPermissionFlow:', error);
       
       if (onError) {
         onError(errorMessage);

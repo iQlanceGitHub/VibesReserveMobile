@@ -32,7 +32,6 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
   };
 
   const handleSubmit = () => {
-    console.log("Submit pressed");
   };
 
   return (

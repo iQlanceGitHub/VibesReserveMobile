@@ -70,4 +70,9 @@ export default StyleSheet.create({
     backgroundColor: colors.violate,
     marginTop: appConstant.horizontalScale(2),
   },
+  chatIconContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

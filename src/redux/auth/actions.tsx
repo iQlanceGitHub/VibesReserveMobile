@@ -158,9 +158,41 @@ export const {
   cancelBookingData,
   cancelBookingError,
 
+  // Chat Actions
+  onSendMessage,
+  sendMessageData,
+  sendMessageError,
+
+  onGetConversation,
+  getConversationData,
+  getConversationError,
+
+  onGetChatList,
+  getChatListData,
+  getChatListError,
+
+  onStartLongPolling,
+  onStopLongPolling,
+  onUpdateMessages,
+
+  onCheckBookedDate,
+  checkBookedDateData,
+  checkBookedDateError,
+
   setLoginToken,
 
   setLoginUserDetails,
+
+  setDeviceToken,
+
+  // Notification Actions
+  onGetNotificationList,
+  getNotificationListData,
+  getNotificationListError,
+
+  onMarkNotificationAsRead,
+  markNotificationAsReadData,
+  markNotificationAsReadError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -287,6 +319,10 @@ export const {
   "CHECK_BOOKED_DATE_BOOTH_DATA",
   "CHECK_BOOKED_DATE_BOOTH_ERROR",
 
+  "ON_CHECK_BOOKED_DATE",
+  "CHECK_BOOKED_DATE_DATA",
+  "CHECK_BOOKED_DATE_ERROR",
+  
   "ON_RATING_REVIEW",
   "RATING_REVIEW_DATA",
   "RATING_REVIEW_ERROR",
@@ -294,6 +330,7 @@ export const {
   "ON_CANCEL_BOOKING",
   "CANCEL_BOOKING_DATA",
   "CANCEL_BOOKING_ERROR",
+
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",
@@ -314,11 +351,44 @@ export const {
   "GET_BOOKING_LIST",
   "BOOKING_LIST_DATA",
   "BOOKING_LIST_ERROR",
+  
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",
 
+  // Chat Action Types
+  "ON_SEND_MESSAGE",
+  "SEND_MESSAGE_DATA",
+  "SEND_MESSAGE_ERROR",
+
+  "ON_GET_CONVERSATION",
+  "GET_CONVERSATION_DATA",
+  "GET_CONVERSATION_ERROR",
+
+  "ON_GET_CHAT_LIST",
+  "GET_CHAT_LIST_DATA",
+  "GET_CHAT_LIST_ERROR",
+
+  "ON_START_LONG_POLLING",
+  "ON_STOP_LONG_POLLING",
+  "ON_UPDATE_MESSAGES",
+
+  "ON_CHECK_BOOKED_DATE",
+  "CHECK_BOOKED_DATE_DATA",
+  "CHECK_BOOKED_DATE_ERROR",
+
   "SET_LOGIN_TOKEN",
 
-  "SET_LOGIN_USER_DETAILS"
+  "SET_LOGIN_USER_DETAILS",
+
+  "SET_DEVICE_TOKEN",
+
+  // Notification Action Types
+  "ON_GET_NOTIFICATION_LIST",
+  "GET_NOTIFICATION_LIST_DATA",
+  "GET_NOTIFICATION_LIST_ERROR",
+
+  "ON_MARK_NOTIFICATION_AS_READ",
+  "MARK_NOTIFICATION_AS_READ_DATA",
+  "MARK_NOTIFICATION_AS_READ_ERROR"
 );

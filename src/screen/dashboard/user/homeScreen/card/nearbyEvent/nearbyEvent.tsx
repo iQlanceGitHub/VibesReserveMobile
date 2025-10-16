@@ -46,7 +46,6 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
   onPress,
   onFavoritePress,
 }) => {
-  console.log('event::===>', event);
   // Use isFavorite directly from event data
   const isFavorite = (event as any).isFavorite || false;
 
@@ -57,7 +56,6 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
       return;
     }
 
-    console.log("Nearby Event - Toggling favorite for event ID:", eventId);
 
     // Call the parent's onFavoritePress function
     if (onFavoritePress) {

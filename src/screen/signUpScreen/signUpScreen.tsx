@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   PermissionsAndroid,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../utilis/colors";
@@ -70,10 +71,12 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
   const socialLogin = useSelector((state: any) => state.auth.socialLogin);
   const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
+  const deviceToken = useSelector((state: any) => state.auth.deviceToken);
 
   const { signup, signupErr, loader } = useSelector((state: any) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [phoneCode, setPhoneCode] = useState<string>("+1");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [phoneCodeFlag, setPhoneCodeFlag] = useState<string>("🇺🇸");
   const [formData, setFormData] = useState({
     fullName: "",
@@ -82,6 +85,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     dateOfBirth: "",
     password: "",
     confirmPassword: "",
+    deviceToken: deviceToken || "abcd", // Use Redux state or fallback
   });
   const [errors, setErrors] = useState({
     fullName: false,
@@ -115,7 +119,6 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const storeUserToken = async (token: any) => {
     try {
       await AsyncStorage.setItem("user_token", token);
-      console.log("User token saved:", token);
       getUserToken();
     } catch (e) {
       console.error("Failed to save the user token.", e);
@@ -125,7 +128,6 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
 const storeUser = async (user: any) => {
   try {
     await AsyncStorage.setItem("user", JSON.stringify(user));
-    console.log("User saved:", user);
   } catch (e) {
     console.error("Failed to save the user.", e);
   }
@@ -136,7 +138,6 @@ const storeUser = async (user: any) => {
     try {
       const token = await AsyncStorage.getItem("user_token");
       if (token !== null) {
-        console.log("User token retrieved:", token);
         return token;
       }
     } catch (e) {
@@ -148,11 +149,22 @@ const storeUser = async (user: any) => {
   const storeUserId = async (userId: any) => {
     try {
       await AsyncStorage.setItem("user_id", userId);
-      console.log("User ID saved:", userId);
     } catch (e) {
       console.error("Failed to save the user ID.", e);
     }
   };
+
+  // Update deviceToken when it changes in Redux state
+  useEffect(() => {
+    
+    if (deviceToken) {
+      setFormData(prev => ({
+        ...prev,
+        deviceToken: deviceToken
+      }));
+    } else {
+    }
+  }, [deviceToken]);
 
   useEffect(() => {
     if (signup?.status === true ||
@@ -165,12 +177,14 @@ const storeUser = async (user: any) => {
       );
       navigation.navigate('OTPVerificationScreen', { email: formData?.email, type: 'signup', id: signup?.user?._id })
       dispatch(signupData(''));
+      setIsSubmitting(false);
     } else if (signupErr) {
       showToast(
         "error",
         signupErr?.message || "Something went wrong. Please try again."
       );
       dispatch(signupError(''));
+      setIsSubmitting(false);
     }
   }, [signup, signupErr]);
 
@@ -183,7 +197,6 @@ const storeUser = async (user: any) => {
       socialLogin?.status === 1 ||
       socialLogin?.status === "1"
     ) {
-      console.log("socialLogin:+>", socialLogin);
       //  setMsg(socialLogin?.message?.toString());
       showToast(
         "success",
@@ -206,7 +219,6 @@ const storeUser = async (user: any) => {
           socialLogin?.status === 1 ||
           socialLogin?.status === "1"
         ) {
-          console.log("socialLogin:+>", socialLogin);
           //  setMsg(socialLogin?.message?.toString());
           showToast(
             "success",
@@ -252,7 +264,6 @@ const storeUser = async (user: any) => {
     }
 
     if (socialLoginErr) {
-      console.log("signinErr:+>", socialLoginErr);
       showToast(
         "error",
         socialLoginErr?.message || "Something went wrong. Please try again."
@@ -423,20 +434,31 @@ const storeUser = async (user: any) => {
   };
 
   const handleSignUp = async () => {
+    // Prevent multiple submissions
+    if (isSubmitting || loader || isUploading) {
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       let uploadedDocumentUrl = undefined;
       if (selectedDocument) {
         setIsUploading(true);
+        showToast("info", "Uploading document, please wait...");
+        
         uploadedDocumentUrl = await uploadFileToS3(
           selectedDocument.uri,
           selectedDocument.name,
           selectedDocument.type
         );
+        
         setIsUploading(false);
+        showToast("success", "Document uploaded successfully!");
       }
 
       const signupPayload = {
@@ -456,6 +478,7 @@ const storeUser = async (user: any) => {
     } catch (error) {
       showToast("error", "Failed to upload document. Please try again.");
       setIsUploading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -463,8 +486,6 @@ const storeUser = async (user: any) => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log('User Info:', userInfo?.data?.user?.email);
-      console.log('User Info:', userInfo);
 
       let obj = {
         "email": userInfo?.data?.user?.email,
@@ -477,11 +498,9 @@ const storeUser = async (user: any) => {
       if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
         dispatch(onSocialLogin(obj));
       }
-      console.log("socialData+>>>>", socialData);
       //Alert.alert('Success', 'You have successfully signed in with Google!');
       // navigation.navigate('NameScreen')
     } catch (error) {
-      console.log('Google Sign-In error:', error);
     }
   };
 
@@ -515,9 +534,7 @@ const storeUser = async (user: any) => {
 
     } catch (error: any) {
       if (error.code === appleAuth.Error.CANCELED) {
-        console.log('Apple Login: User cancelled the login flow.');
       } else {
-        console.log('Apple Login: Error occurred:', error.message);
       }
     }
   };
@@ -527,7 +544,6 @@ const storeUser = async (user: any) => {
       const result = await PermissionManager.requestCameraPermission();
       return result.granted;
     } catch (error) {
-      console.log('Error requesting camera permission:', error);
       return false;
     }
   };
@@ -559,7 +575,6 @@ const storeUser = async (user: any) => {
       ]);
       
       await AsyncStorage.setItem("user_status", status);
-      console.log("User status saved:", status);
 
       // Store additional metadata based on status
       if (status === 'skipped') {
@@ -592,7 +607,6 @@ const storeUser = async (user: any) => {
       const result = await PermissionManager.requestStoragePermission();
       return result.granted;
     } catch (error) {
-      console.log('Error requesting storage permission:', error);
       return false;
     }
   };
@@ -617,7 +631,6 @@ const storeUser = async (user: any) => {
         permanentPath: destPath // Keep track of the permanent path
       };
     } catch (error) {
-      console.log('Error creating file copy:', error);
       return file; // Fallback to original file
     }
   };
@@ -631,7 +644,6 @@ const storeUser = async (user: any) => {
         openCamera();
       },
       (error) => {
-        console.log('Camera permission error:', error);
         showToast('error', 'Camera permission denied');
       }
     );
@@ -679,7 +691,6 @@ const storeUser = async (user: any) => {
         openGallery();
       },
       (error) => {
-        console.log('Storage permission error:', error);
         showToast('error', 'Storage permission denied');
       }
     );
@@ -754,7 +765,6 @@ const storeUser = async (user: any) => {
       try {
         await RNFS.unlink(selectedDocument.permanentPath);
       } catch (error) {
-        console.log('Error cleaning up temporary file:', error);
       }
     }
   };
@@ -902,8 +912,9 @@ const storeUser = async (user: any) => {
           >
             <View style={styles.socialSection}>
               <TouchableOpacity
-                style={styles.socialButton}
+                style={[styles.socialButton, { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }]}
                 onPress={handleGoogleSignIn}
+                disabled={isSubmitting || loader || isUploading}
               >
                 <View style={styles.socialButtonContent}>
                   <View style={styles.appleIcons}>
@@ -916,8 +927,9 @@ const storeUser = async (user: any) => {
               </TouchableOpacity>
               {Platform.OS === 'ios' && (
               <TouchableOpacity
-                style={styles.socialButton}
+                style={[styles.socialButton, { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }]}
                 onPress={handleAppleSignIn}
+                disabled={isSubmitting || loader || isUploading}
               >
                 <View style={styles.socialButtonContent}>
                   <View style={styles.appleIcons}>
@@ -945,8 +957,10 @@ const storeUser = async (user: any) => {
                   style={[
                     styles.roleOption,
                     selectedRole === "explore" && styles.selectedRole,
+                    { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }
                   ]}
                   onPress={() => setSelectedRole("explore")}
+                  disabled={isSubmitting || loader || isUploading}
                 >
                   <View style={styles.roleContent}>
                     <View style={styles.roleRow}>
@@ -982,8 +996,10 @@ const storeUser = async (user: any) => {
                   style={[
                     styles.roleOption,
                     selectedRole === "host" && styles.selectedRole,
+                    { opacity: isSubmitting || loader || isUploading ? 0.5 : 1 }
                   ]}
                   onPress={() => setSelectedRole("host")}
+                  disabled={isSubmitting || loader || isUploading}
                 >
                   <View style={styles.roleContent}>
                     <View style={styles.roleRow}>
@@ -1243,10 +1259,16 @@ const storeUser = async (user: any) => {
 
             <View style={styles.buttonSection}>
               <Buttons
-                title={"Sign Up"}
+                title={
+                  isUploading 
+                    ? "Uploading Document..." 
+                    : isSubmitting || loader 
+                    ? "Signing Up..." 
+                    : "Sign Up"
+                }
                 onPress={handleSignUp}
                 style={styles.signUpButton}
-                disabled={loader}
+                disabled={isSubmitting || loader || isUploading}
               />
 
               <View style={styles.loginLink}>
@@ -1272,6 +1294,23 @@ const storeUser = async (user: any) => {
         onGalleryPress={handleGallerySelection}
         onDocumentPress={handleDocumentSelection}
       />
+
+      {/* Loading Overlay */}
+      {(isUploading || isSubmitting || loader) && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.white} />
+            <Text style={styles.loadingText}>
+              {isUploading 
+                ? "Uploading document..." 
+                : isSubmitting || loader 
+                ? "Creating account..." 
+                : "Please wait..."
+              }
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };

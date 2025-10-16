@@ -66,7 +66,7 @@ export default StyleSheet.create({
   },
   bookingCard: {
     width: horizontalScale(334),
-    height: verticalScale(155),
+    height: verticalScale(170),
     backgroundColor: colors.cardBackground,
     borderRadius: verticalScale(16),
     marginBottom: verticalScale(15),

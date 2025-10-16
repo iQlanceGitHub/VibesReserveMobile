@@ -33,10 +33,8 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
       if (storedBookmarks) {
         const bookmarkArray = JSON.parse(storedBookmarks);
         setBookmarks(new Set(bookmarkArray));
-        console.log('Loaded bookmarks from context:', bookmarkArray);
       }
     } catch (error) {
-      console.log('Error loading bookmarks from context:', error);
     }
   };
 
@@ -44,9 +42,7 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
     try {
       const bookmarkArray = Array.from(newBookmarks);
       await AsyncStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarkArray));
-      console.log('Saved bookmarks from context:', bookmarkArray);
     } catch (error) {
-      console.log('Error saving bookmarks from context:', error);
     }
   };
 
@@ -58,10 +54,8 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
     const newBookmarks = new Set(bookmarks);
     if (newBookmarks.has(clubId)) {
       newBookmarks.delete(clubId);
-      console.log('Removed bookmark for club:', clubId);
     } else {
       newBookmarks.add(clubId);
-      console.log('Added bookmark for club:', clubId);
     }
     setBookmarks(newBookmarks);
     await saveBookmarks(newBookmarks);
@@ -74,7 +68,6 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
       newBookmarks.add(clubId);
       setBookmarks(newBookmarks);
       await saveBookmarks(newBookmarks);
-      console.log('Added bookmark for club:', clubId);
     }
   };
 
@@ -84,7 +77,6 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
       newBookmarks.delete(clubId);
       setBookmarks(newBookmarks);
       await saveBookmarks(newBookmarks);
-      console.log('Removed bookmark for club:', clubId);
     }
   };
 
@@ -95,7 +87,6 @@ export const BookmarkProvider: React.FC<BookmarkProviderProps> = ({ children }) 
   const clearAllBookmarks = async (): Promise<void> => {
     setBookmarks(new Set());
     await saveBookmarks(new Set());
-    console.log('Cleared all bookmarks from context');
   };
 
   const value: BookmarkContextType = {

@@ -40,7 +40,6 @@ export const useCategory = () => {
       category?.status === 1 ||
       category?.status === "1"
     ) {
-      console.log("Category API Success:", category);
       if (category?.data) {
         setCategories(category.data);
         saveCategoriesToStorage(category.data);
@@ -51,7 +50,6 @@ export const useCategory = () => {
     }
 
     if (categoryErr) {
-      console.log("Category API Error:", categoryErr);
       setError(categoryErr?.message?.toString() || "Failed to load categories");
       dispatch(categoryError(""));
       setIsLoading(false);
@@ -64,10 +62,8 @@ export const useCategory = () => {
       if (storedCategories) {
         const parsedCategories = JSON.parse(storedCategories);
         setCategories(parsedCategories);
-        console.log("Categories loaded from storage:", parsedCategories);
       }
     } catch (error) {
-      console.log("Error loading categories from storage:", error);
     }
   };
 
@@ -77,9 +73,7 @@ export const useCategory = () => {
         CATEGORY_STORAGE_KEY,
         JSON.stringify(categoryData)
       );
-      console.log("Categories saved to storage");
     } catch (error) {
-      console.log("Error saving categories to storage:", error);
     }
   };
 
@@ -88,7 +82,6 @@ export const useCategory = () => {
       const apiCalled = await AsyncStorage.getItem(CATEGORY_API_CALLED_KEY);
       return apiCalled === "true";
     } catch (error) {
-      console.log("Error checking API call status:", error);
       return false;
     }
   };
@@ -96,9 +89,7 @@ export const useCategory = () => {
   const markApiAsCalled = async () => {
     try {
       await AsyncStorage.setItem(CATEGORY_API_CALLED_KEY, "true");
-      console.log("Category API marked as called");
     } catch (error) {
-      console.log("Error marking API as called:", error);
     }
   };
 
@@ -106,16 +97,13 @@ export const useCategory = () => {
     const hasApiBeenCalled = await checkIfApiCalled();
 
     if (hasApiBeenCalled) {
-      console.log("Category API already called, using stored data");
       return;
     }
 
     if (categories.length > 0) {
-      console.log("Categories already loaded from storage");
       return;
     }
 
-    console.log("Calling Category API...");
     setIsLoading(true);
     setError(null);
     dispatch(onCategory({ page: 1, limit: 100 }));
@@ -123,7 +111,6 @@ export const useCategory = () => {
   };
 
   const refreshCategories = () => {
-    console.log("Refreshing categories...");
     setIsLoading(true);
     setError(null);
     dispatch(onCategory({ page: 1, limit: 100 }));
@@ -134,9 +121,7 @@ export const useCategory = () => {
       await AsyncStorage.removeItem(CATEGORY_STORAGE_KEY);
       await AsyncStorage.removeItem(CATEGEGORY_API_CALLED_KEY);
       setCategories([]);
-      console.log("Categories cleared");
     } catch (error) {
-      console.log("Error clearing categories:", error);
     }
   };
 

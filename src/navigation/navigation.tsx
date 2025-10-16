@@ -61,7 +61,11 @@ import BookingScreen from "../screen/bookingScreen/bookingScreen";
 import ReviewSummary from "../screen/dashboard/user/payments/reviewSummery";
 import ClubBarListScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubBarListScreen";
 import ClubProfileScreen from "../screen/dashboard/user/homeScreen/clubBarList/clubProfileScreen";
+import ChatListScreen from "../screen/dashboard/user/chatScreen/chatListScreen";
+import ChatScreen from "../screen/dashboard/user/chatScreen/chatScreen";
+import NotificationScreen from "../screen/notificationScreen/notificationScreen";
 import profileScreen from "../screen/profileScreen/profileScreen";
+import logoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -132,6 +136,13 @@ export type RootStackParamList = {
   HostEditProfileScreen: undefined;
   PaymentSuccessScreen: undefined;
   ClubBarListScreen: undefined;
+  ChatListScreen: undefined;
+  ChatScreen: {
+    otherUserId: string;
+    otherUserName: string;
+    otherUserProfilePicture?: string;
+    conversationId?: string;
+  };
 };
 
 function MyTabs() {
@@ -154,7 +165,7 @@ function MyTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={LogoutScreen}
+        component={ChatListScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -181,7 +192,7 @@ function HostTabs() {
       />
       <Tab.Screen
         name="Match"
-        component={UpcomingScreen}
+        component={ChatListScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen
@@ -396,6 +407,16 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="ClubBarListScreen"
             component={ClubBarListScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ChatScreen"
+            component={ChatScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NotificationScreen"
+            component={NotificationScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

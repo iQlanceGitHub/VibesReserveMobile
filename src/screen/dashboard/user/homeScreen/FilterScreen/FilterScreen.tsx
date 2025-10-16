@@ -183,19 +183,6 @@ const dates = generateDates();
       timestamp: new Date().toISOString()
     };
 
-    console.log('=== FILTER SCREEN - APPLIED VALUES ===');
-    console.log('Filter Applied at:', filterValues.timestamp);
-    console.log('API Data Format:', apiFilterData);
-    console.log('Selected Category:', filterValues.selectedCategory);
-    console.log('Selected Date:', filterValues.selectedDate);
-    console.log('Formatted Date (YYYY-MM-DD):', filterValues.selectedDate.formattedDate);
-    console.log('Price Range:', filterValues.priceRange);
-    console.log('Distance Range:', filterValues.distanceRange);
-    console.log('Selected Location:', filterValues.selectedLocation);
-    console.log('Address:', filterValues.address);
-    console.log('Coordinates:', filterValues.coordinates);
-    console.log('User ID:', filterValues.userId);
-    console.log('=====================================');
 
     onApply(filterValues);
     onClose();

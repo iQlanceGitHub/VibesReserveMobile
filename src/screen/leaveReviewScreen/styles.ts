@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     height: verticalScale(110),
     fontSize: fontScale(14),
     fontFamily: fonts.Regular,
-    color: colors.textcolor,
+    color: colors.white,
     minHeight: verticalScale(100),
     textAlignVertical: "top",
     paddingHorizontal: horizontalScale(15),

@@ -74,7 +74,6 @@ const formatBookingDate = (
 
     return `${dateFormatted} - ${timeFormatted}`;
   } catch (error) {
-    console.log("Error formatting date:", error);
     return "Date not available";
   }
 };
@@ -538,10 +537,15 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
                 placeholder="Enter reason for cancellation..."
                 placeholderTextColor={colors.textColor}
                 value={cancelReason}
-                onChangeText={setCancelReason}
+                onChangeText={(text) => {
+                  if (text.length <= 160) {
+                    setCancelReason(text);
+                  }
+                }}
                 multiline
                 numberOfLines={2}
                 textAlignVertical="top"
+                maxLength={160}
               />
 
               {/* Show Done button when keyboard is visible */}
