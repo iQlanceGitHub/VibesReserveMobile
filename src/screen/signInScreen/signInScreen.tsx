@@ -555,6 +555,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
               </Text>
               
               {/* FCM Token Display */}
+              {console.log("deviceToken:===>", deviceToken)}
               {deviceToken && (
                 <View style={styles.tokenContainer}>
                   <Text style={styles.tokenLabel}>FCM Token:</Text>

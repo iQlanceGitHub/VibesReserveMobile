@@ -1673,8 +1673,8 @@ function* CancelBookingSaga({
       url: `${baseurl}${"user/cancelbooking"}`,
       params,
     });
-
-
+    console.log("💳 CANCEL BOOKING params:", params);
+   console.log("💳 CANCEL BOOKING RESPONSE:", response);
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1685,7 +1685,6 @@ function* CancelBookingSaga({
     } else {
       yield put(cancelBookingError(response));
     }
-
     yield put(displayLoading(false));
   } catch (error) {
     yield put(cancelBookingError(error));
