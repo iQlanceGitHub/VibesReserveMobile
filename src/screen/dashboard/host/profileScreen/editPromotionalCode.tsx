@@ -8,8 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
@@ -21,30 +21,38 @@ import {
 import { Buttons } from "../../../../components/buttons";
 import CalendarIcon from "../../../../assets/svg/calendarIcon";
 import DetailsInput from "../../../../components/DetailsInput";
-import { showToast } from "../../../../utilis/toastUtils";
 import {
-  createPromoCodeData,
-  onCreatePromoCode,
+  editPromoCodeData,
+  onEditPromoCode,
 } from "../../../../redux/auth/actions";
-import styles from "./addPromotionalCodeStyle";
+import { showToast } from "../../../../utilis/toastUtils";
+import styles from "./editPromotionalCodeStyle";
 
-interface AddPromotionalCodeProps {
+interface EditPromotionalCodeProps {
   navigation?: any;
+  route?: any;
 }
 
-const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
+const EditPromotionalCode: React.FC<EditPromotionalCodeProps> = ({
   navigation,
+  route,
 }) => {
   const dispatch = useDispatch();
-  const { createPromoCode, createPromoCodeErr, loader } = useSelector(
+  const { editPromoCode, editPromoCodeErr, loader } = useSelector(
     (state: any) => state.auth
   );
+
+  // Get the promotional code data from route params
+  const promoCodeData = route?.params?.promoCode || {};
+
   const [formData, setFormData] = useState({
-    promotionalCode: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    discount: "",
+    id: promoCodeData._id || promoCodeData.id || "",
+    promotionalCode: promoCodeData.code || "",
+    description: promoCodeData.description || "",
+    startDate: promoCodeData.startDate || "",
+    endDate: promoCodeData.endDate || "",
+    discount: promoCodeData.discount?.toString() || "",
+    status: promoCodeData.status || "active",
   });
 
   const [errors, setErrors] = useState({
@@ -62,39 +70,34 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
     "start"
   );
 
-  // Handle successful creation
+  // Handle successful edit
   useEffect(() => {
-    if (createPromoCode) {
-      console.log("CREATE PROMO CODE: Response received:", createPromoCode);
+    if (editPromoCode) {
+      if (editPromoCode.status === 1 || editPromoCode.status === true) {
+        showToast("success", "Promotional code updated successfully!");
 
-      if (createPromoCode.status === 1 || createPromoCode.status === true) {
-        showToast("success", "Promotional code created successfully!");
-
-        // Navigate back after a short delay to show the toast
         setTimeout(() => {
+          setFormData({
+            id: "",
+            promotionalCode: "",
+            description: "",
+            startDate: "",
+            endDate: "",
+            discount: "",
+            status: "active",
+          });
           navigation?.goBack();
         }, 1500);
       } else {
         showToast(
           "error",
-          createPromoCode.message ||
-            "Failed to create promotional code. Please try again."
+          editPromoCode.message ||
+            "Failed to update promotional code. Please try again."
         );
       }
     }
-    dispatch(createPromoCodeData(""));
-  }, [createPromoCode, navigation]);
-
-  // Handle creation error
-  useEffect(() => {
-    if (createPromoCodeErr) {
-      showToast(
-        "error",
-        createPromoCodeErr.message ||
-          "Failed to create promotional code. Please try again."
-      );
-    }
-  }, [createPromoCodeErr]);
+    dispatch(editPromoCodeData(""));
+  }, [editPromoCode, navigation]);
 
   const handleBackPress = () => {
     navigation?.goBack();
@@ -105,6 +108,11 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
     if (errors[field as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [field]: false }));
     }
+  };
+
+  const handleDateSelect = (field: "startDate" | "endDate", date: string) => {
+    setFormData((prev) => ({ ...prev, [field]: date }));
+    setErrors((prev) => ({ ...prev, [field]: false }));
   };
 
   const validateForm = () => {
@@ -152,15 +160,17 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
         }
       };
 
-      const createData = {
+      const editData = {
+        id: formData.id,
         code: formData.promotionalCode,
         description: formData.description,
         startDate: formatDateForAPI(formData.startDate),
         endDate: formatDateForAPI(formData.endDate),
         discount: parseInt(formData.discount),
+        status: formData.status,
       };
 
-      dispatch(onCreatePromoCode(createData));
+      dispatch(onEditPromoCode(editData));
     } else {
       showToast("error", "Please fill in all required fields");
     }
@@ -194,6 +204,80 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
     }
   };
 
+  // Helper function to get date for date picker
+  const getDateForPicker = (dateStr: string) => {
+    if (!dateStr) return new Date();
+
+    try {
+      // If date is in DD/MM/YYYY format
+      if (dateStr.includes("/")) {
+        const [day, month, year] = dateStr.split("/");
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      }
+
+      // If date is in ISO format
+      if (dateStr.includes("T")) {
+        return new Date(dateStr);
+      }
+
+      // If date is in YYYY-MM-DD format
+      if (dateStr.includes("-")) {
+        return new Date(dateStr);
+      }
+
+      return new Date();
+    } catch (error) {
+      return new Date();
+    }
+  };
+
+  // Convert API date format to display format
+  const convertDateForDisplay = (dateStr: string) => {
+    if (!dateStr) return "";
+
+    try {
+      // Handle ISO date format (2025-10-10T00:00:00.000Z)
+      if (dateStr.includes("T") && dateStr.includes("Z")) {
+        const date = new Date(dateStr);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      }
+
+      // Handle YYYY-MM-DD format
+      if (dateStr.includes("-") && dateStr.length === 10) {
+        const [year, month, day] = dateStr.split("-");
+        return `${day}/${month}/${year}`;
+      }
+
+      // If already in DD/MM/YYYY format, return as is
+      if (dateStr.includes("/") && dateStr.length === 10) {
+        return dateStr;
+      }
+
+      return dateStr;
+    } catch (error) {
+      return dateStr;
+    }
+  };
+
+  // Initialize form data with converted dates
+  useEffect(() => {
+    if (promoCodeData.startDate) {
+      setFormData((prev) => ({
+        ...prev,
+        startDate: convertDateForDisplay(promoCodeData.startDate),
+      }));
+    }
+    if (promoCodeData.endDate) {
+      setFormData((prev) => ({
+        ...prev,
+        endDate: convertDateForDisplay(promoCodeData.endDate),
+      }));
+    }
+  }, [promoCodeData]);
+
   return (
     <SafeAreaWrapper
       backgroundColor={colors.profileCardBackground}
@@ -208,7 +292,7 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
       >
         <View style={styles.header}>
           <BackButton navigation={navigation} onBackPress={handleBackPress} />
-          <Text style={styles.headerTitle}>Add Promotional</Text>
+          <Text style={styles.headerTitle}>Edit Promotional</Text>
           <View style={styles.headerSpacer} />
         </View>
 
@@ -315,7 +399,7 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
 
         <View style={styles.submitButtonContainer}>
           <Buttons
-            title={loader ? "Creating..." : "Submit"}
+            title={loader ? "Updating..." : "Update"}
             onPress={handleSubmit}
             style={styles.submitButton}
             disabled={loader}
@@ -326,12 +410,8 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
           <DateTimePicker
             value={
               datePickerMode === "start"
-                ? formData.startDate
-                  ? new Date(formData.startDate.split("/").reverse().join("-"))
-                  : new Date()
-                : formData.endDate
-                ? new Date(formData.endDate.split("/").reverse().join("-"))
-                : new Date()
+                ? getDateForPicker(formData.startDate)
+                : getDateForPicker(formData.endDate)
             }
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
@@ -345,4 +425,4 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
   );
 };
 
-export default AddPromotionalCode;
+export default EditPromotionalCode;

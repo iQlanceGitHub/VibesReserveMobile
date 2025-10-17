@@ -143,10 +143,29 @@ import {
   onMarkNotificationAsRead,
   markNotificationAsReadData,
   markNotificationAsReadError,
+  onListEvent,
+  listEventData,
+  listEventError,
+  // Get Promo Codes imports
+  onGetPromoCodes,
+  getPromoCodesData,
+  getPromoCodesError,
+  onCreateHelpSupport,
+  createHelpSupportData,
+  createHelpSupportError,
+  onEditPromoCode,
+  editPromoCodeData,
+  editPromoCodeError,
+  onCreatePromoCode,
+  createPromoCodeData,
+  createPromoCodeError,
+  onDeletePromoCode,
+  deletePromoCodeData,
+  deletePromoCodeError,
 } from "./actions";
 
-import { base_url_client, base_url_qa } from "../apiConstant";
-import { fetchPost, fetchGet, fetchPut } from "../services";
+import { base_url_client, base_url_qa, api_endpoint } from "../apiConstant";
+import { fetchPost, fetchGet, fetchPut, fetchDelete } from "../services";
 import { longPollingService } from "../../services/longPollingService";
 
 const baseurl = base_url_client;
@@ -162,11 +181,11 @@ interface SigninPayload {
 function* onSigninSaga({ payload }: { payload: SigninPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
-    
+
     // Get device token from Redux state
     const state = yield select();
     const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
-    
+
     const params = {
       //"currentRole": "user",
       email: payload?.email?.toLowerCase(),
@@ -215,11 +234,11 @@ interface SignupPayload {
 function* onSignupSaga({ payload }: { payload: SignupPayload }): SagaIterator {
   try {
     yield put(displayLoading(true));
-    
+
     // Get device token from Redux state
     const state = yield select();
     const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
-    
+
     const params = {
       currentRole: payload?.currentRole, //user,host <- U need small
       fullName: payload?.fullName,
@@ -269,11 +288,11 @@ function* ForgotPasswordSaga({
 }): SagaIterator {
   try {
     yield put(displayLoading(true));
-    
+
     // Get device token from Redux state
     const state = yield select();
     const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
-    
+
     const params = {
       //"currentRole": "user",
       type: "email",
@@ -551,11 +570,11 @@ function* SocialLoginSaga({
 }): SagaIterator {
   try {
     yield put(displayLoading(true));
-    
+
     // Get device token from Redux state
     const state = yield select();
     const deviceToken = state.auth.deviceToken || "abcd"; // fallback to "abcd" if no token
-    
+
     const params = {
       ...payload,
       deviceToken: deviceToken,
@@ -840,7 +859,6 @@ function* ViewdetailsSaga({
       params,
     });
 
-
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1065,7 +1083,6 @@ function* BookingrequestSaga({
       params,
     });
 
-
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1103,7 +1120,6 @@ function* AcceptrejectSaga({
       params,
     });
 
-
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1134,7 +1150,6 @@ function* CreateeventSaga({
       url: `${baseurl}${`user/createevent`}`,
       params: payload,
     });
-
 
     if (
       response?.status === true ||
@@ -1169,7 +1184,6 @@ function* BookingDetailSaga({
     const response = yield call(fetchGet, {
       url: `${baseurl}${`user/booking/${payload?.bookingId}`}`,
     });
-
 
     if (
       response?.status === true ||
@@ -1213,7 +1227,6 @@ function* ReviewSummarySaga({
       url: `${baseurl}${"user/reviewsummary"}`,
       params,
     });
-
 
     if (
       response?.status === true ||
@@ -1292,7 +1305,6 @@ function* HostProfileSaga({
       params,
     });
 
-
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1342,13 +1354,11 @@ function* CreateBookingSaga({ payload }: { payload: any }): SagaIterator {
       params.ticketId = payload.ticketId; // Add ticketId
     }
 
-
     // const response = yield call(fetchPost, "/user/booking", params);
     const response = yield call(fetchPost, {
       url: `${baseurl}${"user/booking"}`,
       params,
     });
-
 
     if (response && response.status === 1) {
       yield put(createBookingData(response));
@@ -1375,7 +1385,6 @@ function* FetchPromoCodesSaga({ payload }: { payload: any }): SagaIterator {
         hostId: payload.hostId,
       },
     });
-
 
     if (response && response.status === 1) {
       yield put(fetchPromoCodesData(response));
@@ -1408,7 +1417,6 @@ function* ApplyPromoCodeSaga({ payload }: { payload: any }): SagaIterator {
       },
     });
 
-
     if (response && response.status === 1) {
       yield put(applyPromoCodeData(response));
     } else {
@@ -1438,7 +1446,6 @@ function* GetProfileDetailSaga({
     const response = yield call(fetchGet, {
       url: `${baseurl}${"user/profiledetail"}`,
     });
-
 
     if (
       response?.status === true ||
@@ -1498,7 +1505,6 @@ function* UpdateProfileSaga({
       params,
     });
 
-
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1540,7 +1546,6 @@ function* CheckBookedDateBoothSaga({
       url: `${baseurl}${"user/checkbookeddatebooth"}`,
       params,
     });
-
 
     if (
       response?.status === true ||
@@ -1585,7 +1590,6 @@ function* CheckBookedDateSaga({
       url: `${baseurl}${"user/checkbookeddate"}`,
       params,
     });
-
 
     if (
       response?.status === true ||
@@ -1632,7 +1636,6 @@ function* RatingReviewSaga({
       params,
     });
 
-
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1674,7 +1677,7 @@ function* CancelBookingSaga({
       params,
     });
     console.log("💳 CANCEL BOOKING params:", params);
-   console.log("💳 CANCEL BOOKING RESPONSE:", response);
+    console.log("💳 CANCEL BOOKING RESPONSE:", response);
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1698,14 +1701,22 @@ interface SendMessagePayload {
   message: string;
 }
 
-function* SendMessageSaga({ payload }: { payload: SendMessagePayload }): SagaIterator {
+function* SendMessageSaga({
+  payload,
+}: {
+  payload: SendMessagePayload;
+}): SagaIterator {
   try {
     //yield put(displayLoading(true));
     const response = yield call(fetchPost, {
       url: `${baseurl}user/sendmessage`,
       params: payload,
     });
-    if (response.status === true || response.status === "true" || response.status === 1) {
+    if (
+      response.status === true ||
+      response.status === "true" ||
+      response.status === 1
+    ) {
       yield put(sendMessageData(response));
     } else {
       yield put(sendMessageError(response.message || "Failed to send message"));
@@ -1721,22 +1732,32 @@ interface GetConversationPayload {
   otherUserId: string;
 }
 
-function* GetConversationSaga({ payload }: { payload: GetConversationPayload }): SagaIterator {
+function* GetConversationSaga({
+  payload,
+}: {
+  payload: GetConversationPayload;
+}): SagaIterator {
   try {
-   // yield put(displayLoading(true));
+    // yield put(displayLoading(true));
     const response = yield call(fetchPost, {
       url: `${baseurl}user/conversation`,
       params: payload,
     });
-    if (response.status === true || response.status === "true" || response.status === 1) {
+    if (
+      response.status === true ||
+      response.status === "true" ||
+      response.status === 1
+    ) {
       yield put(getConversationData(response.data || response.messages || []));
     } else {
-      yield put(getConversationError(response.message || "Failed to get conversation"));
+      yield put(
+        getConversationError(response.message || "Failed to get conversation")
+      );
     }
   } catch (error) {
     yield put(getConversationError(error));
   } finally {
-   // yield put(displayLoading(false));
+    // yield put(displayLoading(false));
   }
 }
 
@@ -1746,10 +1767,16 @@ function* GetChatListSaga(): SagaIterator {
     const response = yield call(fetchGet, {
       url: `${baseurl}user/chatlist`,
     });
-    if (response.status === true || response.status === "true" || response.status === 1) {
+    if (
+      response.status === true ||
+      response.status === "true" ||
+      response.status === 1
+    ) {
       yield put(getChatListData(response.data || response.chats || []));
     } else {
-      yield put(getChatListError(response.message || "Failed to get chat list"));
+      yield put(
+        getChatListError(response.message || "Failed to get chat list")
+      );
     }
   } catch (error) {
     yield put(getChatListError(error));
@@ -1786,9 +1813,10 @@ function* GetNotificationListSaga({
     };
 
     const response = yield call(fetchGet, {
-      url: `${baseurl}${"user/notificationlist"}?page=${params.page}&limit=${params.limit}`,
+      url: `${baseurl}${"user/notificationlist"}?page=${params.page}&limit=${
+        params.limit
+      }`,
     });
-
 
     if (
       response?.status === true ||
@@ -1829,7 +1857,6 @@ function* MarkNotificationAsReadSaga({
       params,
     });
 
-
     if (
       response?.status === true ||
       response?.status === "true" ||
@@ -1848,10 +1875,306 @@ function* MarkNotificationAsReadSaga({
   }
 }
 
+// List Event Saga
+interface ListEventPayload {
+  page?: number;
+  limit?: number;
+}
+
+function* ListEventSaga({
+  payload,
+}: {
+  payload: ListEventPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      page: payload?.page || 1,
+      limit: payload?.limit || 10,
+    };
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}user/listevent?page=${params.page}&limit=${params.limit}`,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(listEventData(response));
+    } else {
+      yield put(listEventError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(listEventError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Get Promo Codes Saga
+interface GetPromoCodesPayload {
+  page?: number;
+  limit?: number;
+}
+
+function* GetPromoCodesSaga({
+  payload,
+}: {
+  payload: GetPromoCodesPayload;
+}): SagaIterator {
+  try {
+    console.log("🚀 GET PROMO CODES SAGA: Starting with payload:", payload);
+    yield put(displayLoading(true));
+
+    const params = {
+      page: payload?.page || 1,
+      limit: payload?.limit || 10,
+    };
+
+    const apiUrl = `${baseurl}${api_endpoint.getPromoCodes}?page=${params.page}&limit=${params.limit}`;
+    console.log("🌐 GET PROMO CODES SAGA: Making API call to:", apiUrl);
+
+    const response = yield call(fetchGet, {
+      url: apiUrl,
+    });
+
+    console.log("📡 GET PROMO CODES SAGA: API Response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log(
+        "✅ GET PROMO CODES SAGA: Success - dispatching getPromoCodesData"
+      );
+      yield put(getPromoCodesData(response));
+    } else {
+      console.log(
+        "❌ GET PROMO CODES SAGA: Error - dispatching getPromoCodesError"
+      );
+      yield put(getPromoCodesError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("💥 GET PROMO CODES SAGA: Exception caught:", error);
+    yield put(getPromoCodesError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Create Help Support Saga
+interface CreateHelpSupportPayload {
+  fullName: string;
+  email: string;
+  description: string;
+}
+
+function* CreateHelpSupportSaga({
+  payload,
+}: {
+  payload: CreateHelpSupportPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      fullName: payload?.fullName,
+      email: payload?.email,
+      description: payload?.description,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${api_endpoint.createHelpSupport}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(createHelpSupportData(response));
+    } else {
+      yield put(createHelpSupportError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(createHelpSupportError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Edit Promo Code Saga
+interface EditPromoCodePayload {
+  id: string;
+  code: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  discount: number;
+  status: string;
+}
+
+function* EditPromoCodeSaga({
+  payload,
+}: {
+  payload: EditPromoCodePayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      id: payload?.id,
+      code: payload?.code,
+      description: payload?.description,
+      startDate: payload?.startDate,
+      endDate: payload?.endDate,
+      discount: payload?.discount,
+      status: payload?.status,
+    };
+
+    const response = yield call(fetchPut, {
+      url: `${baseurl}${api_endpoint.editPromoCode}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(editPromoCodeData(response));
+    } else {
+      yield put(editPromoCodeError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(editPromoCodeError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Create Promo Code Saga
+interface CreatePromoCodePayload {
+  code: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  discount: number;
+}
+
+function* CreatePromoCodeSaga({
+  payload,
+}: {
+  payload: CreatePromoCodePayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      code: payload?.code,
+      description: payload?.description,
+      startDate: payload?.startDate,
+      endDate: payload?.endDate,
+      discount: payload?.discount,
+    };
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${api_endpoint.createPromoCode}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(createPromoCodeData(response));
+    } else {
+      yield put(createPromoCodeError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(createPromoCodeError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+// Delete Promo Code Saga
+interface DeletePromoCodePayload {
+  id: string;
+}
+
+function* DeletePromoCodeSaga({
+  payload,
+}: {
+  payload: DeletePromoCodePayload;
+}): SagaIterator {
+  try {
+    console.log("🚀 DELETE PROMO CODE SAGA: Starting with payload:", payload);
+    yield put(displayLoading(true));
+
+    const params = {
+      id: payload?.id,
+    };
+
+    const apiUrl = `${baseurl}${api_endpoint.deletePromoCode}`;
+    console.log("🌐 DELETE PROMO CODE SAGA: Making API call to:", apiUrl);
+    console.log("📤 DELETE PROMO CODE SAGA: Request params:", params);
+
+    const response = yield call(fetchDelete, {
+      url: apiUrl,
+      params,
+    });
+
+    console.log("📡 DELETE PROMO CODE SAGA: API Response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log(
+        "✅ DELETE PROMO CODE SAGA: Success - dispatching deletePromoCodeData"
+      );
+      yield put(deletePromoCodeData(response));
+    } else {
+      console.log(
+        "❌ DELETE PROMO CODE SAGA: Error - dispatching deletePromoCodeError"
+      );
+      yield put(deletePromoCodeError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("💥 DELETE PROMO CODE SAGA: Exception caught:", error);
+    yield put(deletePromoCodeError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 function* authSaga() {
   yield takeLatest(onSignin().type as any, onSigninSaga);
   yield takeLatest(onResendVerifyOtp().type as any, onResendVerifyOtpSaga);
-  yield takeLatest(onUpdateProfileFields().type as any, UpdateProfileFieldsSaga);
+  yield takeLatest(
+    onUpdateProfileFields().type as any,
+    UpdateProfileFieldsSaga
+  );
   yield takeLatest(onGetDynamicContent().type as any, getDynamicContentSaga);
   yield takeLatest(onSignup().type as any, onSignupSaga);
   yield takeLatest(onVerifyEmail().type as any, VerifyEmailSaga);
@@ -1883,22 +2206,49 @@ function* authSaga() {
   yield takeLatest(onApplyPromoCode().type as any, ApplyPromoCodeSaga);
   yield takeLatest(onGetProfileDetail().type as any, GetProfileDetailSaga);
   yield takeLatest(onUpdateProfile().type as any, UpdateProfileSaga);
-  yield takeLatest(onCheckBookedDateBooth().type as any, CheckBookedDateBoothSaga);
+  yield takeLatest(
+    onCheckBookedDateBooth().type as any,
+    CheckBookedDateBoothSaga
+  );
   yield takeLatest(onCheckBookedDate().type as any, CheckBookedDateSaga);
   yield takeLatest(onRatingReview().type as any, RatingReviewSaga);
   yield takeLatest(onCancelBooking().type as any, CancelBookingSaga);
   yield takeLatest(getBookingList().type as any, BookingListSaga);
-  
+
   // Chat sagas
   yield takeLatest(onSendMessage().type as any, SendMessageSaga);
   yield takeLatest(onGetConversation().type as any, GetConversationSaga);
   yield takeLatest(onGetChatList().type as any, GetChatListSaga);
   yield takeLatest(onStartLongPolling().type as any, StartLongPollingSaga);
   yield takeLatest(onStopLongPolling().type as any, StopLongPollingSaga);
-  
+
   // Notification sagas
-  yield takeLatest(onGetNotificationList().type as any, GetNotificationListSaga);
-  yield takeLatest(onMarkNotificationAsRead().type as any, MarkNotificationAsReadSaga);
+  yield takeLatest(
+    onGetNotificationList().type as any,
+    GetNotificationListSaga
+  );
+  yield takeLatest(
+    onMarkNotificationAsRead().type as any,
+    MarkNotificationAsReadSaga
+  );
+
+  // List Event saga
+  yield takeLatest(onListEvent().type as any, ListEventSaga);
+
+  // Get Promo Codes saga
+  yield takeLatest(onGetPromoCodes().type as any, GetPromoCodesSaga);
+
+  // Create Help Support saga
+  yield takeLatest(onCreateHelpSupport().type as any, CreateHelpSupportSaga);
+
+  // Edit Promo Code saga
+  yield takeLatest(onEditPromoCode().type as any, EditPromoCodeSaga);
+
+  // Create Promo Code saga
+  yield takeLatest(onCreatePromoCode().type as any, CreatePromoCodeSaga);
+
+  // Delete Promo Code saga
+  yield takeLatest(onDeletePromoCode().type as any, DeletePromoCodeSaga);
 }
 
 export default authSaga;

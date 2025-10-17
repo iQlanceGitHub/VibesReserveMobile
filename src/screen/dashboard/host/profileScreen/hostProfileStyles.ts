@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   },
   editIconContainer: {
     position: "absolute",
-    bottom: verticalScale(20),
+    bottom: verticalScale(5),
     right: horizontalScale(-5),
     width: horizontalScale(26),
     height: horizontalScale(26),

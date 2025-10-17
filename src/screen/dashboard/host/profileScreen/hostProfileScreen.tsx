@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Switch,
+  Alert,
 } from "react-native";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -13,6 +14,9 @@ import EditIcon from "../../../../assets/svg/editIcon";
 import RightArrow from "../../../../assets/svg/rightArrow";
 import LogoutConfirmationPopup from "../../../../components/LogoutConfirmationPopup";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch, useSelector } from "react-redux";
+import { onGetProfileDetail } from "../../../../redux/auth/actions";
 import styles from "./hostProfileStyles";
 
 interface HostProfileScreenProps {
@@ -22,9 +26,52 @@ interface HostProfileScreenProps {
 const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   navigation,
 }) => {
-  const [becomeHost, setBecomeHost] = useState(true);
+  const dispatch = useDispatch();
+  const { getProfileDetail, getProfileDetailErr, loader } = useSelector(
+    (state: any) => state.auth
+  );
+
+  // Extract profile data from API response using useMemo for better performance
+  const profileData = useMemo(() => {
+    const data = getProfileDetail?.data || {};
+    return data;
+  }, [getProfileDetail]);
+
+  const isLoading = loader;
+
+  // Store profile data in local state to prevent it from being lost
+  const [localProfileData, setLocalProfileData] = useState(profileData);
+
+  // Update local state when profile data changes
+  useEffect(() => {
+    if (profileData && Object.keys(profileData).length > 0) {
+      setLocalProfileData(profileData);
+    }
+  }, [profileData]);
+
+  // Use local profile data if available, otherwise use the current profileData
+  const displayData =
+    Object.keys(localProfileData).length > 0 ? localProfileData : profileData;
+
+  const [becomeHost, setBecomeHost] = useState(false);
   const [notifications, setNotifications] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+
+  useEffect(() => {
+    dispatch(onGetProfileDetail());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (displayData.currentRole) {
+      setBecomeHost(displayData.currentRole === "host");
+    }
+  }, [displayData.currentRole]);
+
+  useEffect(() => {
+    if (getProfileDetailErr) {
+      console.log("Profile Detail API Error:", getProfileDetailErr);
+    }
+  }, [getProfileDetailErr]);
 
   const handleBecomeHostToggle = () => {
     setBecomeHost(!becomeHost);
@@ -50,9 +97,29 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
     setShowLogoutPopup(true);
   };
 
+  const performLogout = async () => {
+    try {
+      // Clear all stored preferences and user data
+      await AsyncStorage.multiRemove([
+        "user_status",
+        "user_permissions",
+        "user_token",
+        "user",
+        "user_id",
+        "skip_timestamp",
+      ]);
+
+      // Navigate to SignInScreen
+      navigation?.navigate("SignInScreen");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      Alert.alert("Error", "Failed to logout. Please try again.");
+    }
+  };
+
   const handleLogoutConfirm = () => {
-    console.log("Logout confirmed");
     setShowLogoutPopup(false);
+    performLogout();
   };
 
   const handleLogoutCancel = () => {
@@ -60,7 +127,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   };
 
   const handleEditProfile = () => {
-    console.log("Edit profile pressed");
+    navigation?.navigate("HostEditProfileScreen");
   };
 
   const renderMenuOption = (
@@ -118,11 +185,13 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
                 <View style={styles.profileImagePlaceholder}>
                   <Image
                     source={{
-                      uri: "https://randomuser.me/api/portraits/men/32.jpg",
+                      uri:
+                        displayData.profilePicture ||
+                        "https://randomuser.me/api/portraits/men/32.jpg",
                     }}
                     style={styles.profileImage}
                     onError={(error) => console.log("Image load error:", error)}
-                    onLoad={() => console.log("Image loaded successfully")}
+                    onLoad={() => {}}
                   />
                 </View>
                 <TouchableOpacity
@@ -134,10 +203,30 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
               </View>
 
               <View style={styles.userInfoContainer}>
-                <Text style={styles.userInfoName}>John Carter</Text>
-                <Text style={styles.userInfoValue}>john@vibelounge.com</Text>
-                <Text style={styles.userInfoValue}>+62987 654 3210</Text>
-                <Text style={styles.userInfoValue}>09/09/1990</Text>
+                <Text style={styles.userInfoName}>
+                  {isLoading
+                    ? "Loading..."
+                    : displayData?.fullName || "No name available"}
+                </Text>
+                <Text style={styles.userInfoValue}>
+                  {isLoading
+                    ? "Loading..."
+                    : displayData?.email || "No email available"}
+                </Text>
+                <Text style={styles.userInfoValue}>
+                  {isLoading
+                    ? "Loading..."
+                    : displayData?.countrycode && displayData?.phone
+                    ? `${displayData.countrycode} ${displayData.phone}`
+                    : "No phone available"}
+                </Text>
+                <Text style={styles.userInfoValue}>
+                  {isLoading
+                    ? "Loading..."
+                    : displayData?.dateOfBirth
+                    ? new Date(displayData.dateOfBirth).toLocaleDateString()
+                    : "No date available"}
+                </Text>
               </View>
             </View>
           </View>

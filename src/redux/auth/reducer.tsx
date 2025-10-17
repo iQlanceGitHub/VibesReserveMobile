@@ -77,7 +77,6 @@ import {
   checkBookedDateBoothError,
   checkBookedDateData,
   checkBookedDateError,
-
   ratingReviewData,
   ratingReviewError,
   cancelBookingData,
@@ -98,6 +97,24 @@ import {
   getNotificationListError,
   markNotificationAsReadData,
   markNotificationAsReadError,
+  // List Event imports
+  listEventData,
+  listEventError,
+  // Get Promo Codes imports
+  getPromoCodesData,
+  getPromoCodesError,
+  // Create Help Support imports
+  createHelpSupportData,
+  createHelpSupportError,
+  // Edit Promo Code imports
+  editPromoCodeData,
+  editPromoCodeError,
+  // Create Promo Code imports
+  createPromoCodeData,
+  createPromoCodeError,
+  // Delete Promo Code imports
+  deletePromoCodeData,
+  deletePromoCodeError,
 } from "./actions";
 
 export const initialState = {
@@ -196,7 +213,7 @@ export const initialState = {
 
   checkBookedDate: "",
   checkBookedDateErr: "",
-  
+
   ratingReview: "",
   ratingReviewErr: "",
 
@@ -224,6 +241,30 @@ export const initialState = {
   notificationListErr: "",
   markNotificationAsRead: "",
   markNotificationAsReadErr: "",
+
+  // List Event state
+  listEvent: null,
+  listEventErr: "",
+
+  // Get Promo Codes state
+  getPromoCodes: null,
+  getPromoCodesErr: "",
+
+  // Create Help Support state
+  createHelpSupport: "",
+  createHelpSupportErr: "",
+
+  // Edit Promo Code state
+  editPromoCode: "",
+  editPromoCodeErr: "",
+
+  // Create Promo Code state
+  createPromoCode: "",
+  createPromoCodeErr: "",
+
+  // Delete Promo Code state
+  deletePromoCode: "",
+  deletePromoCodeErr: "",
 };
 
 const authReducer = handleActions(
@@ -565,16 +606,20 @@ const authReducer = handleActions(
 
     [onUpdateMessages().type]: produce((draft, action) => {
       const { conversationId, newMessages } = action.payload;
-      
+
       // Find the conversation and append new messages
-      const conversationIndex = draft.chatList.findIndex(chat => chat.conversationId === conversationId);
+      const conversationIndex = draft.chatList.findIndex(
+        (chat) => chat.conversationId === conversationId
+      );
       if (conversationIndex !== -1) {
         draft.chatList[conversationIndex].messages = [
           ...(draft.chatList[conversationIndex].messages || []),
-          ...newMessages
+          ...newMessages,
         ];
-        draft.chatList[conversationIndex].lastMessage = newMessages[newMessages.length - 1];
-        draft.chatList[conversationIndex].lastMessageTime = newMessages[newMessages.length - 1].timestamp;
+        draft.chatList[conversationIndex].lastMessage =
+          newMessages[newMessages.length - 1];
+        draft.chatList[conversationIndex].lastMessageTime =
+          newMessages[newMessages.length - 1].timestamp;
       }
     }),
 
@@ -585,10 +630,13 @@ const authReducer = handleActions(
 
     // Notification reducers
     [getNotificationListData().type]: produce((draft: any, action: any) => {
-      
       // Handle the API response structure: { status: 1, message: "...", notifications: [...] }
-      const notifications = action.payload?.notifications || action.payload?.data || action.payload || [];
-      
+      const notifications =
+        action.payload?.notifications ||
+        action.payload?.data ||
+        action.payload ||
+        [];
+
       draft.notificationList = notifications;
     }),
     [getNotificationListError().type]: produce((draft: any, action: any) => {
@@ -600,6 +648,62 @@ const authReducer = handleActions(
     }),
     [markNotificationAsReadError().type]: produce((draft: any, action: any) => {
       draft.markNotificationAsReadErr = action.payload;
+    }),
+
+    // List Event reducers
+    [listEventData().type]: produce((draft: any, action: any) => {
+      draft.listEvent = action.payload;
+    }),
+    [listEventError().type]: produce((draft: any, action: any) => {
+      draft.listEventErr = action.payload;
+    }),
+
+    // Get Promo Codes reducers
+    [getPromoCodesData().type]: produce((draft: any, action: any) => {
+      console.log(
+        "🔄 REDUCER: getPromoCodesData action received with payload:",
+        action.payload
+      );
+      draft.getPromoCodes = action.payload;
+    }),
+    [getPromoCodesError().type]: produce((draft: any, action: any) => {
+      console.log(
+        "🔄 REDUCER: getPromoCodesError action received with payload:",
+        action.payload
+      );
+      draft.getPromoCodesErr = action.payload;
+    }),
+
+    // Create Help Support reducers
+    [createHelpSupportData().type]: produce((draft: any, action: any) => {
+      draft.createHelpSupport = action.payload;
+    }),
+    [createHelpSupportError().type]: produce((draft: any, action: any) => {
+      draft.createHelpSupportErr = action.payload;
+    }),
+
+    // Edit Promo Code reducers
+    [editPromoCodeData().type]: produce((draft: any, action: any) => {
+      draft.editPromoCode = action.payload;
+    }),
+    [editPromoCodeError().type]: produce((draft: any, action: any) => {
+      draft.editPromoCodeErr = action.payload;
+    }),
+
+    // Create Promo Code reducers
+    [createPromoCodeData().type]: produce((draft: any, action: any) => {
+      draft.createPromoCode = action.payload;
+    }),
+    [createPromoCodeError().type]: produce((draft: any, action: any) => {
+      draft.createPromoCodeErr = action.payload;
+    }),
+
+    // Delete Promo Code reducers
+    [deletePromoCodeData().type]: produce((draft: any, action: any) => {
+      draft.deletePromoCode = action.payload;
+    }),
+    [deletePromoCodeError().type]: produce((draft: any, action: any) => {
+      draft.deletePromoCodeErr = action.payload;
     }),
   },
   initialState

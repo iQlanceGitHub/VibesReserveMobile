@@ -22,6 +22,7 @@ import RightArrow from "../../assets/svg/rightArrow";
 import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
 import { getUserStatus } from "../../utilis/userPermissionUtils";
 import { onGetProfileDetail } from "../../redux/auth/actions";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "./styles";
 
 interface ProfileScreenProps {
@@ -139,8 +140,29 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     setShowLogoutPopup(true);
   };
 
+  const performLogout = async () => {
+    try {
+      // Clear all stored preferences and user data
+      await AsyncStorage.multiRemove([
+        "user_status",
+        "user_permissions",
+        "user_token",
+        "user",
+        "user_id",
+        "skip_timestamp",
+      ]);
+
+      // Navigate to SignInScreen
+      navigation?.navigate("SignInScreen");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      Alert.alert("Error", "Failed to logout. Please try again.");
+    }
+  };
+
   const handleLogoutConfirm = () => {
     setShowLogoutPopup(false);
+    performLogout();
   };
 
   const handleLogoutCancel = () => {

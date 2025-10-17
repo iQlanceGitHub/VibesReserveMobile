@@ -1,21 +1,35 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import { BackButton } from "../../../../components/BackButton";
 import PlusIcon from "../../../../assets/svg/plusIcon";
 import PromotionalCodeCard from "../../../../components/PromotionalCodeCard";
+import CustomAlert from "../../../../components/CustomAlert";
+import {
+  onGetPromoCodes,
+  onDeletePromoCode,
+} from "../../../../redux/auth/actions";
 import styles from "./promotionalsCodeStyle";
 
 interface PromotionalCode {
-  id: string;
+  _id: string;
   code: string;
   description: string;
-  discount: string;
-  status?: "active" | "inactive" | "expired";
-  usageCount?: number;
-  maxUsage?: number;
+  discount: number;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
 }
 
 interface PromotionalCodeProps {
@@ -23,44 +37,65 @@ interface PromotionalCodeProps {
 }
 
 const PromotionalCode: React.FC<PromotionalCodeProps> = ({ navigation }) => {
-  const [promotionalCodes] = useState<PromotionalCode[]>([
-    {
-      id: "1",
-      code: "PARTY15",
-      description: "15% OFF on all club event tickets ",
-      discount: "15%",
-      status: "active",
-      usageCount: 25,
-      maxUsage: 100,
-    },
-    {
-      id: "2",
-      code: "PARTY20",
-      description: "20% OFF on all club event tickets",
-      discount: "20%",
-      status: "active",
-      usageCount: 45,
-      maxUsage: 50,
-    },
-    {
-      id: "3",
-      code: "PARTY30",
-      description: "30% OFF on all club event tickets",
-      discount: "30%",
-      status: "active",
-      usageCount: 12,
-      maxUsage: 75,
-    },
-    {
-      id: "4",
-      code: "PARTY35",
-      description: "35% OFF on all club event tickets",
-      discount: "35%",
-      status: "active",
-      usageCount: 8,
-      maxUsage: 30,
-    },
-  ]);
+  const dispatch = useDispatch();
+  const {
+    getPromoCodes,
+    getPromoCodesErr,
+    deletePromoCode,
+    deletePromoCodeErr,
+  } = useSelector((state: any) => state.auth);
+  const [promotionalCodes, setPromotionalCodes] = useState<PromotionalCode[]>(
+    []
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [selectedCode, setSelectedCode] = useState<PromotionalCode | null>(
+    null
+  );
+
+  useEffect(() => {
+    dispatch(onGetPromoCodes({ page: 1, limit: 10 }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (getPromoCodes?.data && Array.isArray(getPromoCodes.data)) {
+      setPromotionalCodes(getPromoCodes.data);
+    } else if (getPromoCodes?.status === 1 && getPromoCodes?.data) {
+      setPromotionalCodes(getPromoCodes.data);
+    }
+  }, [getPromoCodes, getPromoCodesErr]);
+
+  // Handle delete promotional code response
+  useEffect(() => {
+    if (deletePromoCode?.status === 1 || deletePromoCode?.status === true) {
+      setIsDeleting(false);
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2:
+          deletePromoCode?.message || "Promotional code deleted successfully!",
+        position: "top",
+      });
+      // Refresh the list after successful deletion
+      dispatch(onGetPromoCodes({ page: 1, limit: 10 }));
+    } else if (deletePromoCodeErr) {
+      setIsDeleting(false);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2:
+          deletePromoCodeErr?.message || "Failed to delete promotional code",
+        position: "top",
+      });
+    }
+  }, [deletePromoCode, deletePromoCodeErr, dispatch]);
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(onGetPromoCodes({ page: 1, limit: 10 }));
+    }, [dispatch])
+  );
 
   const handleBackPress = () => {
     navigation?.goBack();
@@ -71,21 +106,53 @@ const PromotionalCode: React.FC<PromotionalCodeProps> = ({ navigation }) => {
   };
 
   const handleEditPress = (code: PromotionalCode) => {
+    navigation?.navigate("EditPromotionalCode", { promoCode: code });
   };
 
   const handleDeletePress = (code: PromotionalCode) => {
+    setSelectedCode(code);
+    setShowDeleteAlert(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedCode) {
+      setIsDeleting(true);
+      dispatch(onDeletePromoCode({ id: selectedCode._id }));
+    }
+    setShowDeleteAlert(false);
+    setSelectedCode(null);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteAlert(false);
+    setSelectedCode(null);
+  };
+
+  const isPromoCodeActive = (startDate: string, endDate: string) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return now >= start && now <= end;
   };
 
   const renderPromotionalCodeCard = (code: PromotionalCode, index: number) => {
+    const isActive = isPromoCodeActive(code.startDate, code.endDate);
+
     return (
       <View
-        key={code.id}
+        key={code._id}
         style={index === 0 ? styles.firstCardContainer : null}
       >
         <PromotionalCodeCard
-          promotionalCode={code}
-          onEdit={handleEditPress}
-          onDelete={handleDeletePress}
+          promotionalCode={{
+            id: code._id,
+            code: code.code,
+            description: code.description,
+            discount: `${code.discount}%`,
+            status: isActive ? "active" : "expired",
+          }}
+          onEdit={() => handleEditPress(code)}
+          onDelete={() => handleDeletePress(code)}
         />
       </View>
     );
@@ -120,11 +187,70 @@ const PromotionalCode: React.FC<PromotionalCodeProps> = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {promotionalCodes.map((code, index) =>
-            renderPromotionalCodeCard(code, index)
+          {isDeleting && (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                paddingVertical: 20,
+              }}
+            >
+              <ActivityIndicator size="large" color={colors.white} />
+              <Text style={{ color: colors.white, marginTop: 10 }}>
+                Deleting promotional code...
+              </Text>
+            </View>
+          )}
+          {getPromoCodesErr ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                paddingVertical: 50,
+              }}
+            >
+              <Text style={{ color: colors.white, textAlign: "center" }}>
+                Error loading promo codes. Please try again.
+              </Text>
+            </View>
+          ) : promotionalCodes.length === 0 ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                paddingVertical: 50,
+              }}
+            >
+              <Text style={{ color: colors.white, textAlign: "center" }}>
+                No promo codes available.
+              </Text>
+            </View>
+          ) : (
+            promotionalCodes.map((code, index) =>
+              renderPromotionalCodeCard(code, index)
+            )
           )}
         </ScrollView>
       </LinearGradient>
+      <Toast />
+
+      <CustomAlert
+        visible={showDeleteAlert}
+        title="Delete Promotional Code"
+        message={`Are you sure you want to delete the promotional code "${selectedCode?.code}"?`}
+        primaryButtonText="Delete"
+        secondaryButtonText="Cancel"
+        onPrimaryPress={handleConfirmDelete}
+        onSecondaryPress={handleCancelDelete}
+        onClose={handleCancelDelete}
+        primaryButtonStyle={{
+          backgroundColor: colors.red || "#FF4444",
+        }}
+        showSecondaryButton={true}
+      />
     </SafeAreaWrapper>
   );
 };
