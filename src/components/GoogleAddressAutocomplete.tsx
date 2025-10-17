@@ -43,7 +43,7 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
   const [loading, setLoading] = useState(false);
 
   // Google Places API key
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8';
 
   // Real Google Places API call
   const searchAddresses = async (query: string) => {

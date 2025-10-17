@@ -39,7 +39,7 @@ import { useLocationPermission } from "../../../hooks/useLocationPermission";
 import Geocoder from "react-native-geocoding";
 
 // Initialize Geocoder
-Geocoder.init("AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y");
+Geocoder.init("AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8");
 // Define types for location data
 interface LocationResult {
   id: string;
@@ -96,7 +96,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
   );
 
   // Google Maps API key (store this securely in your app configuration)
-  const GOOGLE_MAPS_API_KEY = "AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY";
+  const GOOGLE_MAPS_API_KEY = "AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8";
 
   // Function to search locations using Google Maps API
   const searchLocations = async (query: string) => {

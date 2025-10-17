@@ -98,6 +98,9 @@ import {
   getNotificationListError,
   markNotificationAsReadData,
   markNotificationAsReadError,
+  // Chat Click imports
+  chatClickData,
+  chatClickError,
 } from "./actions";
 
 export const initialState = {
@@ -224,6 +227,10 @@ export const initialState = {
   notificationListErr: "",
   markNotificationAsRead: "",
   markNotificationAsReadErr: "",
+
+  // Chat Click state
+  chatClick: "",
+  chatClickErr: "",
 };
 
 const authReducer = handleActions(
@@ -600,6 +607,16 @@ const authReducer = handleActions(
     }),
     [markNotificationAsReadError().type]: produce((draft: any, action: any) => {
       draft.markNotificationAsReadErr = action.payload;
+    }),
+
+    // Chat Click reducers
+    [chatClickData().type]: produce((draft: any, action: any) => {
+      draft.chatClick = action.payload;
+      // Trigger chat list refresh when chat is clicked
+      // This will cause the bottom tab to re-render and update the indicator
+    }),
+    [chatClickError().type]: produce((draft: any, action: any) => {
+      draft.chatClickErr = action.payload;
     }),
   },
   initialState

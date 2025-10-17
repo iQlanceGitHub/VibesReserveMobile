@@ -10,6 +10,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
@@ -38,6 +39,7 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   navigation,
 }) => {
   const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
   const authState = useSelector((state: any) => state.auth);
   const { notificationList, notificationListErr, loader } = authState;
   
@@ -61,8 +63,11 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   useEffect(() => {
     if (notificationList && Array.isArray(notificationList)) {
       organizeNotifications(notificationList);
+    } else if (notificationListErr) {
+      console.log('Notification list error:', notificationListErr);
+      // Handle error state if needed
     }
-  }, [notificationList]);
+  }, [notificationList, notificationListErr]);
 
   const loadNotifications = () => {
     dispatch(onGetNotificationList({ page: 1, limit: 50 }));
@@ -75,7 +80,6 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   };
 
   const organizeNotifications = (notificationData: any[]) => {
-    
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -83,40 +87,38 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
     const todayNotifications: Notification[] = [];
     const yesterdayNotifications: Notification[] = [];
 
-    notificationData.forEach((notification, index) => {
-      
+    notificationData.forEach((notification) => {
       // Map API response fields to expected interface
       const mappedNotification: Notification = {
-        id: notification._id || notification.id,
-        title: notification.title,
-        message: notification.message,
+        id: notification._id || notification.id || `notification_${Date.now()}`,
+        title: notification.title || "Notification",
+        message: notification.message || notification.description || "You have a new notification",
         time: notification.createdAt || notification.time || new Date().toISOString(),
-        isUnread: notification.isRead === "0" || notification.isRead === 0,
-        type: notification.notificationType || notification.type,
+        isUnread: notification.isRead === "0" || notification.isRead === 0 || notification.isRead === false,
+        type: notification.notificationType || notification.type || "general",
         createdAt: notification.createdAt || new Date().toISOString(),
       };
 
       const notificationDate = new Date(mappedNotification.createdAt || mappedNotification.time);
       
-      // For now, add all notifications to today to test if data is being processed
-      todayNotifications.push({
-        ...mappedNotification,
-        time: formatTimeAgo(notificationDate),
-      });
-      
-      // Original date-based logic (commented out for testing)
-      // if (notificationDate.toDateString() === today.toDateString()) {
-      //   todayNotifications.push({
-      //     ...mappedNotification,
-      //     time: formatTimeAgo(notificationDate),
-      //   });
-      // } else if (notificationDate.toDateString() === yesterday.toDateString()) {
-      //   yesterdayNotifications.push({
-      //     ...mappedNotification,
-      //     time: formatTimeAgo(notificationDate),
-      //   });
-      // } else {
-      // }
+      // Organize by date
+      if (notificationDate.toDateString() === today.toDateString()) {
+        todayNotifications.push({
+          ...mappedNotification,
+          time: formatTimeAgo(notificationDate),
+        });
+      } else if (notificationDate.toDateString() === yesterday.toDateString()) {
+        yesterdayNotifications.push({
+          ...mappedNotification,
+          time: formatTimeAgo(notificationDate),
+        });
+      } else {
+        // For older notifications, add to yesterday section
+        yesterdayNotifications.push({
+          ...mappedNotification,
+          time: formatTimeAgo(notificationDate),
+        });
+      }
     });
 
     setNotifications({
@@ -196,7 +198,7 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
     <View style={styles.container}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
+        backgroundColor="transparent"
         translucent={true}
       />
       <LinearGradient
@@ -205,9 +207,8 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top,  }]}>
           <View style={styles.header}>
-            <View style={styles.statusBar}></View>
             <BackButton navigation={navigation} />
             <Text style={styles.title}>Notification</Text>
             <View style={styles.placeholder} />
@@ -216,7 +217,7 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
           <ScrollView
             style={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}

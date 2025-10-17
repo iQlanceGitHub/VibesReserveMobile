@@ -4,7 +4,7 @@ import Geocoder from 'react-native-geocoding';
 import LocationPermissionManager from './locationPermissionUtils';
 
 // Initialize Geocoder with API key
-Geocoder.init('AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y');
+Geocoder.init('AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8');
 
 export interface LocationData {
   latitude: number;

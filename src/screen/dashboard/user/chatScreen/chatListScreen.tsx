@@ -17,6 +17,7 @@ import {
   onGetChatList,
   getChatListData,
   getChatListError,
+  onChatClick,
 } from "../../../../redux/auth/actions";
 import { horizontalScale } from "../../../../utilis/appConstant";
 
@@ -89,6 +90,10 @@ const ChatListScreen = () => {
     <TouchableOpacity
       style={styles.chatItem}
       onPress={() => {
+        // Trigger chat click action to refresh bottom indicator
+        console.log('Chat clicked, dispatching onChatClick action...');
+        dispatch(onChatClick({}));
+        
         (navigation as any).navigate("ChatScreen", {
           otherUserId: item.userId || item.otherUserId,
           otherUserName: item.businessName || item.fullName,

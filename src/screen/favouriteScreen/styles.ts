@@ -150,11 +150,16 @@ export default StyleSheet.create({
     backgroundColor: colors.violate,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: verticalScale(-20),
   },
   arrowIcon: {
-    fontSize: fontScale(16),
+    fontSize: fontScale(20),
     color: colors.white,
     fontWeight: 'bold',
+    alignItems: 'center',
+    alignSelf: 'center',
+    alignContent: 'center',
+   //marginTop: verticalScale(0),
   },
   emptyContainer: {
     flex: 1,
@@ -162,6 +167,13 @@ export default StyleSheet.create({
     alignItems: 'center',
     paddingVertical: verticalScale(50),
     paddingHorizontal: horizontalScale(40),
+  },
+  emptyScrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: horizontalScale(20),
+    paddingVertical: verticalScale(40),
   },
   emptyTitle: {
     fontSize: fontScale(20),

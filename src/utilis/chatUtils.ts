@@ -19,3 +19,9 @@ export const formatUnreadCount = (count: number): string => {
   if (count > 99) return '99+';
   return count.toString();
 };
+
+// Function to trigger chat click action
+export const triggerChatClick = (store: any) => {
+  console.log('Triggering chat click action...');
+  store.dispatch({ type: 'ON_CHAT_CLICK', payload: {} });
+};

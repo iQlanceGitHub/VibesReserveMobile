@@ -82,7 +82,8 @@ const BookingCard: React.FC<{
   booking: any;
   onCancel: () => void;
   onLeaveReview?: () => void;
-}> = ({ booking, onCancel, onLeaveReview }) => {
+  selectedTab?: string;
+}> = ({ booking, onCancel, onLeaveReview, selectedTab }) => {
   const getButtonText = () => {
     switch (booking.status) {
       case "confirmed":
@@ -95,11 +96,12 @@ const BookingCard: React.FC<{
   };
 
   const shouldShowLeaveReviewButton = () => {
-    return (
-      booking.status === "confirmed" &&
-      !booking.isReview &&
-      booking.displayStatus === "completed"
-    );
+    // Simplified logic: Show Leave Review button for confirmed bookings in the completed tab
+    const isConfirmed = booking.status === "confirmed";
+    const isInCompletedTab = selectedTab === "confirmed";
+    const hasEnded = booking.bookingEndDate && new Date(booking.bookingEndDate) < new Date();
+    
+    return isConfirmed && (isInCompletedTab || hasEnded);
   };
 
   const shouldShowCancelButton = () => {
@@ -171,10 +173,12 @@ const BookingCard: React.FC<{
 
           {shouldShowLeaveReviewButton() ? (
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={styles.leaveReviewButton}
               onPress={handleButtonPress}
             >
-              <Text style={styles.cancelButtonText}>Leave Review</Text>
+              <Text style={styles.leaveReviewButtonText}>
+                Leave Review
+              </Text>
             </TouchableOpacity>
           ) : shouldShowCancelButton() ? (
             <TouchableOpacity
@@ -226,6 +230,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
   const [cancelReason, setCancelReason] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const fetchBookingList = async (
     page: number = 1,
@@ -292,53 +297,37 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
     }
   }, [bookingList]);
 
-  // Keyboard event listeners with more stable handling
+  // Improved keyboard handling with height tracking
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => {
-        // Use requestAnimationFrame for smoother state updates
-        requestAnimationFrame(() => {
-          setKeyboardVisible(true);
-        });
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => {
-        // Use requestAnimationFrame for smoother state updates
-        requestAnimationFrame(() => {
-          setKeyboardVisible(false);
-        });
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (event) => {
+        setKeyboardHeight(event.endCoordinates.height);
+        setKeyboardVisible(true);
       }
     );
 
-    // iOS-specific keyboard listeners for better handling
-    const keyboardWillShowListener =
-      Platform.OS === "ios"
-        ? Keyboard.addListener("keyboardWillShow", () => {
-            requestAnimationFrame(() => {
-              setKeyboardVisible(true);
-            });
-          })
-        : null;
-
-    const keyboardWillHideListener =
-      Platform.OS === "ios"
-        ? Keyboard.addListener("keyboardWillHide", () => {
-            requestAnimationFrame(() => {
-              setKeyboardVisible(false);
-            });
-          })
-        : null;
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+        setKeyboardVisible(false);
+      }
+    );
 
     return () => {
-      keyboardDidShowListener?.remove();
-      keyboardDidHideListener?.remove();
       keyboardWillShowListener?.remove();
       keyboardWillHideListener?.remove();
     };
   }, []);
+
+  // Reset keyboard state when modal closes
+  useEffect(() => {
+    if (!showCancelModal) {
+      setKeyboardVisible(false);
+      setKeyboardHeight(0);
+    }
+  }, [showCancelModal]);
 
   useEffect(() => {
     if (cancelBooking && cancelBooking.status === 1) {
@@ -371,6 +360,9 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
   };
 
   const handleCancelModalClose = () => {
+    Keyboard.dismiss();
+    setKeyboardVisible(false);
+    setKeyboardHeight(0);
     setShowCancelModal(false);
     setCancelReason("");
     setSelectedBooking(null);
@@ -390,11 +382,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
 
   // Handle keyboard dismiss with a more stable approach
   const handleKeyboardDismiss = useCallback(() => {
-    setKeyboardVisible(false);
-    // Use requestAnimationFrame for smoother transition
-    requestAnimationFrame(() => {
-      Keyboard.dismiss();
-    });
+    Keyboard.dismiss();
   }, []);
 
   const handleLeaveReview = (booking: any) => {
@@ -482,6 +470,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
                   booking={booking}
                   onCancel={() => handleCancelBooking(booking)}
                   onLeaveReview={() => handleLeaveReview(booking)}
+                  selectedTab={selectedTab}
                 />
               ))
             ) : (
@@ -504,75 +493,67 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
           statusBarTranslucent={true}
           hardwareAccelerated={true}
         >
-          <KeyboardAvoidingView
-            style={styles.modalOverlay}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-          >
-            <View
-              style={[
-                styles.modalContainer,
-                isKeyboardVisible &&
-                  Platform.OS === "ios" && {
-                    maxHeight: "70%",
-                    marginTop: verticalScale(20),
-                  },
-              ]}
-            >
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Cancel Booking</Text>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={handleCancelModalClose}
-                >
-                  <CloseIcon size={24} color={colors.white} />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.modalSubtitle}>
-                Please provide a reason for cancellation:
-              </Text>
+          <View style={styles.modalOverlay}>
+            <View style={styles.keyboardAvoidingContainer}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "position" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+                style={styles.keyboardAvoidingView}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Cancel Booking</Text>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={handleCancelModalClose}
+                    >
+                      <CloseIcon size={24} color={colors.white} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.modalSubtitle}>
+                    Please provide a reason for cancellation:
+                  </Text>
 
-              <TextInput
-                style={styles.reasonTextInput}
-                placeholder="Enter reason for cancellation..."
-                placeholderTextColor={colors.textColor}
-                value={cancelReason}
-                onChangeText={(text) => {
-                  if (text.length <= 160) {
-                    setCancelReason(text);
-                  }
-                }}
-                multiline
-                numberOfLines={2}
-                textAlignVertical="top"
-                maxLength={160}
-              />
+                  <TextInput
+                    style={styles.reasonTextInput}
+                    placeholder="Enter reason for cancellation..."
+                    placeholderTextColor={colors.textColor}
+                    value={cancelReason}
+                    onChangeText={(text) => {
+                      if (text.length <= 160) {
+                        setCancelReason(text);
+                      }
+                    }}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    maxLength={160}
+                    returnKeyType="done"
+                    onSubmitEditing={handleKeyboardDismiss}
+                    blurOnSubmit={true}
+                  />
 
-              {/* Show Done button when keyboard is visible */}
-              {isKeyboardVisible && (
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={styles.doneButton}
-                    onPress={handleKeyboardDismiss}
-                  >
-                    <Text style={styles.doneButtonText}>Done</Text>
-                  </TouchableOpacity>
+                  <View style={styles.modalButtons}>
+                    {isKeyboardVisible ? (
+                      <TouchableOpacity
+                        style={styles.doneButton}
+                        onPress={handleKeyboardDismiss}
+                      >
+                        <Text style={styles.doneButtonText}>Done</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={handleCancelConfirm}
+                      >
+                        <Text style={styles.cancelButtonText}>Confirm</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
-              )}
-
-              {/* Hide buttons when keyboard is visible */}
-              {!isKeyboardVisible && (
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={handleCancelConfirm}
-                  >
-                    <Text style={styles.cancelButtonText}>Confirm</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              </KeyboardAvoidingView>
             </View>
-          </KeyboardAvoidingView>
+          </View>
         </Modal>
       </LinearGradient>
     </View>

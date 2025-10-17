@@ -554,16 +554,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
                 Sign in to unlock your ultimate night out.
               </Text>
               
-              {/* FCM Token Display */}
-              {console.log("deviceToken:===>", deviceToken)}
-              {deviceToken && (
-                <View style={styles.tokenContainer}>
-                  <Text style={styles.tokenLabel}>FCM Token:</Text>
-                  <Text style={styles.tokenText} numberOfLines={3}>
-                    {deviceToken}
-                  </Text>
-                </View>
-              )}
             </View>
             <ScrollView
             style={styles.scrollView}
