@@ -59,7 +59,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: verticalScale(1),
+  },
+  discountInputContainer: {
+    marginTop: verticalScale(-12),
   },
   submitButtonContainer: {
     position: "absolute",

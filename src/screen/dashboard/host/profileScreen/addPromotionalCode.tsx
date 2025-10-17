@@ -7,6 +7,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -101,18 +102,34 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // For discount field, only allow numbers
+    if (field === "discount") {
+      // Remove any non-numeric characters
+      const numericValue = value.replace(/[^0-9]/g, "");
+      // Limit to 3 digits (0-100%)
+      const limitedValue =
+        numericValue.length > 3 ? numericValue.slice(0, 3) : numericValue;
+      setFormData((prev) => ({ ...prev, [field]: limitedValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
+
     if (errors[field as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [field]: false }));
     }
   };
 
   const validateForm = () => {
+    const discountValue = parseInt(formData.discount);
     const newErrors = {
       promotionalCode: !formData.promotionalCode.trim(),
       startDate: !formData.startDate.trim(),
       endDate: !formData.endDate.trim(),
-      discount: !formData.discount.trim(),
+      discount:
+        !formData.discount.trim() ||
+        isNaN(discountValue) ||
+        discountValue < 1 ||
+        discountValue > 100,
     };
 
     setErrors(newErrors);
@@ -162,7 +179,12 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
 
       dispatch(onCreatePromoCode(createData));
     } else {
-      showToast("error", "Please fill in all required fields");
+      const discountValue = parseInt(formData.discount);
+      if (isNaN(discountValue) || discountValue < 1 || discountValue > 100) {
+        showToast("error", "Please enter a valid discount between 1-100%");
+      } else {
+        showToast("error", "Please fill in all required fields");
+      }
     }
   };
 
@@ -297,17 +319,23 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
                     Discount (%)<Text style={styles.requiredText}> *</Text>
                   </Text>
                 </View>
-                <CustomeTextInput
-                  label=""
-                  placeholder="Add discount"
-                  value={formData.discount}
-                  onChangeText={(text) => handleInputChange("discount", text)}
-                  error={errors.discount}
-                  message="Discount is required"
-                  kType="numeric"
-                  maxLength={3}
-                  leftImage={null}
-                />
+                <View style={styles.discountInputContainer}>
+                  <CustomeTextInput
+                    label=""
+                    placeholder="Enter Discount"
+                    value={formData.discount}
+                    onChangeText={(text) => handleInputChange("discount", text)}
+                    error={errors.discount}
+                    message={
+                      errors.discount
+                        ? "Please enter a valid discount between 1-100%"
+                        : ""
+                    }
+                    kType="numeric"
+                    maxLength={3}
+                    leftImage={null}
+                  />
+                </View>
               </View>
             </View>
           </ScrollView>
@@ -323,22 +351,81 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
         </View>
 
         {showDatePicker && (
-          <DateTimePicker
-            value={
-              datePickerMode === "start"
-                ? formData.startDate
-                  ? new Date(formData.startDate.split("/").reverse().join("-"))
-                  : new Date()
-                : formData.endDate
-                ? new Date(formData.endDate.split("/").reverse().join("-"))
-                : new Date()
-            }
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={handleDateChange}
-            textColor={colors.white}
-            themeVariant="dark"
-          />
+          <Modal
+            visible={showDatePicker}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(false)}
+                    style={styles.modalCancelButton}
+                  >
+                    <Text style={styles.modalCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitle}>
+                    Select {datePickerMode === "start" ? "Start" : "End"} Date
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(false)}
+                    style={styles.modalDoneButton}
+                  >
+                    <Text style={styles.modalDoneText}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={(() => {
+                    try {
+                      if (datePickerMode === "start" && formData.startDate) {
+                        const [day, month, year] =
+                          formData.startDate.split("/");
+                        return new Date(
+                          parseInt(year),
+                          parseInt(month) - 1,
+                          parseInt(day)
+                        );
+                      } else if (datePickerMode === "end" && formData.endDate) {
+                        const [day, month, year] = formData.endDate.split("/");
+                        return new Date(
+                          parseInt(year),
+                          parseInt(month) - 1,
+                          parseInt(day)
+                        );
+                      }
+                      return new Date();
+                    } catch (error) {
+                      return new Date();
+                    }
+                  })()}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={handleDateChange}
+                  textColor={colors.white}
+                  themeVariant="dark"
+                  minimumDate={(() => {
+                    try {
+                      if (datePickerMode === "end" && formData.startDate) {
+                        const [day, month, year] =
+                          formData.startDate.split("/");
+                        return new Date(
+                          parseInt(year),
+                          parseInt(month) - 1,
+                          parseInt(day)
+                        );
+                      }
+                      return new Date();
+                    } catch (error) {
+                      return new Date();
+                    }
+                  })()}
+                  maximumDate={new Date(2035, 11, 31)} // Allow dates up to 2035
+                />
+              </View>
+            </View>
+          </Modal>
         )}
       </LinearGradient>
     </SafeAreaWrapper>

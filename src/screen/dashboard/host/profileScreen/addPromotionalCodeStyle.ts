@@ -59,7 +59,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: verticalScale(2),
+  },
+  discountInputContainer: {
+    marginTop: verticalScale(-8),
   },
   submitButtonContainer: {
     position: "absolute",
@@ -92,6 +94,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     marginTop: Platform.OS === "ios" ? verticalScale(0) : verticalScale(10),
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: colors.gradient_dark_purple,
+    borderTopLeftRadius: verticalScale(20),
+    borderTopRightRadius: verticalScale(20),
+    paddingHorizontal: horizontalScale(20),
+    paddingVertical: verticalScale(20),
+    maxHeight: "50%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: verticalScale(20),
+  },
+  modalCancelButton: {
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: horizontalScale(16),
+  },
+  modalCancelText: {
+    color: colors.white,
+    fontSize: fontScale(16),
+    fontFamily: fonts.medium,
+  },
+  modalTitle: {
+    color: colors.white,
+    fontSize: fontScale(18),
+    fontFamily: fonts.semiBold,
+    textAlign: "center",
+    flex: 1,
+  },
+  modalDoneButton: {
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: horizontalScale(16),
+  },
+  modalDoneText: {
+    color: colors.BtnBackground,
+    fontSize: fontScale(16),
+    fontFamily: fonts.semiBold,
   },
 });
 
