@@ -1,20 +1,28 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import { BackButton } from "../../../../components/BackButton";
 import ClockIcon from "../../../../assets/svg/clockIcon";
+import { onListEvent } from "../../../../redux/auth/actions";
 import styles from "./manageAvailabityStyle";
 
 interface Event {
-  id: string;
+  _id: string;
+  type: string;
   name: string;
-  category: string;
-  description: string;
-  date: string;
-  time: string;
-  image: any;
+  details: string;
+  openingTime: string;
+  startDate: string;
 }
 
 interface ManageAvailabilityProps {
@@ -24,65 +32,79 @@ interface ManageAvailabilityProps {
 const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
   navigation,
 }) => {
-  const [events] = useState<Event[]>([
-    {
-      id: "1",
-      name: "Neon Nights",
-      category: "DJ Nights",
-      description:
-        "Experience electrifying beats and vibrant lights at Neon Nights enjoying the Montreal sunset.",
-      date: "Aug 29",
-      time: "10:00 PM",
-      image: {
-        uri: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
-      },
-    },
-    {
-      id: "2",
-      name: "Sunset Jazz Fest",
-      category: "Live Music",
-      description: "Chill to smooth jazz while enjoying the Montreal sunset.",
-      date: "Sept 5",
-      time: "4:00 PM",
-      image: {
-        uri: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
-      },
-    },
-    {
-      id: "3",
-      name: "Electric Pulse",
-      category: "Pub",
-      description: "Feel the city's heartbeat with EDM and craft cocktails.",
-      date: "Aug 29",
-      time: "10:00 PM",
-      image: {
-        uri: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop",
-      },
-    },
-    {
-      id: "4",
-      name: "Midnight Madness",
-      category: "Club",
-      description: "Turn your night into a wild dance party.",
-      date: "Aug 29",
-      time: "10:00 PM",
-      image: {
-        uri: "https://images.unsplash.com/photo-1571266028243-e68c76670109?w=400&h=300&fit=crop",
-      },
-    },
-  ]);
+  const dispatch = useDispatch();
+  const { listEvent, listEventErr } = useSelector((state: any) => state.auth);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    // Fetch events when component mounts
+    dispatch(onListEvent({ page: 1, limit: 10 }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (listEvent?.data && Array.isArray(listEvent.data)) {
+      setEvents(listEvent.data);
+    } else if (listEvent?.status === 1 && listEvent?.data) {
+      setEvents(listEvent.data);
+    }
+  }, [listEvent, listEventErr]);
 
   const handleBackPress = () => {
     navigation?.goBack();
   };
 
-  const handleEventPress = (event: Event) => {
+  const handleEventPress = (event: Event) => {};
+
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${months[date.getMonth()]} ${date.getDate()}`;
+  };
+
+  // Helper function to format time
+  const formatTime = (timeString: string) => {
+    // Convert 24-hour format to 12-hour format
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  // Helper function to get event image based on type
+  const getEventImage = (type: string) => {
+    const imageMap: { [key: string]: string } = {
+      Booth:
+        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
+      "VIP Entry":
+        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
+      Event:
+        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop",
+      Club: "https://images.unsplash.com/photo-1571266028243-e68c76670109?w=400&h=300&fit=crop",
+      "VIP Entries":
+        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
+    };
+    return { uri: imageMap[type] || imageMap["Event"] };
   };
 
   const renderEventCard = (event: Event) => {
     return (
       <TouchableOpacity
-        key={event.id}
+        key={event._id}
         style={styles.eventCard}
         onPress={() => handleEventPress(event)}
         activeOpacity={0.8}
@@ -95,14 +117,17 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
         >
           <View style={styles.cardContent}>
             <View style={styles.imageContainer}>
-              <Image source={event.image} style={styles.eventImage} />
+              <Image
+                source={getEventImage(event.type)}
+                style={styles.eventImage}
+              />
             </View>
 
             <View style={styles.textContainer}>
               <View style={styles.topContent}>
                 <View style={styles.categoryContainer}>
                   <View style={styles.categoryTag}>
-                    <Text style={styles.categoryText}>{event.category}</Text>
+                    <Text style={styles.categoryText}>{event.type}</Text>
                   </View>
                 </View>
 
@@ -113,14 +138,15 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
                   numberOfLines={3}
                   ellipsizeMode="tail"
                 >
-                  {event.description}
+                  {event.details}
                 </Text>
               </View>
 
               <View style={styles.timeContainer}>
                 <ClockIcon />
                 <Text style={styles.timeText}>
-                  {event.date} - {event.time}
+                  {formatDate(event.startDate)} -{" "}
+                  {formatTime(event.openingTime)}
                 </Text>
               </View>
             </View>
@@ -153,7 +179,35 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {events.map((event) => renderEventCard(event))}
+          {listEventErr ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                paddingVertical: 50,
+              }}
+            >
+              <Text style={{ color: colors.white, textAlign: "center" }}>
+                Error loading events. Please try again.
+              </Text>
+            </View>
+          ) : events.length === 0 ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                paddingVertical: 50,
+              }}
+            >
+              <Text style={{ color: colors.white, textAlign: "center" }}>
+                No events available.
+              </Text>
+            </View>
+          ) : (
+            events.map((event) => renderEventCard(event))
+          )}
         </ScrollView>
       </LinearGradient>
     </SafeAreaWrapper>

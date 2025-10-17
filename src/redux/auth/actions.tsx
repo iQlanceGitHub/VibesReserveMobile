@@ -198,6 +198,30 @@ export const {
   onChatClick,
   chatClickData,
   chatClickError,
+
+  onListEvent,
+  listEventData,
+  listEventError,
+
+  onGetPromoCodes,
+  getPromoCodesData,
+  getPromoCodesError,
+
+  onCreateHelpSupport,
+  createHelpSupportData,
+  createHelpSupportError,
+
+  onEditPromoCode,
+  editPromoCodeData,
+  editPromoCodeError,
+
+  onCreatePromoCode,
+  createPromoCodeData,
+  createPromoCodeError,
+
+  onDeletePromoCode,
+  deletePromoCodeData,
+  deletePromoCodeError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -327,7 +351,7 @@ export const {
   "ON_CHECK_BOOKED_DATE",
   "CHECK_BOOKED_DATE_DATA",
   "CHECK_BOOKED_DATE_ERROR",
-  
+
   "ON_RATING_REVIEW",
   "RATING_REVIEW_DATA",
   "RATING_REVIEW_ERROR",
@@ -335,7 +359,6 @@ export const {
   "ON_CANCEL_BOOKING",
   "CANCEL_BOOKING_DATA",
   "CANCEL_BOOKING_ERROR",
-
 
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",
@@ -356,7 +379,7 @@ export const {
   "GET_BOOKING_LIST",
   "BOOKING_LIST_DATA",
   "BOOKING_LIST_ERROR",
-  
+
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",
@@ -400,5 +423,34 @@ export const {
   // Chat Click Trigger Action Types
   "ON_CHAT_CLICK",
   "CHAT_CLICK_DATA",
-  "CHAT_CLICK_ERROR"
+  "CHAT_CLICK_ERROR",
+  // List Event Action Types
+  "ON_LIST_EVENT",
+  "LIST_EVENT_DATA",
+  "LIST_EVENT_ERROR",
+
+  // Get Promo Codes Action Types,
+  "ON_GET_PROMO_CODES",
+  "GET_PROMO_CODES_DATA",
+  "GET_PROMO_CODES_ERROR",
+
+  // Create Help Support Action Types
+  "ON_CREATE_HELP_SUPPORT",
+  "CREATE_HELP_SUPPORT_DATA",
+  "CREATE_HELP_SUPPORT_ERROR",
+
+  // Edit Promo Code Action Types
+  "ON_EDIT_PROMO_CODE",
+  "EDIT_PROMO_CODE_DATA",
+  "EDIT_PROMO_CODE_ERROR",
+
+  // Create Promo Code Action Types
+  "ON_CREATE_PROMO_CODE",
+  "CREATE_PROMO_CODE_DATA",
+  "CREATE_PROMO_CODE_ERROR",
+
+  // Delete Promo Code Action Types
+  "ON_DELETE_PROMO_CODE",
+  "DELETE_PROMO_CODE_DATA",
+  "DELETE_PROMO_CODE_ERROR"
 );

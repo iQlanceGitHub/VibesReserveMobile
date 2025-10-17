@@ -15,4 +15,11 @@ export const api_endpoint: Record<string, unknown> = {
   // Notification endpoints
   getNotificationList: "user/notificationlist",
   markNotificationAsRead: "user/marknotificationasread",
+  // Help Support endpoints
+  createHelpSupport: "user/createhelpsupport",
+  // Promotional Codes endpoints
+  getPromoCodes: "user/getpromocodes",
+  editPromoCode: "user/editpromocode",
+  createPromoCode: "user/createpromocode",
+  deletePromoCode: "user/deletepromocode",
 };

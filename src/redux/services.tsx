@@ -16,7 +16,7 @@ export const fetchGet = async (payload) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
       if (jsonValue == null) return null;
-      
+
       // Try to parse as JSON first, if it fails, return as string
       try {
         return JSON.parse(jsonValue);
@@ -77,7 +77,7 @@ export const fetchPost = async (payload) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
       if (jsonValue == null) return null;
-      
+
       // Try to parse as JSON first, if it fails, return as string
       try {
         return JSON.parse(jsonValue);
@@ -94,14 +94,17 @@ export const fetchPost = async (payload) => {
 
   const retrievedToken = await retrieveData("user_token");
 
-
   let headders: any = {};
 
   // Prioritize user_token over signin data
   const tokenToUse = retrievedToken || retrievedData?.token;
 
-
-  if (!tokenToUse || tokenToUse === "" || tokenToUse === "null" || tokenToUse === "undefined") {
+  if (
+    !tokenToUse ||
+    tokenToUse === "" ||
+    tokenToUse === "null" ||
+    tokenToUse === "undefined"
+  ) {
     headders = { "Content-Type": "application/json" };
   } else {
     headders = {
@@ -145,33 +148,62 @@ export const fetchDelete = async (payload) => {
   const retrieveData = async (key) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      if (jsonValue == null) return null;
+
+      // Try to parse as JSON first, if it fails, return as string
+      try {
+        return JSON.parse(jsonValue);
+      } catch (parseError) {
+        // If JSON parsing fails, return the raw string (for tokens)
+        return jsonValue;
+      }
     } catch (e) {
       return null;
     }
   };
 
   const retrievedToken = await retrieveData("user_token");
+  const retrievedData = await retrieveData("signin");
+
+  // Prioritize user_token over signin data (same logic as fetchPost)
+  const tokenToUse = retrievedToken || retrievedData?.token;
+
+  console.log("🔑 FETCH DELETE - retrievedToken:", retrievedToken);
+  console.log("🔑 FETCH DELETE - retrievedData:", retrievedData);
+  console.log("🔑 FETCH DELETE - tokenToUse:", tokenToUse);
 
   let headers: any = {};
 
-  if (!retrievedToken || retrievedToken === "") {
+  if (
+    !tokenToUse ||
+    tokenToUse === "" ||
+    tokenToUse === "null" ||
+    tokenToUse === "undefined"
+  ) {
+    console.log("❌ FETCH DELETE - No valid token found, using basic headers");
     headers = { "Content-Type": "application/json" };
   } else {
+    console.log(
+      "✅ FETCH DELETE - Valid token found, adding Authorization header"
+    );
     headers = {
       "Content-Type": "application/json",
       datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
       device_type: Platform.OS === "android" ? "android" : "ios",
-      Authorization: `Bearer ${retrievedToken}`,
+      Authorization: `Bearer ${tokenToUse}`,
     };
   }
 
-
   if (res) {
     try {
+      console.log("🌐 FETCH DELETE - URL:", payload?.url);
+      console.log("🌐 FETCH DELETE - Headers:", headers);
+      console.log("🌐 FETCH DELETE - Body:", JSON.stringify(payload?.params));
+
       const response = await fetch(`${payload?.url}`, {
         method: "DELETE",
         headers: headers,
+        body: JSON.stringify(payload?.params),
       });
 
       const jsonResponse = await response.json();
@@ -179,7 +211,6 @@ export const fetchDelete = async (payload) => {
       if (response.status >= 200 && response.status <= 299) {
         return Promise.resolve(jsonResponse);
       }
-
 
       if (jsonResponse?.message === "Unauthorized user!") {
         await storeData("signin", "");
@@ -206,23 +237,19 @@ export const fetchPaymentProfilePost = async (payload) => {
   };
 
   try {
-
     const response = await fetch(payload.url, {
       method: "POST",
       headers: headers,
       body: JSON.stringify(payload.payload),
     });
 
-
     // Removing BOM character from response
     const responseBody = await response.text();
     const jsonResponse = JSON.parse(responseBody.replace(/^\ufeff/, ""));
 
-
     if (response.ok) {
       return Promise.resolve(jsonResponse);
     } else {
-
       if (jsonResponse?.messages?.message === "Unauthorized user!") {
         storeData(asyncData.SIGNIN_DATA, "");
         storeData(asyncData.PROFILE_DATA, "");
@@ -243,7 +270,7 @@ export const fetchPut = async (payload) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
       if (jsonValue == null) return null;
-      
+
       // Try to parse as JSON first, if it fails, return as string
       try {
         return JSON.parse(jsonValue);
@@ -270,7 +297,6 @@ export const fetchPut = async (payload) => {
       Authorization: `Bearer ${retrievedToken}`,
     };
   }
-
 
   if (res) {
     try {

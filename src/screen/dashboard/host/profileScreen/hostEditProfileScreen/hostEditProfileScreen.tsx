@@ -14,7 +14,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { launchCamera, launchImageLibrary, MediaType, ImagePickerResponse } from "react-native-image-picker";
+import {
+  launchCamera,
+  launchImageLibrary,
+  MediaType,
+  ImagePickerResponse,
+} from "react-native-image-picker";
 import { colors } from "../../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import { Buttons } from "../../../../../components/buttons";
@@ -23,6 +28,7 @@ import {
   PhoneNumberInput,
   DatePickerInput,
 } from "../../../../../components/textinput";
+import DetailsInput from "../../../../../components/DetailsInput";
 import { BackButton } from "../../../../../components/BackButton";
 import ImageSelectionBottomSheet from "../../../../../components/ImageSelectionBottomSheet";
 import EmailIcon from "../../../../../assets/svg/emailIcon";
@@ -50,11 +56,15 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
   navigation,
 }) => {
   const dispatch = useDispatch();
-  
+
   // Redux selectors
-  const { getProfileDetail, getProfileDetailErr, updateProfile, updateProfileErr, loader } = useSelector(
-    (state: any) => state.auth
-  );
+  const {
+    getProfileDetail,
+    getProfileDetailErr,
+    updateProfile,
+    updateProfileErr,
+    loader,
+  } = useSelector((state: any) => state.auth);
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -64,7 +74,7 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [documentImage, setDocumentImage] = useState<string | null>(null);
-  
+
   // Business fields
   const [businessName, setBusinessName] = useState("");
   const [businessPicture, setBusinessPicture] = useState<string | null>(null);
@@ -77,7 +87,8 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
   const [phoneError, setPhoneError] = useState(false);
   const [dateError, setDateError] = useState(false);
   const [businessNameError, setBusinessNameError] = useState(false);
-  const [businessDescriptionError, setBusinessDescriptionError] = useState(false);
+  const [businessDescriptionError, setBusinessDescriptionError] =
+    useState(false);
   const [documentError, setDocumentError] = useState(false);
   const [businessPictureError, setBusinessPictureError] = useState(false);
   const [businessBannerError, setBusinessBannerError] = useState(false);
@@ -88,14 +99,19 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
   const [phoneErrorMessage, setPhoneErrorMessage] = useState("");
   const [dateErrorMessage, setDateErrorMessage] = useState("");
   const [businessNameErrorMessage, setBusinessNameErrorMessage] = useState("");
-  const [businessDescriptionErrorMessage, setBusinessDescriptionErrorMessage] = useState("");
+  const [businessDescriptionErrorMessage, setBusinessDescriptionErrorMessage] =
+    useState("");
   const [documentErrorMessage, setDocumentErrorMessage] = useState("");
-  const [businessPictureErrorMessage, setBusinessPictureErrorMessage] = useState("");
-  const [businessBannerErrorMessage, setBusinessBannerErrorMessage] = useState("");
+  const [businessPictureErrorMessage, setBusinessPictureErrorMessage] =
+    useState("");
+  const [businessBannerErrorMessage, setBusinessBannerErrorMessage] =
+    useState("");
 
   // Image picker states
   const [showImagePicker, setShowImagePicker] = useState(false);
-  const [currentImageType, setCurrentImageType] = useState<'profile' | 'document' | 'businessPicture' | 'businessBanner'>('profile');
+  const [currentImageType, setCurrentImageType] = useState<
+    "profile" | "document" | "businessPicture" | "businessBanner"
+  >("profile");
   const [isUploading, setIsUploading] = useState(false);
 
   // Fetch profile data on component mount
@@ -111,7 +127,11 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       setEmail(profileData.email || "");
       setPhoneNumber(profileData.phone || "");
       setPhoneCode(profileData.countrycode || "");
-      setDateOfBirth(profileData.dateOfBirth ? new Date(profileData.dateOfBirth).toISOString().split('T')[0] : "");
+      setDateOfBirth(
+        profileData.dateOfBirth
+          ? new Date(profileData.dateOfBirth).toISOString().split("T")[0]
+          : ""
+      );
       setProfileImage(profileData.profilePicture || null);
       setDocumentImage(profileData.userDocument || null);
       setBusinessName(profileData.businessName || "");
@@ -124,24 +144,24 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
   // Handle update profile response
   useEffect(() => {
     if (updateProfile) {
-      showToast('success', 'Profile updated successfully!');
+      showToast("success", "Profile updated successfully!");
       // Navigate back to the previous screen after successful update
       navigation.goBack();
-      dispatch(updateProfileData(''));
+      dispatch(updateProfileData(""));
     }
     if (updateProfileErr) {
-      showToast('error', 'Failed to update profile');
-      dispatch(updateProfileError(''));
+      showToast("error", "Failed to update profile");
+      dispatch(updateProfileError(""));
     }
   }, [updateProfile, updateProfileErr]);
 
   // Handle errors
   useEffect(() => {
     if (getProfileDetailErr) {
-      showToast('error', 'Failed to fetch profile details');
+      showToast("error", "Failed to fetch profile details");
     }
     if (updateProfileErr) {
-      showToast('error', 'Failed to update profile');
+      showToast("error", "Failed to update profile");
       // Don't navigate on error - let user retry
     }
   }, [getProfileDetailErr, updateProfileErr]);
@@ -196,30 +216,30 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
   };
 
   const handleEditProfilePicture = () => {
-    setCurrentImageType('profile');
+    setCurrentImageType("profile");
     setShowImagePicker(true);
   };
 
   const handleDocumentUpload = () => {
-    setCurrentImageType('document');
+    setCurrentImageType("document");
     setShowImagePicker(true);
   };
 
   const handleBusinessPictureUpload = () => {
-    setCurrentImageType('businessPicture');
+    setCurrentImageType("businessPicture");
     setShowImagePicker(true);
   };
 
   const handleBusinessBannerUpload = () => {
-    setCurrentImageType('businessBanner');
+    setCurrentImageType("businessBanner");
     setShowImagePicker(true);
   };
 
-  const handleImagePicker = (type: 'camera' | 'gallery') => {
+  const handleImagePicker = (type: "camera" | "gallery") => {
     setShowImagePicker(false);
-    
+
     const options = {
-      mediaType: 'photo' as MediaType,
+      mediaType: "photo" as MediaType,
       quality: 0.8 as any,
       maxWidth: 1024,
       maxHeight: 1024,
@@ -239,24 +259,24 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       }
     };
 
-    if (type === 'camera') {
+    if (type === "camera") {
       PermissionManager.requestPermissionWithFlow(
-        'camera',
+        "camera",
         () => {
           launchCamera(options, callback);
         },
         (error) => {
-          showToast('error', 'Camera permission denied');
+          showToast("error", "Camera permission denied");
         }
       );
     } else {
       PermissionManager.requestPermissionWithFlow(
-        'storage',
+        "storage",
         () => {
           launchImageLibrary(options, callback);
         },
         (error) => {
-          showToast('error', 'Storage permission denied');
+          showToast("error", "Storage permission denied");
         }
       );
     }
@@ -266,33 +286,37 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
     try {
       setIsUploading(true);
       const fileName = `${currentImageType}_${Date.now()}.jpg`;
-      const uploadedUrl = await uploadFileToS3(imageUri, fileName, 'image/jpeg');
-      
+      const uploadedUrl = await uploadFileToS3(
+        imageUri,
+        fileName,
+        "image/jpeg"
+      );
+
       // Update the appropriate state based on current image type
       switch (currentImageType) {
-        case 'profile':
+        case "profile":
           setProfileImage(uploadedUrl);
           break;
-        case 'document':
+        case "document":
           setDocumentImage(uploadedUrl);
           setDocumentError(false);
           setDocumentErrorMessage("");
           break;
-        case 'businessPicture':
+        case "businessPicture":
           setBusinessPicture(uploadedUrl);
           setBusinessPictureError(false);
           setBusinessPictureErrorMessage("");
           break;
-        case 'businessBanner':
+        case "businessBanner":
           setBusinessBanner(uploadedUrl);
           setBusinessBannerError(false);
           setBusinessBannerErrorMessage("");
           break;
       }
-      
-      showToast('success', 'Image uploaded successfully');
+
+      showToast("success", "Image uploaded successfully");
     } catch (error) {
-      showToast('error', 'Failed to upload image');
+      showToast("error", "Failed to upload image");
     } finally {
       setIsUploading(false);
     }
@@ -305,16 +329,16 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "Delete",
           style: "destructive",
           onPress: () => {
             setProfileImage(null);
-            showToast('success', 'Profile image deleted successfully!');
-          }
-        }
+            showToast("success", "Profile image deleted successfully!");
+          },
+        },
       ]
     );
   };
@@ -326,16 +350,16 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "Delete",
           style: "destructive",
           onPress: () => {
             setDocumentImage(null);
-            showToast('success', 'Document deleted successfully!');
-          }
-        }
+            showToast("success", "Document deleted successfully!");
+          },
+        },
       ]
     );
   };
@@ -352,21 +376,25 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
 
   const validateDateOfBirth = (date: string) => {
     if (!date) return false;
-    
+
     let selectedDate: Date;
-    
+
     // Handle DD/MM/YYYY format
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
-      const [day, month, year] = date.split('/');
-      selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const [day, month, year] = date.split("/");
+      selectedDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day)
+      );
     } else {
       selectedDate = new Date(date);
     }
-    
+
     if (isNaN(selectedDate.getTime())) {
       return false;
     }
-    
+
     const today = new Date();
     const age = today.getFullYear() - selectedDate.getFullYear();
     return age >= 18 && age <= 100;
@@ -374,33 +402,33 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
 
   const formatDateForAPI = (dateString: string) => {
     if (!dateString) return "";
-    
+
     // Check if date is already in YYYY-MM-DD format
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       return dateString;
     }
-    
+
     // Handle DD/MM/YYYY format
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-      const [day, month, year] = dateString.split('/');
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      const [day, month, year] = dateString.split("/");
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
-    
+
     // Handle other formats by creating a Date object and formatting
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       return dateString; // Return original if parsing fails
     }
-    
+
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
     return `${year}-${month}-${day}`;
   };
 
   const showFieldErrorToast = (fieldName: string, message: string) => {
-    showToast('error', `${fieldName}: ${message}`);
+    showToast("error", `${fieldName}: ${message}`);
   };
 
   const handleSaveAndUpdate = () => {
@@ -441,7 +469,10 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       setFullNameErrorMessage("Full name must be at least 2 characters");
       if (!hasError) {
         firstErrorField = "Full Name";
-        showFieldErrorToast("Full Name", "Full name must be at least 2 characters");
+        showFieldErrorToast(
+          "Full Name",
+          "Full name must be at least 2 characters"
+        );
       }
       hasError = true;
     }
@@ -479,11 +510,13 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       setPhoneErrorMessage("Please enter a valid 10-digit phone number");
       if (!hasError) {
         firstErrorField = "Phone Number";
-        showFieldErrorToast("Phone Number", "Please enter a valid 10-digit phone number");
+        showFieldErrorToast(
+          "Phone Number",
+          "Please enter a valid 10-digit phone number"
+        );
       }
       hasError = true;
     }
-    
 
     // Validate Business Name
     if (!businessName.trim()) {
@@ -496,10 +529,15 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       hasError = true;
     } else if (businessName.trim().length < 2) {
       setBusinessNameError(true);
-      setBusinessNameErrorMessage("Business name must be at least 2 characters");
+      setBusinessNameErrorMessage(
+        "Business name must be at least 2 characters"
+      );
       if (!hasError) {
         firstErrorField = "Business Name";
-        showFieldErrorToast("Business Name", "Business name must be at least 2 characters");
+        showFieldErrorToast(
+          "Business Name",
+          "Business name must be at least 2 characters"
+        );
       }
       hasError = true;
     }
@@ -510,15 +548,23 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       setBusinessDescriptionErrorMessage("Business description is required");
       if (!hasError) {
         firstErrorField = "Business Description";
-        showFieldErrorToast("Business Description", "Business description is required");
+        showFieldErrorToast(
+          "Business Description",
+          "Business description is required"
+        );
       }
       hasError = true;
     } else if (businessDescription.trim().length < 10) {
       setBusinessDescriptionError(true);
-      setBusinessDescriptionErrorMessage("Business description must be at least 10 characters");
+      setBusinessDescriptionErrorMessage(
+        "Business description must be at least 10 characters"
+      );
       if (!hasError) {
         firstErrorField = "Business Description";
-        showFieldErrorToast("Business Description", "Business description must be at least 10 characters");
+        showFieldErrorToast(
+          "Business Description",
+          "Business description must be at least 10 characters"
+        );
       }
       hasError = true;
     }
@@ -540,7 +586,10 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       setBusinessPictureErrorMessage("Business picture is required");
       if (!hasError) {
         firstErrorField = "Business Picture";
-        showFieldErrorToast("Business Picture", "Please upload a business picture");
+        showFieldErrorToast(
+          "Business Picture",
+          "Please upload a business picture"
+        );
       }
       hasError = true;
     }
@@ -551,7 +600,10 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       setBusinessBannerErrorMessage("Business banner is required");
       if (!hasError) {
         firstErrorField = "Business Banner";
-        showFieldErrorToast("Business Banner", "Please upload a business banner");
+        showFieldErrorToast(
+          "Business Banner",
+          "Please upload a business banner"
+        );
       }
       hasError = true;
     }
@@ -559,7 +611,7 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
     if (!hasError) {
       // Format date for API
       const formattedDate = formatDateForAPI(dateOfBirth);
-      
+
       // Prepare update payload
       const updatePayload = {
         fullName: fullName.trim(),
@@ -680,10 +732,10 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 leftImage={<CalendarIcon />}
                 style={styles.inputField}
               />
-              
+
               {/* Business Information Section */}
               <Text style={styles.sectionTitle}>Business Information</Text>
-              
+
               <CustomeTextInput
                 label="Business Name *"
                 value={businessName}
@@ -694,24 +746,24 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 leftImage={<NameIcon />}
                 style={styles.inputField}
               />
-              
-              <CustomeTextInput
+
+              <DetailsInput
                 label="Business Description *"
+                placeholder="Describe your business (minimum 10 characters)"
                 value={businessDescription}
                 onChangeText={handleBusinessDescriptionChange}
                 error={businessDescriptionError}
                 message={businessDescriptionErrorMessage}
-                placeholder="Describe your business (minimum 10 characters)"
-                leftImage={<NameIcon />}
-                style={[styles.inputField, styles.textAreaInput]}
-                multiline={true}
+                required={true}
               />
-              <Text style={styles.characterCount}>
-                {businessDescription.length}/10 minimum characters
-              </Text>
-              
+
               <Text style={styles.documentLabel}>Upload Document *</Text>
-              <View style={[styles.documentContainer, documentError && styles.errorBorder]}>
+              <View
+                style={[
+                  styles.documentContainer,
+                  documentError && styles.errorBorder,
+                ]}
+              >
                 <View style={styles.documentThumbnail}>
                   <View style={styles.documentImage}>
                     {documentImage ? (
@@ -745,10 +797,15 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
               {documentError && (
                 <Text style={styles.errorText}>{documentErrorMessage}</Text>
               )}
-              
+
               {/* Business Picture Upload */}
               <Text style={styles.documentLabel}>Business Picture *</Text>
-              <View style={[styles.documentContainer, businessPictureError && styles.errorBorder]}>
+              <View
+                style={[
+                  styles.documentContainer,
+                  businessPictureError && styles.errorBorder,
+                ]}
+              >
                 <View style={styles.documentThumbnail}>
                   <View style={styles.documentImage}>
                     {businessPicture ? (
@@ -780,12 +837,19 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 </TouchableOpacity>
               </View>
               {businessPictureError && (
-                <Text style={styles.errorText}>{businessPictureErrorMessage}</Text>
+                <Text style={styles.errorText}>
+                  {businessPictureErrorMessage}
+                </Text>
               )}
-              
+
               {/* Business Banner Upload */}
               <Text style={styles.documentLabel}>Business Banner *</Text>
-              <View style={[styles.documentContainer, businessBannerError && styles.errorBorder]}>
+              <View
+                style={[
+                  styles.documentContainer,
+                  businessBannerError && styles.errorBorder,
+                ]}
+              >
                 <View style={styles.documentThumbnail}>
                   <View style={styles.documentImage}>
                     {businessBanner ? (
@@ -817,7 +881,9 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 </TouchableOpacity>
               </View>
               {businessBannerError && (
-                <Text style={styles.errorText}>{businessBannerErrorMessage}</Text>
+                <Text style={styles.errorText}>
+                  {businessBannerErrorMessage}
+                </Text>
               )}
             </View>
           </ScrollView>
@@ -835,8 +901,8 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
       <ImageSelectionBottomSheet
         visible={showImagePicker}
         onClose={() => setShowImagePicker(false)}
-        onCameraPress={() => handleImagePicker('camera')}
-        onGalleryPress={() => handleImagePicker('gallery')}
+        onCameraPress={() => handleImagePicker("camera")}
+        onGalleryPress={() => handleImagePicker("gallery")}
       />
 
       {/* Loading Overlay */}

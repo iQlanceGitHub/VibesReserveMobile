@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 import LinearGradient from "react-native-linear-gradient";
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import { BackButton } from "../../../../components/BackButton";
@@ -14,6 +15,11 @@ import { Buttons } from "../../../../components/buttons";
 import DetailsInput from "../../../../components/DetailsInput";
 import { colors } from "../../../../utilis/colors";
 import * as appConstant from "../../../../utilis/appConstant";
+import {
+  createHelpSupportData,
+  onCreateHelpSupport,
+} from "../../../../redux/auth/actions";
+import { showToast } from "../../../../utilis/toastUtils";
 import styles from "./helpSupportStyle";
 
 interface HelpSupportProps {
@@ -21,7 +27,18 @@ interface HelpSupportProps {
 }
 
 const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const { createHelpSupport, createHelpSupportErr, loader } = useSelector(
+    (state: any) => state.auth
+  );
+
   const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    description: "",
+  });
+
+  const [errors, setErrors] = useState({
     fullName: "",
     email: "",
     description: "",
@@ -29,10 +46,84 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {
+      fullName: "",
+      email: "",
+      description: "",
+    };
+
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email";
+    }
+
+    // Description is optional, no validation needed
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error !== "");
   };
 
   const handleSubmit = () => {
+    if (validateForm()) {
+      dispatch(
+        onCreateHelpSupport({
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim(),
+          description: formData.description.trim(),
+        })
+      );
+    }
   };
+
+  // Handle API responses
+  useEffect(() => {
+    if (createHelpSupport) {
+      showToast(
+        "success",
+        "Your support request has been submitted successfully. We'll get back to you soon!"
+      );
+
+      // Reset form
+      setFormData({
+        fullName: "",
+        email: "",
+        description: "",
+      });
+      setErrors({
+        fullName: "",
+        email: "",
+        description: "",
+      });
+
+      // Navigate back after a short delay to show the toast
+      setTimeout(() => {
+        navigation?.goBack();
+      }, 1500);
+    }
+    console.log("createHelpSupport", createHelpSupport);
+    dispatch(createHelpSupportData(""));
+  }, [createHelpSupport]);
+
+  useEffect(() => {
+    if (createHelpSupportErr) {
+      showToast(
+        "error",
+        "Failed to submit your support request. Please try again."
+      );
+    }
+  }, [createHelpSupportErr]);
 
   return (
     <SafeAreaWrapper
@@ -69,11 +160,11 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
                   placeholder="Enter your name"
                   value={formData.fullName}
                   onChangeText={(text) => handleInputChange("fullName", text)}
-                  error={false}
-                  message=""
+                  error={!!errors.fullName}
+                  message={errors.fullName}
                   kType={appConstant.keyboardType.default as any}
                   maxLength={50}
-                  editable={true}
+                  editable={!loader}
                   leftImage=""
                 />
               </View>
@@ -84,11 +175,11 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
                   placeholder="Enter your email"
                   value={formData.email}
                   onChangeText={(text) => handleInputChange("email", text)}
-                  error={false}
-                  message=""
+                  error={!!errors.email}
+                  message={errors.email}
                   kType={appConstant.keyboardType.email_address as any}
                   maxLength={80}
-                  editable={true}
+                  editable={!loader}
                   leftImage=""
                 />
               </View>
@@ -101,8 +192,8 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
                   onChangeText={(text) =>
                     handleInputChange("description", text)
                   }
-                  error={false}
-                  message=""
+                  error={!!errors.description}
+                  message={errors.description}
                   required={false}
                 />
               </View>
@@ -111,9 +202,9 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
 
           <View style={styles.buttonContainer}>
             <Buttons
-              title="Submit"
+              title={loader ? "Submitting..." : "Submit"}
               onPress={handleSubmit}
-              disabled={false}
+              disabled={loader}
               style={styles.submitButton}
             />
           </View>
