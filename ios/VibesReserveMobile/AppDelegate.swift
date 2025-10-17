@@ -53,6 +53,7 @@ import ReactAppDependencyProvider
 import Firebase
 import FirebaseMessaging
 import UserNotifications
+import GoogleSignIn
 
 @main
 class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
@@ -73,6 +74,20 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDe
     Messaging.messaging().delegate = self
     print("✅ AppDelegate: Firebase configured successfully")
     NSLog("✅ AppDelegate: Firebase configured successfully")
+    
+    // Configure Google Sign-In
+    print("🔐 AppDelegate: Configuring Google Sign-In...")
+    NSLog("🔐 AppDelegate: Configuring Google Sign-In...")
+    if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+       let plist = NSDictionary(contentsOfFile: path),
+       let clientId = plist["CLIENT_ID"] as? String {
+      GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
+      print("✅ AppDelegate: Google Sign-In configured successfully")
+      NSLog("✅ AppDelegate: Google Sign-In configured successfully")
+    } else {
+      print("❌ AppDelegate: Failed to configure Google Sign-In - GoogleService-Info.plist not found or invalid")
+      NSLog("❌ AppDelegate: Failed to configure Google Sign-In - GoogleService-Info.plist not found or invalid")
+    }
     
     // Configure push notifications
     print("🔔 AppDelegate: Starting push notification configuration...")
@@ -111,6 +126,14 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDe
   }
   
   private func requestNotificationPermission(application: UIApplication, currentSettings: UNNotificationSettings) {
+    // Check if we already have permission
+    if currentSettings.authorizationStatus == .authorized || currentSettings.authorizationStatus == .provisional {
+      print("✅ Notification permission already granted")
+      NSLog("✅ Notification permission already granted")
+      application.registerForRemoteNotifications()
+      return
+    }
+    
     let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
     
     UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
@@ -171,8 +194,10 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDe
                             willPresent notification: UNNotification, 
                             withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     print("📱 Received notification in foreground: \(notification.request.content.userInfo)")
+    NSLog("📱 Received notification in foreground: \(notification.request.content.userInfo)")
     
-    // Show notification even when app is in foreground
+    // Always show notification even when app is in foreground
+    // This is crucial for iOS foreground notification display
     completionHandler([.alert, .badge, .sound])
   }
   
@@ -268,5 +293,21 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDe
 #else
     Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
+  }
+  
+  // MARK: - URL Handling for Google Sign-In
+  override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+    print("🔗 AppDelegate: Handling URL: \(url)")
+    NSLog("🔗 AppDelegate: Handling URL: \(url)")
+    
+    // Handle Google Sign-In URL
+    if GIDSignIn.sharedInstance.handle(url) {
+      print("✅ AppDelegate: Google Sign-In URL handled successfully")
+      NSLog("✅ AppDelegate: Google Sign-In URL handled successfully")
+      return true
+    }
+    
+    // Handle other URLs if needed
+    return super.application(app, open: url, options: options)
   }
 }
