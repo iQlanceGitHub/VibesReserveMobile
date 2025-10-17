@@ -67,6 +67,7 @@ import ChatScreen from "../screen/dashboard/user/chatScreen/chatScreen";
 import NotificationScreen from "../screen/notificationScreen/notificationScreen";
 import profileScreen from "../screen/profileScreen/profileScreen";
 import logoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
+import DetailScreen from "../screen/dashboard/host/detailScreen/detailScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -424,6 +425,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="NotificationScreen"
             component={NotificationScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="DetailScreen"
+            component={DetailScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

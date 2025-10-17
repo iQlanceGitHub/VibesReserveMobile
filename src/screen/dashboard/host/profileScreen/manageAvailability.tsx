@@ -53,7 +53,12 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
     navigation?.goBack();
   };
 
-  const handleEventPress = (event: Event) => {};
+  const handleEventPress = (event: Event) => {
+    console.log("Event pressed:", event);
+    (navigation as any).navigate("DetailScreen", {
+      eventId: event._id,
+    });
+  };
 
   // Helper function to format date
   const formatDate = (dateString: string) => {

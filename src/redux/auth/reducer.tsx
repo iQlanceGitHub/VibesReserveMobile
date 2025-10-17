@@ -43,6 +43,8 @@ import {
   filterError,
   viewdetailsData,
   viewdetailsError,
+  getDetailEventData,
+  getDetailEventError,
   categoryData,
   categoryError,
   facilityData,
@@ -166,6 +168,9 @@ export const initialState = {
 
   viewdetails: "",
   viewdetailsErr: "",
+
+  getDetailEvent: "",
+  getDetailEventErr: "",
 
   category: "",
   categoryErr: "",
@@ -428,6 +433,14 @@ const authReducer = handleActions(
     }),
     [viewdetailsError().type]: produce((draft, action) => {
       draft.viewdetailsErr = action.payload;
+    }),
+
+    // payload getDetailEvent
+    [getDetailEventData().type]: produce((draft, action) => {
+      draft.getDetailEvent = action.payload;
+    }),
+    [getDetailEventError().type]: produce((draft, action) => {
+      draft.getDetailEventErr = action.payload;
     }),
 
     // payload category

@@ -61,6 +61,9 @@ import {
   onViewdetails,
   viewdetailsData,
   viewdetailsError,
+  onGetDetailEvent,
+  getDetailEventData,
+  getDetailEventError,
   onCategory,
   categoryData,
   categoryError,
@@ -876,6 +879,47 @@ function* ViewdetailsSaga({
     yield put(displayLoading(false));
   } catch (error) {
     yield put(viewdetailsError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface GetDetailEventPayload {
+  id?: string;
+  userId?: string;
+}
+
+function* GetDetailEventSaga({
+  payload,
+}: {
+  payload: GetDetailEventPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      userId: payload?.userId,
+    };
+    
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${`user/getdetailevent/68e66ac81c196abe967b7657`}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(getDetailEventData(response));
+    } else {
+      yield put(getDetailEventError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(getDetailEventError(error));
     yield put(displayLoading(false));
   }
 }
@@ -2245,6 +2289,7 @@ function* authSaga() {
   yield takeLatest(onHomenew().type as any, HomenewSaga);
   yield takeLatest(onFilter().type as any, FilterSaga);
   yield takeLatest(onViewdetails().type as any, ViewdetailsSaga);
+  yield takeLatest(onGetDetailEvent().type as any, GetDetailEventSaga);
   yield takeLatest(onCategory().type as any, CategorySaga);
   yield takeLatest(onFacility().type as any, FacilitySaga);
   yield takeLatest(onTogglefavorite().type as any, TogglefavoriteSaga);

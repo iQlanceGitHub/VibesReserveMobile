@@ -82,6 +82,10 @@ export const {
   viewdetailsData,
   viewdetailsError,
 
+  onGetDetailEvent,
+  getDetailEventData,
+  getDetailEventError,
+
   onCategory,
   categoryData,
   categoryError,
@@ -303,6 +307,10 @@ export const {
   "ON_VIEWDETAILS",
   "VIEWDETAILS_DATA",
   "VIEWDETAILS_ERROR",
+
+  "ON_GET_DETAIL_EVENT",
+  "GET_DETAIL_EVENT_DATA",
+  "GET_DETAIL_EVENT_ERROR",
 
   "ON_CATEGORY",
   "CATEGORY_DATA",
