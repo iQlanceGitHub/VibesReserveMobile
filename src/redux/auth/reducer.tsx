@@ -51,6 +51,8 @@ import {
   deleteEventPartError,
   deleteEventData,
   deleteEventError,
+  switchRoleData,
+  switchRoleError,
   categoryData,
   categoryError,
   facilityData,
@@ -184,6 +186,8 @@ export const initialState = {
   deleteEventPartErr: "",
   deleteEvent: "",
   deleteEventErr: "",
+  switchRole: "",
+  switchRoleErr: "",
 
   category: "",
   categoryErr: "",
@@ -474,6 +478,12 @@ const authReducer = handleActions(
     }),
     [deleteEventError().type]: produce((draft, action) => {
       draft.deleteEventErr = action.payload;
+    }),
+    [switchRoleData().type]: produce((draft, action) => {
+      draft.switchRole = action.payload;
+    }),
+    [switchRoleError().type]: produce((draft, action) => {
+      draft.switchRoleErr = action.payload;
     }),
 
     // payload category

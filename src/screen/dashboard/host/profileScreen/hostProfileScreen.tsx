@@ -17,7 +17,7 @@ import LogoutConfirmationPopup from "../../../../components/LogoutConfirmationPo
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
-import { onGetProfileDetail } from "../../../../redux/auth/actions";
+import { onGetProfileDetail, onSwitchRole } from "../../../../redux/auth/actions";
 import { showToast } from "../../../../utilis/toastUtils";
 // @ts-ignore
 import PushNotification from "react-native-push-notification";
@@ -32,7 +32,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   navigation,
 }) => {
   const dispatch = useDispatch();
-  const { getProfileDetail, getProfileDetailErr, loader } = useSelector(
+  const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr } = useSelector(
     (state: any) => state.auth
   );
 
@@ -62,6 +62,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   const [notifications, setNotifications] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
+  const [isRoleSwitching, setIsRoleSwitching] = useState(false);
 
   useEffect(() => {
     dispatch(onGetProfileDetail());
@@ -73,6 +74,44 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
       setBecomeHost(displayData.currentRole === "host");
     }
   }, [displayData.currentRole]);
+
+  // Handle switch role response
+  useEffect(() => {
+    if (switchRole?.status === 1 || switchRole?.status === "1" || switchRole?.status === true) {
+      console.log('Role switch successful:', switchRole);
+      showToast('success', `Role switched successfully to ${switchRole.currentRole}`);
+      
+      // Update user data in AsyncStorage
+      updateUserRoleInStorage(switchRole.currentRole);
+      
+      // Navigate to appropriate tab based on new role
+      if (switchRole.currentRole === 'host') {
+        navigation?.navigate('HostTabs' as never);
+      } else if (switchRole.currentRole === 'user') {
+        navigation?.navigate('HomeTabs' as never);
+      }
+      
+      // Reset loading state
+      setIsRoleSwitching(false);
+      
+      // Clear the switch role state
+      dispatch({ type: 'SWITCH_ROLE_DATA', payload: "" });
+    }
+  }, [switchRole]);
+
+  // Handle switch role error
+  useEffect(() => {
+    if (switchRoleErr) {
+      console.log('Role switch error:', switchRoleErr);
+      showToast('error', 'Failed to switch role. Please try again.');
+      
+      // Reset loading state
+      setIsRoleSwitching(false);
+      
+      // Clear the switch role error state
+      dispatch({ type: 'SWITCH_ROLE_ERROR', payload: "" });
+    }
+  }, [switchRoleErr]);
 
   // Request notification permissions
   const requestNotificationPermissions = async () => {
@@ -182,8 +221,40 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
     }
   }, [getProfileDetailErr]);
 
-  const handleBecomeHostToggle = () => {
-    setBecomeHost(!becomeHost);
+  // Update user role in AsyncStorage
+  const updateUserRoleInStorage = async (newRole: string) => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.currentRole = newRole;
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+        console.log('User role updated in storage:', newRole);
+      }
+    } catch (error) {
+      console.log('Error updating user role in storage:', error);
+    }
+  };
+
+  const handleBecomeHostToggle = async () => {
+    if (isRoleSwitching) return; // Prevent multiple rapid toggles
+    
+    setIsRoleSwitching(true);
+    
+    try {
+      // Determine the new role based on current state
+      const newRole = becomeHost ? 'user' : 'host';
+      
+      console.log('Switching role to:', newRole);
+      
+      // Dispatch the switch role action
+      dispatch(onSwitchRole({ role: newRole }));
+      
+    } catch (error) {
+      console.log('Error switching role:', error);
+      showToast('error', 'Failed to switch role. Please try again.');
+      setIsRoleSwitching(false);
+    }
   };
 
   const handleNotificationsToggle = async () => {
@@ -389,7 +460,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
           </View>
 
           <View style={styles.menuSection}>
-            {/* {renderMenuOption(
+            {renderMenuOption(
               "Become a Host",
               handleBecomeHostToggle,
               <TouchableOpacity
@@ -399,13 +470,17 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
                     backgroundColor: becomeHost
                       ? colors.BtnBackground
                       : colors.disableGray,
+                    opacity: isRoleSwitching ? 0.6 : 1,
                   },
                 ]}
                 onPress={handleBecomeHostToggle}
+                disabled={isRoleSwitching}
               >
-                <Text style={styles.switchButtonText}>Switch</Text>
+                <Text style={styles.switchButtonText}>
+                  {isRoleSwitching ? 'Switching...' : 'Switch'}
+                </Text>
               </TouchableOpacity>
-            )} */}
+            )}
 
             {renderMenuOption(
               "Notifications",

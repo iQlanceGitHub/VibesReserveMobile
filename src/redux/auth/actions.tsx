@@ -238,6 +238,10 @@ export const {
   onDeletePromoCode,
   deletePromoCodeData,
   deletePromoCodeError,
+
+  onSwitchRole,
+  switchRoleData,
+  switchRoleError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -485,5 +489,10 @@ export const {
   // Delete Event Action Types
   "ON_DELETE_EVENT",
   "DELETE_EVENT_DATA",
-  "DELETE_EVENT_ERROR"
+  "DELETE_EVENT_ERROR",
+
+  // Switch Role Action Types
+  "ON_SWITCH_ROLE",
+  "SWITCH_ROLE_DATA",
+  "SWITCH_ROLE_ERROR"
 );

@@ -73,6 +73,9 @@ import {
   onDeleteEvent,
   deleteEventData,
   deleteEventError,
+  onSwitchRole,
+  switchRoleData,
+  switchRoleError,
   onCategory,
   categoryData,
   categoryError,
@@ -1066,6 +1069,53 @@ function* DeleteEventSaga({
   } catch (error) {
     console.log("🗑️ DELETE EVENT - CATCH ERROR:", error);
     yield put(deleteEventError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface SwitchRolePayload {
+  role: string;
+}
+
+function* SwitchRoleSaga({
+  payload,
+}: {
+  payload: SwitchRolePayload;
+}): SagaIterator {
+  try {
+    console.log("🔄 SWITCH ROLE SAGA STARTED - payload:", payload);
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🔄 SWITCH ROLE - params:", params);
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${`user/switchrole`}`,
+      //params,
+    });
+
+    console.log("🔄 SWITCH ROLE - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("🔄 SWITCH ROLE - SUCCESS, dispatching switchRoleData");
+      yield put(switchRoleData(response));
+    } else {
+      console.log("🔄 SWITCH ROLE - ERROR, dispatching switchRoleError");
+      yield put(switchRoleError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("🔄 SWITCH ROLE - CATCH ERROR:", error);
+    yield put(switchRoleError(error));
     yield put(displayLoading(false));
   }
 }
@@ -2439,6 +2489,7 @@ function* authSaga() {
   yield takeLatest(onUpdateEvent().type as any, UpdateEventSaga);
   yield takeLatest(onDeleteEventPart().type as any, DeleteEventPartSaga);
   yield takeLatest(onDeleteEvent().type as any, DeleteEventSaga);
+  yield takeLatest(onSwitchRole().type as any, SwitchRoleSaga);
   yield takeLatest(onCategory().type as any, CategorySaga);
   yield takeLatest(onFacility().type as any, FacilitySaga);
   yield takeLatest(onTogglefavorite().type as any, TogglefavoriteSaga);

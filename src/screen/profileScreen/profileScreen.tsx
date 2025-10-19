@@ -22,7 +22,7 @@ import EditIcon from "../../assets/svg/editIcon";
 import RightArrow from "../../assets/svg/rightArrow";
 import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
 import { getUserStatus } from "../../utilis/userPermissionUtils";
-import { onGetProfileDetail } from "../../redux/auth/actions";
+import { onGetProfileDetail, onSwitchRole } from "../../redux/auth/actions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { showToast } from "../../utilis/toastUtils";
 // @ts-ignore
@@ -35,13 +35,14 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { getProfileDetail, getProfileDetailErr, loader } = useSelector(
+  const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr } = useSelector(
     (state: any) => state.auth
   );
 
   const [exploreNightLife, setExploreNightLife] = useState(true);
   const [notifications, setNotifications] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
+  const [isRoleSwitching, setIsRoleSwitching] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [userStatus, setUserStatus] = useState<
     "logged_in" | "skipped" | "guest" | null
@@ -79,6 +80,44 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   useEffect(() => {
     loadNotificationPreference();
   }, []);
+
+  // Handle switch role response
+  useEffect(() => {
+    if (switchRole?.status === 1 || switchRole?.status === "1" || switchRole?.status === true) {
+      console.log('Role switch successful:', switchRole);
+      showToast('success', `Role switched successfully to ${switchRole.currentRole}`);
+      
+      // Update user data in AsyncStorage
+      updateUserRoleInStorage(switchRole.currentRole);
+      
+      // Navigate to appropriate tab based on new role
+      if (switchRole.currentRole === 'host') {
+        navigation?.navigate('HostTabs' as never);
+      } else if (switchRole.currentRole === 'user') {
+        navigation?.navigate('HomeTabs' as never);
+      }
+      
+      // Reset loading state
+      setIsRoleSwitching(false);
+      
+      // Clear the switch role state
+      dispatch({ type: 'SWITCH_ROLE_DATA', payload: "" });
+    }
+  }, [switchRole]);
+
+  // Handle switch role error
+  useEffect(() => {
+    if (switchRoleErr) {
+      console.log('Role switch error:', switchRoleErr);
+      showToast('error', 'Failed to switch role. Please try again.');
+      
+      // Reset loading state
+      setIsRoleSwitching(false);
+      
+      // Clear the switch role error state
+      dispatch({ type: 'SWITCH_ROLE_ERROR', payload: "" });
+    }
+  }, [switchRoleErr]);
 
   // Request notification permissions
   const requestNotificationPermissions = async () => {
@@ -215,8 +254,40 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     navigation?.navigate("SignInScreen");
   };
 
-  const handleExploreNightLifeToggle = () => {
-    setExploreNightLife(!exploreNightLife);
+  // Update user role in AsyncStorage
+  const updateUserRoleInStorage = async (newRole: string) => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.currentRole = newRole;
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+        console.log('User role updated in storage:', newRole);
+      }
+    } catch (error) {
+      console.log('Error updating user role in storage:', error);
+    }
+  };
+
+  const handleExploreNightLifeToggle = async () => {
+    if (isRoleSwitching) return; // Prevent multiple rapid toggles
+    
+    setIsRoleSwitching(true);
+    
+    try {
+      // Determine the new role based on current state
+      const newRole = exploreNightLife ? 'host' : 'user';
+      
+      console.log('Switching role to:', newRole);
+      
+      // Dispatch the switch role action
+      dispatch(onSwitchRole({ role: newRole }));
+      
+    } catch (error) {
+      console.log('Error switching role:', error);
+      showToast('error', 'Failed to switch role. Please try again.');
+      setIsRoleSwitching(false);
+    }
   };
 
   const handleNotificationsToggle = async () => {
@@ -513,7 +584,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               ) : (
                 // Show normal menu for logged in users
                 <>
-                  {/* {renderMenuOption(
+                  {renderMenuOption(
                     "Explore Night Life",
                     handleExploreNightLifeToggle,
                     <TouchableOpacity
@@ -523,13 +594,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                           backgroundColor: exploreNightLife
                             ? colors.BtnBackground
                             : colors.disableGray,
+                          opacity: isRoleSwitching ? 0.6 : 1,
                         },
                       ]}
                       onPress={handleExploreNightLifeToggle}
+                      disabled={isRoleSwitching}
                     >
-                      <Text style={styles.switchButtonText}>Switch</Text>
+                      <Text style={styles.switchButtonText}>
+                        {isRoleSwitching ? 'Switching...' : 'Switch'}
+                      </Text>
                     </TouchableOpacity>
-                  )} */}
+                  )}
 
                   {renderMenuOption(
                     "Notifications",

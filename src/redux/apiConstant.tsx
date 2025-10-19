@@ -27,4 +27,6 @@ export const api_endpoint: Record<string, unknown> = {
   updateEvent: "user/updateeventclubpub",
   deleteEventPart: "user/deleteeventpart",
   deleteEvent: "user/deleteevent",
+  // Role switching endpoint
+  switchRole: "user/switchrole",
 };

@@ -669,12 +669,12 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                       source={{ uri: profileImage }}
                       style={styles.profileImage}
                     />
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       style={styles.deleteProfileButton}
                       onPress={handleDeleteProfileImage}
                     >
                       <DeleteIconNew width={20} height={20} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
                 ) : (
                   <View style={styles.defaultProfileContainer}>
