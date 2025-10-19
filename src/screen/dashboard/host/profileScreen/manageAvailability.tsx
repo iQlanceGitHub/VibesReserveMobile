@@ -56,7 +56,7 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
   const handleEventPress = (event: Event) => {
     console.log("Event pressed:", event);
     (navigation as any).navigate("DetailScreen", {
-      eventId: event._id,
+      clubId: event._id,
     });
   };
 

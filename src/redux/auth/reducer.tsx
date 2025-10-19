@@ -45,6 +45,10 @@ import {
   viewdetailsError,
   getDetailEventData,
   getDetailEventError,
+  updateEventData,
+  updateEventError,
+  deleteEventPartData,
+  deleteEventPartError,
   categoryData,
   categoryError,
   facilityData,
@@ -171,6 +175,11 @@ export const initialState = {
 
   getDetailEvent: "",
   getDetailEventErr: "",
+
+  updateEvent: "",
+  updateEventErr: "",
+  deleteEventPart: "",
+  deleteEventPartErr: "",
 
   category: "",
   categoryErr: "",
@@ -441,6 +450,20 @@ const authReducer = handleActions(
     }),
     [getDetailEventError().type]: produce((draft, action) => {
       draft.getDetailEventErr = action.payload;
+    }),
+
+    // payload updateEvent
+    [updateEventData().type]: produce((draft, action) => {
+      draft.updateEvent = action.payload;
+    }),
+    [updateEventError().type]: produce((draft, action) => {
+      draft.updateEventErr = action.payload;
+    }),
+    [deleteEventPartData().type]: produce((draft, action) => {
+      draft.deleteEventPart = action.payload;
+    }),
+    [deleteEventPartError().type]: produce((draft, action) => {
+      draft.deleteEventPartErr = action.payload;
     }),
 
     // payload category

@@ -68,6 +68,7 @@ import NotificationScreen from "../screen/notificationScreen/notificationScreen"
 import profileScreen from "../screen/profileScreen/profileScreen";
 import logoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 import DetailScreen from "../screen/dashboard/host/detailScreen/detailScreen";
+import EditDetailScreen from "../screen/dashboard/host/detailScreen/editDetailScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -146,6 +147,9 @@ export type RootStackParamList = {
     otherUserProfilePicture?: string;
     conversationId?: string;
   };
+  DetailScreen: undefined;
+  EditDetailScreen: { clubId: string };
+  NotificationScreen: undefined;
 };
 
 function MyTabs() {
@@ -430,6 +434,11 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="DetailScreen"
             component={DetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="EditDetailScreen"
+            component={EditDetailScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

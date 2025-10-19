@@ -86,6 +86,14 @@ export const {
   getDetailEventData,
   getDetailEventError,
 
+  onUpdateEvent,
+  updateEventData,
+  updateEventError,
+
+  onDeleteEventPart,
+  deleteEventPartData,
+  deleteEventPartError,
+
   onCategory,
   categoryData,
   categoryError,
@@ -311,6 +319,14 @@ export const {
   "ON_GET_DETAIL_EVENT",
   "GET_DETAIL_EVENT_DATA",
   "GET_DETAIL_EVENT_ERROR",
+
+  "ON_UPDATE_EVENT",
+  "UPDATE_EVENT_DATA",
+  "UPDATE_EVENT_ERROR",
+
+  "ON_DELETE_EVENT_PART",
+  "DELETE_EVENT_PART_DATA",
+  "DELETE_EVENT_PART_ERROR",
 
   "ON_CATEGORY",
   "CATEGORY_DATA",

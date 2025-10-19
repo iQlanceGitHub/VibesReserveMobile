@@ -114,7 +114,9 @@ const DetailScreen = () => {
   const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
 
   // Get club ID from route params
-  const clubId = (route?.params as any)?.clubId || '68b6eceba9ae1fc590695248'; // fallback ID
+  const clubId = (route?.params as any)?.clubId; // fallback ID
+  console.log('DetailScreen route params:', route?.params);
+  console.log('DetailScreen clubId:', clubId);
 
   // Bookmark storage key
   const BOOKMARKS_STORAGE_KEY = 'user_bookmarks';
@@ -192,45 +194,16 @@ const DetailScreen = () => {
     console.log('Cleared all bookmarks');
   };
 
-  // Call Viewdetails API when component mounts
+  // Call onGetDetailEvent API when component mounts
   useEffect(() => {
-    const getUser = async () => {
-      try {
-        const user = await AsyncStorage.getItem("user");
-        if (user !== null) {
-          const parsedUser = JSON.parse(user);
-          console.log("User retrieved:", parsedUser);
-          return parsedUser;
-        }
-        return null;
-      } catch (e) {
-        console.error("Failed to fetch the user.", e);
-        return null;
-      }
-    };
-
-    const fetchClubDetails = async () => {
-      if (clubId) {
-        console.log('Calling Viewdetails API with ID:', clubId);
-        setIsDataLoading(true);
-        setIsDataLoaded(false);
-        try {
-          const user = await getUser();
-          console.log('user::===>', user);
-          console.log('user::===>', user?.currentRole);
-          console.log('user::===>', { id: clubId, userId: user?.id });
-          
-          // Call API with user ID, fallback to clubId if user not found
-          dispatch(onGetDetailEvent({ id: clubId, userId: clubId  }));
-        } catch (error) {
-          console.error('Error fetching user or calling API:', error);
-          // Fallback: call API without userId
-          dispatch(onGetDetailEvent({ id: clubId }));
-        }
-      }
-    };
-
-    fetchClubDetails();
+    if (clubId) {
+      console.log('Calling onGetDetailEvent with ID:', clubId);
+      setIsDataLoading(true);
+      setIsDataLoaded(false);
+      
+      // Call API with only the event ID
+      dispatch(onGetDetailEvent({ id: clubId }));
+    }
   }, [clubId, dispatch]);
 
   // Handle GetDetailEvent API response
@@ -729,6 +702,10 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     (navigation as any).navigate("ClubBookingScreen", { eventData: combinedEventData });
   };
 
+  const handleEditEvent = () => {
+    (navigation as any).navigate("EditDetailScreen", { clubId: clubId });
+  };
+
   const handleFavorite = (isFavorite: boolean) => {
     console.log('Favorite status:', isFavorite);
     // Handle favorite logic here
@@ -1106,6 +1083,15 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
       </ScrollView>
       </View>
 
+      {/* Edit Button */}
+      <View style={styles.editButtonContainer}>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={handleEditEvent}
+        >
+          <Text style={styles.editButtonText}>Edit Event</Text>
+        </TouchableOpacity>
+      </View>
       
       <CustomAlert
         visible={showCustomAlert}

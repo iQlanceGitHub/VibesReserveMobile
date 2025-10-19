@@ -64,6 +64,12 @@ import {
   onGetDetailEvent,
   getDetailEventData,
   getDetailEventError,
+  onUpdateEvent,
+  updateEventData,
+  updateEventError,
+  onDeleteEventPart,
+  deleteEventPartData,
+  deleteEventPartError,
   onCategory,
   categoryData,
   categoryError,
@@ -896,14 +902,8 @@ function* GetDetailEventSaga({
   try {
     yield put(displayLoading(true));
 
-    const params = {
-      userId: payload?.userId,
-    };
-    
-
     const response = yield call(fetchGet, {
-      url: `${baseurl}${`user/getdetailevent/68e66ac81c196abe967b7657`}`,
-      params,
+      url: `${baseurl}${`user/getdetailevent/${payload?.id}`}`,
     });
 
     if (
@@ -920,6 +920,102 @@ function* GetDetailEventSaga({
     yield put(displayLoading(false));
   } catch (error) {
     yield put(getDetailEventError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface UpdateEventPayload {
+  id?: string;
+  name?: string;
+  description?: string;
+  address?: string;
+  openingTime?: string;
+  closingTime?: string;
+  startDate?: string;
+  endDate?: string;
+  price?: string;
+  capacity?: string;
+  type?: string;
+  facilities?: any[];
+  images?: any[];
+}
+
+interface DeleteEventPartPayload {
+  id: string;
+  partType: string;
+  partId: string;
+}
+
+function* UpdateEventSaga({
+  payload,
+}: {
+  payload: UpdateEventPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🔑 UPDATE EVENT - params:", params);
+
+    const response = yield call(fetchPut, {
+      url: `${baseurl}${`user/updateeventclubpub`}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(updateEventData(response));
+    } else {
+      yield put(updateEventError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(updateEventError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+function* DeleteEventPartSaga({
+  payload,
+}: {
+  payload: DeleteEventPartPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🗑️ DELETE EVENT PART - params:", params);
+
+    const response = yield call(fetchDelete, {
+      url: `${baseurl}${`user/deleteeventpart`}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(deleteEventPartData(response));
+    } else {
+      yield put(deleteEventPartError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(deleteEventPartError(error));
     yield put(displayLoading(false));
   }
 }
@@ -2290,6 +2386,8 @@ function* authSaga() {
   yield takeLatest(onFilter().type as any, FilterSaga);
   yield takeLatest(onViewdetails().type as any, ViewdetailsSaga);
   yield takeLatest(onGetDetailEvent().type as any, GetDetailEventSaga);
+  yield takeLatest(onUpdateEvent().type as any, UpdateEventSaga);
+  yield takeLatest(onDeleteEventPart().type as any, DeleteEventPartSaga);
   yield takeLatest(onCategory().type as any, CategorySaga);
   yield takeLatest(onFacility().type as any, FacilitySaga);
   yield takeLatest(onTogglefavorite().type as any, TogglefavoriteSaga);
