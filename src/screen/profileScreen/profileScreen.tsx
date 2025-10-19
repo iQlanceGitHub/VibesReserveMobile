@@ -353,7 +353,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               ) : (
                 // Show normal menu for logged in users
                 <>
-                  {renderMenuOption(
+                  {/* {renderMenuOption(
                     "Explore Night Life",
                     handleExploreNightLifeToggle,
                     <TouchableOpacity
@@ -369,9 +369,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     >
                       <Text style={styles.switchButtonText}>Switch</Text>
                     </TouchableOpacity>
-                  )}
+                  )} */}
 
-                  {renderMenuOption(
+                  {/* {renderMenuOption(
                     "Notifications",
                     handleNotificationsToggle,
                     <Switch
@@ -383,7 +383,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                       }}
                       thumbColor={colors.white}
                     />
-                  )}
+                  )} */}
 
                   {renderMenuOption(
                     "Share with Friends",

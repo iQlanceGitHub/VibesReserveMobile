@@ -31,7 +31,7 @@ import { Buttons } from '../../../../components/buttons';
 import CustomTimePicker from '../../../../components/CustomTimePicker';
 import GoogleAddressAutocomplete from '../../../../components/GoogleAddressAutocomplete';
 import ImageSelectionBottomSheet from '../../../../components/ImageSelectionBottomSheet';
-// import BoothForm from '../../../homeScreen/components/BoothForm';
+import BoothForm from '../../../../screen/dashboard/host/homeScreen/components/BoothForm';
 // import EventForm from '../../../homeScreen/components/EventForm';
 
 // Hooks
@@ -55,6 +55,14 @@ import {
 
 // Utils
 import { showToast } from '../../../../utilis/toastUtils';
+import { uploadFileToS3 } from '../../../../utilis/s3Upload';
+import {
+  launchCamera,
+  launchImageLibrary,
+  ImagePickerResponse,
+  MediaType,
+} from "react-native-image-picker";
+import PermissionManager from '../../../../utilis/permissionUtils';
 
 // SVG Icons
 import BackIcon from '../../../../assets/svg/backIcon';
@@ -137,6 +145,7 @@ const EditDetailScreen = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [entryFee, setEntryFee] = useState("");
+  const [discountPrice, setDiscountPrice] = useState("");
   const [eventCapacity, setEventCapacity] = useState("");
   const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState({
@@ -174,6 +183,7 @@ const EditDetailScreen = () => {
     name: false,
     details: false,
     entryFee: false,
+    discountPrice: false,
     eventCapacity: false,
     address: false,
     startDate: false,
@@ -235,30 +245,6 @@ const EditDetailScreen = () => {
     navigation.goBack();
   };
 
-  // Booth handlers
-  const addNewBooth = () => {
-    const newBooth: BoothData = {
-      id: Date.now().toString(),
-      boothName: '',
-      boothType: '',
-      boothPrice: '',
-      capacity: '',
-      discountedPrice: '',
-      boothImages: [],
-    };
-    setBooths([...booths, newBooth]);
-  };
-
-  const updateBooth = (index: number, updatedBooth: BoothData) => {
-    const updatedBooths = [...booths];
-    updatedBooths[index] = updatedBooth;
-    setBooths(updatedBooths);
-  };
-
-  const removeBooth = (index: number) => {
-    const updatedBooths = booths.filter((_, i) => i !== index);
-    setBooths(updatedBooths);
-  };
 
   // Event handlers
   const addNewEvent = () => {
@@ -315,6 +301,30 @@ const EditDetailScreen = () => {
     );
   };
 
+  // Booth handlers
+  const addNewBooth = () => {
+    const newBooth: BoothData = {
+      id: Date.now().toString(),
+      boothName: '',
+      boothType: '',
+      boothPrice: '',
+      capacity: '',
+      discountedPrice: '',
+      boothImages: []
+    };
+    setBooths([...booths, newBooth]);
+  };
+
+  const updateBooth = (id: string, field: keyof BoothData, value: string | string[]) => {
+    setBooths(booths.map(booth =>
+      booth.id === id ? { ...booth, [field]: value } : booth
+    ));
+  };
+
+  const removeBooth = (id: string) => {
+    setBooths(booths.filter(booth => booth.id !== id));
+  };
+
   // Facility handlers
   const toggleFacility = (facilityId: string) => {
     setFacilitiesList(prevFacilities =>
@@ -333,7 +343,8 @@ const EditDetailScreen = () => {
     setShowImagePicker(true);
   };
 
-  const handleImagePicker = (imageUri: string) => {
+
+  const handleImageSelected = (imageUri: string) => {
     if (currentImageType === "main") {
       const updatedPhotos = [...uploadPhotos];
       updatedPhotos[currentImageIndex] = imageUri;
@@ -349,15 +360,117 @@ const EditDetailScreen = () => {
     setShowImagePicker(false);
   };
 
-  const handleDeleteImage = (index: number, type: "main" | "booth" | "event", boothIndex?: number) => {
-    if (type === "main") {
-      const updatedPhotos = uploadPhotos.filter((_, i) => i !== index);
-      setUploadPhotos(updatedPhotos);
-    } else if (type === "booth" && boothIndex !== undefined) {
-      const updatedBooths = [...booths];
-      updatedBooths[boothIndex].boothImages = updatedBooths[boothIndex].boothImages.filter((_, i) => i !== index);
-      setBooths(updatedBooths);
+  // Image picker with permissions
+  const handleImagePicker = async (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event", boothIndex: number, eventIndex: number) => {
+    setCurrentImageType(imageType);
+    if (imageType === "booth") {
+      setCurrentBoothIndex(boothIndex);
+    } else if (imageType === "event") {
+      setCurrentEventIndex(eventIndex);
     }
+
+    const options = {
+      mediaType: "photo" as MediaType,
+      quality: 0.7 as any,
+      maxWidth: 800,
+      maxHeight: 800,
+    };
+
+    const callback = async (response: ImagePickerResponse) => {
+      if (response.didCancel || response.errorMessage) {
+        console.log("Image picker cancelled or error:", response.errorMessage);
+        return;
+      }
+
+      if (response.assets && response.assets[0]) {
+        const imageUri = response.assets[0].uri;
+        if (imageUri) {
+          try {
+            setLoading(true);
+            
+            // Upload to S3
+            const fileName = `${imageType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+            const uploadedUrl = await uploadFileToS3(
+              imageUri,
+              fileName,
+              "image/jpeg"
+            );
+
+            // Update the appropriate state
+            if (imageType === "main") {
+              const newPhotos = [...uploadPhotos];
+              if (currentImageIndex < newPhotos.length) {
+                newPhotos[currentImageIndex] = uploadedUrl;
+              } else {
+                newPhotos.push(uploadedUrl);
+              }
+              setUploadPhotos(newPhotos);
+            } else if (imageType === "booth") {
+              console.log('Updating booth image:', {
+                currentBoothIndex,
+                boothsLength: booths.length,
+                boothExists: booths[currentBoothIndex] ? true : false
+              });
+              
+              if (currentBoothIndex >= 0 && currentBoothIndex < booths.length) {
+                const updatedBooths = [...booths];
+                if (!updatedBooths[currentBoothIndex].boothImages) {
+                  updatedBooths[currentBoothIndex].boothImages = [];
+                }
+                updatedBooths[currentBoothIndex].boothImages.push(uploadedUrl);
+                setBooths(updatedBooths);
+                console.log('Booth image added successfully');
+              } else {
+                console.error('Invalid booth index:', currentBoothIndex);
+                showToast("error", "Invalid booth index");
+              }
+            }
+
+            showToast("success", "Image uploaded successfully");
+          } catch (error) {
+            console.log("Image upload error:", error);
+            showToast("error", "Failed to upload image");
+          } finally {
+            setLoading(false);
+          }
+        }
+      }
+    };
+
+    if (type === "camera") {
+      PermissionManager.requestPermissionWithFlow(
+        "camera",
+        () => {
+          launchCamera(options, callback);
+        },
+        (error) => {
+          console.log("Camera permission error:", error);
+          showToast("error", "Camera permission denied");
+        }
+      );
+    } else {
+      PermissionManager.requestPermissionWithFlow(
+        "storage",
+        () => {
+          launchImageLibrary(options, callback);
+        },
+        (error) => {
+          console.log("Storage permission error:", error);
+          showToast("error", "Storage permission denied");
+        }
+      );
+    }
+  };
+
+  const handleDeleteImage = (boothIndex: number, imageIndex: number) => {
+    const updatedBooths = [...booths];
+    updatedBooths[boothIndex].boothImages = updatedBooths[boothIndex].boothImages.filter((_, i) => i !== imageIndex);
+    setBooths(updatedBooths);
+  };
+
+  const handleDeleteMainImage = (index: number) => {
+    const updatedPhotos = uploadPhotos.filter((_, i) => i !== index);
+    setUploadPhotos(updatedPhotos);
   };
 
   // Load categories and facilities on mount
@@ -395,6 +508,81 @@ const EditDetailScreen = () => {
       );
     }
   }, [getDetailEvent?.data?.facilities, facilitiesList.length]);
+
+  // Handle booth data loading when both categories and event data are available
+  useEffect(() => {
+    if (getDetailEvent?.data?.booths && categories.length > 0) {
+      const eventData = getDetailEvent.data;
+      console.log('Loading booth data with categories available:', {
+        booths: eventData.booths,
+        categories: categories.length,
+        boothTypes: boothTypes.length
+      });
+      
+      // Debug the first booth to see all available fields
+      if (eventData.booths.length > 0) {
+        console.log('First booth raw data:', eventData.booths[0]);
+        console.log('First booth keys:', Object.keys(eventData.booths[0]));
+      }
+      
+      const transformedBooths = eventData.booths.map((booth: any, index: number) => {
+        console.log(`Booth ${index} processing:`, {
+          boothType: booth.boothType,
+          boothTypeType: typeof booth.boothType,
+          availableTypes: boothTypes.map(bt => ({ id: bt.id, name: bt.name }))
+        });
+        
+        // Check if boothType matches any available category
+        const matchingCategory = boothTypes.find(bt => bt.id === booth.boothType);
+        console.log(`Booth ${index} matching category:`, matchingCategory);
+        
+        // Also check by name in case IDs don't match
+        const matchingByName = boothTypes.find(bt => bt.name === booth.boothType);
+        console.log(`Booth ${index} matching by name:`, matchingByName);
+        
+        // Try to find the correct booth type ID
+        let correctBoothType = booth.boothType;
+        
+        // Handle case where boothType might be an object with _id
+        if (typeof booth.boothType === 'object' && booth.boothType?._id) {
+          correctBoothType = booth.boothType._id;
+          console.log(`Booth ${index} extracted _id from object:`, correctBoothType);
+        }
+        
+        // Check if the corrected value matches any category
+        const finalMatchingCategory = boothTypes.find(bt => bt.id === correctBoothType);
+        if (!finalMatchingCategory && matchingByName) {
+          correctBoothType = matchingByName.id;
+          console.log(`Booth ${index} corrected booth type from name:`, correctBoothType);
+        }
+        
+        // Final fallback: if still no match, try to find "DJ Nights" specifically
+        if (!finalMatchingCategory && !matchingByName) {
+          const djNightsCategory = boothTypes.find(bt => bt.name === "DJ Nights");
+          if (djNightsCategory) {
+            correctBoothType = djNightsCategory.id;
+            console.log(`Booth ${index} fallback to DJ Nights:`, correctBoothType);
+          }
+        }
+        
+        console.log(`Booth ${index} final booth type:`, correctBoothType);
+        
+        return {
+          id: booth._id || `booth_${index}`,
+          boothName: booth.boothName || '',
+          boothType: correctBoothType || '',
+          boothPrice: booth.boothPrice?.toString() || '',
+          capacity: booth.capacity?.toString() || '',
+          discountedPrice: booth.discountedPrice?.toString() || '',
+          boothImages: Array.isArray(booth.boothImage) ? booth.boothImage : []
+        };
+      });
+      
+      console.log('Final transformed booths:', transformedBooths);
+      setBooths(transformedBooths);
+      setEnableBooths(transformedBooths.length > 0);
+    }
+  }, [getDetailEvent?.data?.booths, categories.length, boothTypes.length]);
 
   // Load event details on component mount
   useEffect(() => {
@@ -498,24 +686,21 @@ const EditDetailScreen = () => {
           setEndDate(endDate.toISOString().split('T')[0]);
         }
         setEntryFee(eventData.entryFee?.toString() || eventData.price?.toString() || eventData.entry_fee?.toString() || '');
-        setEventCapacity(eventData.capacity?.toString() || eventData.eventCapacity?.toString() || eventData.event_capacity?.toString() || '');
-        setType(eventData.type || 'Event');
         
-        // Load booths if available - transform to match our interface
-        if (eventData.booths && Array.isArray(eventData.booths)) {
-          console.log('Event booths:', eventData.booths);
-          const transformedBooths = eventData.booths.map((booth: any, index: number) => ({
-            id: booth._id || `booth_${index}`,
-            boothName: booth.boothName || '',
-            boothType: booth.boothType || '',
-            boothPrice: booth.boothPrice?.toString() || '',
-            capacity: booth.capacity?.toString() || '',
-            discountedPrice: booth.discountedPrice?.toString() || '',
-            boothImages: Array.isArray(booth.boothImage) ? booth.boothImage : []
-          }));
-          setBooths(transformedBooths);
-          setEnableBooths(transformedBooths.length > 0);
+        // Handle discount price based on event type
+        const eventType = eventData.type || 'Event';
+        if (eventType === 'Booth' || eventType === 'VIP Entry') {
+          // For Booth and VIP Entry, discount price might be in details field
+          setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || eventData.details?.toString() || '');
+        } else {
+          // For other types, use normal discount price fields
+          setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || '');
         }
+        
+        setEventCapacity(eventData.capacity?.toString() || eventData.eventCapacity?.toString() || eventData.event_capacity?.toString() || '');
+        setType(eventType);
+        
+        // Note: Booth loading is handled in separate useEffect when categories are available
         
         // Load events/tickets if available
         if (eventData.tickets && Array.isArray(eventData.tickets)) {
@@ -691,6 +876,7 @@ const EditDetailScreen = () => {
       name: !name.trim(),
       details: !details.trim(),
       entryFee: !entryFee.trim(),
+      discountPrice: !discountPrice.trim(),
       eventCapacity: !eventCapacity.trim(),
       address: !address.trim(),
       startDate: !startDate.trim(),
@@ -723,12 +909,20 @@ const EditDetailScreen = () => {
           capacity: parseInt(event.capacity || '0')
         })) : [];
         
+        // Handle details field based on event type
+        let detailsField = details;
+        if ((type === 'Booth' || type === 'VIP Entry') && discountPrice) {
+          // For Booth and VIP Entry, put discount price in details field
+          detailsField = discountPrice;
+        }
+
         const payload = {
           id: clubId,
           type,
           name,
-          details,
+          details: detailsField,
           entryFee: parseInt(entryFee || '0'),
+          discountPrice: parseInt(discountPrice || '0'),
           eventCapacity: eventCapacity,
           openingTime: startTime,
           closeTime: endTime,
@@ -1058,6 +1252,24 @@ const EditDetailScreen = () => {
 
                 <View style={styles.formElement}>
                   <CustomeTextInput
+                    label="Discount Price"
+                    placeholder="Enter discount price"
+                    value={discountPrice}
+                    onChangeText={(text) => {
+                      setDiscountPrice(text);
+                      if (errors.discountPrice) {
+                        setErrors((prev) => ({ ...prev, discountPrice: false }));
+                      }
+                    }}
+                    error={errors.discountPrice}
+                    message={errors.discountPrice ? "Valid discount price is required" : ""}
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
+                <View style={styles.formElement}>
+                  <CustomeTextInput
                     label="Capacity"
                     placeholder="Enter capacity"
                     value={eventCapacity}
@@ -1110,8 +1322,18 @@ const EditDetailScreen = () => {
 
                 {enableBooths && (
                   <>
-                    {/* TODO: Add BoothForm component */}
-                    <Text style={styles.loadingText}>Booth forms will be added here</Text>
+                    {booths.map((booth, index) => (
+                      <BoothForm
+                        key={booth.id}
+                        booth={booth}
+                        boothIndex={index}
+                        onUpdate={updateBooth}
+                        onRemove={removeBooth}
+                        onImagePicker={handleImagePicker}
+                        onDeleteImage={handleDeleteImage}
+                        boothTypes={boothTypes}
+                      />
+                    ))}
                     <TouchableOpacity
                       style={styles.addNewButton}
                       onPress={addNewBooth}
@@ -1287,7 +1509,7 @@ const EditDetailScreen = () => {
                     {uploadPhotos[index] && (
                       <TouchableOpacity
                         style={styles.deleteButton}
-                        onPress={() => handleDeleteImage(index, "main")}
+                        onPress={() => handleDeleteMainImage(index)}
                       >
                         <DeleteIconNew width={20} height={20} />
                       </TouchableOpacity>
@@ -1427,12 +1649,12 @@ const EditDetailScreen = () => {
           visible={showImagePicker}
           onClose={() => setShowImagePicker(false)}
           onCameraPress={() => {
-            // TODO: Implement camera functionality
-            setShowImagePicker(false);
+            console.log("Camera pressed for", currentImageType);
+            handleImagePicker("camera", currentImageType, currentBoothIndex, currentEventIndex);
           }}
           onGalleryPress={() => {
-            // TODO: Implement gallery functionality
-            setShowImagePicker(false);
+            console.log("Gallery pressed for", currentImageType);
+            handleImagePicker("gallery", currentImageType, currentBoothIndex, currentEventIndex);
           }}
         />
       )}

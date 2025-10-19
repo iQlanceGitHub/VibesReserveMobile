@@ -67,7 +67,7 @@ export default StyleSheet.create({
     backgroundColor: colors.backgroundColor,
     borderRadius: verticalScale(16),
     marginHorizontal: horizontalScale(15),
-    shadowColor: colors.black,
+    shadowColor: colors.white,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -449,7 +449,7 @@ export default StyleSheet.create({
     backgroundColor: colors.violate,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.black,
+    shadowColor: colors.white,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -472,7 +472,7 @@ export default StyleSheet.create({
     padding: verticalScale(24),
     width: '100%',
     maxWidth: horizontalScale(320),
-    shadowColor: colors.black,
+    shadowColor: colors.white,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -497,7 +497,7 @@ export default StyleSheet.create({
   dialogMessage: {
     fontSize: fontScale(16),
     fontFamily: fonts.regular,
-    color: colors.black,
+    color: colors.white,
     textAlign: 'center',
     lineHeight: fontScale(22),
   },
@@ -531,7 +531,7 @@ export default StyleSheet.create({
   sectionTitle: {
     fontSize: fontScale(18),
     fontFamily: fonts.semiBold,
-    color: colors.black,
+    color: colors.white,
     marginBottom: verticalScale(15),
   },
   inputContainer: {
@@ -540,7 +540,7 @@ export default StyleSheet.create({
   inputLabel: {
     fontSize: fontScale(14),
     fontFamily: fonts.medium,
-    color: colors.black,
+    color: colors.white,
     marginBottom: verticalScale(8),
   },
   textInput: {
@@ -551,7 +551,7 @@ export default StyleSheet.create({
     paddingVertical: verticalScale(12),
     fontSize: fontScale(14),
     fontFamily: fonts.regular,
-    color: colors.black,
+    color: colors.white,
     backgroundColor: colors.white,
   },
   textArea: {
@@ -574,7 +574,7 @@ export default StyleSheet.create({
   loadingText: {
     fontSize: fontScale(16),
     fontFamily: fonts.medium,
-    color: colors.black,
+    color: colors.white,
     marginTop: verticalScale(10),
   },
 
@@ -593,7 +593,7 @@ export default StyleSheet.create({
     borderRadius: verticalScale(25),
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.black,
+    shadowColor: colors.white,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -713,7 +713,7 @@ export default StyleSheet.create({
   timePickerTitle: {
     fontSize: fontScale(18),
     fontFamily: fonts.semiBold,
-    color: colors.black,
+    color: colors.white,
   },
   timePickerCloseButton: {
     width: horizontalScale(30),
@@ -735,7 +735,7 @@ export default StyleSheet.create({
   timeDisplayText: {
     fontSize: fontScale(24),
     fontFamily: fonts.semiBold,
-    color: colors.black,
+    color: colors.white,
   },
   timePickerButtons: {
     flexDirection: "row",
