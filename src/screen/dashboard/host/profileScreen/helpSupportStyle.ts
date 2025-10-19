@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: verticalScale(20),
-    paddingBottom: verticalScale(20),
+    paddingBottom: verticalScale(40),
   },
   formContainer: {
     flex: 1,
@@ -44,9 +44,8 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(20),
   },
   buttonContainer: {
-    paddingHorizontal: verticalScale(20),
-    paddingBottom: verticalScale(20),
-    paddingTop: verticalScale(10),
+    paddingTop: verticalScale(20),
+    paddingBottom: verticalScale(10),
   },
   submitButton: {
     backgroundColor: colors.BtnBackground,

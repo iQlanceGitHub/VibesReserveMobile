@@ -21,6 +21,8 @@ import {
 } from "../../../../redux/auth/actions";
 import { showToast } from "../../../../utilis/toastUtils";
 import styles from "./helpSupportStyle";
+import EmailIcon from "../../../../assets/svg/emailIcon";
+import NameIcon from "../../../../assets/svg/nameIcon";
 
 interface HelpSupportProps {
   navigation?: any;
@@ -134,24 +136,26 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
         colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
         style={styles.container}
       >
+        <View style={styles.header}>
+          <BackButton
+            navigation={navigation}
+            onBackPress={() => navigation?.goBack()}
+          />
+          <Text style={styles.headerTitle}>Help and Support</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <View style={styles.header}>
-            <BackButton
-              navigation={navigation}
-              onBackPress={() => navigation?.goBack()}
-            />
-            <Text style={styles.headerTitle}>Help and Support</Text>
-            <View style={styles.headerSpacer} />
-          </View>
-
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            bounces={false}
           >
             <View style={styles.formContainer}>
               <View style={styles.inputContainer}>
@@ -165,7 +169,7 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
                   kType={appConstant.keyboardType.default as any}
                   maxLength={50}
                   editable={!loader}
-                  leftImage=""
+                  leftImage={<NameIcon />}
                 />
               </View>
 
@@ -180,7 +184,7 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
                   kType={appConstant.keyboardType.email_address as any}
                   maxLength={80}
                   editable={!loader}
-                  leftImage=""
+                  leftImage={<EmailIcon />}
                 />
               </View>
 
@@ -197,17 +201,18 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ navigation }) => {
                   required={false}
                 />
               </View>
+
+              {/* Move Submit button inside ScrollView */}
+              <View style={styles.buttonContainer}>
+                <Buttons
+                  title={loader ? "Submitting..." : "Submit"}
+                  onPress={handleSubmit}
+                  disabled={loader}
+                  style={styles.submitButton}
+                />
+              </View>
             </View>
           </ScrollView>
-
-          <View style={styles.buttonContainer}>
-            <Buttons
-              title={loader ? "Submitting..." : "Submit"}
-              onPress={handleSubmit}
-              disabled={loader}
-              style={styles.submitButton}
-            />
-          </View>
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaWrapper>

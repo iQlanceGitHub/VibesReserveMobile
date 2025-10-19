@@ -104,7 +104,18 @@ const EditPromotionalCode: React.FC<EditPromotionalCodeProps> = ({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // For discount field, only allow numbers
+    if (field === "discount") {
+      // Remove any non-numeric characters
+      const numericValue = value.replace(/[^0-9]/g, "");
+      // Limit to 3 digits (0-100%)
+      const limitedValue =
+        numericValue.length > 3 ? numericValue.slice(0, 3) : numericValue;
+      setFormData((prev) => ({ ...prev, [field]: limitedValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
+
     if (errors[field as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [field]: false }));
     }
@@ -116,11 +127,16 @@ const EditPromotionalCode: React.FC<EditPromotionalCodeProps> = ({
   };
 
   const validateForm = () => {
+    const discountValue = parseInt(formData.discount);
     const newErrors = {
       promotionalCode: !formData.promotionalCode.trim(),
       startDate: !formData.startDate.trim(),
       endDate: !formData.endDate.trim(),
-      discount: !formData.discount.trim(),
+      discount:
+        !formData.discount.trim() ||
+        isNaN(discountValue) ||
+        discountValue < 1 ||
+        discountValue > 100,
     };
 
     setErrors(newErrors);
@@ -172,7 +188,12 @@ const EditPromotionalCode: React.FC<EditPromotionalCodeProps> = ({
 
       dispatch(onEditPromoCode(editData));
     } else {
-      showToast("error", "Please fill in all required fields");
+      const discountValue = parseInt(formData.discount);
+      if (isNaN(discountValue) || discountValue < 1 || discountValue > 100) {
+        showToast("error", "Please enter a valid discount between 1-100%");
+      } else {
+        showToast("error", "Please fill in all required fields");
+      }
     }
   };
 
@@ -381,17 +402,23 @@ const EditPromotionalCode: React.FC<EditPromotionalCodeProps> = ({
                     Discount (%)<Text style={styles.requiredText}> *</Text>
                   </Text>
                 </View>
-                <CustomeTextInput
-                  label=""
-                  placeholder="Add discount"
-                  value={formData.discount}
-                  onChangeText={(text) => handleInputChange("discount", text)}
-                  error={errors.discount}
-                  message="Discount is required"
-                  kType="numeric"
-                  maxLength={3}
-                  leftImage={null}
-                />
+                <View style={styles.discountInputContainer}>
+                  <CustomeTextInput
+                    label=""
+                    placeholder="Enter Discount"
+                    value={formData.discount}
+                    onChangeText={(text) => handleInputChange("discount", text)}
+                    error={errors.discount}
+                    message={
+                      errors.discount
+                        ? "Please enter a valid discount between 1-100%"
+                        : ""
+                    }
+                    kType="numeric"
+                    maxLength={3}
+                    leftImage={null}
+                  />
+                </View>
               </View>
             </View>
           </ScrollView>

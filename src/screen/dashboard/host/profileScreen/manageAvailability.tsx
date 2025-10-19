@@ -28,6 +28,7 @@ interface Event {
   details: string;
   openingTime: string;
   startDate: string;
+  photos: string[];
 }
 
 interface ManageAvailabilityProps {
@@ -159,22 +160,6 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  // Helper function to get event image based on type
-  const getEventImage = (type: string) => {
-    const imageMap: { [key: string]: string } = {
-      Booth:
-        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
-      "VIP Entry":
-        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
-      Event:
-        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop",
-      Club: "https://images.unsplash.com/photo-1571266028243-e68c76670109?w=400&h=300&fit=crop",
-      "VIP Entries":
-        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
-    };
-    return { uri: imageMap[type] || imageMap["Event"] };
-  };
-
   const renderEventCard = (event: Event) => {
     return (
       <View key={event._id} style={styles.eventCard}>
@@ -190,10 +175,33 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
             activeOpacity={0.8}
           >
             <View style={styles.imageContainer}>
-              <Image
-                source={getEventImage(event.type)}
-                style={styles.eventImage}
-              />
+              {event.photos && event.photos.length > 0 ? (
+                <Image
+                  source={{ uri: event.photos[0] }}
+                  style={styles.eventImage}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.eventImage,
+                    {
+                      backgroundColor: colors.gray,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: colors.white,
+                      fontSize: 16,
+                      fontWeight: "500",
+                    }}
+                  >
+                    No Image
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.textContainer}>

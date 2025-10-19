@@ -322,27 +322,6 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
     }
   };
 
-  const handleDeleteProfileImage = () => {
-    Alert.alert(
-      "Delete Profile Image",
-      "Are you sure you want to delete this profile image?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            setProfileImage(null);
-            showToast("success", "Profile image deleted successfully!");
-          },
-        },
-      ]
-    );
-  };
-
   const handleDeleteDocumentImage = () => {
     Alert.alert(
       "Delete Document",
@@ -754,7 +733,6 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 onChangeText={handleBusinessDescriptionChange}
                 error={businessDescriptionError}
                 message={businessDescriptionErrorMessage}
-                required={true}
               />
 
               <Text style={styles.documentLabel}>Upload Document *</Text>

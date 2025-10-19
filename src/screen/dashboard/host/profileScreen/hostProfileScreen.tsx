@@ -36,7 +36,6 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
     (state: any) => state.auth
   );
 
-  // Extract profile data from API response using useMemo for better performance
   const profileData = useMemo(() => {
     const data = getProfileDetail?.data || {};
     return data;
@@ -44,17 +43,14 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
 
   const isLoading = loader;
 
-  // Store profile data in local state to prevent it from being lost
   const [localProfileData, setLocalProfileData] = useState(profileData);
 
-  // Update local state when profile data changes
   useEffect(() => {
     if (profileData && Object.keys(profileData).length > 0) {
       setLocalProfileData(profileData);
     }
   }, [profileData]);
 
-  // Use local profile data if available, otherwise use the current profileData
   const displayData =
     Object.keys(localProfileData).length > 0 ? localProfileData : profileData;
 
@@ -327,7 +323,6 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
 
   const performLogout = async () => {
     try {
-      // Clear all stored preferences and user data
       await AsyncStorage.multiRemove([
         "user_status",
         "user_permissions",
@@ -337,7 +332,6 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
         "skip_timestamp",
       ]);
 
-      // Navigate to SignInScreen
       navigation?.navigate("SignInScreen");
     } catch (error) {
       console.error("Error during logout:", error);
@@ -413,9 +407,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
                 <View style={styles.profileImagePlaceholder}>
                   <Image
                     source={{
-                      uri:
-                        displayData.profilePicture ||
-                        "https://randomuser.me/api/portraits/men/32.jpg",
+                      uri: displayData.profilePicture,
                     }}
                     style={styles.profileImage}
                     onError={(error) => console.log("Image load error:", error)}
@@ -431,29 +423,17 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
               </View>
 
               <View style={styles.userInfoContainer}>
-                <Text style={styles.userInfoName}>
-                  {isLoading
-                    ? "Loading..."
-                    : displayData?.fullName || "No name available"}
-                </Text>
+                <Text style={styles.userInfoName}>{displayData?.fullName}</Text>
+                <Text style={styles.userInfoValue}>{displayData?.email}</Text>
                 <Text style={styles.userInfoValue}>
-                  {isLoading
-                    ? "Loading..."
-                    : displayData?.email || "No email available"}
-                </Text>
-                <Text style={styles.userInfoValue}>
-                  {isLoading
-                    ? "Loading..."
-                    : displayData?.countrycode && displayData?.phone
+                  {displayData?.countrycode && displayData?.phone
                     ? `${displayData.countrycode} ${displayData.phone}`
-                    : "No phone available"}
+                    : ""}
                 </Text>
                 <Text style={styles.userInfoValue}>
-                  {isLoading
-                    ? "Loading..."
-                    : displayData?.dateOfBirth
+                  {displayData?.dateOfBirth
                     ? new Date(displayData.dateOfBirth).toLocaleDateString()
-                    : "No date available"}
+                    : ""}
                 </Text>
               </View>
             </View>
