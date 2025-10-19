@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Share,
   Alert,
+  PermissionsAndroid,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +24,9 @@ import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
 import { getUserStatus } from "../../utilis/userPermissionUtils";
 import { onGetProfileDetail } from "../../redux/auth/actions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { showToast } from "../../utilis/toastUtils";
+// @ts-ignore
+import PushNotification from "react-native-push-notification";
 import styles from "./styles";
 
 interface ProfileScreenProps {
@@ -37,6 +41,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   const [exploreNightLife, setExploreNightLife] = useState(true);
   const [notifications, setNotifications] = useState(false);
+  const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [userStatus, setUserStatus] = useState<
     "logged_in" | "skipped" | "guest" | null
@@ -69,6 +74,113 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       setIsLoading(false);
     }
   }, [getProfileDetail, getProfileDetailErr]);
+
+  // Load notification preference on component mount
+  useEffect(() => {
+    loadNotificationPreference();
+  }, []);
+
+  // Request notification permissions
+  const requestNotificationPermissions = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          {
+            title: 'Notification Permission',
+            message: 'This app needs notification permission to send you updates.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (error) {
+        console.log('Error requesting notification permission:', error);
+        return false;
+      }
+    }
+    return true; // iOS permissions are handled differently
+  };
+
+  // Configure push notifications
+  const configurePushNotifications = () => {
+    PushNotification.configure({
+      onRegister: function (token: any) {
+        console.log('TOKEN:', token);
+      },
+      onNotification: function (notification: any) {
+        console.log('NOTIFICATION:', notification);
+      },
+      permissions: {
+        alert: true,
+        badge: true,
+        sound: true,
+      },
+      popInitialNotification: true,
+      requestPermissions: true,
+    });
+  };
+
+  // Load notification preference from AsyncStorage
+  const loadNotificationPreference = async () => {
+    try {
+      const savedNotification = await AsyncStorage.getItem('notification_preference');
+      if (savedNotification !== null) {
+        const isEnabled = JSON.parse(savedNotification);
+        setNotifications(isEnabled);
+        
+        // Configure notifications based on preference
+        if (isEnabled) {
+          configurePushNotifications();
+        }
+      } else {
+        // Default to true if no preference is saved
+        setNotifications(true);
+        configurePushNotifications();
+      }
+    } catch (error) {
+      console.log('Error loading notification preference:', error);
+      setNotifications(true); // Default to true on error
+      configurePushNotifications();
+    }
+  };
+
+  // Save notification preference to AsyncStorage
+  const saveNotificationPreference = async (value: boolean) => {
+    try {
+      await AsyncStorage.setItem('notification_preference', JSON.stringify(value));
+      console.log('Notification preference saved:', value);
+    } catch (error) {
+      console.log('Error saving notification preference:', error);
+    }
+  };
+
+  // Check if notifications are enabled
+  const checkNotificationStatus = () => {
+    PushNotification.checkPermissions((permissions: any) => {
+      console.log('Notification permissions:', permissions);
+      if (permissions.alert && notifications) {
+        console.log('Notifications are enabled and permitted');
+      } else {
+        console.log('Notifications are disabled or not permitted');
+      }
+    });
+  };
+
+  // Send a test notification (for testing purposes)
+  const sendTestNotification = () => {
+    if (notifications) {
+      PushNotification.localNotification({
+        title: "Test Notification",
+        message: "This is a test notification from VibesReserve",
+        playSound: true,
+        soundName: 'default',
+        vibrate: true,
+        vibration: 300,
+      });
+    }
+  };
 
   const checkUserStatus = async () => {
     try {
@@ -107,8 +219,56 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     setExploreNightLife(!exploreNightLife);
   };
 
-  const handleNotificationsToggle = () => {
-    setNotifications(!notifications);
+  const handleNotificationsToggle = async () => {
+    if (isNotificationLoading) return; // Prevent multiple rapid toggles
+    
+    setIsNotificationLoading(true);
+    const newValue = !notifications;
+    
+    try {
+      if (newValue) {
+        // User wants to enable notifications
+        const hasPermission = await requestNotificationPermissions();
+        
+        if (!hasPermission) {
+          showToast('error', 'Notification permission denied. Please enable in settings.');
+          setIsNotificationLoading(false);
+          return;
+        }
+        
+        // Configure push notifications
+        configurePushNotifications();
+        
+        // Update local state
+        setNotifications(true);
+        
+        // Save to storage
+        await saveNotificationPreference(true);
+        
+        showToast('success', 'Notifications enabled successfully!');
+        console.log('Notifications enabled');
+      } else {
+        // User wants to disable notifications
+        // Cancel all scheduled notifications
+        PushNotification.cancelAllLocalNotifications();
+        
+        // Update local state
+        setNotifications(false);
+        
+        // Save to storage
+        await saveNotificationPreference(false);
+        
+        showToast('success', 'Notifications disabled successfully!');
+        console.log('Notifications disabled');
+      }
+    } catch (error) {
+      // Revert state on error
+      setNotifications(!newValue);
+      showToast('error', 'Failed to update notification preference');
+      console.log('Error updating notification preference:', error);
+    } finally {
+      setIsNotificationLoading(false);
+    }
   };
 
   const handleShareWithFriends = async () => {
@@ -371,19 +531,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     </TouchableOpacity>
                   )} */}
 
-                  {/* {renderMenuOption(
+                  {renderMenuOption(
                     "Notifications",
                     handleNotificationsToggle,
                     <Switch
                       value={notifications}
                       onValueChange={handleNotificationsToggle}
+                      disabled={isNotificationLoading}
                       trackColor={{
                         false: colors.disableGray,
                         true: colors.BtnBackground,
                       }}
-                      thumbColor={colors.white}
+                      thumbColor={isNotificationLoading ? colors.gray : colors.white}
                     />
-                  )} */}
+                  )}
 
                   {renderMenuOption(
                     "Share with Friends",

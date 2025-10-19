@@ -94,6 +94,10 @@ export const {
   deleteEventPartData,
   deleteEventPartError,
 
+  onDeleteEvent,
+  deleteEventData,
+  deleteEventError,
+
   onCategory,
   categoryData,
   categoryError,
@@ -476,5 +480,10 @@ export const {
   // Delete Promo Code Action Types
   "ON_DELETE_PROMO_CODE",
   "DELETE_PROMO_CODE_DATA",
-  "DELETE_PROMO_CODE_ERROR"
+  "DELETE_PROMO_CODE_ERROR",
+
+  // Delete Event Action Types
+  "ON_DELETE_EVENT",
+  "DELETE_EVENT_DATA",
+  "DELETE_EVENT_ERROR"
 );

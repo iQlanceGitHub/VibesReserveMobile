@@ -70,6 +70,9 @@ import {
   onDeleteEventPart,
   deleteEventPartData,
   deleteEventPartError,
+  onDeleteEvent,
+  deleteEventData,
+  deleteEventError,
   onCategory,
   categoryData,
   categoryError,
@@ -1016,6 +1019,53 @@ function* DeleteEventPartSaga({
     yield put(displayLoading(false));
   } catch (error) {
     yield put(deleteEventPartError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface DeleteEventPayload {
+  id: string;
+}
+
+function* DeleteEventSaga({
+  payload,
+}: {
+  payload: DeleteEventPayload;
+}): SagaIterator {
+  try {
+    console.log("🗑️ DELETE EVENT SAGA STARTED - payload:", payload);
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🗑️ DELETE EVENT - params:", params);
+
+    const response = yield call(fetchDelete, {
+      url: `${baseurl}${`user/deleteevent`}`,
+      params,
+    });
+
+    console.log("🗑️ DELETE EVENT - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("🗑️ DELETE EVENT - SUCCESS, dispatching deleteEventData");
+      yield put(deleteEventData(response));
+    } else {
+      console.log("🗑️ DELETE EVENT - ERROR, dispatching deleteEventError");
+      yield put(deleteEventError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("🗑️ DELETE EVENT - CATCH ERROR:", error);
+    yield put(deleteEventError(error));
     yield put(displayLoading(false));
   }
 }
@@ -2388,6 +2438,7 @@ function* authSaga() {
   yield takeLatest(onGetDetailEvent().type as any, GetDetailEventSaga);
   yield takeLatest(onUpdateEvent().type as any, UpdateEventSaga);
   yield takeLatest(onDeleteEventPart().type as any, DeleteEventPartSaga);
+  yield takeLatest(onDeleteEvent().type as any, DeleteEventSaga);
   yield takeLatest(onCategory().type as any, CategorySaga);
   yield takeLatest(onFacility().type as any, FacilitySaga);
   yield takeLatest(onTogglefavorite().type as any, TogglefavoriteSaga);

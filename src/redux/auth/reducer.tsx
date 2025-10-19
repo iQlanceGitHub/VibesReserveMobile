@@ -49,6 +49,8 @@ import {
   updateEventError,
   deleteEventPartData,
   deleteEventPartError,
+  deleteEventData,
+  deleteEventError,
   categoryData,
   categoryError,
   facilityData,
@@ -180,6 +182,8 @@ export const initialState = {
   updateEventErr: "",
   deleteEventPart: "",
   deleteEventPartErr: "",
+  deleteEvent: "",
+  deleteEventErr: "",
 
   category: "",
   categoryErr: "",
@@ -464,6 +468,12 @@ const authReducer = handleActions(
     }),
     [deleteEventPartError().type]: produce((draft, action) => {
       draft.deleteEventPartErr = action.payload;
+    }),
+    [deleteEventData().type]: produce((draft, action) => {
+      draft.deleteEvent = action.payload;
+    }),
+    [deleteEventError().type]: produce((draft, action) => {
+      draft.deleteEventErr = action.payload;
     }),
 
     // payload category

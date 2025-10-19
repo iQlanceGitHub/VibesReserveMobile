@@ -26,4 +26,5 @@ export const api_endpoint: Record<string, unknown> = {
   getDetailEvent: "user/getdetailevent",
   updateEvent: "user/updateeventclubpub",
   deleteEventPart: "user/deleteeventpart",
+  deleteEvent: "user/deleteevent",
 };
