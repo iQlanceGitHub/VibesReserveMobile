@@ -101,6 +101,30 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
     navigation?.goBack();
   };
 
+  // Date validation function
+  const validateDates = (startDateStr: string, endDateStr: string) => {
+    if (!startDateStr || !endDateStr) return true;
+
+    try {
+      const parseDate = (dateStr: string) => {
+        const [day, month, year] = dateStr.split("/");
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      };
+
+      const startDate = parseDate(startDateStr);
+      const endDate = parseDate(endDateStr);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return false;
+      }
+
+      return endDate >= startDate;
+    } catch (error) {
+      console.log("Error validating dates:", error);
+      return false;
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     // For discount field, only allow numbers
     if (field === "discount") {
@@ -131,6 +155,13 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
         discountValue < 1 ||
         discountValue > 100,
     };
+
+    // Validate date constraints
+    if (formData.startDate.trim() && formData.endDate.trim() && !validateDates(formData.startDate, formData.endDate)) {
+      showToast("error", "End date must be same or after start date");
+      setErrors((prev) => ({ ...prev, endDate: true }));
+      return false;
+    }
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error);
@@ -209,9 +240,30 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
       const formattedDate = `${day}/${month}/${year}`;
 
       if (datePickerMode === "start") {
-        handleInputChange("startDate", formattedDate);
+        setFormData(prev => ({ ...prev, startDate: formattedDate }));
+        // Clear start date error when start date changes
+        if (errors.startDate) {
+          setErrors((prev) => ({ ...prev, startDate: false }));
+        }
+        // Clear end date error when start date changes
+        if (errors.endDate) {
+          setErrors((prev) => ({ ...prev, endDate: false }));
+        }
+        // Validate dates if end date is already set
+        if (formData.endDate && !validateDates(formattedDate, formData.endDate)) {
+          setErrors((prev) => ({ ...prev, endDate: true }));
+          showToast("error", "End date must be same or after start date");
+        }
       } else {
-        handleInputChange("endDate", formattedDate);
+        setFormData(prev => ({ ...prev, endDate: formattedDate }));
+        // Validate dates if start date is already set
+        if (formData.startDate && !validateDates(formData.startDate, formattedDate)) {
+          setErrors((prev) => ({ ...prev, endDate: true }));
+          showToast("error", "End date must be same or after start date");
+        } else {
+          // Clear error if validation passes
+          setErrors((prev) => ({ ...prev, endDate: false }));
+        }
       }
     }
   };
@@ -280,11 +332,29 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
                   label="Start Date *"
                   placeholder="Select date"
                   value={formData.startDate}
-                  onChangeText={(text) => handleInputChange("startDate", text)}
+                  onChangeText={(text) => {
+                    console.log("Start date selected:", text);
+                    setFormData(prev => ({ ...prev, startDate: text }));
+                    // Clear errors when user types
+                    if (errors.startDate) {
+                      setErrors((prev) => ({ ...prev, startDate: false }));
+                    }
+                    // Validate dates if end date is set
+                    if (formData.endDate && !validateDates(text, formData.endDate)) {
+                      setErrors((prev) => ({ ...prev, endDate: true }));
+                      showToast(
+                        "error",
+                        "End date must be same or after start date"
+                      );
+                    }
+                  }}
                   error={errors.startDate}
                   message={errors.startDate ? "Start date is required" : ""}
                   leftImage=""
                   style={styles.datePickerWrapper}
+                  allowFutureDates={true}
+                  minDate={new Date()}
+                  maxDate={new Date(2035, 11, 31)}
                 />
                 <TouchableOpacity
                   style={styles.datePickerRightIcon}
@@ -299,11 +369,48 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
                   label="End Date *"
                   placeholder="Select date"
                   value={formData.endDate}
-                  onChangeText={(text) => handleInputChange("endDate", text)}
+                  onChangeText={(text) => {
+                    console.log("End date selected:", text);
+                    setFormData(prev => ({ ...prev, endDate: text }));
+                    // Clear errors when user types
+                    if (errors.endDate) {
+                      setErrors((prev) => ({ ...prev, endDate: false }));
+                    }
+                    // Validate dates if start date is set
+                    if (formData.startDate && !validateDates(formData.startDate, text)) {
+                      setErrors((prev) => ({ ...prev, endDate: true }));
+                      showToast(
+                        "error",
+                        "End date must be same or after start date"
+                      );
+                    }
+                  }}
                   error={errors.endDate}
-                  message={errors.endDate ? "End date is required" : ""}
+                  message={
+                    errors.endDate
+                      ? "End date must be same or after start date"
+                      : ""
+                  }
                   leftImage=""
                   style={styles.datePickerWrapper}
+                  allowFutureDates={true}
+                  minDate={
+                    formData.startDate
+                      ? (() => {
+                          try {
+                            const [day, month, year] = formData.startDate.split("/");
+                            return new Date(
+                              parseInt(year),
+                              parseInt(month) - 1,
+                              parseInt(day)
+                            );
+                          } catch (error) {
+                            return new Date();
+                          }
+                        })()
+                      : new Date()
+                  }
+                  maxDate={new Date(2035, 11, 31)}
                 />
                 <TouchableOpacity
                   style={styles.datePickerRightIcon}
@@ -380,8 +487,7 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
                   value={(() => {
                     try {
                       if (datePickerMode === "start" && formData.startDate) {
-                        const [day, month, year] =
-                          formData.startDate.split("/");
+                        const [day, month, year] = formData.startDate.split("/");
                         return new Date(
                           parseInt(year),
                           parseInt(month) - 1,
@@ -408,8 +514,7 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
                   minimumDate={(() => {
                     try {
                       if (datePickerMode === "end" && formData.startDate) {
-                        const [day, month, year] =
-                          formData.startDate.split("/");
+                        const [day, month, year] = formData.startDate.split("/");
                         return new Date(
                           parseInt(year),
                           parseInt(month) - 1,

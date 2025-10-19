@@ -95,6 +95,63 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: Platform.OS === "ios" ? verticalScale(0) : verticalScale(10),
   },
+  futureDateWarning: {
+    backgroundColor: colors.red || '#FFF3CD',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.red || '#FFA000',
+  },
+  futureDateWarningText: {
+    color: colors.red || '#856404',
+    fontSize: 14,
+    lineHeight: 18,
+  },
+ 
+ 
+  pastDateWarning: {
+    color: colors.red || '#FF3B30',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 8,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  submitWarning: {
+    color: colors.red || '#FF3B30',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  // Custom Date Input Styles
+  dateInputButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "transparent",
+    borderRadius: 90,
+    borderWidth: 1,
+    borderColor: "#FFFFFF33",
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    marginTop: 8,
+  },
+  dateInputText: {
+    flex: 1,
+    color: colors.white,
+    fontSize: 16,
+    fontFamily: fonts.medium,
+  },
+  dateInputPlaceholder: {
+    color: colors.textColor,
+  },
+  errorText: {
+    color: colors.red,
+    fontSize: 12,
+    fontFamily: fonts.regular,
+    marginTop: 5,
+  },
 });
 
 export default styles;
