@@ -219,7 +219,7 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
                   numberOfLines={3}
                   ellipsizeMode="tail"
                 >
-                  {event.details}
+                  {event?.type !== 'VIP Entry' && event?.type !== 'Booth' ? event.details : event.address}
                 </Text>
               </View>
 

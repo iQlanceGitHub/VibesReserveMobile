@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Modal,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { colors } from "../../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -61,6 +62,28 @@ const AddPromotionalCode: React.FC<AddPromotionalCodeProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerMode, setDatePickerMode] = useState<"start" | "end">(
     "start"
+  );
+
+  // Reset form when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Add Promotional Code screen focused - resetting form');
+      setFormData({
+        promotionalCode: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        discount: "",
+      });
+      setErrors({
+        promotionalCode: false,
+        startDate: false,
+        endDate: false,
+        discount: false,
+      });
+      setDiscountType("percentage");
+      setShowDatePicker(false);
+    }, [])
   );
 
   // Handle successful creation

@@ -585,7 +585,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 // Show normal menu for logged in users
                 <>
                   {renderMenuOption(
-                    "Explore Night Life",
+                    "Become a Host",
                     handleExploreNightLifeToggle,
                     <TouchableOpacity
                       style={[

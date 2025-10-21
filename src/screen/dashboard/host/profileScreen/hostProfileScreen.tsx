@@ -441,7 +441,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
 
           <View style={styles.menuSection}>
             {renderMenuOption(
-              "Become a Host",
+              "Become a User",
               handleBecomeHostToggle,
               <TouchableOpacity
                 style={[

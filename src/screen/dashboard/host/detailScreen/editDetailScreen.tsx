@@ -871,22 +871,63 @@ const EditDetailScreen = () => {
   };
 
   const handleSave = () => {
-    // Validation
+    // Debug logging for all form fields
+    console.log("=== FORM VALIDATION DEBUG ===");
+    console.log("Type:", type);
+    console.log("Name:", name, "- Empty:", !name.trim());
+    console.log("Details:", details, "- Empty:", !details.trim());
+    console.log("Entry Fee:", entryFee, "- Empty:", !entryFee.trim());
+    console.log("Discount Price:", discountPrice, "- Empty:", !discountPrice.trim());
+    console.log("Event Capacity:", eventCapacity, "- Empty:", !eventCapacity.trim());
+    console.log("Address:", address, "- Empty:", !address.trim());
+    console.log("Start Date:", startDate, "- Empty:", !startDate.trim());
+    console.log("End Date:", endDate, "- Empty:", !endDate.trim());
+    console.log("Upload Photos:", uploadPhotos, "- Count:", uploadPhotos.length);
+    console.log("Booths:", booths, "- Count:", booths.length);
+    console.log("Events:", events, "- Count:", events.length);
+    console.log("Enable Booths:", enableBooths);
+    console.log("Enable Tickets:", enableTickets);
+
+    // Validation - discount price only required for Booth and VIP Entry
     const newErrors = {
       name: !name.trim(),
       details: !details.trim(),
       entryFee: !entryFee.trim(),
-      discountPrice: !discountPrice.trim(),
+      discountPrice: (type === 'Booth' || type === 'VIP Entry') ? !discountPrice.trim() : false,
       eventCapacity: !eventCapacity.trim(),
       address: !address.trim(),
       startDate: !startDate.trim(),
       endDate: !endDate.trim(),
     };
 
+    console.log("=== VALIDATION ERRORS ===");
+    console.log("Name error:", newErrors.name);
+    console.log("Details error:", newErrors.details);
+    console.log("Entry Fee error:", newErrors.entryFee);
+    console.log("Discount Price error:", newErrors.discountPrice);
+    console.log("Event Capacity error:", newErrors.eventCapacity);
+    console.log("Address error:", newErrors.address);
+    console.log("Start Date error:", newErrors.startDate);
+    console.log("End Date error:", newErrors.endDate);
+
     setErrors(newErrors);
 
     if (Object.values(newErrors).some(error => error)) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      const missingFields = [];
+      if (newErrors.name) missingFields.push("Name");
+      if (newErrors.details) missingFields.push("Details");
+      if (newErrors.entryFee) missingFields.push("Entry Fee");
+      if (newErrors.discountPrice && (type === 'Booth' || type === 'VIP Entry')) missingFields.push("Discount Price");
+      if (newErrors.eventCapacity) missingFields.push("Event Capacity");
+      if (newErrors.address) missingFields.push("Address");
+      if (newErrors.startDate) missingFields.push("Start Date");
+      if (newErrors.endDate) missingFields.push("End Date");
+      
+      console.log("=== MISSING FIELDS ===");
+      console.log("Missing fields:", missingFields);
+      console.log("Type:", type, "- Discount required:", (type === 'Booth' || type === 'VIP Entry'));
+      
+      Alert.alert('Error', `Please fill in all required fields. Missing: ${missingFields.join(", ")}`);
       return;
     }
 
