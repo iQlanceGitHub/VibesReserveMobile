@@ -441,7 +441,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
             <View style={styles.businessProfileContainer}>
               <View style={styles.businessProfileContent}>
                 <Text style={styles.businessProfileTitle}>
-                  Please complete your business profile for activating business profile
+                Please complete your business profile to gain access to the Host section.
                 </Text>
                 <TouchableOpacity 
                   style={styles.completeProfileButton}
@@ -462,7 +462,8 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
             <View style={styles.businessProfileContainer}>
               <View style={styles.businessProfileContent}>
                 <Text style={styles.businessProfileTitle}>
-                  Thank you for updating your profile. Now your profile is under review. So once your profile is active you can access further.
+                Thank you for updating your profile. Your profile is currently under review. You will be able to access the Host section once it has been approved by the admin.
+
                 </Text>
               </View>
             </View>

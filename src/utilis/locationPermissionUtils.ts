@@ -149,6 +149,36 @@ export class LocationPermissionManager {
   }
 
   /**
+   * Open location settings directly
+   */
+  static async openLocationSettings() {
+    try {
+      if (Platform.OS === 'ios') {
+        // For iOS, openSettings() opens the app's settings page where location permissions are shown
+        await openSettings();
+      } else if (Platform.OS === 'android') {
+        // For Android, try to open location settings directly
+        const locationSettingsUrl = 'android.settings.LOCATION_SOURCE_SETTINGS';
+        const canOpen = await Linking.canOpenURL(locationSettingsUrl);
+        
+        if (canOpen) {
+          await Linking.openURL(locationSettingsUrl);
+        } else {
+          // Fallback to app settings if location settings can't be opened directly
+          await openSettings();
+        }
+      }
+    } catch (error) {
+      // Fallback to general app settings if anything fails
+      try {
+        await openSettings();
+      } catch (fallbackError) {
+        console.error('Failed to open settings:', fallbackError);
+      }
+    }
+  }
+
+  /**
    * Show permission denied alert with option to open settings
    */
   static showPermissionDeniedAlert(
@@ -172,7 +202,7 @@ export class LocationPermissionManager {
             if (onOpenSettings) {
               onOpenSettings();
             } else {
-              openSettings();
+              this.openLocationSettings();
             }
           }
         },

@@ -735,7 +735,7 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 message={businessDescriptionErrorMessage}
               />
 
-              <Text style={styles.documentLabel}>Upload Document *</Text>
+              <Text style={styles.documentLabel}>Upload a business licence *</Text>
               <View
                 style={[
                   styles.documentContainer,

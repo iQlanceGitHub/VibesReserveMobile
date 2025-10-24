@@ -640,7 +640,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                 leftImage={<Calender />}
                 style={styles.inputField}
               />
-              <Text style={styles.documentLabel}>Upload Document</Text>
+              {/* <Text style={styles.documentLabel}>Upload Document</Text>
               <View style={styles.documentContainer}>
                 <View style={styles.documentThumbnail}>
                   <View style={styles.documentImage}>
@@ -669,7 +669,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                 >
                   <Text style={styles.updateButtonText}>Update</Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

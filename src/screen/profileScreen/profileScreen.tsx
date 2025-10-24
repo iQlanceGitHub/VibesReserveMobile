@@ -57,8 +57,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       checkUserStatus();
-      fetchProfileDetail();
-    }, [])
+      // Only fetch profile detail for logged in users
+      if (userStatus === "logged_in") {
+        fetchProfileDetail();
+      }
+    }, [userStatus])
   );
 
   useEffect(() => {
@@ -73,8 +76,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       setIsLoading(false);
     } else if (getProfileDetailErr) {
       setIsLoading(false);
+      // Don't show toast for skipped users or when userStatus is still loading
+      if (userStatus !== "skipped" && userStatus !== null) {
+        showToast("error", "Failed to fetch profile details. Please try again.");
+      }
     }
-  }, [getProfileDetail, getProfileDetailErr]);
+  }, [getProfileDetail, getProfileDetailErr, userStatus]);
 
   // Load notification preference on component mount
   useEffect(() => {
@@ -233,8 +240,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const fetchProfileDetail = () => {
-    setIsLoading(true);
-    dispatch(onGetProfileDetail());
+    // Only fetch profile detail for logged in users
+    if (userStatus === "logged_in") {
+      setIsLoading(true);
+      dispatch(onGetProfileDetail());
+    } else {
+      setIsLoading(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -481,7 +493,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     Loading profile...
                   </Text>
                 </View>
-              ) : getProfileDetailErr ? (
+              ) : getProfileDetailErr && userStatus !== "skipped" ? (
                 <View
                   style={{
                     flex: 1,
@@ -526,21 +538,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   <View style={styles.profileImageContainer}>
                     <Image
                       source={{
-                        uri: profileData?.profilePicture,
+                        uri: profileData?.profilePicture || "https://via.placeholder.com/100x100/6C5CE7/FFFFFF?text=GU",
                       }}
                       style={styles.profileImage}
                     />
-                    <TouchableOpacity
-                      style={styles.editIconContainer}
-                      onPress={handleEditProfile}
-                    >
-                      <EditIcon width={16} height={16} />
-                    </TouchableOpacity>
+                    {userStatus === "logged_in" && (
+                      <TouchableOpacity
+                        style={styles.editIconContainer}
+                        onPress={handleEditProfile}
+                      >
+                        <EditIcon width={16} height={16} />
+                      </TouchableOpacity>
+                    )}
                   </View>
 
                   <View style={styles.userInfoContainer}>
                     <Text style={styles.userInfoName}>
-                      {profileData?.fullName || "User Name"}
+                      {profileData?.fullName || "Guest User"}
                     </Text>
                     <Text style={styles.userInfoValue}>
                       {profileData?.email || "user@example.com"}
@@ -560,7 +574,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               )}
             </View>
 
-            <View style={styles.licenseSection}>
+            {/* <View style={styles.licenseSection}>
               <View style={styles.licenseBorderContainer}>
                 {profileData?.userDocument ? (
                   <Image
@@ -576,11 +590,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   </View>
                 )}
               </View>
-            </View>
+            </View> */}
             <View style={styles.menuSection}>
               {userStatus === "skipped" ? (
-                // Show Login option for skipped users
-                renderMenuOption("Sign In", handleLogin, <RightArrow />, true)
+                // Show Login option for skipped users with 2 arrows
+                renderMenuOption("Sign In", handleLogin, 
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={{ 
+                      width: 24, 
+                      height: 24, 
+                      borderRadius: 12, 
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <RightArrow width={16} height={16} />
+                    </View>
+                    {/* <View style={{ 
+                      width: 24, 
+                      height: 24, 
+                      borderRadius: 12, 
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <RightArrow width={16} height={16} />
+                    </View> */}
+                  </View>, 
+                  false
+                )
               ) : (
                 // Show normal menu for logged in users
                 <>
