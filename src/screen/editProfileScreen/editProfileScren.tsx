@@ -620,6 +620,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                 message=""
                 leftImage={<EmailIcon />}
                 style={styles.inputField}
+                editable={false}
               />
               <PhoneNumberInput
                 label="Phone Number *"

@@ -479,6 +479,13 @@ const EditDetailScreen = () => {
     fetchFacilities();
   }, [fetchCategories, fetchFacilities]);
 
+  // Clear details error when type changes to Booth or VIP Entry
+  useEffect(() => {
+    if (type === "Booth" || type === "VIP Entry") {
+      setErrors((prev) => ({ ...prev, details: false }));
+    }
+  }, [type]);
+
   // Initialize facilities list when facilities are loaded
   useEffect(() => {
     if (facilities && facilities.length > 0) {
@@ -691,7 +698,7 @@ const EditDetailScreen = () => {
         const eventType = eventData.type || 'Event';
         if (eventType === 'Booth' || eventType === 'VIP Entry') {
           // For Booth and VIP Entry, discount price might be in details field
-          setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || eventData.details?.toString() || '');
+          setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || '');
         } else {
           // For other types, use normal discount price fields
           setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || '');
@@ -888,10 +895,10 @@ const EditDetailScreen = () => {
     console.log("Enable Booths:", enableBooths);
     console.log("Enable Tickets:", enableTickets);
 
-    // Validation - discount price only required for Booth and VIP Entry
+    // Validation - details optional for Booth/VIP Entry, required for Club/Event
     const newErrors = {
       name: !name.trim(),
-      details: !details.trim(),
+      details: (type === "Club" || type === "Event") ? !details.trim() : false, // Required for Club/Event, optional for Booth/VIP Entry
       entryFee: !entryFee.trim(),
       discountPrice: (type === 'Booth' || type === 'VIP Entry') ? !discountPrice.trim() : false,
       eventCapacity: !eventCapacity.trim(),
@@ -922,6 +929,18 @@ const EditDetailScreen = () => {
       if (newErrors.address) missingFields.push("Address");
       if (newErrors.startDate) missingFields.push("Start Date");
       if (newErrors.endDate) missingFields.push("End Date");
+
+      // Safety check: Remove "Details" from missing fields if type is Booth or VIP Entry
+      if (type === "Booth" || type === "VIP Entry") {
+        const filteredMissingFields = missingFields.filter(field => field !== "Details");
+        if (filteredMissingFields.length !== missingFields.length) {
+          console.log("=== REMOVED DETAILS FROM MISSING FIELDS ===");
+          console.log("Original missing fields:", missingFields);
+          console.log("Filtered missing fields:", filteredMissingFields);
+          missingFields.length = 0;
+          missingFields.push(...filteredMissingFields);
+        }
+      }
       
       console.log("=== MISSING FIELDS ===");
       console.log("Missing fields:", missingFields);
@@ -1032,10 +1051,11 @@ const EditDetailScreen = () => {
               options={types}
               selectedValue={type}
               onSelect={(value) => {
-                setType(typeof value === "string" ? value : value.name);
-                if (errors.name) {
-                  setErrors((prev) => ({ ...prev, name: false }));
-                }
+                showToast("error", 'You can not change the type of the event');
+                // setType(typeof value === "string" ? value : value.name);
+                // if (errors.name) {
+                //   setErrors((prev) => ({ ...prev, name: false }));
+                // }
               }}
               error={
                 !type ||
@@ -1149,6 +1169,21 @@ const EditDetailScreen = () => {
                 />
               </View>
             )}
+
+<DetailsInput
+                  label="Details"
+                  placeholder="Enter here"
+                  value={details}
+                  onChangeText={(text) => {
+                    setDetails(text);
+                    if (errors.details) {
+                      setErrors((prev) => ({ ...prev, details: false }));
+                    }
+                  }}
+                  error={errors.details}
+                  message={errors.details ? "Details are required" : ""}
+                  required={false}
+                />
 
             {/* Date Pickers */}
             <View style={styles.formElement}>
@@ -1291,7 +1326,9 @@ const EditDetailScreen = () => {
                   />
                 </View>
 
-                <View style={styles.formElement}>
+               
+
+                {/* <View style={styles.formElement}>
                   <CustomeTextInput
                     label="Discount Price"
                     placeholder="Enter discount price"
@@ -1307,7 +1344,7 @@ const EditDetailScreen = () => {
                     leftImage=""
                     kType="numeric"
                   />
-                </View>
+                </View> */}
 
                 <View style={styles.formElement}>
                   <CustomeTextInput

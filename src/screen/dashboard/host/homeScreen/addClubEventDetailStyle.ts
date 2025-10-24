@@ -651,6 +651,36 @@ const addClubEventDetailStyle = StyleSheet.create({
   textInputError: {
     borderColor: colors.red,
   },
+  // Category Selection Styles
+  categoryButton: {
+    backgroundColor: colors.transparent,
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: horizontalScale(16),
+    borderRadius: horizontalScale(20),
+    borderWidth: 1,
+    borderColor: colors.white,
+    marginRight: horizontalScale(8),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryButtonSelected: {
+    backgroundColor: colors.violate,
+    borderColor: colors.violate,
+    shadowColor: colors.violate,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  categoryButtonText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.Medium,
+    color: colors.textColor,
+  },
+  categoryButtonTextSelected: {
+    color: colors.white,
+    fontFamily: fonts.SemiBold,
+  },
 });
 
 export default addClubEventDetailStyle;

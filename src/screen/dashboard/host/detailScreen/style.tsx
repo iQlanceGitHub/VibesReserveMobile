@@ -569,7 +569,7 @@ export default StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.gradient_dark_purple,
   },
   loadingText: {
     fontSize: fontScale(16),

@@ -125,6 +125,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [endDate, setEndDate] = useState("");
   const [entryFee, setEntryFee] = useState("");
   const [eventCapacity, setEventCapacity] = useState("");
+  const [ticketType, setTicketType] = useState("");
+  const [discountPrice, setDiscountPrice] = useState("");
   const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState({
     type: "Point",
@@ -209,6 +211,13 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     fetchCategories();
     fetchFacilities();
   }, [fetchCategories, fetchFacilities]);
+
+  // Clear details error when type changes to Booth or VIP Entry
+  useEffect(() => {
+    if (type === "Booth" || type === "VIP Entry") {
+      setErrors((prev) => ({ ...prev, details: false }));
+    }
+  }, [type]);
 
   // Handle address selection from GoogleAddressAutocomplete
   const handleAddressSelect = (selectedAddress: any) => {
@@ -324,7 +333,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
     const newErrors = {
       name: !name.trim(),
-      details: !details.trim(),
+      details: (type === "Club" || type === "Event") ? !details.trim() : false, // Required for Club/Event, optional for Booth/VIP Entry
       entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
       eventCapacity:
         !eventCapacity.trim() ||
@@ -367,11 +376,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         Number(eventCapacity) <= 0
       )
         missingFields.push("Capacity");
-      if (!details.trim() || isNaN(Number(details)))
-        missingFields.push("Discount Price");
+      // Discount price is now optional - no validation required
     } else {
       if (!name.trim()) missingFields.push("Name");
-      if (!details.trim()) missingFields.push("Details");
+      if (!details.trim()) missingFields.push("Details"); // Required for Club/Event types
       if (!entryFee.trim() || isNaN(Number(entryFee)))
         missingFields.push("Entry Fee");
       if (
@@ -409,7 +417,24 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       if (enableTickets && events.length === 0) missingFields.push("Tickets");
     }
 
+    // Safety check: Remove "Details" from missing fields if type is Booth or VIP Entry
+    if (type === "Booth" || type === "VIP Entry") {
+      const filteredMissingFields = missingFields.filter(field => field !== "Details");
+      if (filteredMissingFields.length !== missingFields.length) {
+        console.log("=== REMOVED DETAILS FROM MISSING FIELDS ===");
+        console.log("Original missing fields:", missingFields);
+        console.log("Filtered missing fields:", filteredMissingFields);
+        missingFields.length = 0;
+        missingFields.push(...filteredMissingFields);
+      }
+    }
+
     if (missingFields.length > 0) {
+      console.log("=== MISSING FIELDS DEBUG ===");
+      console.log("Type:", type);
+      console.log("Missing fields:", missingFields);
+      console.log("Details field value:", details);
+      console.log("Details error state:", newErrors.details);
       showToast("error", `Please fill in: ${missingFields.join(", ")}`);
       setErrors((prev) => ({ ...prev, ...newErrors }));
       return false;
@@ -427,11 +452,11 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         if (!booth.boothType.trim()) missingBoothFields.push("Booth Type");
         if (!booth.boothPrice.trim() || isNaN(Number(booth.boothPrice)))
           missingBoothFields.push("Booth Price");
-        if (
-          !booth.discountedPrice.trim() ||
-          isNaN(Number(booth.discountedPrice))
-        )
-          missingBoothFields.push("Discounted Price");
+        // if (
+        //   !booth.discountedPrice.trim() ||
+        //   isNaN(Number(booth.discountedPrice))
+        // )
+        //   missingBoothFields.push("Discounted Price");
         if (!booth.capacity.trim() || isNaN(Number(booth.capacity)))
           missingBoothFields.push("Capacity");
         if (booth.boothImages.length === 0)
@@ -630,8 +655,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         if (validAssets.length < response.assets.length) {
           showToast(
             "warning",
-            `${
-              response.assets.length - validAssets.length
+            `${response.assets.length - validAssets.length
             } images were too large and skipped`
           );
         }
@@ -1023,8 +1047,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     const selectedFacilities =
       type !== "Booth" && type !== "VIP Entry"
         ? facilitiesList
-            .filter((facility) => facility.selected)
-            .map((facility) => facility._id)
+          .filter((facility) => facility.selected)
+          .map((facility) => facility._id)
         : [];
 
     // Use dynamic coordinates from address selection
@@ -1228,6 +1252,12 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       photos: uploadPhotos, // Include photos for all types
     };
 
+    // Add ticket type and discount price for Booth and VIP Entry types
+    if (type === "Booth" || type === "VIP Entry") {
+      eventData.ticketType = ticketType;
+      eventData.discountPrice = discountPrice;
+    }
+
     // Add facilities only for Club and Event types
     if (type === "Club" || type === "Event") {
       eventData.facilities = selectedFacilities;
@@ -1426,14 +1456,15 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               }
               message={
                 !type ||
-                (type !== "Club" &&
-                  type !== "Event" &&
-                  type !== "VIP Entry" &&
-                  type !== "Booth")
+                  (type !== "Club" &&
+                    type !== "Event" &&
+                    type !== "VIP Entry" &&
+                    type !== "Booth")
                   ? "Please select a type"
                   : ""
               }
             />
+
 
             {/* Show different fields based on type */}
             {type !== "Booth" && type !== "VIP Entry" && (
@@ -1538,6 +1569,26 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </View>
             )}
 
+
+
+{type === "Booth" || type === "VIP Entry" ? (
+              <DetailsInput
+                label="Details"
+                placeholder="Enter here"
+                value={details}
+                onChangeText={(text) => {
+                  setDetails(text);
+                  if (errors.details) {
+                    setErrors((prev) => ({ ...prev, details: false }));
+                  }
+                }}
+                error={errors.details}
+                message={errors.details ? "Details are required" : ""}
+                required={false}
+              />
+            ) : null}
+
+
             <View style={addClubEventDetailStyle.formElement}>
               <DatePickerInput
                 label="Start Date"
@@ -1607,17 +1658,17 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 minDate={
                   startDate
                     ? (() => {
-                        try {
-                          const [day, month, year] = startDate.split("/");
-                          return new Date(
-                            parseInt(year),
-                            parseInt(month) - 1,
-                            parseInt(day)
-                          );
-                        } catch (error) {
-                          return new Date();
-                        }
-                      })()
+                      try {
+                        const [day, month, year] = startDate.split("/");
+                        return new Date(
+                          parseInt(year),
+                          parseInt(month) - 1,
+                          parseInt(day)
+                        );
+                      } catch (error) {
+                        return new Date();
+                      }
+                    })()
                     : new Date()
                 }
                 maxDate={new Date(2035, 11, 31)}
@@ -1782,9 +1833,38 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 </View>
 
                 <View style={addClubEventDetailStyle.formElement}>
+                  <Text style={addClubEventDetailStyle.sectionLabel}>Ticket Type*</Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ maxHeight: 50 }}
+                    contentContainerStyle={{ paddingRight: 16 }}
+                  >
+                    {eventTypes.map((category) => (
+                      <TouchableOpacity
+                        key={category.id}
+                        style={[
+                          addClubEventDetailStyle.categoryButton,
+                          ticketType === category.id && addClubEventDetailStyle.categoryButtonSelected
+                        ]}
+                        onPress={() => setTicketType(category.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          addClubEventDetailStyle.categoryButtonText,
+                          ticketType === category.id && addClubEventDetailStyle.categoryButtonTextSelected
+                        ]}>
+                          {category.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+
+                {/* <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Discount Price"
-                    placeholder="Enter discount price"
+                    label="Details (Optional)"
+                    placeholder="Enter details"
                     value={details}
                     onChangeText={(text) => {
                       setDetails(text);
@@ -1792,14 +1872,27 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                         setErrors((prev) => ({ ...prev, details: false }));
                       }
                     }}
-                    error={errors.details}
-                    message={
-                      errors.details ? "Valid discount price is required" : ""
-                    }
+                    error={false}
+                    message=""
+                    leftImage=""
+                    kType="default"
+                  />
+                </View> */}
+
+                {/* <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Discount Price (Optional)"
+                    placeholder="Enter discount price"
+                    value={discountPrice}
+                    onChangeText={(text) => {
+                      setDiscountPrice(text);
+                    }}
+                    error={false}
+                    message=""
                     leftImage=""
                     kType="numeric"
                   />
-                </View>
+                </View> */}
               </>
             )}
 
@@ -1815,7 +1908,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                       style={[
                         addClubEventDetailStyle.toggleButton,
                         enableBooths &&
-                          addClubEventDetailStyle.toggleButtonActive,
+                        addClubEventDetailStyle.toggleButtonActive,
                       ]}
                       onPress={() => {
                         setEnableBooths(!enableBooths);
@@ -1829,7 +1922,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                         style={[
                           addClubEventDetailStyle.toggleButtonText,
                           enableBooths &&
-                            addClubEventDetailStyle.toggleButtonTextActive,
+                          addClubEventDetailStyle.toggleButtonTextActive,
                         ]}
                       >
                         {enableBooths ? "Enabled" : "Disabled"}
@@ -1880,7 +1973,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                       style={[
                         addClubEventDetailStyle.toggleButton,
                         enableTickets &&
-                          addClubEventDetailStyle.toggleButtonActive,
+                        addClubEventDetailStyle.toggleButtonActive,
                       ]}
                       onPress={() => {
                         setEnableTickets(!enableTickets);
@@ -1894,7 +1987,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                         style={[
                           addClubEventDetailStyle.toggleButtonText,
                           enableTickets &&
-                            addClubEventDetailStyle.toggleButtonTextActive,
+                          addClubEventDetailStyle.toggleButtonTextActive,
                         ]}
                       >
                         {enableTickets ? "Enabled" : "Disabled"}
@@ -1998,7 +2091,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                           style={[
                             addClubEventDetailStyle.facilityCheckbox,
                             facility.selected &&
-                              addClubEventDetailStyle.facilityCheckedBox,
+                            addClubEventDetailStyle.facilityCheckedBox,
                           ]}
                         >
                           {facility.selected && (

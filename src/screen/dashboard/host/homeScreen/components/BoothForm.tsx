@@ -311,6 +311,17 @@ const BoothForm: React.FC<BoothFormProps> = ({
         </ScrollView>
       </View>
 
+      <CustomeTextInput
+        label="Discounted Price"
+        placeholder="Enter discounted price"
+        value={booth.discountedPrice}
+        onChangeText={(text) => onUpdate(booth.id, 'discountedPrice', text)}
+        kType="numeric"
+        error={false}
+        message=""
+        leftImage=""
+      />
+
       <View style={styles.inputRow}>
         <View style={styles.inputHalf}>
           <CustomeTextInput
@@ -337,17 +348,6 @@ const BoothForm: React.FC<BoothFormProps> = ({
           />
         </View>
       </View>
-
-      <CustomeTextInput
-        label="Discounted Price"
-        placeholder="Enter discounted price"
-        value={booth.discountedPrice}
-        onChangeText={(text) => onUpdate(booth.id, 'discountedPrice', text)}
-        kType="numeric"
-        error={false}
-        message=""
-        leftImage=""
-      />
 
       <View style={styles.imageSection}>
         <Text style={styles.imageSectionTitle}>
