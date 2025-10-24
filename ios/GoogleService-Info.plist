@@ -3,34 +3,32 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com</string>
+	<string>668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m</string>
-	<key>ANDROID_CLIENT_ID</key>
-	<string>581614872749-6sis217nhe70qr6vlv4ms0uvm0gldulq.apps.googleusercontent.com</string>
+	<string>com.googleusercontent.apps.668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAQ-INQyjVVbhwnqhejCx6aXt-_nnO0m44</string>
+	<string>AIzaSyAgdp3ODMtp5m467P7K0pj_cD5dmkWDFDQ</string>
 	<key>GCM_SENDER_ID</key>
-	<string>581614872749</string>
+	<string>668464751409</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>org.reactjs.native.example.VibesReserveMobile</string>
+	<string>com.app.VibesReserveMobile</string>
 	<key>PROJECT_ID</key>
-	<string>vibesreservemobile-5e5f4</string>
+	<string>vibe-reserve</string>
 	<key>STORAGE_BUCKET</key>
-	<string>vibesreservemobile-5e5f4.firebasestorage.app</string>
+	<string>vibe-reserve.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false/>
+	<false></false>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_GCM_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true/>
+	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:581614872749:ios:46fdc180306c2023effe24</string>
+	<string>1:668464751409:ios:b6431da367b3f2cd838610</string>
 </dict>
 </plist>

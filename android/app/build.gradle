@@ -79,13 +79,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
  
-    namespace "com.vibesreservemobile"
+    namespace "com.app.VibesReserveMobile"
     
     // Add this to help react-native-svg find the React Native directory
     ext.REACT_NATIVE_NODE_MODULES_DIR = "../../node_modules"
     
     defaultConfig {
-        applicationId "com.vibesreservemobile"
+        applicationId "com.app.VibesReserveMobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

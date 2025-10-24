@@ -23,9 +23,9 @@ const store: any = configureStore(initialState);
 
 function App(): React.JSX.Element {
   GoogleSignin.configure({
-    webClientId: "581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com", // From GoogleService-Info.plist
+    webClientId: "668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3.apps.googleusercontent.com", // From GoogleService-Info.plist
     offlineAccess: true,
-    iosClientId: "581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com", // From GoogleService-Info.plist
+    iosClientId: "668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3.apps.googleusercontent.com", // From GoogleService-Info.plist
     forceCodeForRefreshToken: true,
   });
 

@@ -641,7 +641,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
                 <View style={styles.userInfoContainer}>
                   <Text style={styles.userInfoName}>
-                    {profileData?.fullName || "Guest User"}
+                    {profileData?.fullName || (profileData?.email ? profileData?.email?.split('@')[0] : "Guest User")}
                   </Text>
                   <Text style={styles.userInfoValue}>
                     {profileData?.email || "user@example.com"}

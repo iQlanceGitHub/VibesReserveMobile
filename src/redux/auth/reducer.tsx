@@ -403,6 +403,7 @@ const authReducer = handleActions(
     }),
 
     [socialLoginData().type]: produce((draft, action) => {
+      console.log("🔄 REDUCER: socialLoginData action received with payload:", action.payload);
       draft.socialLogin = action.payload;
     }),
     [socialLoginError().type]: produce((draft, action) => {

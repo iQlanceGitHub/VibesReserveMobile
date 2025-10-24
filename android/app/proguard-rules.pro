@@ -19,7 +19,7 @@
 -keep class com.facebook.react.modules.network.OkHttpClientProvider { *; }
 
 # Keep your API classes
--keep class com.vibesreservemobile.** { *; }
+-keep class com.app.VibesReserveMobile.** { *; }
 
 # Keep all native methods
 -keepclasseswithmembernames class * {

@@ -231,6 +231,9 @@ const storeUser = async (user: any) => {
       if (socialLogin?.token) {
         storeUserToken(socialLogin?.token);
       }
+      if (socialLogin?.user) {
+        storeUser(socialLogin?.user); 
+      }
       if (socialLogin?.user?.id) {
         storeUserId(socialLogin.user.id);
       }
@@ -250,6 +253,9 @@ const storeUser = async (user: any) => {
           dispatch(setUser(socialLogin));
           if (socialLogin?.token) {
             storeUserToken(socialLogin?.token);
+          }
+          if (socialLogin?.user) {
+            storeUser(socialLogin?.user); 
           }
           if (socialLogin?.user?.id) {
             storeUserId(socialLogin.user.id);
@@ -273,17 +279,6 @@ const storeUser = async (user: any) => {
       };
   
       handleSocialLoginSuccess();
-      
-      // Role-based navigation
-      if (socialLogin?.user?.currentRole === 'user') {
-        navigation.navigate('HomeTabs' as never);
-      } else if (socialLogin?.user?.currentRole === 'host') {
-        navigation.navigate('HostTabs' as never);
-      } else {
-        // Default fallback to HomeTabs
-        navigation.navigate('HomeTabs' as never);
-      }
-      dispatch(socialLoginData(""));
     }
 
     if (socialLoginErr) {

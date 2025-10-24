@@ -393,6 +393,9 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         if (socialLogin?.token) {
           storeUserToken(socialLogin?.token);
         }
+        if (socialLogin?.user) {
+          storeUser(socialLogin?.user); 
+        }
         if (socialLogin?.user?.id) {
           storeUserId(socialLogin.user.id);
         }

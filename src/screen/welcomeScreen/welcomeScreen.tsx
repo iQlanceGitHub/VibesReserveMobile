@@ -96,6 +96,15 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     }
   };
 
+  // Store user data
+  const storeUser = async (user: any) => {
+    try {
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+    } catch (e) {
+      console.error("Failed to save the user.", e);
+    }
+  };
+
   // Store user ID
   const storeUserId = async (userId: any) => {
     try {
@@ -146,8 +155,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       if (socialLogin?.token) {
         storeUserToken(socialLogin?.token);
       }
-      if (socialLogin?.user?.id) {
-        storeUserId(socialLogin.user.id);
+      if (socialLogin?.user) {
+        storeUser(socialLogin?.user); 
       }
 
       const handleSocialLoginSuccess = async () => {
@@ -166,8 +175,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           if (socialLogin?.token) {
             storeUserToken(socialLogin?.token);
           }
-          if (socialLogin?.user?.id) {
-            storeUserId(socialLogin.user.id);
+          if (socialLogin?.user) {
+            storeUser(socialLogin?.user); 
           }
           
           // Store user status as logged in
