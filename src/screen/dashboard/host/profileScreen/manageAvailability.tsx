@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   Image,
   ActivityIndicator,
@@ -17,7 +17,14 @@ import { BackButton } from "../../../../components/BackButton";
 import ClockIcon from "../../../../assets/svg/clockIcon";
 import EditIcon from "../../../../assets/svg/editIcon";
 import DeleteIcon from "../../../../assets/svg/deleteIconNew";
-import { onListEvent, onDeleteEvent, deleteEventData, deleteEventError } from "../../../../redux/auth/actions";
+import {
+  onListEvent,
+  onDeleteEvent,
+  deleteEventData,
+  deleteEventError,
+  listEventData,
+  listEventError,
+} from "../../../../redux/auth/actions";
 import { showToast } from "../../../../utilis/toastUtils";
 import styles from "./manageAvailabityStyle";
 
@@ -29,6 +36,7 @@ interface Event {
   openingTime: string;
   startDate: string;
   photos: string[];
+  address?: string;
 }
 
 interface ManageAvailabilityProps {
@@ -39,51 +47,220 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
   navigation,
 }) => {
   const dispatch = useDispatch();
-  const { listEvent, listEventErr, deleteEvent, deleteEventErr } = useSelector((state: any) => state.auth);
+  const { listEvent, listEventErr, deleteEvent, deleteEventErr } = useSelector(
+    (state: any) => state.auth
+  );
   const [events, setEvents] = useState<Event[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageLimit, setPageLimit] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Debug Redux state
   useEffect(() => {
-    console.log('Full Redux auth state:', { listEvent, listEventErr, deleteEvent, deleteEventErr });
-    console.log('deleteEvent type:', typeof deleteEvent);
-    console.log('deleteEventErr type:', typeof deleteEventErr);
+    console.log("Full Redux auth state:", {
+      listEvent,
+      listEventErr,
+      deleteEvent,
+      deleteEventErr,
+    });
+    console.log("deleteEvent type:", typeof deleteEvent);
+    console.log("deleteEventErr type:", typeof deleteEventErr);
   }, [listEvent, listEventErr, deleteEvent, deleteEventErr]);
+
+  // Fetch events with dynamic pagination
+  const fetchEvents = async (page = 1, isLoadMore = false) => {
+    try {
+      if (!isLoadMore) {
+        setIsLoading(true);
+        setCurrentPage(1); // Always reset to page 1 for fresh load
+        setEvents([]);
+        setHasMoreData(true);
+        console.log("Fresh load - resetting to page 1");
+      }
+
+      console.log("Fetching events with page:", page, "limit:", pageLimit);
+      dispatch(onListEvent({ page: page, limit: pageLimit }));
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setIsLoading(false);
+    }
+  };
+
+  // Load more data for pagination
+  const loadMoreData = () => {
+    if (!isLoading && hasMoreData && currentPage < totalPages) {
+      const nextPage = currentPage + 1;
+      console.log("Loading next page:", nextPage);
+      setCurrentPage(nextPage);
+      fetchEvents(nextPage, true);
+    } else {
+      console.log("Load more blocked - conditions not met");
+    }
+  };
+
+  // Refresh data (pull to refresh)
+  const onRefresh = () => {
+    fetchEvents(1, false);
+  };
+
+  // Fetch data when component mounts
+  useEffect(() => {
+    // Clear Redux state on mount
+    dispatch(listEventData(""));
+    dispatch(listEventError(""));
+    fetchEvents(1, false);
+  }, [dispatch]);
 
   // Reload data every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      console.log('Screen focused - reloading events');
-      dispatch(onListEvent({ page: 1, limit: 10 }));
+      console.log("Screen focused - clearing Redux state and reloading events");
+      // Clear Redux state first to prevent showing old data
+      dispatch(listEventData(""));
+      dispatch(listEventError(""));
+
+      // Always start fresh when screen comes into focus
+      setCurrentPage(1);
+      setEvents([]);
+      setHasMoreData(true);
+      setIsLoading(true);
+
+      // Small delay to ensure state is cleared before making new request
+      setTimeout(() => {
+        fetchEvents(1, false);
+      }, 100);
     }, [dispatch])
   );
 
+  // Handle API responses with pagination logic
   useEffect(() => {
-    if (listEvent?.data && Array.isArray(listEvent.data)) {
-      setEvents(listEvent.data);
-    } else if (listEvent?.status === 1 && listEvent?.data) {
-      setEvents(listEvent.data);
+    if (
+      listEvent?.status === true ||
+      listEvent?.status === "true" ||
+      listEvent?.status === 1 ||
+      listEvent?.status === "1"
+    ) {
+      console.log("List event response:", listEvent);
+
+      // Extract events from the response
+      const eventsData = listEvent?.data || [];
+
+      console.log("=== API RESPONSE DEBUG ===");
+      console.log("Events received:", eventsData.length);
+      console.log("Current page:", currentPage);
+      console.log("Full API response:", JSON.stringify(listEvent, null, 2));
+
+      // Handle pagination based on API response page, not local state
+      const apiPage = listEvent?.pagination?.page || listEvent?.page || 1;
+
+      if (apiPage === 1) {
+        // First page - replace data
+        setEvents(eventsData);
+        setCurrentPage(1);
+        console.log(
+          "Set initial events:",
+          eventsData.length,
+          "API page:",
+          apiPage
+        );
+      } else {
+        // Load more - append data with duplicate prevention
+        setEvents((prevEvents) => {
+          // Filter out duplicates based on _id
+          const existingIds = new Set(prevEvents.map((event) => event._id));
+          const uniqueNewEvents = eventsData.filter(
+            (event) => !existingIds.has(event._id)
+          );
+
+          const newEvents = [...prevEvents, ...uniqueNewEvents];
+          console.log(
+            "Appended events. Previous:",
+            prevEvents.length,
+            "New unique:",
+            uniqueNewEvents.length,
+            "Filtered out:",
+            eventsData.length - uniqueNewEvents.length,
+            "Total:",
+            newEvents.length,
+            "API page:",
+            apiPage
+          );
+          return newEvents;
+        });
+        setCurrentPage(apiPage);
+      }
+
+      // Update pagination info from API response
+      const totalFromAPI =
+        listEvent?.pagination?.total || listEvent?.total || 0;
+      const limitFromAPI =
+        listEvent?.pagination?.limit || listEvent?.limit || pageLimit;
+      const currentPageFromAPI =
+        listEvent?.pagination?.page || listEvent?.page || currentPage;
+
+      // Calculate total pages manually if not provided by API
+      const totalPagesFromAPI =
+        listEvent?.totalPages ||
+        listEvent?.pagination?.totalPages ||
+        Math.ceil(totalFromAPI / limitFromAPI) ||
+        1;
+
+      console.log("Pagination info from API:");
+      console.log("- totalFromAPI:", totalFromAPI);
+      console.log("- limitFromAPI:", limitFromAPI);
+      console.log("- currentPageFromAPI:", currentPageFromAPI);
+      console.log("- calculated totalPagesFromAPI:", totalPagesFromAPI);
+
+      setTotalPages(totalPagesFromAPI);
+      setPageLimit(limitFromAPI); // Update limit from API
+      setHasMoreData(currentPageFromAPI < totalPagesFromAPI);
+
+      console.log("Updated states:");
+      console.log("- totalPages:", totalPagesFromAPI);
+      console.log("- hasMoreData:", currentPageFromAPI < totalPagesFromAPI);
+
+      console.log("Pagination updated from API:", {
+        totalPages: totalPagesFromAPI,
+        currentPage: currentPageFromAPI,
+        limit: limitFromAPI,
+        hasMoreData: currentPageFromAPI < totalPagesFromAPI,
+      });
+
+      setIsLoading(false);
     }
-  }, [listEvent, listEventErr]);
+
+    if (listEventErr) {
+      console.log("List event error:", listEventErr);
+      setIsLoading(false);
+    }
+  }, [listEvent, listEventErr, currentPage]);
 
   // Handle delete event response
   useEffect(() => {
-    console.log('deleteEvent useEffect triggered:', deleteEvent);
-    console.log('deleteEventErr:', deleteEventErr);
-    
-    if (deleteEvent?.status === true || deleteEvent?.status === 'true' || deleteEvent?.status === 1 || deleteEvent?.status === "1") {
-      console.log('Delete successful, showing toast and setting timeout');
-      showToast('success', 'Event deleted successfully!');
-      
+    console.log("deleteEvent useEffect triggered:", deleteEvent);
+    console.log("deleteEventErr:", deleteEventErr);
+
+    if (
+      deleteEvent?.status === true ||
+      deleteEvent?.status === "true" ||
+      deleteEvent?.status === 1 ||
+      deleteEvent?.status === "1"
+    ) {
+      console.log("Delete successful, showing toast and setting timeout");
+      showToast("success", "Event deleted successfully!");
+
       // Clear the delete event state to prevent multiple triggers
       dispatch(deleteEventData(""));
-      
-      // Reload screen after 10 seconds
-      dispatch(onListEvent({ page: 1, limit: 10 }));
+
+      // Reload screen after successful delete
+      fetchEvents(1, false);
     }
 
     if (deleteEventErr) {
-      console.log('Delete error:', deleteEventErr);
-      showToast('error', 'Failed to delete event');
+      console.log("Delete error:", deleteEventErr);
+      showToast("error", "Failed to delete event");
       // Clear the error state
       dispatch(deleteEventError(""));
     }
@@ -109,21 +286,21 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
 
   const handleDeleteEvent = (event: Event) => {
     Alert.alert(
-      'Delete Event',
+      "Delete Event",
       `Are you sure you want to delete "${event.name}"? This action cannot be undone.`,
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: () => {
-            console.log('Deleting event:', event._id);
-            console.log('Dispatching onDeleteEvent action...');
+            console.log("Deleting event:", event._id);
+            console.log("Dispatching onDeleteEvent action...");
             dispatch(onDeleteEvent({ id: event._id }));
-            console.log('onDeleteEvent action dispatched');
+            console.log("onDeleteEvent action dispatched");
           },
         },
       ]
@@ -219,7 +396,9 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
                   numberOfLines={3}
                   ellipsizeMode="tail"
                 >
-                  {event?.type !== 'VIP Entry' && event?.type !== 'Booth' ? event.details : event.address}
+                  {event?.type !== "VIP Entry" && event?.type !== "Booth"
+                    ? event.details
+                    : event.address}
                 </Text>
               </View>
 
@@ -273,41 +452,73 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
           <View style={styles.headerSpacer} />
         </View>
 
-        <ScrollView
-          style={styles.scrollContainer}
+        <FlatList
+          data={events}
+          renderItem={({ item }) => renderEventCard(item)}
+          keyExtractor={(item, index) => `${item._id}-${index}`}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
-        >
-          {listEventErr ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 50,
-              }}
-            >
-              <Text style={{ color: colors.white, textAlign: "center" }}>
-                Error loading events. Please try again.
-              </Text>
-            </View>
-          ) : events.length === 0 ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 50,
-              }}
-            >
-              <Text style={{ color: colors.white, textAlign: "center" }}>
-                No events available.
-              </Text>
-            </View>
-          ) : (
-            events.map((event) => renderEventCard(event))
-          )}
-        </ScrollView>
+          ListEmptyComponent={
+            !isLoading ? (
+              listEventErr ? (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingVertical: 50,
+                  }}
+                >
+                  <Text style={{ color: colors.white, textAlign: "center" }}>
+                    Error loading events. Please try again.
+                  </Text>
+                </View>
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingVertical: 50,
+                  }}
+                >
+                  <Text style={{ color: colors.white, textAlign: "center" }}>
+                    No events available.
+                  </Text>
+                </View>
+              )
+            ) : null
+          }
+          ListFooterComponent={
+            isLoading && currentPage > 1 ? (
+              <View
+                style={{
+                  paddingVertical: 20,
+                  alignItems: "center",
+                }}
+              >
+                <ActivityIndicator size="small" color={colors.white} />
+                <Text
+                  style={{
+                    color: colors.white,
+                    marginTop: 10,
+                    fontSize: 14,
+                  }}
+                >
+                  Loading more events...
+                </Text>
+              </View>
+            ) : null
+          }
+          refreshing={isLoading && currentPage === 1}
+          onRefresh={onRefresh}
+          onEndReached={() => {
+            console.log("=== ON END REACHED TRIGGERED ===");
+            console.log("Current events count:", events.length);
+            loadMoreData();
+          }}
+          onEndReachedThreshold={0.1}
+        />
       </LinearGradient>
     </SafeAreaWrapper>
   );

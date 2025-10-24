@@ -242,6 +242,10 @@ export const {
   onSwitchRole,
   switchRoleData,
   switchRoleError,
+
+  onNearbyHostViewAll,
+  nearbyHostViewAllData,
+  nearbyHostViewAllError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -494,5 +498,10 @@ export const {
   // Switch Role Action Types
   "ON_SWITCH_ROLE",
   "SWITCH_ROLE_DATA",
-  "SWITCH_ROLE_ERROR"
+  "SWITCH_ROLE_ERROR",
+
+  // Nearby Host View All Action Types
+  "ON_NEARBY_HOST_VIEW_ALL",
+  "NEARBY_HOST_VIEW_ALL_DATA",
+  "NEARBY_HOST_VIEW_ALL_ERROR"
 );

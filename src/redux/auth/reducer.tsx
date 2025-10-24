@@ -128,6 +128,9 @@ import {
   // Delete Promo Code imports
   deletePromoCodeData,
   deletePromoCodeError,
+  // Nearby Host View All imports
+  nearbyHostViewAllData,
+  nearbyHostViewAllError,
 } from "./actions";
 
 export const initialState = {
@@ -293,6 +296,10 @@ export const initialState = {
   // Delete Promo Code state
   deletePromoCode: "",
   deletePromoCodeErr: "",
+
+  // Nearby Host View All state
+  nearbyHostViewAll: null,
+  nearbyHostViewAllErr: "",
 };
 
 const authReducer = handleActions(
@@ -775,6 +782,14 @@ const authReducer = handleActions(
     }),
     [deletePromoCodeError().type]: produce((draft: any, action: any) => {
       draft.deletePromoCodeErr = action.payload;
+    }),
+
+    // Nearby Host View All reducers
+    [nearbyHostViewAllData().type]: produce((draft: any, action: any) => {
+      draft.nearbyHostViewAll = action.payload;
+    }),
+    [nearbyHostViewAllError().type]: produce((draft: any, action: any) => {
+      draft.nearbyHostViewAllErr = action.payload;
     }),
   },
   initialState
