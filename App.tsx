@@ -10,10 +10,12 @@ import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/utilis/toastUtils.tsx";
 import AppInitializer from "./src/components/AppInitializer";
 import AppWrapper from "./src/utilis/AppWrapper";
+import NotificationDebug from "./src/components/NotificationDebug";
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {stripeTestKey} from './src/utilis/appConstant';
 import { longPollingService } from './src/services/longPollingService';
 import globalUnreadCountService from './src/services/globalUnreadCountService';
+import { LocationProvider } from './src/contexts/LocationContext';
 
 
 const initialState = {};
@@ -21,11 +23,9 @@ const store: any = configureStore(initialState);
 
 function App(): React.JSX.Element {
   GoogleSignin.configure({
-    webClientId:
-    Platform.OS === "ios" ? "233362513415-5ipa4s95r3ir23vgrh5f4t210tfpijrv.apps.googleusercontent.com" : "581614872749-kjh1qf6gi879cuheh0gc0dkslekvrmu8.apps.googleusercontent.com",
+    webClientId: "581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com", // From GoogleService-Info.plist
     offlineAccess: true,
-    iosClientId:
-      "233362513415-dlq70usscn8n825h5njp9osp4l6im5c7.apps.googleusercontent.com", // From Google Console
+    iosClientId: "581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com", // From GoogleService-Info.plist
     forceCodeForRefreshToken: true,
   });
 
@@ -76,22 +76,24 @@ function App(): React.JSX.Element {
       >
         <AppInitializer>
           <AppWrapper />
-          <View style={{ flex: 1 }}>
-            <StatusBar
-              translucent
-              backgroundColor="transparent"
-              barStyle="dark-content"
-              // Enhanced StatusBar configuration for Android 15
-              {...(Platform.OS === 'android' && {
-                // Ensure proper edge-to-edge handling on Android 15
-                statusBarTranslucent: true,
-                statusBarBackgroundColor: 'transparent',
-              })}
-            />
+          <LocationProvider>
+            <View style={{ flex: 1 }}>
+              <StatusBar
+                translucent
+                backgroundColor="transparent"
+                barStyle="dark-content"
+                // Enhanced StatusBar configuration for Android 15
+                {...(Platform.OS === 'android' && {
+                  // Ensure proper edge-to-edge handling on Android 15
+                  statusBarTranslucent: true,
+                  statusBarBackgroundColor: 'transparent',
+                })}
+              />
 
-            <NavigationStack />
-            <Toast config={toastConfig} />
-          </View>
+              <NavigationStack />
+              <Toast config={toastConfig} />
+            </View>
+          </LocationProvider>
         </AppInitializer>
       </SafeAreaProvider>
     </Provider>

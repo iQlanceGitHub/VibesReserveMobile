@@ -22,4 +22,11 @@ export const api_endpoint: Record<string, unknown> = {
   editPromoCode: "user/editpromocode",
   createPromoCode: "user/createpromocode",
   deletePromoCode: "user/deletepromocode",
+  // Event Detail endpoints
+  getDetailEvent: "user/getdetailevent",
+  updateEvent: "user/updateeventclubpub",
+  deleteEventPart: "user/deleteeventpart",
+  deleteEvent: "user/deleteevent",
+  // Role switching endpoint
+  switchRole: "user/switchrole",
 };

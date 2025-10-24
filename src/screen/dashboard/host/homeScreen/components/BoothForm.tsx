@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { colors } from '../../../../../utilis/colors';
 import { fonts } from '../../../../../utilis/fonts';
 import { horizontalScale, verticalScale, fontScale } from '../../../../../utilis/appConstant';
@@ -10,6 +10,11 @@ import PlusIcon from '../../../../../assets/svg/plusIcon';
 import CloseIcon from "../../../../../assets/svg/closeIcon";
 import GalleryIcon from '../../../../../assets/svg/galleryIcon';
 import DeleteIconNew from '../../../../../assets/svg/deleteIconNew';
+import { launchCamera, launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
+
+import { PermissionManager } from "../../../../../utilis/permissionUtils";
+import { uploadFileToS3 } from "../../../../../utilis/s3Upload";
+import { showToast } from "../../../../../utilis/toastUtils";
 // import TrashIcon from '../../../../../assets/svg/trashIcon';
 
 interface BoothData {
@@ -41,7 +46,68 @@ const BoothForm: React.FC<BoothFormProps> = ({
   onDeleteImage,
   boothTypes,
 }) => {
-  const [showImagePicker, setShowImagePicker] = React.useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Local image upload function for booth images
+  const handleBoothImagePicker = async (type: 'camera' | 'gallery') => {
+    const options = {
+      mediaType: "photo" as MediaType,
+      quality: 0.7 as any,
+      includeBase64: false,
+    };
+
+    try {
+      setLoading(true);
+      let result: ImagePickerResponse;
+
+      if (type === 'camera') {
+        const hasPermission = await PermissionManager.requestCameraPermission();
+        if (!hasPermission) {
+          showToast("error", "Camera permission denied");
+          return;
+        }
+        result = await launchCamera(options);
+      } else {
+        const hasPermission = await PermissionManager.requestStoragePermission();
+        if (!hasPermission) {
+          showToast("error", "Storage permission denied");
+          return;
+        }
+        result = await launchImageLibrary(options);
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const imageUri = result.assets[0].uri;
+        const fileName = `booth_${Date.now()}_${boothIndex}.jpg`;
+
+        if (imageUri) {
+          console.log('Uploading booth image:', { imageUri, fileName, boothIndex });
+          
+          const uploadedUrl = await uploadFileToS3(
+            imageUri,
+            fileName,
+            "image/jpeg"
+          );
+
+          console.log('Booth image uploaded successfully:', uploadedUrl);
+          
+          // Update booth images
+          const currentImages = booth.boothImages || [];
+          const updatedImages = [...currentImages, uploadedUrl];
+          onUpdate(booth.id, 'boothImages', updatedImages);
+          
+          showToast("success", "Booth image uploaded successfully");
+        }
+      }
+    } catch (error) {
+      console.log("Booth image upload error:", error);
+      showToast("error", "Failed to upload booth image");
+    } finally {
+      setLoading(false);
+      setShowImagePicker(false);
+    }
+  };
   const styles = {
     boothContainer: {
       backgroundColor: colors.vilate20,
@@ -213,24 +279,35 @@ const BoothForm: React.FC<BoothFormProps> = ({
           style={styles.categoryScrollView}
           contentContainerStyle={styles.categoryContainer}
         >
-          {boothTypes.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryButton,
-                booth.boothType === category.id && styles.categoryButtonSelected
-              ]}
-              onPress={() => onUpdate(booth.id, 'boothType', category.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={[
-                styles.categoryButtonText,
-                booth.boothType === category.id && styles.categoryButtonTextSelected
-              ]}>
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {boothTypes.map((category) => {
+            const isSelected = booth.boothType === category.id;
+            console.log(`BoothForm - Checking category:`, {
+              categoryId: category.id,
+              categoryName: category.name,
+              boothType: booth.boothType,
+              isSelected: isSelected,
+              boothId: booth.id
+            });
+            
+            return (
+              <TouchableOpacity
+                key={category.id}
+                style={[
+                  styles.categoryButton,
+                  isSelected && styles.categoryButtonSelected
+                ]}
+                onPress={() => onUpdate(booth.id, 'boothType', category.id)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.categoryButtonText,
+                  isSelected && styles.categoryButtonTextSelected
+                ]}>
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -292,7 +369,7 @@ const BoothForm: React.FC<BoothFormProps> = ({
             <TouchableOpacity
               style={styles.addImageButton}
               onPress={() => {
-                onImagePicker('gallery', 'booth', boothIndex, 0);
+                setShowImagePicker(true);
               }}
             >
               <GalleryIcon size={24} color={colors.violate} />
@@ -305,8 +382,8 @@ const BoothForm: React.FC<BoothFormProps> = ({
       <ImageSelectionBottomSheet
         visible={showImagePicker}
         onClose={() => setShowImagePicker(false)}
-        onCameraPress={() => onImagePicker('camera', 'booth', boothIndex, 0)}
-        onGalleryPress={() => onImagePicker('gallery', 'booth', boothIndex, 0)}
+        onCameraPress={() => handleBoothImagePicker('camera')}
+        onGalleryPress={() => handleBoothImagePicker('gallery')}
       />
     </View>
   );

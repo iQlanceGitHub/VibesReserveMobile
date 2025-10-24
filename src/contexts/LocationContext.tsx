@@ -68,8 +68,6 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
             'This app needs location access to find nearby events and clubs. Please enable location permission in Settings to get the best experience.',
             () => {
               setError('Location permission denied');
-            },
-            () => {
             }
           );
           setError('Location permission denied');
@@ -106,11 +104,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
         // Show permission denied alert
         LocationPermissionManager.showPermissionDeniedAlert(
           'Location Permission Required',
-          'This app needs location access to find nearby events and clubs. Please enable location permission in Settings to get the best experience.',
-          () => {
-          },
-          () => {
-          }
+          'This app needs location access to find nearby events and clubs. Please enable location permission in Settings to get the best experience.'
         );
         return;
       }

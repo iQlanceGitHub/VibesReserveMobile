@@ -82,6 +82,22 @@ export const {
   viewdetailsData,
   viewdetailsError,
 
+  onGetDetailEvent,
+  getDetailEventData,
+  getDetailEventError,
+
+  onUpdateEvent,
+  updateEventData,
+  updateEventError,
+
+  onDeleteEventPart,
+  deleteEventPartData,
+  deleteEventPartError,
+
+  onDeleteEvent,
+  deleteEventData,
+  deleteEventError,
+
   onCategory,
   categoryData,
   categoryError,
@@ -222,6 +238,10 @@ export const {
   onDeletePromoCode,
   deletePromoCodeData,
   deletePromoCodeError,
+
+  onSwitchRole,
+  switchRoleData,
+  switchRoleError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -303,6 +323,18 @@ export const {
   "ON_VIEWDETAILS",
   "VIEWDETAILS_DATA",
   "VIEWDETAILS_ERROR",
+
+  "ON_GET_DETAIL_EVENT",
+  "GET_DETAIL_EVENT_DATA",
+  "GET_DETAIL_EVENT_ERROR",
+
+  "ON_UPDATE_EVENT",
+  "UPDATE_EVENT_DATA",
+  "UPDATE_EVENT_ERROR",
+
+  "ON_DELETE_EVENT_PART",
+  "DELETE_EVENT_PART_DATA",
+  "DELETE_EVENT_PART_ERROR",
 
   "ON_CATEGORY",
   "CATEGORY_DATA",
@@ -452,5 +484,15 @@ export const {
   // Delete Promo Code Action Types
   "ON_DELETE_PROMO_CODE",
   "DELETE_PROMO_CODE_DATA",
-  "DELETE_PROMO_CODE_ERROR"
+  "DELETE_PROMO_CODE_ERROR",
+
+  // Delete Event Action Types
+  "ON_DELETE_EVENT",
+  "DELETE_EVENT_DATA",
+  "DELETE_EVENT_ERROR",
+
+  // Switch Role Action Types
+  "ON_SWITCH_ROLE",
+  "SWITCH_ROLE_DATA",
+  "SWITCH_ROLE_ERROR"
 );

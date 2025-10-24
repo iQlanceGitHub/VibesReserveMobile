@@ -43,6 +43,16 @@ import {
   filterError,
   viewdetailsData,
   viewdetailsError,
+  getDetailEventData,
+  getDetailEventError,
+  updateEventData,
+  updateEventError,
+  deleteEventPartData,
+  deleteEventPartError,
+  deleteEventData,
+  deleteEventError,
+  switchRoleData,
+  switchRoleError,
   categoryData,
   categoryError,
   facilityData,
@@ -166,6 +176,18 @@ export const initialState = {
 
   viewdetails: "",
   viewdetailsErr: "",
+
+  getDetailEvent: "",
+  getDetailEventErr: "",
+
+  updateEvent: "",
+  updateEventErr: "",
+  deleteEventPart: "",
+  deleteEventPartErr: "",
+  deleteEvent: "",
+  deleteEventErr: "",
+  switchRole: "",
+  switchRoleErr: "",
 
   category: "",
   categoryErr: "",
@@ -428,6 +450,40 @@ const authReducer = handleActions(
     }),
     [viewdetailsError().type]: produce((draft, action) => {
       draft.viewdetailsErr = action.payload;
+    }),
+
+    // payload getDetailEvent
+    [getDetailEventData().type]: produce((draft, action) => {
+      draft.getDetailEvent = action.payload;
+    }),
+    [getDetailEventError().type]: produce((draft, action) => {
+      draft.getDetailEventErr = action.payload;
+    }),
+
+    // payload updateEvent
+    [updateEventData().type]: produce((draft, action) => {
+      draft.updateEvent = action.payload;
+    }),
+    [updateEventError().type]: produce((draft, action) => {
+      draft.updateEventErr = action.payload;
+    }),
+    [deleteEventPartData().type]: produce((draft, action) => {
+      draft.deleteEventPart = action.payload;
+    }),
+    [deleteEventPartError().type]: produce((draft, action) => {
+      draft.deleteEventPartErr = action.payload;
+    }),
+    [deleteEventData().type]: produce((draft, action) => {
+      draft.deleteEvent = action.payload;
+    }),
+    [deleteEventError().type]: produce((draft, action) => {
+      draft.deleteEventErr = action.payload;
+    }),
+    [switchRoleData().type]: produce((draft, action) => {
+      draft.switchRole = action.payload;
+    }),
+    [switchRoleError().type]: produce((draft, action) => {
+      draft.switchRoleErr = action.payload;
     }),
 
     // payload category

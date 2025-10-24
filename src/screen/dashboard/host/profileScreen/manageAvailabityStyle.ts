@@ -137,6 +137,32 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginLeft: horizontalScale(6),
   },
+  actionButtonsContainer: {
+    position: 'absolute',
+    top: verticalScale(12),
+    right: horizontalScale(12),
+    flexDirection: 'row',
+    gap: horizontalScale(8),
+  },
+  actionButton: {
+    width: horizontalScale(28),
+    height: verticalScale(28),
+    borderRadius: horizontalScale(18),
+    backgroundColor: colors.violate,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  deleteButton: {
+    backgroundColor: colors.red,
+  },
 });
 
 export default styles;

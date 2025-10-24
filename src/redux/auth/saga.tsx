@@ -61,6 +61,21 @@ import {
   onViewdetails,
   viewdetailsData,
   viewdetailsError,
+  onGetDetailEvent,
+  getDetailEventData,
+  getDetailEventError,
+  onUpdateEvent,
+  updateEventData,
+  updateEventError,
+  onDeleteEventPart,
+  deleteEventPartData,
+  deleteEventPartError,
+  onDeleteEvent,
+  deleteEventData,
+  deleteEventError,
+  onSwitchRole,
+  switchRoleData,
+  switchRoleError,
   onCategory,
   categoryData,
   categoryError,
@@ -876,6 +891,231 @@ function* ViewdetailsSaga({
     yield put(displayLoading(false));
   } catch (error) {
     yield put(viewdetailsError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface GetDetailEventPayload {
+  id?: string;
+  userId?: string;
+}
+
+function* GetDetailEventSaga({
+  payload,
+}: {
+  payload: GetDetailEventPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${`user/getdetailevent/${payload?.id}`}`,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(getDetailEventData(response));
+    } else {
+      yield put(getDetailEventError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(getDetailEventError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface UpdateEventPayload {
+  id?: string;
+  name?: string;
+  description?: string;
+  address?: string;
+  openingTime?: string;
+  closingTime?: string;
+  startDate?: string;
+  endDate?: string;
+  price?: string;
+  capacity?: string;
+  type?: string;
+  facilities?: any[];
+  images?: any[];
+}
+
+interface DeleteEventPartPayload {
+  id: string;
+  partType: string;
+  partId: string;
+}
+
+function* UpdateEventSaga({
+  payload,
+}: {
+  payload: UpdateEventPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🔑 UPDATE EVENT - params:", params);
+
+    const response = yield call(fetchPut, {
+      url: `${baseurl}${`user/updateeventclubpub`}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(updateEventData(response));
+    } else {
+      yield put(updateEventError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(updateEventError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+function* DeleteEventPartSaga({
+  payload,
+}: {
+  payload: DeleteEventPartPayload;
+}): SagaIterator {
+  try {
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🗑️ DELETE EVENT PART - params:", params);
+
+    const response = yield call(fetchDelete, {
+      url: `${baseurl}${`user/deleteeventpart`}`,
+      params,
+    });
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      yield put(deleteEventPartData(response));
+    } else {
+      yield put(deleteEventPartError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    yield put(deleteEventPartError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface DeleteEventPayload {
+  id: string;
+}
+
+function* DeleteEventSaga({
+  payload,
+}: {
+  payload: DeleteEventPayload;
+}): SagaIterator {
+  try {
+    console.log("🗑️ DELETE EVENT SAGA STARTED - payload:", payload);
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🗑️ DELETE EVENT - params:", params);
+
+    const response = yield call(fetchDelete, {
+      url: `${baseurl}${`user/deleteevent`}`,
+      params,
+    });
+
+    console.log("🗑️ DELETE EVENT - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("🗑️ DELETE EVENT - SUCCESS, dispatching deleteEventData");
+      yield put(deleteEventData(response));
+    } else {
+      console.log("🗑️ DELETE EVENT - ERROR, dispatching deleteEventError");
+      yield put(deleteEventError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("🗑️ DELETE EVENT - CATCH ERROR:", error);
+    yield put(deleteEventError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface SwitchRolePayload {
+  role: string;
+}
+
+function* SwitchRoleSaga({
+  payload,
+}: {
+  payload: SwitchRolePayload;
+}): SagaIterator {
+  try {
+    console.log("🔄 SWITCH ROLE SAGA STARTED - payload:", payload);
+    yield put(displayLoading(true));
+
+    const params = {
+      ...payload,
+    };
+
+    console.log("🔄 SWITCH ROLE - params:", params);
+
+    const response = yield call(fetchPost, {
+      url: `${baseurl}${`user/switchrole`}`,
+      //params,
+    });
+
+    console.log("🔄 SWITCH ROLE - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("🔄 SWITCH ROLE - SUCCESS, dispatching switchRoleData");
+      yield put(switchRoleData(response));
+    } else {
+      console.log("🔄 SWITCH ROLE - ERROR, dispatching switchRoleError");
+      yield put(switchRoleError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("🔄 SWITCH ROLE - CATCH ERROR:", error);
+    yield put(switchRoleError(error));
     yield put(displayLoading(false));
   }
 }
@@ -2245,6 +2485,11 @@ function* authSaga() {
   yield takeLatest(onHomenew().type as any, HomenewSaga);
   yield takeLatest(onFilter().type as any, FilterSaga);
   yield takeLatest(onViewdetails().type as any, ViewdetailsSaga);
+  yield takeLatest(onGetDetailEvent().type as any, GetDetailEventSaga);
+  yield takeLatest(onUpdateEvent().type as any, UpdateEventSaga);
+  yield takeLatest(onDeleteEventPart().type as any, DeleteEventPartSaga);
+  yield takeLatest(onDeleteEvent().type as any, DeleteEventSaga);
+  yield takeLatest(onSwitchRole().type as any, SwitchRoleSaga);
   yield takeLatest(onCategory().type as any, CategorySaga);
   yield takeLatest(onFacility().type as any, FacilitySaga);
   yield takeLatest(onTogglefavorite().type as any, TogglefavoriteSaga);

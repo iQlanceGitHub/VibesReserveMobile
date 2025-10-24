@@ -9,6 +9,8 @@ import {
 } from "../utilis/appConstant";
 
 export const fetchGet = async (payload) => {
+  console.log("🔑 FETCH GET - payload:", payload?.url);
+
   const res = await checkConnectivity();
   const authToken = await getAuthToken();
 
@@ -44,6 +46,8 @@ export const fetchGet = async (payload) => {
     };
   }
 
+  console.log("🔑 FETCH GET - headders:", headders);
+
   if (res) {
     try {
       const response = await fetch(`${payload?.url}`, {
@@ -70,6 +74,7 @@ export const fetchGet = async (payload) => {
 };
 
 export const fetchPost = async (payload) => {
+  console.log("🔑 FETCH GET - payload:", payload?.url);
   const res = await checkConnectivity();
   const authToken = await getAuthToken();
 
@@ -143,6 +148,8 @@ export const fetchPost = async (payload) => {
   }
 };
 export const fetchDelete = async (payload) => {
+  console.log("🔑 FETCH GET - payload:", payload?.url);
+
   const res = await checkConnectivity();
 
   const retrieveData = async (key) => {
@@ -226,6 +233,8 @@ export const fetchDelete = async (payload) => {
   }
 };
 export const fetchPaymentProfilePost = async (payload) => {
+  console.log("🔑 FETCH GET - payload:", payload?.url);
+
   const isConnected = await checkConnectivity();
 
   if (!isConnected) {
@@ -264,7 +273,9 @@ export const fetchPaymentProfilePost = async (payload) => {
   }
 };
 export const fetchPut = async (payload) => {
+  console.log("🔑 FETCH PUT - payload:", payload?.url);
   const res = await checkConnectivity();
+  const authToken = await getAuthToken();
 
   const retrieveData = async (key) => {
     try {
@@ -283,42 +294,50 @@ export const fetchPut = async (payload) => {
     }
   };
 
+  const retrievedData = await retrieveData("signin");
   const retrievedToken = await retrieveData("user_token");
 
-  let headers: any = {};
+  let headders: any = {};
 
-  if (!retrievedToken || retrievedToken === "") {
-    headers = { "Content-Type": "application/json" };
+  // Prioritize user_token over signin data
+  const tokenToUse = retrievedToken || retrievedData?.token;
+
+  if (
+    !tokenToUse ||
+    tokenToUse === "" ||
+    tokenToUse === "null" ||
+    tokenToUse === "undefined"
+  ) {
+    headders = { "Content-Type": "application/json" };
   } else {
-    headers = {
+    headders = {
       "Content-Type": "application/json",
       datetime: moment(new Date()).format("YYYY-MM-DD hh:mm:ss"),
       device_type: Platform.OS == "android" ? "android" : "ios",
-      Authorization: `Bearer ${retrievedToken}`,
+      Authorization: `Bearer ${tokenToUse}`,
     };
   }
-
   if (res) {
     try {
       const response = await fetch(`${payload?.url}`, {
-        method: "PUT", // Changed to PUT
-        headers: headers,
+        method: "PUT", // Only changed this line from POST to PUT
+        headers: headders,
         body: JSON.stringify(payload?.params),
       });
-
       if (response.status >= 200 && response.status <= 299) {
         const jsonResponse = await response.json();
         return Promise.resolve(jsonResponse);
       }
-
       const jsonResponse = await response.json();
-
+      const error = jsonResponse.message;
       if (jsonResponse?.message == "Unauthorized user!") {
-        await storeData("signin", "");
-        await storeData("profile", "");
+        storeData(asyncData.SIGNIN_DATA, "");
+        storeData("signin", "");
+        storeData("profile", "");
+        // EventBus.getInstance().fireEvent("LogoutEvent", {
+        // })
       }
-
-      return Promise.reject(jsonResponse?.message || "Update failed");
+      return Promise.reject(jsonResponse);
     } catch (error) {
       return Promise.reject("Something went wrong");
     }

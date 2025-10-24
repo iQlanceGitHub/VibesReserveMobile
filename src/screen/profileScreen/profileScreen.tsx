@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Share,
   Alert,
+  PermissionsAndroid,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,8 +22,11 @@ import EditIcon from "../../assets/svg/editIcon";
 import RightArrow from "../../assets/svg/rightArrow";
 import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
 import { getUserStatus } from "../../utilis/userPermissionUtils";
-import { onGetProfileDetail } from "../../redux/auth/actions";
+import { onGetProfileDetail, onSwitchRole } from "../../redux/auth/actions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { showToast } from "../../utilis/toastUtils";
+// @ts-ignore
+import PushNotification from "react-native-push-notification";
 import styles from "./styles";
 
 interface ProfileScreenProps {
@@ -31,12 +35,14 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { getProfileDetail, getProfileDetailErr, loader } = useSelector(
+  const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr } = useSelector(
     (state: any) => state.auth
   );
 
   const [exploreNightLife, setExploreNightLife] = useState(true);
   const [notifications, setNotifications] = useState(false);
+  const [isNotificationLoading, setIsNotificationLoading] = useState(false);
+  const [isRoleSwitching, setIsRoleSwitching] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [userStatus, setUserStatus] = useState<
     "logged_in" | "skipped" | "guest" | null
@@ -51,8 +57,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       checkUserStatus();
-      fetchProfileDetail();
-    }, [])
+      // Only fetch profile detail for logged in users
+      if (userStatus === "logged_in") {
+        fetchProfileDetail();
+      }
+    }, [userStatus])
   );
 
   useEffect(() => {
@@ -67,8 +76,157 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       setIsLoading(false);
     } else if (getProfileDetailErr) {
       setIsLoading(false);
+      // Don't show toast for skipped users or when userStatus is still loading
+      if (userStatus !== "skipped" && userStatus !== null) {
+        showToast("error", "Failed to fetch profile details. Please try again.");
+      }
     }
-  }, [getProfileDetail, getProfileDetailErr]);
+  }, [getProfileDetail, getProfileDetailErr, userStatus]);
+
+  // Load notification preference on component mount
+  useEffect(() => {
+    loadNotificationPreference();
+  }, []);
+
+  // Handle switch role response
+  useEffect(() => {
+    if (switchRole?.status === 1 || switchRole?.status === "1" || switchRole?.status === true) {
+      console.log('Role switch successful:', switchRole);
+      showToast('success', `Role switched successfully to ${switchRole.currentRole}`);
+      
+      // Update user data in AsyncStorage
+      updateUserRoleInStorage(switchRole.currentRole);
+      
+      // Navigate to appropriate tab based on new role
+      if (switchRole.currentRole === 'host') {
+        navigation?.navigate('HostTabs' as never);
+      } else if (switchRole.currentRole === 'user') {
+        navigation?.navigate('HomeTabs' as never);
+      }
+      
+      // Reset loading state
+      setIsRoleSwitching(false);
+      
+      // Clear the switch role state
+      dispatch({ type: 'SWITCH_ROLE_DATA', payload: "" });
+    }
+  }, [switchRole]);
+
+  // Handle switch role error
+  useEffect(() => {
+    if (switchRoleErr) {
+      console.log('Role switch error:', switchRoleErr);
+      showToast('error', 'Failed to switch role. Please try again.');
+      
+      // Reset loading state
+      setIsRoleSwitching(false);
+      
+      // Clear the switch role error state
+      dispatch({ type: 'SWITCH_ROLE_ERROR', payload: "" });
+    }
+  }, [switchRoleErr]);
+
+  // Request notification permissions
+  const requestNotificationPermissions = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          {
+            title: 'Notification Permission',
+            message: 'This app needs notification permission to send you updates.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (error) {
+        console.log('Error requesting notification permission:', error);
+        return false;
+      }
+    }
+    return true; // iOS permissions are handled differently
+  };
+
+  // Configure push notifications
+  const configurePushNotifications = () => {
+    PushNotification.configure({
+      onRegister: function (token: any) {
+        console.log('TOKEN:', token);
+      },
+      onNotification: function (notification: any) {
+        console.log('NOTIFICATION:', notification);
+      },
+      permissions: {
+        alert: true,
+        badge: true,
+        sound: true,
+      },
+      popInitialNotification: true,
+      requestPermissions: true,
+    });
+  };
+
+  // Load notification preference from AsyncStorage
+  const loadNotificationPreference = async () => {
+    try {
+      const savedNotification = await AsyncStorage.getItem('notification_preference');
+      if (savedNotification !== null) {
+        const isEnabled = JSON.parse(savedNotification);
+        setNotifications(isEnabled);
+        
+        // Configure notifications based on preference
+        if (isEnabled) {
+          configurePushNotifications();
+        }
+      } else {
+        // Default to true if no preference is saved
+        setNotifications(true);
+        configurePushNotifications();
+      }
+    } catch (error) {
+      console.log('Error loading notification preference:', error);
+      setNotifications(true); // Default to true on error
+      configurePushNotifications();
+    }
+  };
+
+  // Save notification preference to AsyncStorage
+  const saveNotificationPreference = async (value: boolean) => {
+    try {
+      await AsyncStorage.setItem('notification_preference', JSON.stringify(value));
+      console.log('Notification preference saved:', value);
+    } catch (error) {
+      console.log('Error saving notification preference:', error);
+    }
+  };
+
+  // Check if notifications are enabled
+  const checkNotificationStatus = () => {
+    PushNotification.checkPermissions((permissions: any) => {
+      console.log('Notification permissions:', permissions);
+      if (permissions.alert && notifications) {
+        console.log('Notifications are enabled and permitted');
+      } else {
+        console.log('Notifications are disabled or not permitted');
+      }
+    });
+  };
+
+  // Send a test notification (for testing purposes)
+  const sendTestNotification = () => {
+    if (notifications) {
+      PushNotification.localNotification({
+        title: "Test Notification",
+        message: "This is a test notification from VibesReserve",
+        playSound: true,
+        soundName: 'default',
+        vibrate: true,
+        vibration: 300,
+      });
+    }
+  };
 
   const checkUserStatus = async () => {
     try {
@@ -82,8 +240,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const fetchProfileDetail = () => {
-    setIsLoading(true);
-    dispatch(onGetProfileDetail());
+    // Only fetch profile detail for logged in users
+    if (userStatus === "logged_in") {
+      setIsLoading(true);
+      dispatch(onGetProfileDetail());
+    } else {
+      setIsLoading(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -103,12 +266,92 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     navigation?.navigate("SignInScreen");
   };
 
-  const handleExploreNightLifeToggle = () => {
-    setExploreNightLife(!exploreNightLife);
+  // Update user role in AsyncStorage
+  const updateUserRoleInStorage = async (newRole: string) => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.currentRole = newRole;
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+        console.log('User role updated in storage:', newRole);
+      }
+    } catch (error) {
+      console.log('Error updating user role in storage:', error);
+    }
   };
 
-  const handleNotificationsToggle = () => {
-    setNotifications(!notifications);
+  const handleExploreNightLifeToggle = async () => {
+    if (isRoleSwitching) return; // Prevent multiple rapid toggles
+    
+    setIsRoleSwitching(true);
+    
+    try {
+      // Determine the new role based on current state
+      const newRole = exploreNightLife ? 'host' : 'user';
+      
+      console.log('Switching role to:', newRole);
+      
+      // Dispatch the switch role action
+      dispatch(onSwitchRole({ role: newRole }));
+      
+    } catch (error) {
+      console.log('Error switching role:', error);
+      showToast('error', 'Failed to switch role. Please try again.');
+      setIsRoleSwitching(false);
+    }
+  };
+
+  const handleNotificationsToggle = async () => {
+    if (isNotificationLoading) return; // Prevent multiple rapid toggles
+    
+    setIsNotificationLoading(true);
+    const newValue = !notifications;
+    
+    try {
+      if (newValue) {
+        // User wants to enable notifications
+        const hasPermission = await requestNotificationPermissions();
+        
+        if (!hasPermission) {
+          showToast('error', 'Notification permission denied. Please enable in settings.');
+          setIsNotificationLoading(false);
+          return;
+        }
+        
+        // Configure push notifications
+        configurePushNotifications();
+        
+        // Update local state
+        setNotifications(true);
+        
+        // Save to storage
+        await saveNotificationPreference(true);
+        
+        showToast('success', 'Notifications enabled successfully!');
+        console.log('Notifications enabled');
+      } else {
+        // User wants to disable notifications
+        // Cancel all scheduled notifications
+        PushNotification.cancelAllLocalNotifications();
+        
+        // Update local state
+        setNotifications(false);
+        
+        // Save to storage
+        await saveNotificationPreference(false);
+        
+        showToast('success', 'Notifications disabled successfully!');
+        console.log('Notifications disabled');
+      }
+    } catch (error) {
+      // Revert state on error
+      setNotifications(!newValue);
+      showToast('error', 'Failed to update notification preference');
+      console.log('Error updating notification preference:', error);
+    } finally {
+      setIsNotificationLoading(false);
+    }
   };
 
   const handleShareWithFriends = async () => {
@@ -250,7 +493,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     Loading profile...
                   </Text>
                 </View>
-              ) : getProfileDetailErr ? (
+              ) : getProfileDetailErr && userStatus !== "skipped" ? (
                 <View
                   style={{
                     flex: 1,
@@ -295,21 +538,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   <View style={styles.profileImageContainer}>
                     <Image
                       source={{
-                        uri: profileData?.profilePicture,
+                        uri: profileData?.profilePicture || "https://via.placeholder.com/100x100/6C5CE7/FFFFFF?text=GU",
                       }}
                       style={styles.profileImage}
                     />
-                    <TouchableOpacity
-                      style={styles.editIconContainer}
-                      onPress={handleEditProfile}
-                    >
-                      <EditIcon width={16} height={16} />
-                    </TouchableOpacity>
+                    {userStatus === "logged_in" && (
+                      <TouchableOpacity
+                        style={styles.editIconContainer}
+                        onPress={handleEditProfile}
+                      >
+                        <EditIcon width={16} height={16} />
+                      </TouchableOpacity>
+                    )}
                   </View>
 
                   <View style={styles.userInfoContainer}>
                     <Text style={styles.userInfoName}>
-                      {profileData?.fullName || "User Name"}
+                      {profileData?.fullName || "Guest User"}
                     </Text>
                     <Text style={styles.userInfoValue}>
                       {profileData?.email || "user@example.com"}
@@ -329,7 +574,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               )}
             </View>
 
-            <View style={styles.licenseSection}>
+            {/* <View style={styles.licenseSection}>
               <View style={styles.licenseBorderContainer}>
                 {profileData?.userDocument ? (
                   <Image
@@ -345,16 +590,40 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   </View>
                 )}
               </View>
-            </View>
+            </View> */}
             <View style={styles.menuSection}>
               {userStatus === "skipped" ? (
-                // Show Login option for skipped users
-                renderMenuOption("Sign In", handleLogin, <RightArrow />, true)
+                // Show Login option for skipped users with 2 arrows
+                renderMenuOption("Sign In", handleLogin, 
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={{ 
+                      width: 24, 
+                      height: 24, 
+                      borderRadius: 12, 
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <RightArrow width={16} height={16} />
+                    </View>
+                    {/* <View style={{ 
+                      width: 24, 
+                      height: 24, 
+                      borderRadius: 12, 
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <RightArrow width={16} height={16} />
+                    </View> */}
+                  </View>, 
+                  false
+                )
               ) : (
                 // Show normal menu for logged in users
                 <>
                   {renderMenuOption(
-                    "Explore Night Life",
+                    "Become a Host",
                     handleExploreNightLifeToggle,
                     <TouchableOpacity
                       style={[
@@ -363,11 +632,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                           backgroundColor: exploreNightLife
                             ? colors.BtnBackground
                             : colors.disableGray,
+                          opacity: isRoleSwitching ? 0.6 : 1,
                         },
                       ]}
                       onPress={handleExploreNightLifeToggle}
+                      disabled={isRoleSwitching}
                     >
-                      <Text style={styles.switchButtonText}>Switch</Text>
+                      <Text style={styles.switchButtonText}>
+                        {isRoleSwitching ? 'Switching...' : 'Switch'}
+                      </Text>
                     </TouchableOpacity>
                   )}
 
@@ -377,11 +650,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     <Switch
                       value={notifications}
                       onValueChange={handleNotificationsToggle}
+                      disabled={isNotificationLoading}
                       trackColor={{
                         false: colors.disableGray,
                         true: colors.BtnBackground,
                       }}
-                      thumbColor={colors.white}
+                      thumbColor={isNotificationLoading ? colors.gray : colors.white}
                     />
                   )}
 

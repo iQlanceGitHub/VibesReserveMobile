@@ -162,7 +162,7 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
 
   const handleEventPress = (eventId: string) => {
     (navigation as any).navigate("ClubDetailScreen", {
-      clubId: eventId || "68b6eceba9ae1fc590695248",
+      clubId: eventId,
     });
   };
 

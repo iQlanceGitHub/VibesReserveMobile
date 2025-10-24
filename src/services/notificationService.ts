@@ -19,11 +19,27 @@ class NotificationService {
     }
 
     try {
+      // Check current permission status first
+      const authStatus = await messaging().hasPermission();
+      console.log('📱 Current notification permission status:', authStatus);
+      
       // Request permission for notifications
-      const authStatus = await messaging().requestPermission();
+      const newAuthStatus = await messaging().requestPermission({
+        alert: true,
+        badge: true,
+        sound: true,
+        announcement: false,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+      });
+      
       const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        newAuthStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        newAuthStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      console.log('📱 New notification permission status:', newAuthStatus);
+      console.log('📱 Notifications enabled:', enabled);
 
       if (enabled) {
         console.log('📱 Notification permission granted');
@@ -32,11 +48,20 @@ class NotificationService {
         this.setupNotificationOpenedListener();
       } else {
         console.log('📱 Notification permission denied');
+        // Still set up listeners in case permission is granted later
+        this.setupForegroundListener();
+        this.setupBackgroundListener();
+        this.setupNotificationOpenedListener();
       }
 
       this.isInitialized = true;
     } catch (error) {
       console.error('❌ Error initializing notifications:', error);
+      // Still set up listeners even if there's an error
+      this.setupForegroundListener();
+      this.setupBackgroundListener();
+      this.setupNotificationOpenedListener();
+      this.isInitialized = true;
     }
   }
 
@@ -49,39 +74,61 @@ class NotificationService {
         // For Android, show a local notification using Notifee
         await this.displayLocalNotification(remoteMessage);
       } else {
-        // For iOS, the notification will be shown by the system
-        // due to the willPresent implementation in AppDelegate
-        console.log('iOS foreground notification handled by system');
+        // For iOS, we need to handle this differently
+        // The system will show the notification due to AppDelegate configuration
+        // But we can also show a local notification using Notifee for better control
+        console.log('📱 iOS foreground notification received:', remoteMessage);
+        
+        // Show a local notification using Notifee for iOS foreground
+        await this.displayLocalNotification(remoteMessage);
+        
+        // Also show custom alert for additional feedback
+        this.showCustomForegroundAlert(remoteMessage);
       }
     });
   }
 
   private async displayLocalNotification(remoteMessage: any) {
     try {
-      // Create a channel for Android notifications
-      const channelId = await notifee.createChannel({
-        id: 'default',
-        name: 'Default Channel',
-        importance: AndroidImportance.HIGH,
-        visibility: AndroidVisibility.PUBLIC,
-      });
-
-      // Display the notification
-      await notifee.displayNotification({
-        title: remoteMessage.notification?.title || 'New Notification',
-        body: remoteMessage.notification?.body || 'You have a new message',
-        data: remoteMessage.data || {},
-        android: {
-          channelId,
+      if (Platform.OS === 'android') {
+        // Create a channel for Android notifications
+        const channelId = await notifee.createChannel({
+          id: 'default',
+          name: 'Default Channel',
           importance: AndroidImportance.HIGH,
           visibility: AndroidVisibility.PUBLIC,
-          pressAction: {
-            id: 'default',
-          },
-        },
-      });
+        });
 
-      console.log('📱 Local notification displayed');
+        // Display the notification for Android
+        await notifee.displayNotification({
+          title: remoteMessage.notification?.title || 'New Notification',
+          body: remoteMessage.notification?.body || 'You have a new message',
+          data: remoteMessage.data || {},
+          android: {
+            channelId,
+            importance: AndroidImportance.HIGH,
+            visibility: AndroidVisibility.PUBLIC,
+            pressAction: {
+              id: 'default',
+            },
+          },
+        });
+      } else {
+        // For iOS, display notification using Notifee
+        await notifee.displayNotification({
+          title: remoteMessage.notification?.title || 'New Notification',
+          body: remoteMessage.notification?.body || 'You have a new message',
+          data: remoteMessage.data || {},
+          ios: {
+            sound: 'default',
+            badge: 1,
+            critical: false,
+            criticalVolume: 0.5,
+          },
+        });
+      }
+
+      console.log('📱 Local notification displayed for', Platform.OS);
     } catch (error) {
       console.error('❌ Error displaying local notification:', error);
       
@@ -139,6 +186,18 @@ class NotificationService {
         }
       });
     }
+  }
+
+  private showCustomForegroundAlert(remoteMessage: any) {
+    // Show a custom alert for iOS foreground notifications
+    // This is optional and provides additional feedback
+    const title = remoteMessage.notification?.title || 'New Notification';
+    const body = remoteMessage.notification?.body || 'You have a new message';
+    
+    console.log('📱 Showing custom foreground alert:', { title, body });
+    
+    // You can customize this further or use a different UI component
+    // For now, we'll just log it, but you could show a toast, banner, or modal
   }
 
   private handleNotificationTap(remoteMessage: any) {

@@ -107,7 +107,7 @@ const ClubDetailScreen = () => {
   const togglefavoriteErr = useSelector((state: any) => state.auth.togglefavoriteErr);
 
   // Get club ID from route params
-  const clubId = (route?.params as any)?.clubId || '68b6eceba9ae1fc590695248'; // fallback ID
+  const clubId = (route?.params as any)?.clubId; // fallback ID
 
   // Bookmark storage key
   const BOOKMARKS_STORAGE_KEY = 'user_bookmarks';

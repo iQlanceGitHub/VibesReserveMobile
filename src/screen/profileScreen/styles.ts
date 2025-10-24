@@ -144,6 +144,7 @@ const styles = StyleSheet.create({
   menuSection: {
     width: horizontalScale(336),
     alignSelf: "center",
+    marginTop: verticalScale(-50),
   },
   menuOption: {
     borderRadius: horizontalScale(16),

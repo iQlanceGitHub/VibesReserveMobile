@@ -10,6 +10,7 @@ import {
   PermissionsAndroid,
   Alert,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { colors } from "../../utilis/colors";
@@ -74,7 +75,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const deviceToken = useSelector((state: any) => state.auth.deviceToken);
 
   const { signup, signupErr, loader } = useSelector((state: any) => state.auth);
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string>("explore");
   const [phoneCode, setPhoneCode] = useState<string>("+1");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [phoneCodeFlag, setPhoneCodeFlag] = useState<string>("🇺🇸");
@@ -165,6 +166,13 @@ const storeUser = async (user: any) => {
     } else {
     }
   }, [deviceToken]);
+
+  // Clear selected document when switching from host to explore role
+  useEffect(() => {
+    if (selectedRole === "explore" && selectedDocument) {
+      setSelectedDocument(null);
+    }
+  }, [selectedRole]);
 
   useEffect(() => {
     if (signup?.status === true ||
@@ -428,6 +436,12 @@ const storeUser = async (user: any) => {
       return false;
     }
 
+    // Validate document upload for host role
+    if (selectedRole === "host" && !selectedDocument) {
+      showToast("error", "Please upload a document to become a host");
+      return false;
+    }
+
     setErrors(newErrors);
     setErrorMessages(newErrorMessages);
     return isValid;
@@ -459,6 +473,11 @@ const storeUser = async (user: any) => {
         
         setIsUploading(false);
         showToast("success", "Document uploaded successfully!");
+      } else if (selectedRole === "host") {
+        // This should not happen due to validation, but adding as safety check
+        showToast("error", "Document upload is required for host role");
+        setIsSubmitting(false);
+        return;
       }
 
       const signupPayload = {
@@ -636,6 +655,7 @@ const storeUser = async (user: any) => {
   };
 
   const handleCameraCapture = async () => {
+    Keyboard.dismiss();
     // Use the new permission flow with persistent requests
     PermissionManager.requestPermissionWithFlow(
       'camera',
@@ -683,6 +703,7 @@ const storeUser = async (user: any) => {
   };
 
   const handleGallerySelection = async () => {
+    Keyboard.dismiss();
     // Use the new permission flow with persistent requests
     PermissionManager.requestPermissionWithFlow(
       'storage',
@@ -728,6 +749,7 @@ const storeUser = async (user: any) => {
   };
 
   const handleDocumentSelection = async () => {
+    Keyboard.dismiss();
     try {
       setTimeout(async () => {
         try {
@@ -823,6 +845,7 @@ const storeUser = async (user: any) => {
   };
 
   const handleDocumentUpload = () => {
+    Keyboard.dismiss();
     setShowFilePicker(true);
   };
 
@@ -1195,67 +1218,70 @@ const storeUser = async (user: any) => {
                 )}
             </View>
 
-            <View style={styles.documentSection}>
-              <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
-              <Text style={styles.sectionTitle}>Upload Document</Text>
-              {selectedDocument ?  (
-                    <View style={styles.selectedFileContainer}>
-                      <TouchableOpacity
-                        style={styles.deleteDocumentButton}
-                        onPress={handleDeleteDocument}
-                      >
-                        <DeleteIconNew width={20} height={20} />
-                      </TouchableOpacity></View>):(<></>)}
-              </View>
-              <TouchableOpacity
-                style={styles.documentUpload}
-                onPress={handleDocumentUpload}
-              >
-
-
-                <View style={styles.documentContent}>
-                  {selectedDocument ? (
-                    <View style={styles.selectedFileContainer}>
-                      <View style={styles.documentIconContainer}>
-                        {getDocumentIcon(selectedDocument.name)}
-                      </View>
-                      <Text style={styles.selectedFileName}>
-                        {selectedDocument.name}
-                      </Text>
-                      <Text style={styles.selectedFileSize}>
-                        {(selectedDocument.size / (1024 * 1024)).toFixed(2)} MB
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.changeFileButton}
-                        onPress={handleDocumentUpload}
-                      >
-                        <Text style={styles.changeFileButtonText}>
-                          Change File
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <>
-                      <View style={styles.documentIconContainer}>
-                        <DocumentIcon />
-                      </View>
-                      <Text style={styles.documentText}>
-                        Choose a file or document
-                      </Text>
-                      <Text style={styles.documentSubtext}>
-                        JPEG, PNG, and PDF up to 5.0 MB
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.browseButton}
-                        onPress={handleDocumentUpload}
-                      >
-                        <Text style={styles.browseButtonText}>Browse File</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
+            {/* Only show document upload section for Host role */}
+            {selectedRole === "host" && (
+              <View style={styles.documentSection}>
+                <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
+                  <Text style={styles.sectionTitle}>Upload a business licence *</Text>
+                  {selectedDocument ?  (
+                        <View style={styles.selectedFileContainer}>
+                          <TouchableOpacity
+                            style={styles.deleteDocumentButton}
+                            onPress={handleDeleteDocument}
+                          >
+                            <DeleteIconNew width={20} height={20} />
+                          </TouchableOpacity></View>):(<></>)}
                 </View>
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  style={styles.documentUpload}
+                  onPress={handleDocumentUpload}
+                >
+
+
+                  <View style={styles.documentContent}>
+                    {selectedDocument ? (
+                      <View style={styles.selectedFileContainer}>
+                        <View style={styles.documentIconContainer}>
+                          {getDocumentIcon(selectedDocument.name)}
+                        </View>
+                        <Text style={styles.selectedFileName}>
+                          {selectedDocument.name}
+                        </Text>
+                        <Text style={styles.selectedFileSize}>
+                          {(selectedDocument.size / (1024 * 1024)).toFixed(2)} MB
+                        </Text>
+                        <TouchableOpacity
+                          style={styles.changeFileButton}
+                          onPress={handleDocumentUpload}
+                        >
+                          <Text style={styles.changeFileButtonText}>
+                            Change File
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <>
+                        <View style={styles.documentIconContainer}>
+                          <DocumentIcon />
+                        </View>
+                        <Text style={styles.documentText}>
+                          Choose a file or document
+                        </Text>
+                        <Text style={styles.documentSubtext}>
+                          JPEG, PNG, and PDF up to 5.0 MB
+                        </Text>
+                        <TouchableOpacity
+                          style={styles.browseButton}
+                          onPress={handleDocumentUpload}
+                        >
+                          <Text style={styles.browseButtonText}>Browse File</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
 
             <View style={styles.buttonSection}>
               <Buttons
