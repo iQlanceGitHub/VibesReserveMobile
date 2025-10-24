@@ -22,12 +22,13 @@ import EditIcon from "../../assets/svg/editIcon";
 import RightArrow from "../../assets/svg/rightArrow";
 import LogoutConfirmationPopup from "../../components/LogoutConfirmationPopup";
 import { getUserStatus } from "../../utilis/userPermissionUtils";
-import { onGetProfileDetail, onSwitchRole } from "../../redux/auth/actions";
+import { onGetProfileDetail, onSwitchRole, onDeleteAccount, deleteAccountData, deleteAccountError, onGetCmsContent, getCmsContentData, getCmsContentError } from "../../redux/auth/actions";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { showToast } from "../../utilis/toastUtils";
 // @ts-ignore
 import PushNotification from "react-native-push-notification";
 import styles from "./styles";
+import { verticalScale } from "../../utilis/appConstant";
 
 interface ProfileScreenProps {
   navigation?: any;
@@ -35,7 +36,7 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr } = useSelector(
+  const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr, deleteAccount, deleteAccountErr, cmsContent, cmsContentErr } = useSelector(
     (state: any) => state.auth
   );
 
@@ -43,6 +44,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [notifications, setNotifications] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
+  const [pendingCmsNavigation, setPendingCmsNavigation] = useState<{ identifier: string, title: string } | null>(null);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [userStatus, setUserStatus] = useState<
     "logged_in" | "skipped" | "guest" | null
@@ -93,20 +95,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     if (switchRole?.status === 1 || switchRole?.status === "1" || switchRole?.status === true) {
       console.log('Role switch successful:', switchRole);
       showToast('success', `Role switched successfully to ${switchRole.currentRole}`);
-      
+
       // Update user data in AsyncStorage
       updateUserRoleInStorage(switchRole.currentRole);
-      
+
       // Navigate to appropriate tab based on new role
       if (switchRole.currentRole === 'host') {
         navigation?.navigate('HostTabs' as never);
       } else if (switchRole.currentRole === 'user') {
         navigation?.navigate('HomeTabs' as never);
       }
-      
+
       // Reset loading state
       setIsRoleSwitching(false);
-      
+
       // Clear the switch role state
       dispatch({ type: 'SWITCH_ROLE_DATA', payload: "" });
     }
@@ -117,14 +119,103 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     if (switchRoleErr) {
       console.log('Role switch error:', switchRoleErr);
       showToast('error', 'Failed to switch role. Please try again.');
-      
+
       // Reset loading state
       setIsRoleSwitching(false);
-      
+
       // Clear the switch role error state
       dispatch({ type: 'SWITCH_ROLE_ERROR', payload: "" });
     }
   }, [switchRoleErr]);
+
+  // Handle delete account response
+  useEffect(() => {
+    if (deleteAccount) {
+      console.log('Account deleted successfully:', deleteAccount);
+      showToast('success', 'Account deleted successfully');
+      performLogout();
+      dispatch(deleteAccountData(''));
+      // Clear user data and navigate to login
+      // AsyncStorage.clear();
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [{ name: 'WelcomeScreen' }],
+      // });
+    }
+  }, [deleteAccount]);
+
+  useEffect(() => {
+    if (deleteAccountErr) {
+      performLogout();
+      dispatch(deleteAccountError(''));
+      console.log('Delete account error:', deleteAccountErr);
+      showToast('error', 'Failed to delete account. Please try again.');
+    }
+  }, [deleteAccountErr]);
+
+  // Handle CMS content response and navigate with content
+  useEffect(() => {
+    if (cmsContent && cmsContent.data && pendingCmsNavigation) {
+      console.log('📄 CMS Content received, navigating with content:', cmsContent.data);
+      navigation.navigate('CmsContentScreen', {
+        identifier: pendingCmsNavigation.identifier,
+        title: pendingCmsNavigation.title,
+        content: cmsContent.data.content
+      });
+      setPendingCmsNavigation(null);
+      dispatch(getCmsContentData(''));
+    }
+  }, [cmsContent, pendingCmsNavigation]);
+
+  // Handle CMS content error
+  useEffect(() => {
+    if (cmsContentErr && pendingCmsNavigation) {
+      console.log('CMS content error:', cmsContentErr);
+      showToast('error', 'Failed to load content. Please try again.');
+      setPendingCmsNavigation(null);
+      dispatch(getCmsContentError(''));
+    }
+  }, [cmsContentErr, pendingCmsNavigation]);
+
+  // Delete account function
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            dispatch(onDeleteAccount({}));
+          },
+        },
+      ]
+    );
+  };
+
+  // CMS Content functions
+  const handlePrivacyPolicy = () => {
+    console.log('🔍 Requesting privacy policy content');
+    setPendingCmsNavigation({ identifier: 'privacy_policy', title: 'Privacy Policy' });
+    dispatch(onGetCmsContent({ identifier: 'privacy_policy' }));
+  };
+
+  const handleTermsConditions = () => {
+    console.log('🔍 Requesting terms & conditions content');
+    setPendingCmsNavigation({ identifier: 'terms_condition', title: 'Terms & Conditions' });
+    dispatch(onGetCmsContent({ identifier: 'terms_condition' }));
+  };
+
+  const handleAboutUs = () => {
+    console.log('🔍 Requesting about us content');
+    setPendingCmsNavigation({ identifier: 'about_us', title: 'About Us' });
+    dispatch(onGetCmsContent({ identifier: 'about_us' }));
+  };
 
   // Request notification permissions
   const requestNotificationPermissions = async () => {
@@ -175,7 +266,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       if (savedNotification !== null) {
         const isEnabled = JSON.parse(savedNotification);
         setNotifications(isEnabled);
-        
+
         // Configure notifications based on preference
         if (isEnabled) {
           configurePushNotifications();
@@ -283,18 +374,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   const handleExploreNightLifeToggle = async () => {
     if (isRoleSwitching) return; // Prevent multiple rapid toggles
-    
+
     setIsRoleSwitching(true);
-    
+
     try {
       // Determine the new role based on current state
       const newRole = exploreNightLife ? 'host' : 'user';
-      
+
       console.log('Switching role to:', newRole);
-      
+
       // Dispatch the switch role action
       dispatch(onSwitchRole({ role: newRole }));
-      
+
     } catch (error) {
       console.log('Error switching role:', error);
       showToast('error', 'Failed to switch role. Please try again.');
@@ -304,43 +395,43 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   const handleNotificationsToggle = async () => {
     if (isNotificationLoading) return; // Prevent multiple rapid toggles
-    
+
     setIsNotificationLoading(true);
     const newValue = !notifications;
-    
+
     try {
       if (newValue) {
         // User wants to enable notifications
         const hasPermission = await requestNotificationPermissions();
-        
+
         if (!hasPermission) {
           showToast('error', 'Notification permission denied. Please enable in settings.');
           setIsNotificationLoading(false);
           return;
         }
-        
+
         // Configure push notifications
         configurePushNotifications();
-        
+
         // Update local state
         setNotifications(true);
-        
+
         // Save to storage
         await saveNotificationPreference(true);
-        
+
         showToast('success', 'Notifications enabled successfully!');
         console.log('Notifications enabled');
       } else {
         // User wants to disable notifications
         // Cancel all scheduled notifications
         PushNotification.cancelAllLocalNotifications();
-        
+
         // Update local state
         setNotifications(false);
-        
+
         // Save to storage
         await saveNotificationPreference(false);
-        
+
         showToast('success', 'Notifications disabled successfully!');
         console.log('Notifications disabled');
       }
@@ -460,121 +551,117 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         style={styles.container}
       >
         <SafeAreaView style={styles.safeArea}>
-          <ScrollView
-            style={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            <View style={styles.profileSection}>
-              <View style={styles.header}>
-                <View style={styles.statusBar}></View>
-                <View style={styles.placeholder} />
-                <Text style={styles.title}>Profile</Text>
-                <View style={styles.placeholder} />
-              </View>
-              {isLoading && userStatus === "logged_in" ? (
-                <View
+
+          <View style={styles.profileSection}>
+            <View style={styles.header}>
+              <View style={styles.statusBar}></View>
+              <View style={styles.placeholder} />
+              <Text style={styles.title}>Profile</Text>
+              <View style={styles.placeholder} />
+            </View>
+            {isLoading && userStatus === "logged_in" ? (
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 40,
+                }}
+              >
+                <ActivityIndicator size="large" color={colors.white} />
+                <Text
                   style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingVertical: 40,
+                    fontSize: 16,
+                    fontFamily: "Poppins-Medium",
+                    color: colors.white,
+                    marginTop: 10,
                   }}
                 >
-                  <ActivityIndicator size="large" color={colors.white} />
+                  Loading profile...
+                </Text>
+              </View>
+            ) : getProfileDetailErr && userStatus !== "skipped" ? (
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 40,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontFamily: "Poppins-Medium",
+                    color: colors.red || "#FF6B6B",
+                    textAlign: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  Failed to load profile
+                </Text>
+                <TouchableOpacity
+                  onPress={fetchProfileDetail}
+                  style={{
+                    backgroundColor: colors.BtnBackground || "#6C5CE7",
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    borderRadius: 8,
+                  }}
+                >
                   <Text
                     style={{
-                      fontSize: 16,
+                      fontSize: 14,
                       fontFamily: "Poppins-Medium",
                       color: colors.white,
-                      marginTop: 10,
                     }}
                   >
-                    Loading profile...
+                    Retry
                   </Text>
-                </View>
-              ) : getProfileDetailErr && userStatus !== "skipped" ? (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingVertical: 40,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontFamily: "Poppins-Medium",
-                      color: colors.red || "#FF6B6B",
-                      textAlign: "center",
-                      marginBottom: 10,
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.profileContent}>
+                <View style={styles.profileImageContainer}>
+                  <Image
+                    source={{
+                      uri: profileData?.profilePicture || "https://via.placeholder.com/100x100/6C5CE7/FFFFFF?text=GU",
                     }}
-                  >
-                    Failed to load profile
-                  </Text>
-                  <TouchableOpacity
-                    onPress={fetchProfileDetail}
-                    style={{
-                      backgroundColor: colors.BtnBackground || "#6C5CE7",
-                      paddingHorizontal: 20,
-                      paddingVertical: 10,
-                      borderRadius: 8,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontFamily: "Poppins-Medium",
-                        color: colors.white,
-                      }}
+                    style={styles.profileImage}
+                  />
+                  {userStatus === "logged_in" && (
+                    <TouchableOpacity
+                      style={styles.editIconContainer}
+                      onPress={handleEditProfile}
                     >
-                      Retry
-                    </Text>
-                  </TouchableOpacity>
+                      <EditIcon width={16} height={16} />
+                    </TouchableOpacity>
+                  )}
                 </View>
-              ) : (
-                <View style={styles.profileContent}>
-                  <View style={styles.profileImageContainer}>
-                    <Image
-                      source={{
-                        uri: profileData?.profilePicture || "https://via.placeholder.com/100x100/6C5CE7/FFFFFF?text=GU",
-                      }}
-                      style={styles.profileImage}
-                    />
-                    {userStatus === "logged_in" && (
-                      <TouchableOpacity
-                        style={styles.editIconContainer}
-                        onPress={handleEditProfile}
-                      >
-                        <EditIcon width={16} height={16} />
-                      </TouchableOpacity>
-                    )}
-                  </View>
 
-                  <View style={styles.userInfoContainer}>
-                    <Text style={styles.userInfoName}>
-                      {profileData?.fullName || "Guest User"}
-                    </Text>
-                    <Text style={styles.userInfoValue}>
-                      {profileData?.email || "user@example.com"}
-                    </Text>
-                    <Text style={styles.userInfoValue}>
-                      {profileData?.countrycode && profileData?.phone
-                        ? `${profileData.countrycode}${profileData.phone}`
-                        : "+1234567890"}
-                    </Text>
-                    <Text style={styles.userInfoValue}>
-                      {profileData?.dateOfBirth
-                        ? formatDate(profileData.dateOfBirth)
-                        : "01/01/1990"}
-                    </Text>
-                  </View>
+                <View style={styles.userInfoContainer}>
+                  <Text style={styles.userInfoName}>
+                    {profileData?.fullName || "Guest User"}
+                  </Text>
+                  <Text style={styles.userInfoValue}>
+                    {profileData?.email || "user@example.com"}
+                  </Text>
+                  <Text style={styles.userInfoValue}>
+                    {profileData?.countrycode && profileData?.phone
+                      ? `${profileData.countrycode}${profileData.phone}`
+                      : "+1234567890"}
+                  </Text>
+                  <Text style={styles.userInfoValue}>
+                    {profileData?.dateOfBirth
+                      ? formatDate(profileData.dateOfBirth)
+                      : "01/01/1990"}
+                  </Text>
                 </View>
-              )}
-            </View>
+              </View>
+            )}
+          </View>
 
-            {/* <View style={styles.licenseSection}>
+          {/* <View style={styles.licenseSection}>
               <View style={styles.licenseBorderContainer}>
                 {profileData?.userDocument ? (
                   <Image
@@ -591,15 +678,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 )}
               </View>
             </View> */}
+
+          <ScrollView
+            style={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
             <View style={styles.menuSection}>
               {userStatus === "skipped" ? (
                 // Show Login option for skipped users with 2 arrows
-                renderMenuOption("Sign In", handleLogin, 
+                renderMenuOption("Sign In", handleLogin,
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View style={{ 
-                      width: 24, 
-                      height: 24, 
-                      borderRadius: 12, 
+                    <View style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -616,7 +709,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     }}>
                       <RightArrow width={16} height={16} />
                     </View> */}
-                  </View>, 
+                  </View>,
                   false
                 )
               ) : (
@@ -666,10 +759,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                     true
                   )}
 
+                  {renderMenuOption("About Us", handleAboutUs, <View />, true)}
+
+                  {renderMenuOption("Privacy Policy", handlePrivacyPolicy, <View />, true)}
+
+                  {renderMenuOption("Terms & Conditions", handleTermsConditions, <View />, true)}
+
+
+
+                  {renderMenuOption("Delete Account", handleDeleteAccount, <View />, true)}
+
                   {renderMenuOption("Logout", handleLogout, <View />, true)}
                 </>
               )}
             </View>
+            <View style={{ marginBottom: verticalScale(80) }}></View>
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>

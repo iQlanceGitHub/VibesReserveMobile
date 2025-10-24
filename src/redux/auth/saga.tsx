@@ -43,6 +43,15 @@ import {
   onLogout,
   logoutData,
   logoutError,
+  onDeleteAccount,
+  deleteAccountData,
+  deleteAccountError,
+  onGetCmsContent,
+  getCmsContentData,
+  getCmsContentError,
+  onResendEmail,
+  resendEmailData,
+  resendEmailError,
   onGetDynamicContent,
   getDynamicContentData,
   getDynamicContentError,
@@ -851,6 +860,113 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }): SagaIterator {
     yield put(displayLoading(false));
   } catch (error) {
     yield put(logoutError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface DeleteAccountPayload {}
+
+function* DeleteAccountSaga({ payload }: { payload: DeleteAccountPayload }): SagaIterator {
+  try {
+    console.log("🗑️ DELETE ACCOUNT SAGA STARTED");
+    yield put(displayLoading(true));
+    
+    const params = payload;
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${"user/delete-account"}`,
+      params,
+    });
+
+    console.log("🗑️ DELETE ACCOUNT - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("🗑️ DELETE ACCOUNT - SUCCESS, dispatching deleteAccountData");
+      yield put(deleteAccountData(response));
+    } else {
+      console.log("🗑️ DELETE ACCOUNT - ERROR, dispatching deleteAccountError");
+      yield put(deleteAccountError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("🗑️ DELETE ACCOUNT - CATCH ERROR:", error);
+    yield put(deleteAccountError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface GetCmsContentPayload {
+  identifier: string; // 'privacy_policy', 'about_us', 'terms_condition'
+}
+
+function* GetCmsContentSaga({ payload }: { payload: GetCmsContentPayload }): SagaIterator {
+  try {
+    console.log("📄 GET CMS CONTENT SAGA STARTED - payload:", payload);
+    yield put(displayLoading(true));
+    
+    const params = payload;
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${"user/cms-content/" + payload.identifier}`,
+      params,
+    });
+
+    console.log("📄 GET CMS CONTENT - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("📄 GET CMS CONTENT - SUCCESS, dispatching getCmsContentData");
+      yield put(getCmsContentData(response));
+      yield put(displayLoading(false));
+    } else {
+      console.log("📄 GET CMS CONTENT - ERROR, dispatching getCmsContentError");
+      yield put(getCmsContentError(response));
+      yield put(displayLoading(false));
+    }
+
+  } catch (error) {
+    console.log("📄 GET CMS CONTENT - CATCH ERROR:", error);
+    yield put(getCmsContentError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+function* ResendEmailSaga(): SagaIterator {
+  try {
+    console.log("📧 RESEND EMAIL SAGA STARTED");
+    yield put(displayLoading(true));
+    
+    const response = yield call(fetchGet, {
+      url: `${baseurl}user/resend-email`,
+    });
+
+    console.log("📧 RESEND EMAIL - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("📧 RESEND EMAIL - SUCCESS, dispatching resendEmailData");
+      yield put(resendEmailData(response));
+    } else {
+      console.log("📧 RESEND EMAIL - ERROR, dispatching resendEmailError");
+      yield put(resendEmailError(response?.message || "Failed to resend email"));
+    }
+    
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("📧 RESEND EMAIL - CATCH ERROR:", error);
+    yield put(resendEmailError(error));
     yield put(displayLoading(false));
   }
 }
@@ -2479,6 +2595,9 @@ function* authSaga() {
   yield takeLatest(onSocialLogin().type as any, SocialLoginSaga);
   yield takeLatest(onProfile().type as any, getProfileSaga);
   yield takeLatest(onLogout().type as any, LogoutSaga);
+  yield takeLatest(onDeleteAccount().type as any, DeleteAccountSaga);
+  yield takeLatest(onGetCmsContent().type as any, GetCmsContentSaga);
+  yield takeLatest(onResendEmail().type as any, ResendEmailSaga);
   yield takeLatest(onUpdateLocation().type as any, onUpdateLocationSaga);
 
   yield takeLatest(onHome().type as any, HomeSaga);

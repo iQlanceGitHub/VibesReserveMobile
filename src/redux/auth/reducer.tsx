@@ -31,6 +31,13 @@ import {
   profileError,
   logoutData,
   logoutError,
+  deleteAccountData,
+  deleteAccountError,
+  getCmsContentData,
+  getCmsContentError,
+  resendEmailData,
+  resendEmailError,
+
   getDynamicContentData,
   getDynamicContentError,
   updateLocationData,
@@ -160,6 +167,15 @@ export const initialState = {
   profileErr: "",
   logout: "",
   logoutErr: "",
+
+  deleteAccount: "",
+  deleteAccountErr: "",
+
+  cmsContent: "",
+  cmsContentErr: "",
+
+  resendEmail: "",
+  resendEmailErr: "",
   getDynamicContent: "",
   getDynamicContentErr: "",
   updateLocation: "",
@@ -404,6 +420,27 @@ const authReducer = handleActions(
     }),
     [logoutError().type]: produce((draft, action) => {
       draft.logoutErr = action.payload;
+    }),
+
+    [deleteAccountData().type]: produce((draft, action) => {
+      draft.deleteAccount = action.payload;
+    }),
+    [deleteAccountError().type]: produce((draft, action) => {
+      draft.deleteAccountErr = action.payload;
+    }),
+
+    [getCmsContentData().type]: produce((draft, action) => {
+      draft.cmsContent = action.payload;
+    }),
+    [getCmsContentError().type]: produce((draft, action) => {
+      draft.cmsContentErr = action.payload;
+    }),
+
+    [resendEmailData().type]: produce((draft, action) => {
+      draft.resendEmail = action.payload;
+    }),
+    [resendEmailError().type]: produce((draft, action) => {
+      draft.resendEmailErr = action.payload;
     }),
 
     [getDynamicContentData().type]: produce((draft, action) => {

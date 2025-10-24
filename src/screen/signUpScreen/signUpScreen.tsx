@@ -30,7 +30,8 @@ import {
   onSignup, signupData, signupError, onSocialLogin,
   socialLoginData,
   socialLoginError,
-  setUser
+  setUser,
+  onGetCmsContent
 } from "../../redux/auth/actions";
 import FilePickerPopup from "../../components/FilePickerPopup";
 import { openSettings } from 'react-native-permissions';
@@ -74,7 +75,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
   const deviceToken = useSelector((state: any) => state.auth.deviceToken);
 
-  const { signup, signupErr, loader } = useSelector((state: any) => state.auth);
+  const { signup, signupErr, loader, cmsContent, cmsContentErr } = useSelector((state: any) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string>("explore");
   const [phoneCode, setPhoneCode] = useState<string>("+1");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -114,6 +115,20 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [showFilePicker, setShowFilePicker] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [pendingCmsNavigation, setPendingCmsNavigation] = useState<{identifier: string, title: string} | null>(null);
+
+  // CMS Content functions
+  const handlePrivacyPolicy = () => {
+    console.log('🔍 Requesting privacy policy content');
+    setPendingCmsNavigation({ identifier: 'privacy_policy', title: 'Privacy Policy' });
+    dispatch(onGetCmsContent({ identifier: 'privacy_policy' }));
+  };
+
+  const handleTermsConditions = () => {
+    console.log('🔍 Requesting terms & conditions content');
+    setPendingCmsNavigation({ identifier: 'terms_condition', title: 'Terms & Conditions' });
+    dispatch(onGetCmsContent({ identifier: 'terms_condition' }));
+  };
 
 
   // Get token
@@ -798,6 +813,28 @@ const storeUser = async (user: any) => {
     };
   }, [selectedDocument]);
 
+  // Handle CMS content response and navigate with content
+  useEffect(() => {
+    if (cmsContent && cmsContent.data && pendingCmsNavigation) {
+      console.log('📄 CMS Content received, navigating with content:', cmsContent.data);
+      navigation.navigate('CmsContentScreen', { 
+        identifier: pendingCmsNavigation.identifier, 
+        title: pendingCmsNavigation.title,
+        content: cmsContent.data.content
+      });
+      setPendingCmsNavigation(null);
+    }
+  }, [cmsContent, pendingCmsNavigation]);
+
+  // Handle CMS content error
+  useEffect(() => {
+    if (cmsContentErr && pendingCmsNavigation) {
+      console.log('CMS content error:', cmsContentErr);
+      showToast('error', 'Failed to load content. Please try again.');
+      setPendingCmsNavigation(null);
+    }
+  }, [cmsContentErr, pendingCmsNavigation]);
+
   const validateAndSetFile = (file: any) => {
     // React Native files have uri, name, type, and size properties
     const fileSizeInMB = file.size ? file.size / (1024 * 1024) : 0;
@@ -1284,6 +1321,20 @@ const storeUser = async (user: any) => {
             )}
 
             <View style={styles.buttonSection}>
+              <View style={styles.termsContainer}>
+                <Text style={styles.termsText}>
+                  By creating an account, you accept our{" "}
+                  <Text style={styles.termsLink} onPress={handleTermsConditions}>
+                    Terms and Conditions
+                  </Text>{" "}
+                  and you read our{" "}
+                  <Text style={styles.termsLink} onPress={handlePrivacyPolicy}>
+                    Privacy Policy
+                  </Text>
+                  .
+                </Text>
+              </View>
+
               <Buttons
                 title={
                   isUploading 

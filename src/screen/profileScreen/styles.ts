@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: verticalScale(20),
+    marginTop: verticalScale(60),
   },
   profileSection: {
     backgroundColor: colors.profileCardBackground,

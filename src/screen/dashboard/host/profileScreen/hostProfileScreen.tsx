@@ -17,12 +17,13 @@ import LogoutConfirmationPopup from "../../../../components/LogoutConfirmationPo
 import SafeAreaWrapper from "../../../../components/SafeAreaWrapper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
-import { onGetProfileDetail, onSwitchRole } from "../../../../redux/auth/actions";
+import { onGetProfileDetail, onSwitchRole, onDeleteAccount, onGetCmsContent, onResendEmail, resendEmailError, resendEmailData } from "../../../../redux/auth/actions";
 import { showToast } from "../../../../utilis/toastUtils";
 // @ts-ignore
 import PushNotification from "react-native-push-notification";
 import { PermissionsAndroid } from "react-native";
 import styles from "./hostProfileStyles";
+import { verticalScale } from "../../../../utilis/appConstant";
 
 interface HostProfileScreenProps {
   navigation?: any;
@@ -32,7 +33,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   navigation,
 }) => {
   const dispatch = useDispatch();
-  const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr } = useSelector(
+  const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr, deleteAccount, deleteAccountErr, cmsContent, cmsContentErr, resendEmail, resendEmailErr } = useSelector(
     (state: any) => state.auth
   );
 
@@ -59,6 +60,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
+  const [pendingCmsNavigation, setPendingCmsNavigation] = useState<{identifier: string, title: string} | null>(null);
 
   useEffect(() => {
     dispatch(onGetProfileDetail());
@@ -108,6 +110,116 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
       dispatch({ type: 'SWITCH_ROLE_ERROR', payload: "" });
     }
   }, [switchRoleErr]);
+
+  // Handle delete account response
+  useEffect(() => {
+    if (deleteAccount) {
+      console.log('Account deleted successfully:', deleteAccount);
+      showToast('success', 'Account deleted successfully');
+      
+      // Clear user data and navigate to login
+      AsyncStorage.clear();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'WelcomeScreen' }],
+      });
+    }
+  }, [deleteAccount]);
+
+  useEffect(() => {
+    if (deleteAccountErr) {
+      console.log('Delete account error:', deleteAccountErr);
+      showToast('error', 'Failed to delete account. Please try again.');
+    }
+  }, [deleteAccountErr]);
+
+  // Handle CMS content response and navigate with content
+  useEffect(() => {
+    if (cmsContent && cmsContent.data && pendingCmsNavigation) {
+      console.log('📄 CMS Content received, navigating with content:', cmsContent.data);
+      navigation.navigate('CmsContentScreen', { 
+        identifier: pendingCmsNavigation.identifier, 
+        title: pendingCmsNavigation.title,
+        content: cmsContent.data.content
+      });
+      setPendingCmsNavigation(null);
+    }
+  }, [cmsContent, pendingCmsNavigation]);
+
+  // Handle CMS content error
+  useEffect(() => {
+    if (cmsContentErr && pendingCmsNavigation) {
+      console.log('CMS content error:', cmsContentErr);
+      showToast('error', 'Failed to load content. Please try again.');
+      setPendingCmsNavigation(null);
+    }
+  }, [cmsContentErr, pendingCmsNavigation]);
+
+  // Handle resend email response
+  useEffect(() => {
+    if (resendEmail) {
+      console.log('📧 Resend email success:', resendEmail);
+      showToast('success', 'Please check your email for stripe verification link. Please click on the link & create your stripe account.');
+      dispatch(resendEmailData(''));
+    }
+  }, [resendEmail]);
+
+  // Handle resend email error
+  useEffect(() => {
+    if (resendEmailErr) {
+      console.log('📧 Resend email error:', resendEmailErr);
+      showToast('error', 'We can\'t request to stripe verification email. Please contact administrator.');
+      dispatch(resendEmailError(''));
+    }
+  }, [resendEmailErr]);
+
+  // Check stripeOnboard and call resend email API if needed
+  useEffect(() => {
+    if (getProfileDetail?.data?.stripeOnboard === 'no') {
+      console.log('🔍 Stripe onboard is "no", calling resend email API');
+      dispatch(onResendEmail());
+    }
+  }, [getProfileDetail]);
+
+  // Delete account function
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            dispatch(onDeleteAccount({}));
+          },
+        },
+      ]
+    );
+  };
+
+  // CMS Content functions
+  const handlePrivacyPolicy = () => {
+    console.log('🔍 Requesting privacy policy content');
+    setPendingCmsNavigation({ identifier: 'privacy_policy', title: 'Privacy Policy' });
+    dispatch(onGetCmsContent({ identifier: 'privacy_policy' }));
+  };
+
+  const handleTermsConditions = () => {
+    console.log('🔍 Requesting terms & conditions content');
+    setPendingCmsNavigation({ identifier: 'terms_condition', title: 'Terms & Conditions' });
+    dispatch(onGetCmsContent({ identifier: 'terms_condition' }));
+  };
+
+  const handleAboutUs = () => {
+    console.log('🔍 Requesting about us content');
+    setPendingCmsNavigation({ identifier: 'about_us', title: 'About Us' });
+    dispatch(onGetCmsContent({ identifier: 'about_us' }));
+  };
 
   // Request notification permissions
   const requestNotificationPermissions = async () => {
@@ -392,11 +504,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <ScrollView
-          style={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
+        
           <View style={styles.profileSection}>
             <View style={styles.header}>
               <Text style={styles.title}>Profile</Text>
@@ -438,6 +546,12 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
               </View>
             </View>
           </View>
+
+          <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
 
           <View style={styles.menuSection}>
             {renderMenuOption(
@@ -498,8 +612,18 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
               true
             )}
 
+{renderMenuOption("About Us", handleAboutUs, <View />, true)}
+
+            {renderMenuOption("Privacy Policy", handlePrivacyPolicy, <View />, true)}
+
+            {renderMenuOption("Terms & Conditions", handleTermsConditions, <View />, true)}
+
+
+            {renderMenuOption("Delete Account", handleDeleteAccount, <View />, true)}
+
             {renderMenuOption("Logout", handleLogout, <View />, true)}
           </View>
+          <View style={{marginBottom: verticalScale(80)}}></View>
         </ScrollView>
       </LinearGradient>
 

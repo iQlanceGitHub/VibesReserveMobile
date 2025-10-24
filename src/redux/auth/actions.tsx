@@ -58,6 +58,18 @@ export const {
   logoutData,
   logoutError,
 
+  onDeleteAccount,
+  deleteAccountData,
+  deleteAccountError,
+
+  onGetCmsContent,
+  getCmsContentData,
+  getCmsContentError,
+
+  onResendEmail,
+  resendEmailData,
+  resendEmailError,
+
   onGetDynamicContent,
   getDynamicContentData,
   getDynamicContentError,
@@ -299,6 +311,19 @@ export const {
   "ON_LOGOUT",
   "LOGOUT_DATA",
   "LOGOUT_ERROR",
+
+
+  'ON_DELETE_ACCOUNT',
+  'DELETE_ACCOUNT_DATA',
+  'DELETE_ACCOUNT_ERROR',
+
+  'ON_GET_CMS_CONTENT',
+  'GET_CMS_CONTENT_DATA',
+  'GET_CMS_CONTENT_ERROR',
+
+  'ON_RESEND_EMAIL',
+  'RESEND_EMAIL_DATA',
+  'RESEND_EMAIL_ERROR',
 
   "ON_GET_DYNAMIC_CONTENT",
   "GET_DYNAMIC_CONTENT_DATA",
