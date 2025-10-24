@@ -138,10 +138,10 @@ const styles = StyleSheet.create({
     marginLeft: horizontalScale(6),
   },
   actionButtonsContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: verticalScale(12),
     right: horizontalScale(12),
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: horizontalScale(8),
   },
   actionButton: {
@@ -149,8 +149,8 @@ const styles = StyleSheet.create({
     height: verticalScale(28),
     borderRadius: horizontalScale(18),
     backgroundColor: colors.violate,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: colors.black,
     shadowOffset: {
       width: 0,

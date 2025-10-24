@@ -189,6 +189,9 @@ import {
   onDeletePromoCode,
   deletePromoCodeData,
   deletePromoCodeError,
+  onNearbyHostViewAll,
+  nearbyHostViewAllData,
+  nearbyHostViewAllError,
 } from "./actions";
 
 import { base_url_client, base_url_qa, api_endpoint } from "../apiConstant";
@@ -2527,6 +2530,72 @@ function* DeletePromoCodeSaga({
   }
 }
 
+// Nearby Host View All Saga
+interface NearbyHostViewAllPayload {
+  lat: string;
+  long: string;
+  userId: string;
+  page?: number;
+  limit?: number;
+}
+
+function* NearbyHostViewAllSaga({
+  payload,
+}: {
+  payload: NearbyHostViewAllPayload;
+}): SagaIterator {
+  try {
+    console.log(
+      "🚀 NEARBY HOST VIEW ALL SAGA: Starting with payload:",
+      payload
+    );
+    yield put(displayLoading(true));
+
+    const params = {
+      lat: payload?.lat,
+      long: payload?.long,
+      userId: payload?.userId,
+    };
+
+    const page = payload?.page || 1;
+    const limit = payload?.limit || 10;
+
+    const apiUrl = `${baseurl}${api_endpoint.nearbyHostViewAll}?page=${page}&limit=${limit}`;
+    console.log("🌐 NEARBY HOST VIEW ALL SAGA: Making API call to:", apiUrl);
+    console.log("📤 NEARBY HOST VIEW ALL SAGA: Request params:", params);
+
+    const response = yield call(fetchPost, {
+      url: apiUrl,
+      params,
+    });
+
+    console.log("📡 NEARBY HOST VIEW ALL SAGA: API Response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log(
+        "✅ NEARBY HOST VIEW ALL SAGA: Success - dispatching nearbyHostViewAllData"
+      );
+      yield put(nearbyHostViewAllData(response));
+    } else {
+      console.log(
+        "❌ NEARBY HOST VIEW ALL SAGA: Error - dispatching nearbyHostViewAllError"
+      );
+      yield put(nearbyHostViewAllError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("💥 NEARBY HOST VIEW ALL SAGA: Exception caught:", error);
+    yield put(nearbyHostViewAllError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 // Chat Click Saga
 function* ChatClickSaga({ payload }: { payload: any }): SagaIterator {
   try {
@@ -2668,6 +2737,9 @@ function* authSaga() {
 
   // Delete Promo Code saga
   yield takeLatest(onDeletePromoCode().type as any, DeletePromoCodeSaga);
+
+  // Nearby Host View All saga
+  yield takeLatest(onNearbyHostViewAll().type as any, NearbyHostViewAllSaga);
 }
 
 export default authSaga;

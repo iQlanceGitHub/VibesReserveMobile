@@ -154,7 +154,9 @@ const HomeScreenContent = () => {
     (state: any) => state.auth.togglefavoriteErr
   );
   const favoriteslist = useSelector((state: any) => state.auth.favoriteslist);
-  const favoriteslistErr = useSelector((state: any) => state.auth.favoriteslistErr);
+  const favoriteslistErr = useSelector(
+    (state: any) => state.auth.favoriteslistErr
+  );
   const [msg, setMsg] = useState("");
   const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -182,8 +184,8 @@ const HomeScreenContent = () => {
     locationData?.longitude?.toString() || "72.51123340677258";
 
   const handleNextPress = () => {
-   // setShowComingSoonDialog(true);
-   navigation.navigate("NotificationScreen" as never);
+    // setShowComingSoonDialog(true);
+    navigation.navigate("NotificationScreen" as never);
   };
 
   // Refresh home data when location changes
@@ -455,7 +457,7 @@ const HomeScreenContent = () => {
   useEffect(() => {
     if (
       favoriteslist?.status === true ||
-      favoriteslist?.status === 'true' ||
+      favoriteslist?.status === "true" ||
       favoriteslist?.status === 1 ||
       favoriteslist?.status === "1"
     ) {
@@ -463,12 +465,12 @@ const HomeScreenContent = () => {
       if (favoriteslist?.data) {
         setFavoriteEvents(favoriteslist.data);
       }
-      dispatch(favoriteslistData(''));
+      dispatch(favoriteslistData(""));
     }
 
     if (favoriteslistErr) {
       console.log("favoriteslistErr in home:", favoriteslistErr);
-      dispatch(favoriteslistError(''));
+      dispatch(favoriteslistError(""));
     }
   }, [favoriteslist, favoriteslistErr, dispatch]);
 
@@ -718,7 +720,7 @@ const HomeScreenContent = () => {
         </View>
         {nearby.length > 0 ? (
           <FlatList
-            data={nearby}
+            data={nearby.slice(0, 5)}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.nearbyEventsContainer}
             keyExtractor={(item, index) =>

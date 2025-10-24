@@ -29,4 +29,6 @@ export const api_endpoint: Record<string, unknown> = {
   deleteEvent: "user/deleteevent",
   // Role switching endpoint
   switchRole: "user/switchrole",
+  // Nearby host view all endpoint
+  nearbyHostViewAll: "user/nearby-host-view-all",
 };
