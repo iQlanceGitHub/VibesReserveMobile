@@ -1,13 +1,8 @@
-import React, { useRef,  useState } from "react";
-import {
-  View,
-  Text,
-  Dimensions,
-  Platform,
-} from "react-native";
+import React, { useRef, useState } from "react";
+import { View, Text, Dimensions, Platform, Image } from "react-native";
 import Carousel from "react-native-snap-carousel";
 import { Buttons } from "../../../components/buttons";
-import {  getWidth } from "../../../utilis/appConstant";
+import { getWidth } from "../../../utilis/appConstant";
 import { colors } from "../../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
 import styles from "./styles";
@@ -32,16 +27,19 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
       id: 1,
       title: "Find Your Perfect Vibe",
       text: "Explore the hottest clubs, bars, and lounges near you. Curated experiences tailored to your mood and style.",
+      image: require("../../../assets/images/1.jpeg"),
     },
     {
       id: 2,
       title: "Reserve Your Spot in Seconds",
       text: "No more waiting! Book tables, VIP sections, or entry passes instantly and make your night smooth.",
+      image: require("../../../assets/images/2.jpeg"),
     },
     {
       id: 3,
       title: "Customize Your Night Out",
       text: "Pick your vibe—chill, luxury, party, or live music. The night is yours to design.",
+      image: require("../../../assets/images/3.jpeg"),
     },
   ];
 
@@ -49,7 +47,11 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
   const renderItem = ({ item }: { item: any }) => {
     return (
       <View style={styles.carouselItem}>
-        <Walkthrough />
+        <Image
+          source={item.image}
+          style={styles.introImage}
+          resizeMode="cover"
+        />
         <Text style={[styles.titleText, { color: colors.violate }]}>
           {item.title}
         </Text>
