@@ -64,10 +64,11 @@ const NearbyEventsSeeAllScreen: React.FC<
   const [nearbyEvents, setNearbyEvents] = useState<any[]>([]);
   const [userId, setUserId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreData, setHasMoreData] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageLimit, setPageLimit] = useState(5); // Set to 5 as requested
+  const [pageLimit, setPageLimit] = useState(10); // Set to 10 as requested
 
   // Redux selectors
   const nearbyHostViewAll = useSelector(
@@ -118,6 +119,9 @@ const NearbyEventsSeeAllScreen: React.FC<
         setCurrentPage(1);
         setNearbyEvents([]);
         setHasMoreData(true);
+        setIsLoadingMore(false);
+      } else {
+        setIsLoadingMore(true);
       }
 
       const userId = await getUser();
@@ -131,23 +135,42 @@ const NearbyEventsSeeAllScreen: React.FC<
       };
 
       console.log("Fetching nearby events with payload:", payload);
-      console.log("Current page:", page, "Limit:", pageLimit);
+      console.log(
+        "Current page:",
+        page,
+        "Limit:",
+        pageLimit,
+        "IsLoadMore:",
+        isLoadMore
+      );
       dispatch(onNearbyHostViewAll(payload));
     } catch (error) {
       console.error("Error fetching nearby events:", error);
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
   // Load more data for pagination
   const loadMoreData = () => {
-    if (!isLoading && hasMoreData && currentPage < totalPages) {
+    if (
+      !isLoading &&
+      !isLoadingMore &&
+      hasMoreData &&
+      currentPage < totalPages
+    ) {
       const nextPage = currentPage + 1;
       console.log("Loading next page:", nextPage);
       setCurrentPage(nextPage);
       fetchNearbyEvents(nextPage, true);
     } else {
-      console.log("Load more blocked - conditions not met");
+      console.log("Load more blocked - conditions not met", {
+        isLoading,
+        isLoadingMore,
+        hasMoreData,
+        currentPage,
+        totalPages,
+      });
     }
   };
 
@@ -221,18 +244,25 @@ const NearbyEventsSeeAllScreen: React.FC<
         setNearbyEvents(events);
         console.log("Set initial events:", events.length);
       } else {
-        // Load more - append data
+        // Load more - append data (avoid duplicates)
         setNearbyEvents((prevEvents) => {
-          const newEvents = [...prevEvents, ...events];
+          // Filter out any duplicate events based on ID
+          const existingIds = new Set(
+            prevEvents.map((event) => event._id || event.id)
+          );
+          const newEvents = events.filter(
+            (event) => !existingIds.has(event._id || event.id)
+          );
+          const combinedEvents = [...prevEvents, ...newEvents];
           console.log(
             "Appended events. Previous:",
             prevEvents.length,
-            "New:",
-            events.length,
+            "New (after deduplication):",
+            newEvents.length,
             "Total:",
-            newEvents.length
+            combinedEvents.length
           );
-          return newEvents;
+          return combinedEvents;
         });
       }
 
@@ -248,19 +278,11 @@ const NearbyEventsSeeAllScreen: React.FC<
         Math.ceil(totalFromAPI / limitFromAPI) ||
         1;
 
-      console.log("Pagination info from API:");
-      console.log("- totalFromAPI:", totalFromAPI);
-      console.log("- limitFromAPI:", limitFromAPI);
-      console.log("- currentPageFromAPI:", currentPageFromAPI);
-      console.log("- calculated totalPagesFromAPI:", totalPagesFromAPI);
-
       setTotalPages(totalPagesFromAPI);
       setPageLimit(limitFromAPI); // Update limit from API
-      setHasMoreData(currentPageFromAPI < totalPagesFromAPI);
-
-      console.log("Updated states:");
-      console.log("- totalPages:", totalPagesFromAPI);
-      console.log("- hasMoreData:", currentPageFromAPI < totalPagesFromAPI);
+      setHasMoreData(
+        currentPageFromAPI < totalPagesFromAPI && events.length > 0
+      );
 
       console.log("Pagination updated from API:", {
         totalPages: totalPagesFromAPI,
@@ -270,6 +292,7 @@ const NearbyEventsSeeAllScreen: React.FC<
       });
 
       setIsLoading(false);
+      setIsLoadingMore(false);
 
       // Clear the response
       dispatch(nearbyHostViewAllData(""));
@@ -278,6 +301,7 @@ const NearbyEventsSeeAllScreen: React.FC<
     if (nearbyHostViewAllErr) {
       console.log("Nearby host view all error:", nearbyHostViewAllErr);
       setIsLoading(false);
+      setIsLoadingMore(false);
       // Clear the error
       dispatch(nearbyHostViewAllError(""));
     }
@@ -327,6 +351,18 @@ const NearbyEventsSeeAllScreen: React.FC<
     />
   );
 
+  const renderFooter = () => {
+    if (isLoadingMore) {
+      return (
+        <View style={styles.loadingFooter}>
+          <ActivityIndicator size="small" color={colors.white} />
+          <Text style={styles.loadingText}>Loading more events...</Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar
@@ -369,11 +405,20 @@ const NearbyEventsSeeAllScreen: React.FC<
             </View>
           ) : null
         }
+        ListFooterComponent={renderFooter}
         refreshing={isLoading}
         onRefresh={onRefresh}
         onEndReached={() => {
           console.log("=== ON END REACHED TRIGGERED ===");
           console.log("Current events count:", nearbyEvents.length);
+          console.log(
+            "Has more data:",
+            hasMoreData,
+            "Current page:",
+            currentPage,
+            "Total pages:",
+            totalPages
+          );
           loadMoreData();
         }}
         onEndReachedThreshold={0.1}
@@ -432,6 +477,18 @@ const styles = StyleSheet.create({
     fontFamily: fonts.Medium,
     color: colors.white,
     textAlign: "center",
+  },
+  loadingFooter: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: verticalScale(20),
+  },
+  loadingText: {
+    fontSize: fontScale(14),
+    fontFamily: fonts.Medium,
+    color: colors.white,
+    marginLeft: horizontalScale(10),
   },
 });
 
