@@ -29,6 +29,7 @@ import { showToast } from "../../utilis/toastUtils";
 import PushNotification from "react-native-push-notification";
 import styles from "./styles";
 import { verticalScale } from "../../utilis/appConstant";
+import { useModeration } from "../../contexts/ModerationContext";
 
 interface ProfileScreenProps {
   navigation?: any;
@@ -39,6 +40,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { getProfileDetail, getProfileDetailErr, loader, switchRole, switchRoleErr, deleteAccount, deleteAccountErr, cmsContent, cmsContentErr } = useSelector(
     (state: any) => state.auth
   );
+  const { getBlockedUsers, unblockUser } = useModeration();
 
   const [exploreNightLife, setExploreNightLife] = useState(true);
   const [notifications, setNotifications] = useState(false);
@@ -51,6 +53,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<any>(null);
+  const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
 
   useEffect(() => {
     checkUserStatus();
@@ -88,6 +91,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   // Load notification preference on component mount
   useEffect(() => {
     loadNotificationPreference();
+  }, []);
+
+  // Load blocked users on component mount
+  useEffect(() => {
+    const loadBlockedUsers = () => {
+      const blocked = getBlockedUsers();
+      setBlockedUsers(blocked);
+    };
+    loadBlockedUsers();
   }, []);
 
   // Handle switch role response
@@ -215,6 +227,36 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     console.log('🔍 Requesting about us content');
     setPendingCmsNavigation({ identifier: 'about_us', title: 'About Us' });
     dispatch(onGetCmsContent({ identifier: 'about_us' }));
+  };
+
+  // Blocked users functions
+  const handleBlockedHosts = () => {
+    navigation?.navigate('BlockedHostsScreen' as never);
+  };
+
+  // Help and Support function
+  const handleHelpSupport = () => {
+    navigation?.navigate('UserHelpSupportScreen' as never);
+  };
+
+  const handleUnblockUser = async (userId: string, userName: string) => {
+    try {
+      const currentUserId = profileData?._id || profileData?.id;
+      if (!currentUserId) {
+        showToast('error', 'Unable to identify current user');
+        return;
+      }
+
+      await unblockUser(userId, currentUserId);
+      showToast('success', `${userName} has been unblocked successfully`);
+      
+      // Refresh blocked users list
+      const blocked = getBlockedUsers();
+      setBlockedUsers(blocked);
+    } catch (error) {
+      console.error('Failed to unblock user:', error);
+      showToast('error', 'Failed to unblock user. Please try again.');
+    }
   };
 
   // Request notification permissions
@@ -755,6 +797,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   {renderMenuOption(
                     "Share with Friends",
                     handleShareWithFriends,
+                    <View />,
+                    true
+                  )}
+
+                  {renderMenuOption(
+                    "Blocked Hosts",
+                    handleBlockedHosts,
+                    <View style={styles.blockedHostsContainer}>
+                      {/* <Text style={styles.blockedHostsCount}>
+                        {blockedUsers.length > 0 ? `${blockedUsers.length} blocked` : 'None'}
+                      </Text> */}
+                      {/* <RightArrow width={16} height={16} color={colors.white} /> */}
+                    </View>,
+                    true
+                  )}
+
+                  {renderMenuOption(
+                    "Help and Support",
+                    handleHelpSupport,
                     <View />,
                     true
                   )}

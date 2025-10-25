@@ -25,6 +25,7 @@ import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswor
 import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
 import EditProfileScreen from "../screen/editProfileScreen/editProfileScren";
+import BlockedHostsScreen from "../screen/blockedHostsScreen/blockedHostsScreen";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
 import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
 import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
@@ -42,6 +43,7 @@ import PromotionalCode from "../screen/dashboard/host/profileScreen/promotionalC
 import AddPromotionalCode from "../screen/dashboard/host/profileScreen/addPromotionalCode";
 import EditPromotionalCode from "../screen/dashboard/host/profileScreen/editPromotionalCode";
 import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
+import UserHelpSupport from "../screen/dashboard/user/profileScreen/userHelpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import PaymentScreen from "../screen/dashboard/user/payments/payments";
@@ -152,6 +154,8 @@ export type RootStackParamList = {
   EditDetailScreen: { clubId: string };
   NotificationScreen: undefined;
   CmsContentScreen: { identifier: string; title: string; content?: string };
+  BlockedHostsScreen: undefined;
+  UserHelpSupportScreen: undefined;
 };
 
 function MyTabs() {
@@ -446,6 +450,16 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="CmsContentScreen"
             component={CmsContentScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BlockedHostsScreen"
+            component={BlockedHostsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="UserHelpSupportScreen"
+            component={UserHelpSupport}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

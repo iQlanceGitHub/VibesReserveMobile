@@ -74,7 +74,8 @@ export const fetchGet = async (payload) => {
 };
 
 export const fetchPost = async (payload) => {
-  console.log("🔑 FETCH GET - payload:", payload?.url);
+  console.log("🔑 FETCH POST - payload:", payload?.url);
+  console.log("🔑 FETCH POST - payload:", payload?.params);
   const res = await checkConnectivity();
   const authToken = await getAuthToken();
 

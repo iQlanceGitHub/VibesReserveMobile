@@ -98,6 +98,8 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
               rating: review.rating || 5,
               reviewText: review.review,
               createdAt: review.createdAt,
+              userId: review.user?._id,
+              reviewId: review._id,
             })) || [],
         };
         setBookingData(transformedData);
@@ -296,6 +298,9 @@ const BookingDetailsScreen: React.FC<BookingDetailsScreenProps> = ({
                     reviewText={
                       review.reviewText || review.comment || "No review text"
                     }
+                    userId={review.userId}
+                    reviewId={review.reviewId}
+                    reporterId={rawBookingData?.userId?._id}
                   />
                 ))}
               </View>

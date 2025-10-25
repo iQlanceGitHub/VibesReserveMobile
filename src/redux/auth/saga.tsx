@@ -2337,6 +2337,15 @@ interface CreateHelpSupportPayload {
   fullName: string;
   email: string;
   description: string;
+  blockedUsers?: Array<{
+    userId: string;
+    userName: string;
+    blockedBy: string;
+    reason: string;
+    timestamp: string;
+    status: string;
+  }>;
+  userType?: string;
 }
 
 function* CreateHelpSupportSaga({
@@ -2351,6 +2360,8 @@ function* CreateHelpSupportSaga({
       fullName: payload?.fullName,
       email: payload?.email,
       description: payload?.description,
+      blockedUsers: payload?.blockedUsers || [],
+      userType: payload?.userType || 'host',
     };
 
     const response = yield call(fetchPost, {

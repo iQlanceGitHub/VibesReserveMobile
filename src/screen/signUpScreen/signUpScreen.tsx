@@ -31,9 +31,11 @@ import {
   socialLoginData,
   socialLoginError,
   setUser,
-  onGetCmsContent
+  onGetCmsContent,
 } from "../../redux/auth/actions";
 import FilePickerPopup from "../../components/FilePickerPopup";
+import EULAAgreement from "../../components/EULAAgreement";
+import { useModeration } from "../../contexts/ModerationContext";
 import { openSettings } from 'react-native-permissions';
 import LinearGradient from "react-native-linear-gradient";
 import { Buttons } from "../../components/buttons";
@@ -71,6 +73,7 @@ interface SignupScreenProps {
 
 const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
+  const { eulaAccepted } = useModeration();
   const socialLogin = useSelector((state: any) => state.auth.socialLogin);
   const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
   const deviceToken = useSelector((state: any) => state.auth.deviceToken);
@@ -115,6 +118,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [showFilePicker, setShowFilePicker] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [showEULA, setShowEULA] = useState<boolean>(false);
   const [pendingCmsNavigation, setPendingCmsNavigation] = useState<{identifier: string, title: string} | null>(null);
 
   // CMS Content functions
@@ -169,6 +173,13 @@ const storeUser = async (user: any) => {
       console.error("Failed to save the user ID.", e);
     }
   };
+
+  // Check EULA acceptance on component mount
+  useEffect(() => {
+    if (!eulaAccepted) {
+      setShowEULA(true);
+    }
+  }, [eulaAccepted]);
 
   // Update deviceToken when it changes in Redux state
   useEffect(() => {
@@ -543,9 +554,11 @@ const storeUser = async (user: any) => {
       const {
         identityToken,
         email,
-        fullName: { givenName, familyName },
+        fullName,
       } = appleAuthRequestResponse;
       const userId = appleAuthRequestResponse.user;
+      const givenName = fullName?.givenName || '';
+      const familyName = fullName?.familyName || '';
 
       // Handle the obtained data as per your requirements
 
@@ -1322,11 +1335,15 @@ const storeUser = async (user: any) => {
                   <Text style={styles.termsLink} onPress={handleTermsConditions}>
                     Terms and Conditions
                   </Text>{" "}
-                  and you read our{" "}
+                  and{" "}
+                  <Text style={styles.termsLink} onPress={() => setShowEULA(true)}>
+                    End User License Agreement (EULA)
+                  </Text>
+                  , and you read our{" "}
                   <Text style={styles.termsLink} onPress={handlePrivacyPolicy}>
                     Privacy Policy
                   </Text>
-                  .
+                  . Our EULA includes a zero tolerance policy for objectionable content and abusive behavior.
                 </Text>
               </View>
 
@@ -1365,6 +1382,14 @@ const storeUser = async (user: any) => {
         onCameraPress={handleCameraCapture}
         onGalleryPress={handleGallerySelection}
         onDocumentPress={handleDocumentSelection}
+      />
+
+      {/* EULA Modal */}
+      <EULAAgreement
+        visible={showEULA}
+        onAccept={() => setShowEULA(false)}
+        onDecline={() => navigation?.goBack()}
+        title="End User License Agreement (EULA)"
       />
 
       {/* Loading Overlay */}

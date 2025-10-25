@@ -17,11 +17,18 @@ import ArrowRightIcon from "../../../../../assets/svg/arrowRightIcon";
 import MessageIcon from "../../../../../assets/svg/messageIcon";
 import PhoneIcon from "../../../../../assets/svg/phoneIcon";
 import EditIcon from "../../../../../assets/svg/editIcon";
+import BlockUserModal from "../../../../../components/BlockUserModal";
+import UnblockUserModal from "../../../../../components/UnblockUserModal";
+import ModerationService from "../../../../../services/moderationService";
 import {
   onHostProfile,
   hostProfileData,
   hostProfileError,
+  onCreateHelpSupport,
 } from "../../../../../redux/auth/actions";
+import { useModeration } from "../../../../../contexts/ModerationContext";
+import { horizontalScale, verticalScale } from "../../../../../utilis/appConstant";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const clubProfileData = {
   id: "1",
@@ -43,6 +50,7 @@ const ClubProfileScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
+  const { isUserBlocked, unblockUser, getBlockedUserInfo } = useModeration();
   const { clubId, hostData, eventsData } = route.params as {
     clubId: string;
     hostData?: any;
@@ -52,12 +60,97 @@ const ClubProfileScreen = () => {
   const [activeTab, setActiveTab] = useState("Club");
   const [hostProfile, setHostProfile] = useState<any>(null);
   const [hostEvents, setHostEvents] = useState<any[]>([]);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
 
   // Redux state
   const hostProfileRedux = useSelector((state: any) => state.auth.hostProfile);
   const hostProfileErr = useSelector((state: any) => state.auth.hostProfileErr);
 
   const tabs = ["Club", "Booth", "Event", "VIP Entry"];
+
+  // Block/Unblock handlers
+  const handleBlockUser = async () => {
+    try {
+      const moderationService = ModerationService.getInstance();
+      const currentUserId = "current_user_id"; // You might need to get this from Redux or props
+      
+      const blockedUser = await moderationService.blockUser(
+        hostProfile?._id || clubId,
+        currentUserId,
+        'User blocked from club profile',
+        hostProfile?.businessName || hostProfile?.fullName,
+        hostProfile?.businessPicture || hostProfile?.profilePicture
+      );
+      
+      // Automatically call help support API with blocked user information
+      try {
+        const blockedUsersData = [{
+          userId: blockedUser.userId,
+          userName: blockedUser.userName || 'Unknown User',
+          blockedBy: blockedUser.blockedBy,
+          reason: blockedUser.reason,
+          timestamp: blockedUser.timestamp,
+          status: blockedUser.status
+        }];
+
+        // Get current user profile data for the API call
+        const userProfile = await AsyncStorage.getItem('user');
+        const userData = userProfile ? JSON.parse(userProfile) : null;
+        
+        if (userData) {
+          dispatch(
+            onCreateHelpSupport({
+              fullName: userData.fullName || userData.name || 'User',
+              email: userData.email || '',
+              description: `Host blocked: ${hostProfile?.businessName || hostProfile?.fullName || 'Unknown Host'} (ID: ${hostProfile?._id || clubId})`,
+              blockedUsers: blockedUsersData,
+              userType: 'user'
+            })
+          );
+        }
+      } catch (helpSupportError) {
+        console.error('Failed to send help support notification:', helpSupportError);
+        // Don't show error to user as blocking was successful
+      }
+      
+      setShowBlockModal(false);
+      Alert.alert(
+        'User Blocked',
+        `${hostProfile?.businessName || hostProfile?.fullName || 'This host'} has been blocked successfully.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Failed to block user:', error);
+      Alert.alert('Error', 'Failed to block user. Please try again.');
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    try {
+      const currentUserId = "current_user_id"; // You might need to get this from Redux or props
+      
+      await unblockUser(hostProfile?._id || clubId, currentUserId);
+      setShowUnblockModal(false);
+      Alert.alert(
+        'User Unblocked',
+        `${hostProfile?.businessName || hostProfile?.fullName || 'This host'} has been unblocked successfully.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Failed to unblock user:', error);
+      Alert.alert('Error', 'Failed to unblock user. Please try again.');
+    }
+  };
+
+  // Simple 3-dot menu component
+  const ThreeDotMenu = () => (
+    <View style={styles.threeDotMenu}>
+      <View style={styles.dot} />
+      <View style={styles.dot} />
+      <View style={styles.dot} />
+    </View>
+  );
 
   // Log the received data
   useEffect(() => {
@@ -439,7 +532,19 @@ const ClubProfileScreen = () => {
       <View style={styles.header}>
         <BackButton navigation={navigation} />
         <Text style={styles.headerTitle}>Profile</Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => {
+            const hostId = hostProfile?._id || clubId;
+            if (isUserBlocked(hostId)) {
+              setShowUnblockModal(true);
+            } else {
+              setShowBlockModal(true);
+            }
+          }}
+        >
+          <ThreeDotMenu />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.profileCardContainer}>
@@ -509,6 +614,17 @@ const ClubProfileScreen = () => {
           </View>
       </View>
 
+       {/* Blocked User Indicator */}
+       {hostProfile && hostProfile._id && isUserBlocked(hostProfile._id) && (
+       <> <View style={styles.blockedUserIndicator}>
+          <Text style={styles.blockedUserText}>
+          ⚠️ You’ve previously blocked this host. We recommend contacting support before proceeding with your booking.
+          </Text>
+          
+        </View><View style={{marginBottom: verticalScale(10)}}></View>
+        </>
+      )}
+
       <View style={styles.tabsContainer}>{tabs.map(renderTabButton)}</View>
       <ScrollView
         style={styles.contentContainer}
@@ -516,6 +632,23 @@ const ClubProfileScreen = () => {
       >
         {renderTabContent()}
       </ScrollView>
+
+      {/* Block/Unblock Modals */}
+      <BlockUserModal
+        visible={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        onBlock={handleBlockUser}
+        userName={hostProfile?.businessName || hostProfile?.fullName || 'this host'}
+        userId={hostProfile?._id || clubId}
+      />
+
+      <UnblockUserModal
+        visible={showUnblockModal}
+        onClose={() => setShowUnblockModal(false)}
+        onUnblock={handleUnblockUser}
+        userName={hostProfile?.businessName || hostProfile?.fullName || 'this host'}
+        userId={hostProfile?._id || clubId}
+      />
     </View>
   );
 };

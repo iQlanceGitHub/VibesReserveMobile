@@ -75,4 +75,59 @@ export default StyleSheet.create({
     marginLeft: horizontalScale(60),
    // marginTop: verticalScale(-15),
   },
+  flagButton: {
+    backgroundColor: 'rgba(255, 68, 68, 0.1)',
+    paddingHorizontal: horizontalScale(8),
+    paddingVertical: verticalScale(4),
+    borderRadius: horizontalScale(12),
+    borderWidth: 1,
+    borderColor: '#FF4444',
+    marginLeft: horizontalScale(8),
+  },
+  flagButtonText: {
+    fontSize: fontScale(10),
+    fontFamily: fonts.Medium,
+    color: '#FF4444',
+  },
+  userNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: verticalScale(4),
+  },
+  blockedUserName: {
+    opacity: 0.6,
+    textDecorationLine: 'line-through',
+  },
+  blockedIndicator: {
+    backgroundColor: '#FF4444',
+    paddingHorizontal: horizontalScale(6),
+    paddingVertical: verticalScale(2),
+    borderRadius: horizontalScale(8),
+    marginLeft: horizontalScale(8),
+  },
+  blockedText: {
+    fontSize: fontScale(8),
+    fontFamily: fonts.Bold,
+    color: colors.white,
+  },
+  actionButtons: {
+    marginLeft: horizontalScale(8),
+  },
+  unblockButton: {
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    paddingHorizontal: horizontalScale(8),
+    paddingVertical: verticalScale(4),
+    borderRadius: horizontalScale(12),
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  unblockButtonText: {
+    fontSize: fontScale(10),
+    fontFamily: fonts.Medium,
+    color: '#4CAF50',
+  },
+  blockedReviewText: {
+    opacity: 0.6,
+    fontStyle: 'italic',
+  },
 });

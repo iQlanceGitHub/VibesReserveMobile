@@ -221,6 +221,16 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginTop: verticalScale(10),
   },
+  blockedHostsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  blockedHostsCount: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.medium,
+    color: colors.white,
+  },
 });
 
 export default styles;

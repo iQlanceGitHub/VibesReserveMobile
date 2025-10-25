@@ -16,6 +16,7 @@ import {stripeTestKey} from './src/utilis/appConstant';
 import { longPollingService } from './src/services/longPollingService';
 import globalUnreadCountService from './src/services/globalUnreadCountService';
 import { LocationProvider } from './src/contexts/LocationContext';
+import { ModerationProvider } from './src/contexts/ModerationContext';
 
 
 const initialState = {};
@@ -77,22 +78,24 @@ function App(): React.JSX.Element {
         <AppInitializer>
           <AppWrapper />
           <LocationProvider>
-            <View style={{ flex: 1 }}>
-              <StatusBar
-                translucent
-                backgroundColor="transparent"
-                barStyle="dark-content"
-                // Enhanced StatusBar configuration for Android 15
-                {...(Platform.OS === 'android' && {
-                  // Ensure proper edge-to-edge handling on Android 15
-                  statusBarTranslucent: true,
-                  statusBarBackgroundColor: 'transparent',
-                })}
-              />
+            <ModerationProvider>
+              <View style={{ flex: 1 }}>
+                <StatusBar
+                  translucent
+                  backgroundColor="transparent"
+                  barStyle="dark-content"
+                  // Enhanced StatusBar configuration for Android 15
+                  {...(Platform.OS === 'android' && {
+                    // Ensure proper edge-to-edge handling on Android 15
+                    statusBarTranslucent: true,
+                    statusBarBackgroundColor: 'transparent',
+                  })}
+                />
 
-              <NavigationStack />
-              <Toast config={toastConfig} />
-            </View>
+                <NavigationStack />
+                <Toast config={toastConfig} />
+              </View>
+            </ModerationProvider>
           </LocationProvider>
         </AppInitializer>
       </SafeAreaProvider>

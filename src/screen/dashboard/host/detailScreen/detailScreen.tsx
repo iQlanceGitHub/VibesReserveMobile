@@ -54,12 +54,14 @@ import PhoneIcon from '../../../../assets/svg/phoneIcon';
 import CocktailIcon from '../../../../assets/svg/cocktailIcon';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocation, LocationProvider } from '../../../../contexts/LocationContext';
+import { useModeration } from '../../../../contexts/ModerationContext';
 import ClubDetailScreen from '../../user/homeScreen/clubBooking/clubDetails/clubDetailScreen';
 
 const DetailScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { locationData } = useLocation();
+    const { isUserBlocked, getBlockedUserInfo } = useModeration();
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
@@ -863,6 +865,15 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                         </View>
 
                         <Text style={styles.eventTitle}>{(clubDetails as any)?.name || 'Loading...'}</Text>
+
+                        {/* Blocked User Indicator */}
+                        {clubDetails && (clubDetails as any)?.userId && isUserBlocked((clubDetails as any).userId._id) && (
+                            <View style={styles.blockedUserIndicator}>
+                                <Text style={styles.blockedUserText}>
+                                ⚠️ You’ve previously blocked this host. We recommend contacting support before proceeding with your booking.
+                                </Text>
+                            </View>
+                        )}
 
                         <View style={styles.eventDetails}>
                             <View style={styles.detailRow}>

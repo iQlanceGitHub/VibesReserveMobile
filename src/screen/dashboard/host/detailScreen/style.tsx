@@ -1069,4 +1069,19 @@ export default StyleSheet.create({
     color: colors.white,
     fontFamily: fonts.SemiBold,
   },
+  blockedUserIndicator: {
+    backgroundColor: 'rgba(255, 68, 68, 0.1)',
+    borderRadius: verticalScale(8),
+    paddingHorizontal: horizontalScale(12),
+    paddingVertical: verticalScale(8),
+    marginBottom: verticalScale(12),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 68, 68, 0.3)',
+  },
+  blockedUserText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.medium,
+    color: '#FF4444',
+    textAlign: 'center',
+  },
 });
