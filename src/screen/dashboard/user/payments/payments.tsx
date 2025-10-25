@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { BackButton } from "../../../../components/BackButton";
 import { Buttons } from "../../../../components/buttons";
 import { colors } from "../../../../utilis/colors";
-import { stripeTestKey } from "../../../../utilis/appConstant";
+import { horizontalScale, stripeTestKey, verticalScale } from "../../../../utilis/appConstant";
 import { showToast } from "../../../../utilis/toastUtils";
 import { onGetProfileDetail, getProfileDetailData, getProfileDetailError } from "../../../../redux/auth/actions";
 import ApplePayIcon from "../../../../assets/svg/applePayIcon";
@@ -886,7 +886,7 @@ const PaymentsScreen: React.FC = () => {
               </View>
             )}
           </View>
-          <View style={paymentsStyles.paymentOptionsSection}>
+          {/* <View style={paymentsStyles.paymentOptionsSection}>
             <Text style={paymentsStyles.sectionTitle}>
               More Payment Options
             </Text>
@@ -957,12 +957,15 @@ const PaymentsScreen: React.FC = () => {
             </TouchableOpacity>
             )}
 
-            <Buttons 
+            
+          </View> */}
+
+<View style={{marginTop: verticalScale(20)}}>
+          <Buttons 
               title={isProcessingPayment ? "Processing..." : "Next"} 
               onPress={handleNext}
               disabled={isProcessingPayment || !isPaymentSelected}
-            />
-          </View>
+            /></View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

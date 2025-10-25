@@ -87,12 +87,10 @@
 	<string>Vibe Reserve needs access to your contacts to make it easier to connect and invite friends.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>Vibe Reserve needs access to documents folder to select files for upload</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Vibe Reserve needs access to your location even when in the background to provide location-based features.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Vibe Reserve needs access to your location even when in the background to provide location-based features.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Vibe Reserve needs access to your location to find nearby events and provide better service.</string>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs when you're using the app.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs, send location-based notifications, and provide enhanced features even when the app is in the background.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Vibe Reserve needs access to the microphone to allow voice input and audio features.</string>
 	<key>NSMotionUsageDescription</key>
@@ -123,7 +121,6 @@
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>location</string>
 		<string>remote-notification</string>
 		<string>fetch</string>
 		<string>processing</string>

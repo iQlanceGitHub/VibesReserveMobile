@@ -70,16 +70,18 @@ export const styles = StyleSheet.create({
     marginTop: verticalScale(20),
   },
   secondaryButton: {
+    marginBottom: verticalScale(12),
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
     width: horizontalScale(335),
-    height: verticalScale(50),
+    height: verticalScale(58),
     backgroundColor: "transparent",
     borderRadius: verticalScale(99),
     borderWidth: 1,
     borderColor: colors.violate,
-    alignItems: "center",
-    justifyContent: "center",
     opacity: 1,
-    alignSelf: "center",
     ...Platform.select({
       ios: {
         shadowColor: colors.violate,

@@ -152,7 +152,7 @@ const NearbyEventCard: React.FC<NearbyEventCardProps> = ({
 
          {/* Location */}
          <View style={styles.detailsRow}>
-          <Text style={styles.detailText} numberOfLines={2}>
+          <Text style={styles.detailText} numberOfLines={1}>
             {(event as any).businessDiscription}
           </Text>
         </View>

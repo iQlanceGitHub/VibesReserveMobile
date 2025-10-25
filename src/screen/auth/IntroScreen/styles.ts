@@ -52,7 +52,7 @@ export default StyleSheet.create({
     color: colors.fontgary,
     fontWeight: 400,
     lineHeight: appConstant.fontScale(24),
-    width: appConstant.fontScale(281),
+    width: appConstant.fontScale(320),
     // height: appConstant.fontScale(72),
   },
   buttonsContainer: {
@@ -98,8 +98,10 @@ export default StyleSheet.create({
     marginTop: appConstant.verticalScale(16),
   },
   introImage: {
-    width: appConstant.horizontalScale(265),
-    height: appConstant.verticalScale(390),
+    // width: appConstant.horizontalScale(265),
+    // height: appConstant.verticalScale(390),
+    width: appConstant.horizontalScale(200),
+    height: appConstant.verticalScale(340),
     borderRadius: appConstant.horizontalScale(132.5), // Half of width for pill shape
     marginBottom: appConstant.verticalScale(20),
     overflow: "hidden",

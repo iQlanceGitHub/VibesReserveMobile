@@ -3,41 +3,22 @@
     <!-- Internet and Network permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     
     <!-- Storage permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     
     <!-- Google Maps permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
-    
-    <!-- Android 15+ location permissions -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     
     <!-- Additional network permissions for better connectivity -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     
-    <!-- For file downloads and uploads -->
-    <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
-    
     <!-- Push notification permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    
-    <!-- Additional permissions for Notifee -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
       android:name=".MainApplication"
@@ -58,11 +39,6 @@
       <meta-data
         android:name="com.google.android.gms.version"
         android:value="@integer/google_play_services_version" />
-      
-      <!-- Location services configuration -->
-      <meta-data
-        android:name="com.google.android.gms.location.GeofenceService"
-        android:value="com.google.android.gms.location.GeofenceService" />
       
       <!-- Android 15+ location services compatibility -->
       <meta-data
@@ -89,12 +65,6 @@
       <!-- Firebase Messaging Background Service -->
       <service
         android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingHeadlessService"
-        android:exported="false" />
-      
-      <!-- Notifee Service -->
-      <service
-        android:name="app.notifee.core.ForegroundService"
-        android:foregroundServiceType="specialUse"
         android:exported="false" />
       
       <activity
