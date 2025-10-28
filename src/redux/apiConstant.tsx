@@ -32,4 +32,6 @@ export const api_endpoint: Record<string, unknown> = {
   switchRole: "user/switchrole",
   // Nearby host view all endpoint
   nearbyHostViewAll: "user/nearby-host-view-all",
+  // App version check endpoint
+  checkAppVersion: "user/check-app-version",
 };

@@ -35,6 +35,7 @@ export const useFacility = () => {
   useEffect(() => {
     if (facility?.status === true || facility?.status === 'true' || facility?.status === 1 || facility?.status === "1") {
       if (facility?.data) {
+        console.log('Facility API response received, updating facilities');
         setFacilities(facility.data);
         saveFacilitiesToStorage(facility.data);
         setError(null);
@@ -44,6 +45,7 @@ export const useFacility = () => {
     }
 
     if (facilityErr) {
+      console.error('Facility API error:', facilityErr);
       setError(facilityErr?.message?.toString() || 'Failed to load facilities');
       dispatch(facilityError(''));
       setIsLoading(false);
@@ -87,21 +89,36 @@ export const useFacility = () => {
   const fetchFacilities = async () => {
     const hasApiBeenCalled = await checkIfApiCalled();
     
+    // Only make API call once per session, use cached data otherwise
     if (hasApiBeenCalled) {
+      console.log('Facility API already called in this session, using cached data');
       return;
     }
 
+    // If we already have facilities, don't call API again
     if (facilities.length > 0) {
+      console.log('Facilities already loaded, skipping API call');
       return;
     }
 
+    console.log('Fetching facilities from API...');
     setIsLoading(true);
     setError(null);
     dispatch(onFacility({ page: 1, limit: 100 }));
     await markApiAsCalled();
   };
 
-  const refreshFacilities = () => {
+  const refreshFacilities = async () => {
+    console.log('Refreshing facilities from API...');
+    
+    // Clear the API called flag to allow fresh fetch
+    try {
+      await AsyncStorage.removeItem(FACILITY_API_CALLED_KEY);
+      console.log('Cleared facility API flag');
+    } catch (error) {
+      console.error('Error clearing API flag:', error);
+    }
+    
     setIsLoading(true);
     setError(null);
     dispatch(onFacility({ page: 1, limit: 100 }));

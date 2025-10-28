@@ -364,9 +364,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       eventId: eventData?._id || ticketId || "",
       hostId: eventData?.userId?._id || eventData?.userId,
       members: memberCount || 1,
-      discount: Math.round(pricing.discount),
-      fees: pricing.fees,
-      totalAmount: Math.round(pricing.total),
+      discount: Number(pricing.discount.toFixed(2)), // Keep 2 decimal places for currency
+      fees: Number(pricing.fees.toFixed(2)), // Keep 2 decimal places for currency
+      totalAmount: Number(pricing.total.toFixed(2)), // Keep 2 decimal places for currency (13.56 not 14)
       transactionInfo: paymentIntentId || `TXN${Date.now()}`, // Use payment intent ID or generate unique transaction ID
       bookingStartDate: selectedStartDate || new Date().toISOString(),
       bookingEndDate: selectedEndDate || new Date().toISOString(),
@@ -1007,7 +1007,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           },
           body: new URLSearchParams({
             amount: amountInCents.toString(),
-            currency: "usd",
+            currency: "cad",
             customer: stripeCustomerId, // Use dynamic customer ID
             payment_method: paymentData.selectedCard.id,
             off_session: "true",
@@ -1061,7 +1061,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           },
           body: new URLSearchParams({
             amount: amountInCents.toString(),
-            currency: "usd",
+            currency: "cad",
             customer: stripeCustomerId, // Use dynamic customer ID
           }).toString(),
         }
@@ -1080,8 +1080,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                 paymentType: "Immediate",
               } as any,
             ],
-            merchantCountryCode: "US",
-            currencyCode: "USD",
+            merchantCountryCode: "CA",
+            currencyCode: "CAD",
           },
         }
       );
@@ -1125,7 +1125,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           },
           body: new URLSearchParams({
             amount: amountInCents.toString(),
-            currency: "usd",
+            currency: "cad",
             customer: stripeCustomerId, // Use dynamic customer ID
           }).toString(),
         }
@@ -1138,8 +1138,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         {
           googlePay: {
             merchantName: "VibesReserve",
-            merchantCountryCode: "US",
-            currencyCode: "USD",
+            merchantCountryCode: "CA",
+            currencyCode: "CAD",
             testEnv: false,
           },
         }
@@ -1683,7 +1683,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               </Text>
             </View>
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Fees</Text>
+              <Text style={styles.priceLabel}>HST</Text>
               <Text style={styles.priceValue}>
                 ${dynamicPricing.fees.toFixed(2)}
               </Text>
