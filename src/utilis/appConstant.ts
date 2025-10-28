@@ -361,8 +361,13 @@ export const stripeTestKey = {
   // secreteKey:
   //   'sk_test_51PbI1iHRWbjbwu3h6rPezn064Aw1Z1i6Uwr2NCBy520KhqoCU3i4JtwyzXyhA6K0AjhuySBXKRNUXyKdJgYfwHd200QbwUReRS',
  
-   publishKey:
-    'pk_test_51SBVvYG1YDeYbMZgrHDZOLANzAQPUnvdLk46zn6rz2JPrwAKdi3cMD4q5ccvacsFgq5dlvRKS04gvXhjK0cYwF9S004UuIYPr1',
+  // publishKey:
+  //   'pk_test_51SBVvYG1YDeYbMZgrHDZOLANzAQPUnvdLk46zn6rz2JPrwAKdi3cMD4q5ccvacsFgq5dlvRKS04gvXhjK0cYwF9S004UuIYPr1',
+  // secreteKey:
+  //   'sk_test_51SBVvYG1YDeYbMZguWLouPK8ECWd1rs5BnDGdoWLwmMclNrVv6gmUzlfDzgj8VYVytAkz0vHFQYDo2Rv0socgPRn00M1giOtn2',
+
+  publishKey:
+    'pk_test_51SL51rDxys6pN8kXg9Jvf5w2IWRFWklT1psS2q61H7bTQt9JL4sV7R3IPlBDFKyfcTdozgL85Mf09hMk2GQbGXzK00RzV4SIcG',
   secreteKey:
-    'sk_test_51SBVvYG1YDeYbMZguWLouPK8ECWd1rs5BnDGdoWLwmMclNrVv6gmUzlfDzgj8VYVytAkz0vHFQYDo2Rv0socgPRn00M1giOtn2',
+    'sk_test_51SL51rDxys6pN8kXUMQc050Yaw0liUwcaCkO2wnn8Wc7oMWWvorzbH9kt1xWCMkn65hJmBAU8iLLUM4ISpS86eZz00AejPSNtu',
 }

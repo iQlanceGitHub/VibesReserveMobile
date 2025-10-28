@@ -168,8 +168,8 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
   useEffect(() => {
     if (resendEmailErr) {
       console.log('📧 Resend email error:', resendEmailErr);
-      showToast('error', 'We can\'t request to stripe verification email. Please contact administrator.');
-      dispatch(resendEmailError(''));
+      // showToast('error', 'We can\'t request to stripe verification email. Please contact administrator.');
+       dispatch(resendEmailError(''));
     }
   }, [resendEmailErr]);
 

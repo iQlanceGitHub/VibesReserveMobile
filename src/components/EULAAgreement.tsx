@@ -50,108 +50,84 @@ const EULAAgreement: React.FC<EULAAgreementProps> = ({
 
   const eulaContent = `
 END USER LICENSE AGREEMENT (EULA)
+Last Updated: 25th October 2025
 
-Last Updated: ${new Date().toLocaleDateString()}
+ACCEPTANCE OF TERMS
+By using the VibesReserve Mobile Application ("App"), you agree to be bound by this End User License Agreement ("EULA"). If you do not agree to these terms, please do not use the App.
 
-1. ACCEPTANCE OF TERMS
-By using VibesReserve Mobile Application ("App"), you agree to be bound by this End User License Agreement ("EULA"). If you do not agree to these terms, please do not use the App.
+USER-GENERATED CONTENT POLICY
 
-2. USER-GENERATED CONTENT POLICY
 2.1 Zero Tolerance Policy
-We maintain a ZERO TOLERANCE policy for objectionable content and abusive behavior. This includes but is not limited to:
-- Harassment, bullying, or threatening behavior
-- Hate speech, discrimination, or offensive language
-- Spam, scams, or fraudulent content
-- Inappropriate sexual content
-- Violence or graphic content
-- Copyright infringement
-- Personal information sharing without consent
+We maintain a zero tolerance policy for objectionable content and abusive behavior. This includes but is not limited to:
+
+• Harassment, bullying, or threatening behavior
+• Hate speech, discrimination, or offensive language
+• Spam, scams, or fraudulent content
+• Inappropriate sexual content
+• Violence or graphic content
+• Copyright infringement
+• Sharing personal information without consent
 
 2.2 Content Moderation
-- All user-generated content (messages, reviews, comments, profiles) is subject to review
-- We reserve the right to remove any content that violates our policies
-- Users who violate these policies will be immediately suspended or banned
-- We respond to content reports within 24 hours
+• User-generated content (messages, reviews, profiles, etc.) is actively monitored
+• We reserve the right to remove any content that violates our policies
+• Users who violate these policies will be immediately suspended or permanently banned
+• Our team responds to all content reports within 24 hours
 
 2.3 User Responsibilities
-- You are solely responsible for all content you post
-- You must respect other users and maintain a positive community environment
-- You must report any objectionable content or abusive users immediately
-- You must not impersonate others or create fake accounts
+• You are responsible for the content you post
+• You must respect other users and maintain a positive community environment
+• You must report any objectionable content or abusive users immediately
+• Impersonation or fake accounts are strictly prohibited
 
-3. REPORTING AND BLOCKING MECHANISMS
+REPORTING AND BLOCKING MECHANISMS
+
 3.1 Reporting Content
-- Use the "Report" button on any message, review, or profile
-- Provide specific details about the violation
-- False reports may result in account suspension
+• Use the "Report" or "Help & Support" option to report violations
+• Include details about the issue to help with quick action
+• Submitting false reports may result in account suspension
 
 3.2 Blocking Users
-- Use the "Block" button to prevent communication with abusive users
-- Blocked users cannot contact you or see your content
-- You can unblock users in your settings
+• Use the "Block" button to restrict communication with abusive users
+• Blocked users cannot contact you or view your content
+• You may unblock users anytime through your settings
 
 3.3 Moderation Response
-- All reports are reviewed within 24 hours
-- Violating content is removed immediately
-- Repeat offenders are permanently banned
-- Appeals process available for disputed actions
+• All reports are reviewed within 24 hours
+• Violating content is removed immediately
+• Repeat offenders are permanently banned
+• Appeals are reviewed within 48 hours
 
-4. PRIVACY AND DATA PROTECTION
-4.1 Data Collection
-- We collect necessary data to provide our services
-- User-generated content is stored securely
-- We do not sell personal data to third parties
+PRIVACY AND DATA PROTECTION
+• We collect and store only necessary data to provide our services
+• User content is stored securely and not shared with third parties
+• Deleted content may be retained temporarily for moderation purposes
+• Users can request data deletion anytime
 
-4.2 Content Storage
-- Messages and reviews are stored for service functionality
-- Deleted content may be retained for moderation purposes
-- You can request data deletion at any time
+ACCOUNT SUSPENSION AND TERMINATION
+• First offense: Immediate permanent Inactive & content removal. On Appeals we will review the case and if the user is found to be innocent, we will reactivate their account.
 
-5. ACCOUNT SUSPENSION AND TERMINATION
-5.1 Violation Consequences
-- First offense: Warning and content removal
-- Second offense: Temporary suspension (7-30 days)
-- Third offense: Permanent ban
-- Severe violations: Immediate permanent ban
+INTELLECTUAL PROPERTY
+• You retain ownership of your content
+• By posting, you grant us a limited license to display and moderate it
+• App design, features, and branding are our intellectual property
+• Unauthorized use of our assets is strictly prohibited
 
-5.2 Appeal Process
-- Suspended users can appeal through support
-- Appeals are reviewed within 48 hours
-- False appeals may extend suspension period
+CHANGES TO TERMS
+• We may update this EULA from time to time
+• Continued use of the App constitutes acceptance of any changes
+• Users may terminate their accounts if they disagree with updates
 
-6. INTELLECTUAL PROPERTY
-6.1 Your Content
-- You retain ownership of your original content
-- You grant us license to display and moderate your content
-- You are responsible for ensuring you have rights to post content
+CONTACT INFORMATION
+For questions or to report violations:
+• Email: vibereserve.connect@gmail.com
+• In-app Help & Support.
+• Block button on any content for any host or user.
 
-6.2 Our Content
-- App design, features, and branding are our property
-- Unauthorized copying or distribution is prohibited
-- Trademark violations will result in immediate action
+GOVERNING LAW
+This EULA is governed by applicable laws and regulations. Disputes will be resolved through appropriate legal channels.
 
-7. LIMITATION OF LIABILITY
-- We are not liable for user-generated content
-- We provide moderation tools but cannot guarantee 100% content safety
-- Users interact at their own risk
-- We are not responsible for third-party content
-
-8. CHANGES TO TERMS
-- We may update this EULA at any time
-- Continued use constitutes acceptance of changes
-- Major changes will be communicated via app notification
-- Users can terminate account if they disagree with changes
-
-9. CONTACT INFORMATION
-For questions about this EULA or to report violations:
-- Email: support@vibesreserve.com
-- In-app support chat
-- Report button on any content
-
-10. GOVERNING LAW
-This EULA is governed by applicable laws and regulations. Any disputes will be resolved through appropriate legal channels.
-
-By clicking "I Accept", you acknowledge that you have read, understood, and agree to be bound by this EULA, including our zero tolerance policy for objectionable content and abusive behavior.
+By clicking "I Accept," you acknowledge that you have read, understood, and agree to this EULA, including our zero tolerance policy for objectionable content and abusive behavior.
 `;
 
   return (
