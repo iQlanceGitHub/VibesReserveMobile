@@ -1471,7 +1471,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               <>
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Name"
+                    label="Name*"
                     placeholder="Enter name"
                     value={name}
                     onChangeText={(text) => {
@@ -1488,7 +1488,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 </View>
 
                 <DetailsInput
-                  label="Details"
+                  label="Details*"
                   placeholder="Enter here"
                   value={details}
                   onChangeText={(text) => {
@@ -1503,7 +1503,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 />
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Entry Fee"
+                    label="Entry Fee*"
                     placeholder="Enter fee"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1523,7 +1523,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Event Capacity"
+                    label="Event Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
                     onChangeText={(text) => {
@@ -1552,7 +1552,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             {(type === "Booth" || type === "VIP Entry") && (
               <View style={addClubEventDetailStyle.formElement}>
                 <CustomeTextInput
-                  label="Name"
+                  label="Name*"
                   placeholder="Enter name"
                   value={name}
                   onChangeText={(text) => {
@@ -1560,7 +1560,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     if (errors.name) {
                       setErrors((prev) => ({ ...prev, name: false }));
                     }
-                  }}
+                  }}  
                   error={errors.name}
                   message={errors.name ? "Name is required" : ""}
                   leftImage=""
@@ -1573,7 +1573,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
 {type === "Booth" || type === "VIP Entry" ? (
               <DetailsInput
-                label="Details"
+                label="Details*"
                 placeholder="Enter here"
                 value={details}
                 onChangeText={(text) => {
@@ -1591,7 +1591,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
             <View style={addClubEventDetailStyle.formElement}>
               <DatePickerInput
-                label="Start Date"
+                label="Start Date *"
                 placeholder="Select date"
                 value={startDate}
                 onChangeText={(text) => {
@@ -1627,7 +1627,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             </View>
             <View style={addClubEventDetailStyle.formElement}>
               <DatePickerInput
-                label="End Date"
+                label="End Date *"
                 placeholder="Select date"
                 value={endDate}
                 onChangeText={(text) => {
@@ -1682,7 +1682,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             </View>
 
             <View style={addClubEventDetailStyle.formElement}>
-              <Text style={addClubEventDetailStyle.label}>Start Time</Text>
+              <Text style={addClubEventDetailStyle.label}>Start Time*</Text>
               <TouchableOpacity
                 style={addClubEventDetailStyle.timeInputButton}
                 onPress={() => {
@@ -1717,7 +1717,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             </View>
 
             <View style={addClubEventDetailStyle.formElement}>
-              <Text style={addClubEventDetailStyle.label}>End Time</Text>
+              <Text style={addClubEventDetailStyle.label}>End Time*</Text>
               <TouchableOpacity
                 style={addClubEventDetailStyle.timeInputButton}
                 onPress={() => {
@@ -1793,7 +1793,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               <>
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Price"
+                    label="Price*"
                     placeholder="Enter price"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1811,10 +1811,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Capacity"
+                    label="Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
-                    onChangeText={(text) => {
+                    onChangeText={(text) => { 
                       setEventCapacity(text);
                       if (errors.eventCapacity) {
                         setErrors((prev) => ({
@@ -2026,7 +2026,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             {/* Upload Photos */}
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.sectionLabel}>
-                Upload Photos ({uploadPhotos.length}/3)
+                Upload Photos ({uploadPhotos.length}/3)*
               </Text>
               <View style={addClubEventDetailStyle.uploadPhotosRow}>
                 {[0, 1, 2].map((index) => (
@@ -2071,7 +2071,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             {type !== "Booth" && type !== "VIP Entry" && (
               <View style={addClubEventDetailStyle.formElement}>
                 <Text style={addClubEventDetailStyle.sectionLabel}>
-                  Facilities
+                  Facilities*
                 </Text>
                 {facilitiesLoading ? (
                   <Text style={addClubEventDetailStyle.loadingText}>

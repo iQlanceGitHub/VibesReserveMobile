@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>VibesReserveMobile</string>
+	<string>Vibe Reserve</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -88,7 +88,7 @@
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>Vibe Reserve needs access to documents folder to select files for upload</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Vibe Reserve needs access to your location to find nearby events and clubs when you're using the app.</string>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs when you&apos;re using the app.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Vibe Reserve needs access to your location to find nearby events and clubs, send location-based notifications, and provide enhanced features even when the app is in the background.</string>
 	<key>NSMicrophoneUsageDescription</key>

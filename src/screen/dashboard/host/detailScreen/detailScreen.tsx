@@ -97,17 +97,10 @@ const DetailScreen = () => {
     // Disable swipe-back gesture on iOS
     useFocusEffect(
         React.useCallback(() => {
-            // Disable gesture when screen is focused
+            // Disable gesture when screen is focused and keep it disabled
             navigation.setOptions({
                 gestureEnabled: false,
             });
-
-            // Re-enable gesture when screen is unfocused (optional)
-            return () => {
-                navigation.setOptions({
-                    gestureEnabled: true,
-                });
-            };
         }, [navigation])
     );
     const viewdetailsErr = useSelector((state: any) => state.auth.viewdetailsErr);

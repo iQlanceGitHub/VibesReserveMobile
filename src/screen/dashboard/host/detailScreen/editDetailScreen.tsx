@@ -216,15 +216,10 @@ const EditDetailScreen = () => {
   // Disable swipe-back gesture on iOS
   useFocusEffect(
     React.useCallback(() => {
+      // Keep gestures disabled
       navigation.setOptions({
         gestureEnabled: false,
       });
-
-      return () => {
-        navigation.setOptions({
-          gestureEnabled: true,
-        });
-      };
     }, [navigation])
   );
 

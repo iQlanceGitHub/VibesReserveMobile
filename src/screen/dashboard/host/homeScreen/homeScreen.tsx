@@ -36,6 +36,8 @@ import {
   getProfileDetailData,
   getProfileDetailError,
 } from "../../../../redux/auth/actions";
+import { useCategory } from "../../../../hooks/useCategory";
+import { useFacility } from "../../../../hooks/useFacility";
 
 interface HostHomeScreenProps {
   navigation?: any;
@@ -77,6 +79,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const getProfileDetailErr = useSelector(
     (state: any) => state.auth.getProfileDetailErr
   );
+
+  // Category and Facility hooks
+  const { fetchCategories } = useCategory();
+  const { fetchFacilities } = useFacility();
 
   const handleAccept = (requestId: string) => {
     setSelectedRequestId(requestId);
@@ -396,6 +402,9 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     useCallback(() => {
       // Fetch data when screen comes into focus
       console.log("Screen focused - refreshing profile details");
+      // Fetch categories and facilities when screen comes into focus
+      fetchCategories();
+      fetchFacilities();
       fetchProfileDetail();
       fetchBookingRequests(1);
 
@@ -403,7 +412,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       return () => {
         clearBookingData();
       };
-    }, [])
+    }, [fetchCategories, fetchFacilities])
   );
 
   // Keyboard event listeners with more stable handling

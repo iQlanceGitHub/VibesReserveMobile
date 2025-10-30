@@ -492,9 +492,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       const shareMessage = `VibesReserve`;
 
       const shareOptions = {
-        message: shareMessage,
         title: "VibesReserve",
-        url: "",
+        message:
+          "🎉 Join the vibe at Vibes Reserve!\nDiscover exclusive parties, booths, events, and VIP entries — unforgettable nights await you. ✨\nReserve your spot now 👇\nhttps://apps.apple.com/us/app/vibe-reserve/id6754464237",
+        url: "https://apps.apple.com/us/app/vibe-reserve/id6754464237",
       };
 
       const result = await Share.share(shareOptions);
@@ -687,10 +688,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   </Text>
                   <Text style={styles.userInfoValue}>
                     {profileData?.email || "user@example.com"}
+                   
                   </Text>
                   <Text style={styles.userInfoValue}>
                     {profileData?.countrycode && profileData?.phone
-                      ? `${profileData.countrycode}${profileData.phone}`
+                      ? `${profileData.countrycode} ${profileData.phone}`
                       : "+1234567890"}
                   </Text>
                   <Text style={styles.userInfoValue}>

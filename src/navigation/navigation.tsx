@@ -230,7 +230,7 @@ const NavigationStack: React.FC = () => {
       >
         <Stack.Navigator
           screenOptions={{
-            gestureEnabled: true, // Enable gesture navigation globally
+            gestureEnabled: false, // Disable swipe navigation globally
           }}
         >
           <Stack.Screen
@@ -398,7 +398,7 @@ const NavigationStack: React.FC = () => {
             component={BookingDetailScreen}
             options={{
               headerShown: false,
-              gestureEnabled: true, // Enable gesture navigation for this screen
+              gestureEnabled: false, // Disable swipe navigation
               presentation: "card", // Ensure proper card presentation
             }}
           />

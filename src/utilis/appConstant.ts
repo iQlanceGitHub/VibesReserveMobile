@@ -80,10 +80,17 @@ export const strings = {
 
 export const AWSOptions = {
   // keyPrefix: 'uploads/',
-  bucket: "shw-doc-app",
-  region: "eu-central-1",
-  accessKey: "AKIA5FTZFOARMQTIJXOS",
-  secretKey: "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",
+  // bucket: "shw-doc-app",
+  // region: "eu-central-1",
+  // accessKey: "AKIA5FTZFOARMQTIJXOS",
+  // secretKey: "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",
+  // successActionStatus: 201,
+
+  keyPrefix: 'uploads/',
+  bucket: "myapp-uploads-vr",
+  region: "ca-central-1",
+  accessKey: "AKIA6GFGBWY6PSLCF2KD",
+  secretKey: "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",
   successActionStatus: 201,
 };
 
@@ -370,4 +377,11 @@ export const stripeTestKey = {
     'pk_test_51SL51rDxys6pN8kXg9Jvf5w2IWRFWklT1psS2q61H7bTQt9JL4sV7R3IPlBDFKyfcTdozgL85Mf09hMk2GQbGXzK00RzV4SIcG',
   secreteKey:
     'sk_test_51SL51rDxys6pN8kXUMQc050Yaw0liUwcaCkO2wnn8Wc7oMWWvorzbH9kt1xWCMkn65hJmBAU8iLLUM4ISpS86eZz00AejPSNtu',
+
+  // publishKey:
+  //   'pk_live_51SL51kDZOoiGPJx3OcWs0H2u8IalFqdUKpdvBFL18dH871wH6rWqJAtynj4T89p7rMlJ4kIc2EttD3pPciWKTPi000vzzZUt71',
+  // secreteKey:
+  //   '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',
+
+  
 }

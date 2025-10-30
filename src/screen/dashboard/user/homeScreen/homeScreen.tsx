@@ -266,6 +266,9 @@ const HomeScreenContent = () => {
     React.useCallback(() => {
       const loadData = async () => {
         const userId = await getUser();
+        // Fetch categories and facilities when screen comes into focus
+        fetchCategories();
+        fetchFacilities();
         // Fetch home data
         dispatch(
           onHomenew({
@@ -278,7 +281,7 @@ const HomeScreenContent = () => {
         fetchFavoritesList();
       };
       loadData();
-    }, [])
+    }, [fetchCategories, fetchFacilities])
   );
 
   useEffect(() => {
