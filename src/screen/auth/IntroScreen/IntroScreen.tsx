@@ -116,7 +116,25 @@ const IntroScreen: React.FC<IntroScreenProps> = ({ navigation }) => {
               setActiveSlide(safeIndex);
             }}
           />
-          <PaginationDots />
+          {/* <PaginationDots /> */}
+          <View style={styles.paginationContainer}>
+        {carouselItems.map((_, index) => {
+          const isActive = index === activeSlide;
+          return (
+            <View
+              key={index}
+              style={[
+                styles.paginationDot,
+                {
+                  backgroundColor: isActive ? colors.violate : colors.fontgary,
+                  width: isActive ? getWidth(8) : getWidth(2),
+                  opacity: isActive ? 1 : 0.6,
+                },
+              ]}
+            />
+          );
+        })}
+      </View>
         </View>
       </View>
 

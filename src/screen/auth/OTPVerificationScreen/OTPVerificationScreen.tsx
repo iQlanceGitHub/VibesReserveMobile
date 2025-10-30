@@ -9,6 +9,8 @@ import {
   Platform,
   TextInput,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { colors } from "../../../utilis/colors";
 import { fonts } from "../../../utilis/fonts";
@@ -259,12 +261,13 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
         translucent={true}
       />
-      <LinearGradient
-        colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.container}
-      >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <LinearGradient
+          colors={[colors.gradient_dark_purple, colors.gradient_light_purple]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.container}
+        >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.header}>
             <BackButton navigation={navigation} onBackPress={handleBack} />
@@ -351,7 +354,8 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
             title={'Vibes'}
           />
         </SafeAreaView>
-      </LinearGradient>
+        </LinearGradient>
+      </TouchableWithoutFeedback>
     </View>
   );
 };

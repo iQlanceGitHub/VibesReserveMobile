@@ -42,8 +42,9 @@ const styles = StyleSheet.create({
     borderRadius: appConstant.verticalScale(99),
     alignSelf: "center",
     alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: appConstant.verticalScale(12),
-    paddingVertical: appConstant.verticalScale(12),
+    paddingVertical: appConstant.verticalScale(0),
   },
   titleText: {
     fontSize: appConstant.fontScale(16),

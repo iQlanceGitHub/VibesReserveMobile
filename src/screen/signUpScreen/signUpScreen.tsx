@@ -308,6 +308,26 @@ const storeUser = async (user: any) => {
     if (processedValue.length === 0) {
       setErrors((prev) => ({ ...prev, [field]: false }));
       setErrorMessages((prev) => ({ ...prev, [field]: "" }));
+    } else {
+      // Live clear validation when input becomes valid
+      if (field === "email") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailRegex.test(processedValue)) {
+          setErrors((prev) => ({ ...prev, email: false }));
+          setErrorMessages((prev) => ({ ...prev, email: "" }));
+        }
+      } else if (field === "fullName") {
+        if (processedValue.trim().length >= 2) {
+          setErrors((prev) => ({ ...prev, fullName: false }));
+          setErrorMessages((prev) => ({ ...prev, fullName: "" }));
+        }
+      } else if (field === "dateOfBirth") {
+        // Optional; just clear any previous error once user selects a date
+        if (processedValue.trim().length > 0) {
+          setErrors((prev) => ({ ...prev, dateOfBirth: false }));
+          setErrorMessages((prev) => ({ ...prev, dateOfBirth: "" }));
+        }
+      }
     }
     if (field === "password") {
       validatePasswordRequirements(processedValue);

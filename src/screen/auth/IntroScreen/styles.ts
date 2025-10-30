@@ -35,7 +35,7 @@ export default StyleSheet.create({
     fontFamily: fonts.BlackerBold,
     alignSelf: "center",
     textAlign: "center",
-    marginTop: appConstant.verticalScale(60),
+    marginTop: appConstant.verticalScale(30),
     fontWeight: 500,
     lineHeight: appConstant.fontScale(24),
     width: appConstant.fontScale(335),
@@ -100,10 +100,11 @@ export default StyleSheet.create({
   introImage: {
     // width: appConstant.horizontalScale(265),
     // height: appConstant.verticalScale(390),
-    width: appConstant.horizontalScale(200),
+    width: appConstant.horizontalScale(240),
     height: appConstant.verticalScale(340),
     borderRadius: appConstant.horizontalScale(132.5), // Half of width for pill shape
     marginBottom: appConstant.verticalScale(20),
     overflow: "hidden",
+    marginTop: appConstant.verticalScale(10),
   },
 });
