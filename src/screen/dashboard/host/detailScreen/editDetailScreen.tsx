@@ -1075,7 +1075,7 @@ const EditDetailScreen = () => {
               <>
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Name"
+                    label="Name*"
                     placeholder="Enter name"
                     value={name}
                     onChangeText={(text) => {
@@ -1092,7 +1092,7 @@ const EditDetailScreen = () => {
                 </View>
 
                 <DetailsInput
-                  label="Details"
+                  label="Details*"
                   placeholder="Enter here"
                   value={details}
                   onChangeText={(text) => {
@@ -1108,7 +1108,7 @@ const EditDetailScreen = () => {
 
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Entry Fee"
+                    label="Entry Fee*"
                     placeholder="Enter fee"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1126,7 +1126,7 @@ const EditDetailScreen = () => {
 
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Event Capacity"
+                    label="Event Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
                     onChangeText={(text) => {
@@ -1148,7 +1148,7 @@ const EditDetailScreen = () => {
             {(type === "Booth" || type === "VIP Entry") && (
               <View style={styles.formElement}>
                 <CustomeTextInput
-                  label="Name"
+                  label="Name*"
                   placeholder="Enter name"
                   value={name}
                   onChangeText={(text) => {
@@ -1166,7 +1166,7 @@ const EditDetailScreen = () => {
             )}
 
 <DetailsInput
-                  label="Details"
+                  label="Details*"
                   placeholder="Enter here"
                   value={details}
                   onChangeText={(text) => {
@@ -1183,7 +1183,7 @@ const EditDetailScreen = () => {
             {/* Date Pickers */}
             <View style={styles.formElement}>
               <DatePickerInput
-                label="Start Date"
+                label="Start Date *"
                 placeholder="Select date"
                 value={startDate}
                 onChangeText={(text) => {
@@ -1204,7 +1204,7 @@ const EditDetailScreen = () => {
 
             <View style={styles.formElement}>
               <DatePickerInput
-                label="End Date"
+                label="End Date *"
                 placeholder="Select date"
                 value={endDate}
                 onChangeText={(text) => {
@@ -1225,7 +1225,7 @@ const EditDetailScreen = () => {
 
             {/* Time Pickers */}
             <View style={styles.formElement}>
-              <Text style={styles.label}>Start Time</Text>
+              <Text style={styles.label}>Start Time*</Text>
               <TouchableOpacity
                 style={styles.timeInputButton}
                 onPress={() => handleTimePicker("start")}
@@ -1244,7 +1244,7 @@ const EditDetailScreen = () => {
             </View>
 
             <View style={styles.formElement}>
-              <Text style={styles.label}>End Time</Text>
+              <Text style={styles.label}>End Time*</Text>
               <TouchableOpacity
                 style={styles.timeInputButton}
                 onPress={() => handleTimePicker("end")}
@@ -1305,7 +1305,7 @@ const EditDetailScreen = () => {
               <>
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Price"
+                    label="Price*"
                     placeholder="Enter price"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1343,7 +1343,7 @@ const EditDetailScreen = () => {
 
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Capacity"
+                    label="Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
                     onChangeText={(text) => {

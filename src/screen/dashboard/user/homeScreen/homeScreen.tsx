@@ -680,33 +680,37 @@ const HomeScreenContent = () => {
         contentContainerStyle={styles.eventsContent}
       >
         {/* Featured Event */}
-        <Text style={styles.sectionTitle}>Featured ({featured.length})</Text>
-        <FlatList
-          horizontal
-          data={featured.length > 0 ? featured : []}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.FeatureEventContainer}
-          keyExtractor={(item, index) => (item as any)._id || index.toString()}
-          renderItem={({ item }) => {
-            return (
-              <EventCard
-                title={(item as any).name}
-                location={(item as any).address}
-                date={new Date((item as any).startDate).toLocaleDateString()}
-                price={`$${(item as any).entryFee}`}
-                tag={(item as any).type}
-                image={(item as any).photos?.[0] || ""}
-                rating={(item as any).avgRating}
-                isFavorite={(item as any).isFavorite || false}
-                onBookNow={() => handleBookNow((item as any)._id)}
-                onFavoritePress={() =>
-                  handleFavoritePress((item as any)._id || (item as any).id)
-                }
-                _id={(item as any)._id || (item as any).id}
-              />
-            );
-          }}
-        />
+        {featured.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Featured ({featured.length})</Text>
+            <FlatList
+              horizontal
+              data={featured}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.FeatureEventContainer}
+              keyExtractor={(item, index) => (item as any)._id || index.toString()}
+              renderItem={({ item }) => {
+                return (
+                  <EventCard
+                    title={(item as any).name}
+                    location={(item as any).address}
+                    date={new Date((item as any).startDate).toLocaleDateString()}
+                    price={`$${(item as any).entryFee}`}
+                    tag={(item as any).type}
+                    image={(item as any).photos?.[0] || ""}
+                    rating={(item as any).avgRating}
+                    isFavorite={(item as any).isFavorite || false}
+                    onBookNow={() => handleBookNow((item as any)._id)}
+                    onFavoritePress={() =>
+                      handleFavoritePress((item as any)._id || (item as any).id)
+                    }
+                    _id={(item as any)._id || (item as any).id}
+                  />
+                );
+              }}
+            />
+          </>
+        )}
 
         {/* Nearby Events */}
         <View style={styles.nearbyHeaderRow}>
