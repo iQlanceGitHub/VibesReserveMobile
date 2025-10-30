@@ -35,6 +35,9 @@ import {
   onGetProfileDetail,
   getProfileDetailData,
   getProfileDetailError,
+  onResendEmail,
+  resendEmailData,
+  resendEmailError,
 } from "../../../../redux/auth/actions";
 import { useCategory } from "../../../../hooks/useCategory";
 import { useFacility } from "../../../../hooks/useFacility";
@@ -60,6 +63,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   // Custom Alert states
   const [showInactiveAlert, setShowInactiveAlert] = useState(false);
   const [showProfileUpdateAlert, setShowProfileUpdateAlert] = useState(false);
+  const [showStripeAlert, setShowStripeAlert] = useState(false);
 
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
@@ -79,6 +83,8 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const getProfileDetailErr = useSelector(
     (state: any) => state.auth.getProfileDetailErr
   );
+  const resendEmail = useSelector((state: any) => state.auth.resendEmail);
+  const resendEmailErr = useSelector((state: any) => state.auth.resendEmailErr);
 
   // Category and Facility hooks
   const { fetchCategories } = useCategory();
@@ -161,6 +167,16 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       return;
     }
 
+    // Restrict creation if Stripe account not onboarded
+    const stripeNotOnboarded =
+      (profileDetail && profileDetail.stripeOnboard === "no") ||
+      (!profileDetail && userData && userData.stripeOnboard === "no");
+
+    if (stripeNotOnboarded) {
+      setShowStripeAlert(true);
+      return;
+    }
+
     // If all checks pass, navigate to add event screen
     navigation?.navigate("AddClubEventDetailScreen");
   };
@@ -201,6 +217,8 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     setShowProfileUpdateAlert(false);
     navigation?.navigate("HostEditProfileScreen");
   };
+
+  const handleStripeAlertClose = () => setShowStripeAlert(false);
 
   const fetchBookingRequests = (page: number = 1) => {
     setLoading(true);
@@ -390,6 +408,21 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       dispatch(getProfileDetailError(""));
     }
   }, [getProfileDetail, getProfileDetailErr, dispatch]);
+
+  // Handle resend email response
+  useEffect(() => {
+    if (resendEmail) {
+      showToast(
+        "success",
+        "Please check your email for stripe verification link. Please click on the link & create your stripe account."
+      );
+      dispatch(resendEmailData(""));
+    }
+    if (resendEmailErr) {
+      showToast("error", "Failed to request Stripe verification email");
+      dispatch(resendEmailError(""));
+    }
+  }, [resendEmail, resendEmailErr, dispatch]);
 
   useEffect(() => {
     getUser();
@@ -694,6 +727,21 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         secondaryButtonText="Cancel"
         onPrimaryPress={handleUpdateProfilePress}
         onSecondaryPress={handleProfileUpdateAlertClose}
+        showSecondaryButton={true}
+      />
+
+      {/* Stripe Onboarding Restriction Alert */}
+      <CustomAlert
+        visible={showStripeAlert}
+        title="Stripe Onboarding Required"
+        message="You need to complete your Stripe account setup before creating events."
+        primaryButtonText="Resend Email"
+        secondaryButtonText="Cancel"
+        onPrimaryPress={() => {
+          setShowStripeAlert(false);
+          dispatch(onResendEmail());
+        }}
+        onSecondaryPress={handleStripeAlertClose}
         showSecondaryButton={true}
       />
     </View>

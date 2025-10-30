@@ -769,7 +769,9 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                   style={styles.updateButton}
                   onPress={handleDocumentUpload}
                 >
-                  <Text style={styles.updateButtonText}>Update</Text>
+                  <Text style={styles.updateButtonText}>
+                    {documentImage ? "Update" : "Upload"}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {documentError && (
@@ -811,7 +813,9 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                   style={styles.updateButton}
                   onPress={handleBusinessPictureUpload}
                 >
-                  <Text style={styles.updateButtonText}>Update</Text>
+                  <Text style={styles.updateButtonText}>
+                    {businessPicture ? "Update" : "Upload"}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {businessPictureError && (
@@ -855,7 +859,9 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                   style={styles.updateButton}
                   onPress={handleBusinessBannerUpload}
                 >
-                  <Text style={styles.updateButtonText}>Update</Text>
+                  <Text style={styles.updateButtonText}>
+                    {businessBanner ? "Update" : "Upload"}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {businessBannerError && (

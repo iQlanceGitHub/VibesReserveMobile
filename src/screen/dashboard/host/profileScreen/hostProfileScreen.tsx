@@ -173,13 +173,7 @@ const HostProfileScreen: React.FC<HostProfileScreenProps> = ({
     }
   }, [resendEmailErr]);
 
-  // Check stripeOnboard and call resend email API if needed
-  useEffect(() => {
-    if (getProfileDetail?.data?.stripeOnboard === 'no') {
-      console.log('🔍 Stripe onboard is "no", calling resend email API');
-      dispatch(onResendEmail());
-    }
-  }, [getProfileDetail]);
+  // Stop auto-resend of Stripe email on settings/profile screen
 
   // Delete account function
   const handleDeleteAccount = () => {

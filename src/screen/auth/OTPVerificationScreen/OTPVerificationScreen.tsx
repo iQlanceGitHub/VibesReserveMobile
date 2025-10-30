@@ -56,7 +56,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
   route,
 }) => {
   const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
-  const [timer, setTimer] = useState<number>(159); // 2:39 in seconds
+  const [timer, setTimer] = useState<number>(170); // 2:39 in seconds
   const [isTimerActive, setIsTimerActive] = useState<boolean>(true);
   const [isResendDisabled, setIsResendDisabled] = useState<boolean>(true);
   const [isSubmitDisabled, setIsSubmitDisabled] = useState<boolean>(true);
