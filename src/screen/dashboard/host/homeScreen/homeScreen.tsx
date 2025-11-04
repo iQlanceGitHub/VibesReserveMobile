@@ -167,10 +167,12 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       return;
     }
 
+   
     // Restrict creation if Stripe account not onboarded
+    // Check if stripeOnboard is not equal to "Yes"
     const stripeNotOnboarded =
-      (profileDetail && profileDetail.stripeOnboard === "no") ||
-      (!profileDetail && userData && userData.stripeOnboard === "no");
+      (profileDetail && profileDetail.stripeOnboard !== "Yes") ||
+      (!profileDetail && userData && userData.stripeOnboard !== "Yes");
 
     if (stripeNotOnboarded) {
       setShowStripeAlert(true);

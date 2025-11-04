@@ -6,6 +6,9 @@ import {
   ScrollView,
   Image,
   Alert,
+  Share,
+  Linking,
+  Platform,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +20,7 @@ import ArrowRightIcon from "../../../../../assets/svg/arrowRightIcon";
 import MessageIcon from "../../../../../assets/svg/messageIcon";
 import PhoneIcon from "../../../../../assets/svg/phoneIcon";
 import EditIcon from "../../../../../assets/svg/editIcon";
+import ShareIcon from "../../../../../assets/svg/shareIcon";
 import BlockUserModal from "../../../../../components/BlockUserModal";
 import UnblockUserModal from "../../../../../components/UnblockUserModal";
 import ModerationService from "../../../../../services/moderationService";
@@ -140,6 +144,152 @@ const ClubProfileScreen = () => {
     } catch (error) {
       console.error('Failed to unblock user:', error);
       Alert.alert('Error', 'Failed to unblock user. Please try again.');
+    }
+  };
+
+  const handleShare = async () => {
+    if (!hostProfile) {
+      Alert.alert('Error', 'Club details not available');
+      return;
+    }
+
+    const clubName = hostProfile?.businessName || hostProfile?.fullName || 'Amazing Club';
+    const clubAddress = hostProfile?.address || 'Great Location';
+    const clubDescription = hostProfile?.businessDescription || 'Experience the best nightlife';
+
+    // Create trendy share content
+    const shareMessage = `🎉 Check out ${clubName}! 🎉
+
+📍 ${clubAddress}
+
+${clubDescription}
+
+#Nightlife #Party #VibesReserve #Fun #Entertainment
+
+Download VibesReserve app to discover more amazing venues! 🚀
+Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id6754464237`;
+
+    try {
+      const result = await Share.share({
+        message: shareMessage,
+        title: `Discover ${clubName} on VibesReserve`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log('Content shared successfully');
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      Alert.alert('Error', 'Failed to share content');
+    }
+  };
+
+  const handlePhoneCall = async () => {
+    if (!hostProfile) {
+      Alert.alert('Error', 'Club details not available');
+      return;
+    }
+
+    // Try different possible phone number fields
+    const phoneNumber = 
+      hostProfile?.phone ||
+      hostProfile?.phoneNumber ||
+      hostProfile?.mobileNumber ||
+      hostProfile?.contactNumber ||
+      hostProfile?.businessPhone ||
+      hostProfile?.userId?.phoneNumber ||
+      hostProfile?.userId?.phone;
+
+    if (!phoneNumber) {
+      Alert.alert(
+        'Phone Number Not Available',
+        'Phone number is not available for this club. Please contact them through messaging or other available means.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // Get country code
+    const countryCode = 
+      hostProfile?.countrycode ||
+      hostProfile?.countryCode ||
+      hostProfile?.phoneCode ||
+      hostProfile?.userId?.countrycode ||
+      hostProfile?.userId?.countryCode ||
+      '';
+
+    // Format country code - ensure it starts with + and remove any non-digit characters except +
+    let formattedCountryCode = countryCode ? countryCode.replace(/[^\d+]/g, '') : '';
+    if (formattedCountryCode && !formattedCountryCode.startsWith('+')) {
+      formattedCountryCode = '+' + formattedCountryCode;
+    }
+
+    // Format phone number - remove any non-digit characters
+    const cleanedPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+
+    // Combine country code and phone number
+    let fullPhoneNumber = cleanedPhoneNumber;
+    if (formattedCountryCode) {
+      // Combine country code with phone number
+      fullPhoneNumber = formattedCountryCode + cleanedPhoneNumber;
+    } else if (!cleanedPhoneNumber.startsWith('+')) {
+      // If no country code and phone doesn't start with +, use as is
+      fullPhoneNumber = cleanedPhoneNumber;
+    }
+
+    // Create tel: URL
+    const phoneUrl = `tel:${fullPhoneNumber}`;
+    // For iOS, also try telprompt: as it might work better in some cases
+    const phoneUrlPrompt = Platform.OS === 'ios' ? `telprompt:${fullPhoneNumber}` : null;
+
+    console.log('Attempting to call:', phoneUrl);
+
+    try {
+      // Try to open the phone URL directly
+      // On iOS, canOpenURL can be unreliable for tel: URLs even when they work
+      // Note: iOS Simulator will show a warning but won't actually make calls
+      await Linking.openURL(phoneUrl);
+      
+      // If we reach here, the URL was opened successfully
+      // On iOS Simulator, this will still log a warning but won't throw an error
+      console.log('Phone URL opened successfully');
+    } catch (primaryError) {
+      console.log('Primary tel: URL failed, trying alternative...', primaryError);
+      
+      // On iOS, try telprompt: as fallback
+      if (phoneUrlPrompt && Platform.OS === 'ios') {
+        try {
+          console.log('Trying telprompt:', phoneUrlPrompt);
+          await Linking.openURL(phoneUrlPrompt);
+        } catch (promptError) {
+          console.error('Both tel: and telprompt: failed:', promptError);
+          Alert.alert(
+            'Cannot Make Call',
+            'Unable to open phone dialer. Please try dialing the number manually, or contact the club through messaging.',
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        // For Android or if telprompt is not available, show error
+        console.error('Error opening phone URL:', primaryError);
+        const errorMessage = (primaryError as any)?.message || 'Unknown error';
+        
+        if (errorMessage.includes('Unable to open')) {
+          Alert.alert(
+            'Cannot Make Call',
+            'Unable to open phone dialer. Please make sure your device supports phone calls and try again.',
+            [{ text: 'OK' }]
+          );
+        } else {
+          Alert.alert(
+            'Error',
+            'Failed to initiate phone call. Please try again or use messaging instead.',
+            [{ text: 'OK' }]
+          );
+        }
+      }
     }
   };
 
@@ -532,19 +682,27 @@ const ClubProfileScreen = () => {
       <View style={styles.header}>
         <BackButton navigation={navigation} />
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => {
-            const hostId = hostProfile?._id || clubId;
-            if (isUserBlocked(hostId)) {
-              setShowUnblockModal(true);
-            } else {
-              setShowBlockModal(true);
-            }
-          }}
-        >
-          <ThreeDotMenu />
-        </TouchableOpacity>
+        <View style={styles.headerRightButtons}>
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={handleShare}
+          >
+            <ShareIcon size={20} color={colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => {
+              const hostId = hostProfile?._id || clubId;
+              if (isUserBlocked(hostId)) {
+                setShowUnblockModal(true);
+              } else {
+                setShowBlockModal(true);
+              }
+            }}
+          >
+            <ThreeDotMenu />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.profileCardContainer}>
@@ -608,7 +766,10 @@ const ClubProfileScreen = () => {
             >
               <MessageIcon width={20} height={20} color={colors.violate} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handlePhoneCall}
+            >
               <PhoneIcon width={20} height={20} color={colors.violate} />
             </TouchableOpacity>
           </View>

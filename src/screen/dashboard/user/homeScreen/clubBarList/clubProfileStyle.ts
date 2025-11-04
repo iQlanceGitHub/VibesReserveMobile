@@ -430,6 +430,16 @@ export default StyleSheet.create({
     textAlign: 'center',
     lineHeight: fontScale(16),
   },
+  headerRightButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: horizontalScale(8),
+  },
+  shareButton: {
+    padding: horizontalScale(8),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   menuButton: {
     padding: horizontalScale(8),
     justifyContent: 'center',

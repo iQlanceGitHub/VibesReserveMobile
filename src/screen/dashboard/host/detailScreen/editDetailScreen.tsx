@@ -232,8 +232,64 @@ const EditDetailScreen = () => {
     });
   };
 
+  // Format date to DD/MM/YYYY format (matching add screen)
   const formatDateString = (date: Date): string => {
-    return date.toISOString().split('T')[0];
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Convert DD/MM/YYYY format to YYYY-MM-DD for API (matching add screen)
+  const convertDateToAPIFormat = (dateString: string): string => {
+    if (!dateString) return "";
+    try {
+      // Handle DD/MM/YYYY format
+      if (dateString.includes("/")) {
+        const [day, month, year] = dateString.split("/");
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (isNaN(date.getTime())) return "";
+        return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+      }
+      // Handle YYYY-MM-DD format (already correct)
+      if (dateString.includes("-") && dateString.length === 10) {
+        return dateString;
+      }
+      // Try parsing as date string
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+      return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+    } catch (error) {
+      console.error("Error converting date:", error);
+      return "";
+    }
+  };
+
+  // Validate dates - matching add screen logic
+  const validateDates = (startDateStr: string, endDateStr: string): boolean => {
+    if (!startDateStr || !endDateStr) return true; // Allow empty dates initially
+
+    try {
+      // Parse dates from DD/MM/YYYY format
+      const parseDate = (dateStr: string) => {
+        const [day, month, year] = dateStr.split("/");
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      };
+
+      const startDate = parseDate(startDateStr);
+      const endDate = parseDate(endDateStr);
+
+      // Check if dates are valid
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return false;
+      }
+
+      // Check if end date is same or after start date
+      return endDate >= startDate;
+    } catch (error) {
+      console.log("Error validating dates:", error);
+      return false;
+    }
   };
 
   const handleBack = () => {
@@ -674,18 +730,33 @@ const EditDetailScreen = () => {
         setEndTime(formattedEndTime);
         
         // Load coordinates from API response
+        // Swap only if coordinates appear to be in [lng, lat] format
         if (eventData.coordinates && eventData.coordinates.coordinates) {
           console.log('Loading coordinates:', eventData.coordinates);
-          setCoordinates(eventData.coordinates);
+          const [firstCoord, secondCoord] = eventData.coordinates.coordinates;
+          // Check if coordinates might be in [lng, lat] format
+          // For India region: lng is typically 68-88, lat is 6-37
+          // If first coord is in lng range and larger than second, likely [lng, lat]
+          const looksLikeLngLat = firstCoord > 60 && firstCoord < 100 && secondCoord > 0 && secondCoord < 40 && firstCoord > secondCoord;
+          setCoordinates({
+            type: eventData.coordinates.type || "Point",
+            coordinates: looksLikeLngLat ? [secondCoord, firstCoord] : [firstCoord, secondCoord], // Swap if needed to ensure [lat, lng]
+          });
         }
-        // Format dates properly
+        // Format dates properly - use DD/MM/YYYY format (matching add screen)
         if (eventData.startDate) {
-          const startDate = new Date(eventData.startDate);
-          setStartDate(startDate.toISOString().split('T')[0]);
+          const startDateObj = new Date(eventData.startDate);
+          const day = String(startDateObj.getDate()).padStart(2, '0');
+          const month = String(startDateObj.getMonth() + 1).padStart(2, '0');
+          const year = startDateObj.getFullYear();
+          setStartDate(`${day}/${month}/${year}`);
         }
         if (eventData.endDate) {
-          const endDate = new Date(eventData.endDate);
-          setEndDate(endDate.toISOString().split('T')[0]);
+          const endDateObj = new Date(eventData.endDate);
+          const day = String(endDateObj.getDate()).padStart(2, '0');
+          const month = String(endDateObj.getMonth() + 1).padStart(2, '0');
+          const year = endDateObj.getFullYear();
+          setEndDate(`${day}/${month}/${year}`);
         }
         setEntryFee(eventData.entryFee?.toString() || eventData.price?.toString() || eventData.entry_fee?.toString() || '');
         
@@ -866,7 +937,7 @@ const EditDetailScreen = () => {
     if (addressResult.geometry && addressResult.geometry.location) {
       setCoordinates({
         type: "Point",
-        coordinates: [addressResult.geometry.location.lng, addressResult.geometry.location.lat],
+        coordinates: [addressResult.geometry.location.lat, addressResult.geometry.location.lng],
       });
     }
     setShowAddressModal(false);
@@ -890,56 +961,69 @@ const EditDetailScreen = () => {
     console.log("Enable Booths:", enableBooths);
     console.log("Enable Tickets:", enableTickets);
 
-    // Validation - details optional for Booth/VIP Entry, required for Club/Event
-    const newErrors = {
+    // Validation - matching add screen validation logic
+    // Details optional for Booth/VIP Entry, required for Club/Event
+    // Discount price is optional for all types
+    
+    // Set errors for field highlighting (matching add screen approach)
+    setErrors({
       name: !name.trim(),
-      details: (type === "Club" || type === "Event") ? !details.trim() : false, // Required for Club/Event, optional for Booth/VIP Entry
-      entryFee: !entryFee.trim(),
-      discountPrice: (type === 'Booth' || type === 'VIP Entry') ? !discountPrice.trim() : false,
-      eventCapacity: !eventCapacity.trim(),
+      details: (type === "Club" || type === "Event") ? !details.trim() : false,
+      entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
+      discountPrice: false, // Always optional
+      eventCapacity: !eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0,
       address: !address.trim(),
       startDate: !startDate.trim(),
       endDate: !endDate.trim(),
-    };
+    });
 
-    console.log("=== VALIDATION ERRORS ===");
-    console.log("Name error:", newErrors.name);
-    console.log("Details error:", newErrors.details);
-    console.log("Entry Fee error:", newErrors.entryFee);
-    console.log("Discount Price error:", newErrors.discountPrice);
-    console.log("Event Capacity error:", newErrors.eventCapacity);
-    console.log("Address error:", newErrors.address);
-    console.log("Start Date error:", newErrors.startDate);
-    console.log("End Date error:", newErrors.endDate);
+    // Check basic required fields - matching add screen logic
+    const missingFields = [];
 
-    setErrors(newErrors);
-
-    if (Object.values(newErrors).some(error => error)) {
-      const missingFields = [];
-      if (newErrors.name) missingFields.push("Name");
-      if (newErrors.details) missingFields.push("Details");
-      if (newErrors.entryFee) missingFields.push("Entry Fee");
-      if (newErrors.discountPrice && (type === 'Booth' || type === 'VIP Entry')) missingFields.push("Discount Price");
-      if (newErrors.eventCapacity) missingFields.push("Event Capacity");
-      if (newErrors.address) missingFields.push("Address");
-      if (newErrors.startDate) missingFields.push("Start Date");
-      if (newErrors.endDate) missingFields.push("End Date");
-
-      // Safety check: Remove "Details" from missing fields if type is Booth or VIP Entry
-      if (type === "Booth" || type === "VIP Entry") {
-        const filteredMissingFields = missingFields.filter(field => field !== "Details");
-        if (filteredMissingFields.length !== missingFields.length) {
-          console.log("=== REMOVED DETAILS FROM MISSING FIELDS ===");
-          console.log("Original missing fields:", missingFields);
-          console.log("Filtered missing fields:", filteredMissingFields);
-          missingFields.length = 0;
-          missingFields.push(...filteredMissingFields);
-        }
+    // Different validation based on type (matching add screen)
+    if (type === "Booth" || type === "VIP Entry") {
+      if (!name.trim()) missingFields.push("Name");
+      if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Price"); // Use "Price" for Booth/VIP Entry (matching add screen)
+      if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
+        missingFields.push("Capacity"); // Use "Capacity" for Booth/VIP Entry (matching add screen)
       }
-      
+      // Discount price is optional - no validation required
+    } else {
+      if (!name.trim()) missingFields.push("Name");
+      if (!details.trim()) missingFields.push("Details"); // Required for Club/Event types
+      if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Entry Fee");
+      if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
+        missingFields.push("Event Capacity");
+      }
+    }
+
+    // Common fields for all types (matching add screen)
+    if (!startTime.trim()) missingFields.push("Start Time");
+    if (!endTime.trim()) missingFields.push("End Time");
+    if (!startDate.trim()) missingFields.push("Start Date");
+    if (!endDate.trim()) missingFields.push("End Date");
+    if (!address.trim()) missingFields.push("Address");
+    if (uploadPhotos.length === 0) missingFields.push("Upload Photos");
+
+    // Validate date constraints (matching add screen)
+    if (startDate.trim() && endDate.trim() && !validateDates(startDate, endDate)) {
+      showToast("error", "End date must be same or after start date");
+      setErrors((prev) => ({ ...prev, endDate: true }));
+      return;
+    }
+
+    // Check for missing booths/tickets based on type and enabled state (matching add screen)
+    if (type === "Club") {
+      if (enableBooths && booths.length === 0) missingFields.push("Booths");
+    }
+    if (type === "Event") {
+      if (enableTickets && events.length === 0) missingFields.push("Tickets");
+    }
+
+    if (missingFields.length > 0) {
       console.log("=== MISSING FIELDS ===");
       console.log("Missing fields:", missingFields);
-      console.log("Type:", type, "- Discount required:", (type === 'Booth' || type === 'VIP Entry'));
+      console.log("Type:", type);
       
       Alert.alert('Error', `Please fill in all required fields. Missing: ${missingFields.join(", ")}`);
       return;
@@ -971,6 +1055,10 @@ const EditDetailScreen = () => {
           detailsField = discountPrice;
         }
 
+        // Convert dates from DD/MM/YYYY to YYYY-MM-DD format for API (matching add screen)
+        const formattedStartDate = convertDateToAPIFormat(startDate);
+        const formattedEndDate = convertDateToAPIFormat(endDate);
+
         const payload = {
           id: clubId,
           type,
@@ -981,8 +1069,8 @@ const EditDetailScreen = () => {
           eventCapacity: eventCapacity,
           openingTime: startTime,
           closeTime: endTime,
-          startDate,
-          endDate,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
           address,
           coordinates,
           photos: uploadPhotos,
@@ -1165,20 +1253,23 @@ const EditDetailScreen = () => {
               </View>
             )}
 
-<DetailsInput
-                  label="Details*"
-                  placeholder="Enter here"
-                  value={details}
-                  onChangeText={(text) => {
-                    setDetails(text);
-                    if (errors.details) {
-                      setErrors((prev) => ({ ...prev, details: false }));
-                    }
-                  }}
-                  error={errors.details}
-                  message={errors.details ? "Details are required" : ""}
-                  required={false}
-                />
+            {/* Show Details field for Booth and VIP Entry types */}
+            {(type === "Booth" || type === "VIP Entry") && (
+              <DetailsInput
+                label="Details*"
+                placeholder="Enter here"
+                value={details}
+                onChangeText={(text) => {
+                  setDetails(text);
+                  if (errors.details) {
+                    setErrors((prev) => ({ ...prev, details: false }));
+                  }
+                }}
+                error={errors.details}
+                message={errors.details ? "Details are required" : ""}
+                required={false}
+              />
+            )}
 
             {/* Date Pickers */}
             <View style={styles.formElement}>
@@ -1700,10 +1791,52 @@ const EditDetailScreen = () => {
       {/* Date Picker */}
       {showDatePicker && (
         <DateTimePicker
-          value={new Date()}
+          value={(() => {
+            try {
+              if (datePickerMode === "start" && startDate) {
+                // Parse DD/MM/YYYY format
+                const [day, month, year] = startDate.split("/");
+                return new Date(
+                  parseInt(year),
+                  parseInt(month) - 1,
+                  parseInt(day)
+                );
+              } else if (datePickerMode === "end" && endDate) {
+                // Parse DD/MM/YYYY format
+                const [day, month, year] = endDate.split("/");
+                return new Date(
+                  parseInt(year),
+                  parseInt(month) - 1,
+                  parseInt(day)
+                );
+              }
+              return new Date();
+            } catch (error) {
+              return new Date();
+            }
+          })()}
           mode="date"
-          display="default"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={handleDateChange}
+          textColor={colors.white}
+          themeVariant="dark"
+          minimumDate={(() => {
+            try {
+              if (datePickerMode === "end" && startDate) {
+                // Parse DD/MM/YYYY format
+                const [day, month, year] = startDate.split("/");
+                return new Date(
+                  parseInt(year),
+                  parseInt(month) - 1,
+                  parseInt(day)
+                );
+              }
+              return new Date();
+            } catch (error) {
+              return new Date();
+            }
+          })()}
+          maximumDate={new Date(2035, 11, 31)} // Allow dates up to 2035
         />
       )}
 

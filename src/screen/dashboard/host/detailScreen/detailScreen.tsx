@@ -555,11 +555,12 @@ const DetailScreen = () => {
 ${clubDetails_text}
 
 🏷️ Type: ${clubType}
-💰 Entry: ₹${entryFee}
+💰 Entry: $${entryFee}
 
 #Nightlife #Party #${clubType} #VibesReserve #Fun #Entertainment
 
-Download VibesReserve app to discover more amazing venues! 🚀`;
+Download VibesReserve app to discover more amazing venues! 🚀\n
+Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id6754464237`;
 
         try {
             const result = await Share.share({

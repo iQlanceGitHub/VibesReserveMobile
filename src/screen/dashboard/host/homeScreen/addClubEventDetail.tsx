@@ -265,7 +265,19 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       );
       setAddress(eventData.address || "");
 
-      if (eventData.coordinates) {
+      // Load coordinates from existing data
+      // Swap only if coordinates appear to be in [lng, lat] format
+      if (eventData.coordinates && eventData.coordinates.coordinates) {
+        const [firstCoord, secondCoord] = eventData.coordinates.coordinates;
+        // Check if coordinates might be in [lng, lat] format
+        // For India region: lng is typically 68-88, lat is 6-37
+        // If first coord is in lng range and larger than second, likely [lng, lat]
+        const looksLikeLngLat = firstCoord > 60 && firstCoord < 100 && secondCoord > 0 && secondCoord < 40 && firstCoord > secondCoord;
+        setCoordinates({
+          type: eventData.coordinates.type || "Point",
+          coordinates: looksLikeLngLat ? [secondCoord, firstCoord] : [firstCoord, secondCoord], // Swap if needed to ensure [lat, lng]
+        });
+      } else if (eventData.coordinates) {
         setCoordinates(eventData.coordinates);
       }
 
@@ -1273,12 +1285,13 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         discountedPrice: Number(booth.discountedPrice),
         boothImage: booth.boothImages,
       }));
-    } else if (type === "Event" && enableTickets) {
-      eventData.tickets = events.map((event) => ({
+    } else if (type === "Event") {
+      // Always include tickets field - empty array if tickets disabled, populated if enabled
+      eventData.tickets = enableTickets ? events.map((event) => ({
         ticketType: event.ticketType, // Pass as string ID
         ticketPrice: Number(event.ticketPrice),
         capacity: Number(event.capacity),
-      }));
+      })) : []; // Empty array when tickets are disabled
     }
     // Note: Booth and VIP Entry types only send basic payload without booth/ticket data
 
@@ -1569,9 +1582,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </View>
             )}
 
-
-
-{type === "Booth" || type === "VIP Entry" ? (
+            {/* Show Details field for Booth and VIP Entry types */}
+            {(type === "Booth" || type === "VIP Entry") && (
               <DetailsInput
                 label="Details*"
                 placeholder="Enter here"
@@ -1586,8 +1598,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 message={errors.details ? "Details are required" : ""}
                 required={false}
               />
-            ) : null}
-
+            )}
 
             <View style={addClubEventDetailStyle.formElement}>
               <DatePickerInput

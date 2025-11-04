@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.yourapp.refresh</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -41,6 +45,11 @@
 	<string>668464751409</string>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:668464751409:ios:b6431da367b3f2cd838610</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>telprompt</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
@@ -87,10 +96,10 @@
 	<string>Vibe Reserve needs access to your contacts to make it easier to connect and invite friends.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>Vibe Reserve needs access to documents folder to select files for upload</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Vibe Reserve needs access to your location to find nearby events and clubs when you&apos;re using the app.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Vibe Reserve needs access to your location to find nearby events and clubs, send location-based notifications, and provide enhanced features even when the app is in the background.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs when you're using the app.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Vibe Reserve needs access to the microphone to allow voice input and audio features.</string>
 	<key>NSMotionUsageDescription</key>
@@ -101,10 +110,6 @@
 	<string>Vibe Reserve needs access to speech recognition to convert your voice into text.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Vibe Reserve needs to send you notifications about events, bookings, and important updates.</string>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>com.yourapp.refresh</string>
-	</array>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
