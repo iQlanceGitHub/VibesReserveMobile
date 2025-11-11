@@ -149,12 +149,55 @@ export default StyleSheet.create({
     marginHorizontal: horizontalScale(10),
   },
 
+  tabsWrapper: {
+    position: 'relative',
+    marginBottom: verticalScale(15),
+  },
+  tabsScrollContainer: {
+    // ScrollView container
+  },
+  scrollIndicator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: horizontalScale(30),
+    zIndex: 10,
+    pointerEvents: 'none',
+  },
+  leftIndicator: {
+    left: 0,
+  },
+  rightIndicator: {
+    right: 0,
+  },
+  gradientIndicator: {
+    flex: 1,
+    width: '100%',
+  },
+  arrowContainer: {
+    position: 'absolute',
+    top: '50%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: horizontalScale(24),
+    height: horizontalScale(24),
+    borderRadius: horizontalScale(12),
+    backgroundColor: colors.violate,
+    opacity: 0.9,
+  },
+  leftArrowContainer: {
+    left: horizontalScale(3),
+    marginTop: -horizontalScale(12),
+  },
+  rightArrowContainer: {
+    right: horizontalScale(3),
+    marginTop: -horizontalScale(12),
+  },
   tabsContainer: {
     flexDirection: "row",
     backgroundColor: colors.cardBackground,
-    borderRadius: verticalScale(16),
+    borderRadius: verticalScale(12),
     padding: verticalScale(2),
-    marginBottom: verticalScale(20),
     borderWidth: 1,
     borderColor: colors.purpleBorder,
     shadowColor: colors.purpleBorder,
@@ -165,15 +208,18 @@ export default StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    minWidth: '100%',
+    height: verticalScale(50),
+   
   },
   tabButton: {
-    flex: 1,
-    paddingVertical: verticalScale(14),
-    paddingHorizontal: horizontalScale(12),
-    borderRadius: verticalScale(12),
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: horizontalScale(22),
+    borderRadius: verticalScale(10),
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: horizontalScale(2),
+    minWidth: horizontalScale(80),
   },
   activeTabButton: {
     backgroundColor: colors.violate,
@@ -187,7 +233,7 @@ export default StyleSheet.create({
     elevation: 3,
   },
   tabButtonText: {
-    fontSize: fontScale(13),
+    fontSize: fontScale(15),
     fontFamily: fonts.medium,
     color: colors.white,
     textAlign: "center",
@@ -198,6 +244,7 @@ export default StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+   // marginTop: verticalScale(-340),
   },
   tabContent: {
     paddingBottom: verticalScale(100),

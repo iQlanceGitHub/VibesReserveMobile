@@ -328,7 +328,11 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
   };
 
   // Helper function to format time
-  const formatTime = (timeString: string) => {
+  const formatTime = (timeString: string | undefined) => {
+    // Handle undefined or null values
+    if (!timeString || typeof timeString !== 'string') {
+      return '';
+    }
     // Convert 24-hour format to 12-hour format
     const [hours, minutes] = timeString.split(":");
     const hour = parseInt(hours);
@@ -402,13 +406,16 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
                 </Text>
               </View>
 
-              <View style={styles.timeContainer}>
-                <ClockIcon />
-                <Text style={styles.timeText}>
-                  {formatDate(event.startDate)} -{" "}
-                  {formatTime(event.openingTime)}
-                </Text>
-              </View>
+              {/* Date & Time - Only show for non-Table types */}
+              {event.type !== "Table" && event.openingTime && event.startDate && (
+                <View style={styles.timeContainer}>
+                  <ClockIcon />
+                  <Text style={styles.timeText}>
+                    {formatDate(event.startDate)} -{" "}
+                    {formatTime(event.openingTime)}
+                  </Text>
+                </View>
+              )}
             </View>
           </TouchableOpacity>
 

@@ -64,12 +64,13 @@ const ClubDetailScreen = () => {
   const [selectedLounge, setSelectedLounge] = useState('');
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [viewedMap, setViewedMap] = useState(false);
-  const [clubDetails, setClubDetails] = useState(null);
+  const [clubDetails, setClubDetails] = useState<any>(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [msg, setMsg] = useState('');
   const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     title: '',
     message: '',
@@ -199,6 +200,60 @@ const ClubDetailScreen = () => {
 
     const fetchClubDetails = async () => {
       if (clubId) {
+        // Static test data for ID "1" or test ID
+        if (clubId === "1") {
+          console.log('Using static test data for clubId:', clubId);
+          setIsDataLoading(true);
+          setIsDataLoaded(false);
+          
+          // Static test data based on provided JSON
+          const staticTestData = {
+            "_id": "68e66a761c196abe967b7638",
+            "type": "Table",
+            "userId": {
+              "_id": "68e668871c196abe967b75fc",
+              "fullName": "Cera",
+              "email": "cera@yopmail.com",
+              "phone": "4163061172",
+              "profilePicture": "https://shw-doc-app.s3.amazonaws.com/profile_1759930581690.jpg"
+            },
+            "name": "Table 1",
+            "details": "Table discription",
+            "entryFee": 12,
+            "address": "20 ON-10, Markdale, ON N0C 1H0, Canada",
+            "eventCapacity": 2,
+            "coordinates": {
+              "type": "Point",
+              "coordinates": [44.3180203, -80.6474539]
+            },
+            "booths": [],
+            "tickets": [],
+            "photos": [
+              "https://myapp-uploads-vr.s3.amazonaws.com/main_1762850173741_0.jpg",
+              "https://shw-doc-app.s3.amazonaws.com/main_1759930992303_2.jpg"
+            ],
+            "floorLayout": "https://myapp-uploads-vr.s3.amazonaws.com/floorLayout_1762850155161.jpg",
+            "status": "active",
+            "isFeature": false,
+            "createdAt": "2025-10-08T13:43:18.394Z",
+            "updatedAt": "2025-10-08T13:43:18.394Z",
+            "__v": 0,
+            "isFavorite": false
+          };
+
+          // Simulate API response delay
+          setTimeout(() => {
+            setClubDetails(staticTestData);
+            setIsDataLoading(false);
+            setIsDataLoaded(true);
+            setIsLiked(staticTestData.isFavorite || false);
+            const localBookmark = isClubBookmarked(clubId);
+            setIsBookmarked(localBookmark);
+            console.log('Static test data loaded successfully');
+          }, 500);
+          return;
+        }
+
         console.log('Calling Viewdetails API with ID:', clubId);
         setIsDataLoading(true);
         setIsDataLoaded(false);
@@ -995,15 +1050,17 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
                 <LocationFavourite size={16} color={colors.violate} />
                 <Text style={styles.detailText}>{(clubDetails as any)?.address || 'Loading...'}</Text>
               </View>
-              <View style={styles.detailRow}>
-                <ClockIcon size={16} color={colors.violate} />
-                <Text style={styles.detailText}>
-                  {clubDetails ?
-                    `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
-                    'Loading...'
-                  }
-                </Text>
-              </View>
+              {(clubDetails as any)?.type !== 'Table' && (
+                                <View style={styles.detailRow}>
+                                    <ClockIcon size={16} color={colors.violate} />
+                                    <Text style={styles.detailText}>
+                                        {clubDetails && (clubDetails as any).startDate && (clubDetails as any).openingTime ?
+                                            `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
+                                            'Loading...'
+                                        }
+                                    </Text>
+                                </View>
+               )}
             </View>
 
             <View style={styles.aboutSection}>
@@ -1012,6 +1069,28 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
                 {(clubDetails as any)?.details || 'Loading club details...'}
               </Text>
             </View>
+
+            {/* Floor Plan Section for Table Type */}
+            {(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.floorLayout && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Floor Plan</Text>
+                <TouchableOpacity
+                  style={styles.floorPlanButton}
+                  onPress={() => setShowFloorPlanModal(true)}
+                >
+                  <View style={styles.floorPlanPreviewContainer}>
+                    <Image
+                      source={{ uri: (clubDetails as any)?.floorLayout }}
+                      style={styles.floorPlanPreview}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.floorPlanOverlay}>
+                      <Text style={styles.floorPlanButtonText}>View Floor Plan</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
 
           {/* Booking Options */}
           <View style={styles.section}>
@@ -1182,30 +1261,32 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
               </MapView>
             </View>
           </View>
-          {/* Facilities */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Facilities</Text>
-            <View style={styles.facilitiesContainer}>
-              {facilities.map((facility: any) => (
-                <TouchableOpacity
-                  key={facility.id}
-                  style={[
-                    styles.facilityButton,
-                    selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
-                  ]}
-                  onPress={() => handleFacilityToggle(facility.id)}
-                >
-                  {/* {facility.icon} */}
-                  <Text style={[
-                    styles.facilityText,
-                    selectedFacilities.includes(facility.id) && styles.facilityTextSelected
-                  ]}>
-                    {facility.title}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+          {/* Facilities - Only show if facilities exist */}
+          {facilities && facilities.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Facilities</Text>
+              <View style={styles.facilitiesContainer}>
+                {facilities.map((facility: any) => (
+                  <TouchableOpacity
+                    key={facility.id}
+                    style={[
+                      styles.facilityButton,
+                      selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
+                    ]}
+                    onPress={() => handleFacilityToggle(facility.id)}
+                  >
+                    {/* {facility.icon} */}
+                    <Text style={[
+                      styles.facilityText,
+                      selectedFacilities.includes(facility.id) && styles.facilityTextSelected
+                    ]}>
+                      {facility.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </View>
         <View style={{ marginTop: verticalScale(100) }}></View>
       </ScrollView>
@@ -1280,6 +1361,43 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
         onSecondaryPress={alertConfig.onSecondaryPress}
         onClose={() => setShowCustomAlert(false)}
       />
+
+      {/* Floor Plan Modal */}
+      <Modal
+        visible={showFloorPlanModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFloorPlanModal(false)}
+      >
+        <View style={styles.floorPlanModalOverlay}>
+          <View style={styles.floorPlanModalContainer}>
+            <View style={styles.floorPlanModalHeader}>
+              <Text style={styles.floorPlanModalTitle}>Floor Plan</Text>
+              <TouchableOpacity
+                style={styles.floorPlanCloseButton}
+                onPress={() => setShowFloorPlanModal(false)}
+              >
+                <Text style={styles.floorPlanCloseButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.floorPlanScrollView}
+              contentContainerStyle={styles.floorPlanScrollContent}
+              showsVerticalScrollIndicator={true}
+              showsHorizontalScrollIndicator={true}
+              maximumZoomScale={3}
+              minimumZoomScale={1}
+              bouncesZoom={true}
+            >
+              <Image
+                source={{ uri: (clubDetails as any)?.floorLayout }}
+                style={styles.floorPlanFullImage}
+                resizeMode="contain"
+              />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

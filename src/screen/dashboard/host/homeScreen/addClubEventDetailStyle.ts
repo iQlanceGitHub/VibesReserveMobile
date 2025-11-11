@@ -200,6 +200,21 @@ const addClubEventDetailStyle = StyleSheet.create({
     alignItems: "center",
     marginRight: horizontalScale(10),
   },
+  floorLayoutImageBox: {
+    width: '100%',
+    height: verticalScale(150),
+    borderRadius: horizontalScale(12),
+    borderWidth: horizontalScale(1),
+    borderColor: colors.whiteTransparentMedium,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: verticalScale(10),
+  },
+  floorLayoutImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: horizontalScale(12),
+  },
   addNewBoothButton: {
     flexDirection: "row",
     alignItems: "center",

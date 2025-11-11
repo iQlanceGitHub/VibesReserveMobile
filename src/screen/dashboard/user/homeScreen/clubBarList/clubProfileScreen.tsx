@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
   Share,
   Linking,
   Platform,
+  Animated,
 } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./clubProfileStyle";
@@ -17,6 +19,8 @@ import { colors } from "../../../../../utilis/colors";
 import { BackButton } from "../../../../../components/BackButton";
 import LocationFavourite from "../../../../../assets/svg/locationFavourite";
 import ArrowRightIcon from "../../../../../assets/svg/arrowRightIcon";
+import ArrowLeft from "../../../../../assets/svg/ArrowLeft";
+import ArrowRight from "../../../../../assets/svg/ArrowRight";
 import MessageIcon from "../../../../../assets/svg/messageIcon";
 import PhoneIcon from "../../../../../assets/svg/phoneIcon";
 import EditIcon from "../../../../../assets/svg/editIcon";
@@ -33,6 +37,7 @@ import {
 import { useModeration } from "../../../../../contexts/ModerationContext";
 import { horizontalScale, verticalScale } from "../../../../../utilis/appConstant";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import TableCard from "./components/TableCard";
 
 const clubProfileData = {
   id: "1",
@@ -67,11 +72,97 @@ const ClubProfileScreen = () => {
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showUnblockModal, setShowUnblockModal] = useState(false);
 
+  // Scroll indicators state
+  const [showLeftIndicator, setShowLeftIndicator] = useState(false);
+  const [showRightIndicator, setShowRightIndicator] = useState(true);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const leftIndicatorOpacity = useRef(new Animated.Value(0)).current;
+  const rightIndicatorOpacity = useRef(new Animated.Value(1)).current;
+  const leftArrowOpacity = useRef(new Animated.Value(0)).current;
+  const rightArrowOpacity = useRef(new Animated.Value(1)).current;
+  const leftArrowTranslateX = useRef(new Animated.Value(0)).current;
+  const rightArrowTranslateX = useRef(new Animated.Value(0)).current;
+
   // Redux state
   const hostProfileRedux = useSelector((state: any) => state.auth.hostProfile);
   const hostProfileErr = useSelector((state: any) => state.auth.hostProfileErr);
 
-  const tabs = ["Club", "Booth", "Event", "VIP Entry"];
+  const tabs = ["Club", "Booth", "Event", "VIP Entry", "Table"];
+
+  // Animate right indicator and arrow to pulse when scrollable
+  useEffect(() => {
+    if (showRightIndicator) {
+      // Pulse animation for gradient
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(rightIndicatorOpacity, {
+            toValue: 0.5,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(rightIndicatorOpacity, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      
+      // Bounce animation for arrow (slide right and back)
+      const arrowBounceAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(rightArrowTranslateX, {
+            toValue: 5,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(rightArrowTranslateX, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      
+      const timer = setTimeout(() => {
+        pulseAnimation.start();
+        arrowBounceAnimation.start();
+      }, 500);
+      
+      return () => {
+        clearTimeout(timer);
+        pulseAnimation.stop();
+        arrowBounceAnimation.stop();
+      };
+    }
+  }, [showRightIndicator]);
+
+  // Animate left arrow when visible
+  useEffect(() => {
+    if (showLeftIndicator) {
+      const arrowBounceAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(leftArrowTranslateX, {
+            toValue: -5,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(leftArrowTranslateX, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      
+      arrowBounceAnimation.start();
+      
+      return () => {
+        arrowBounceAnimation.stop();
+      };
+    }
+  }, [showLeftIndicator]);
 
   // Block/Unblock handlers
   const handleBlockUser = async () => {
@@ -332,9 +423,23 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
       );
       console.log("Host data:", hostProfileRedux?.host);
       console.log("Events data:", hostProfileRedux?.events);
+      console.log("Data array:", hostProfileRedux?.data);
 
-      setHostProfile(hostProfileRedux?.host);
-      setHostEvents(hostProfileRedux?.events || []);
+      // Set host profile data (support both old and new structure)
+      setHostProfile(hostProfileRedux?.host || hostProfileRedux?.hostData || null);
+
+      // Extract events from dynamic API response structure
+      // New structure: events in data array
+      // Old structure: events in events property
+      const eventsData = 
+        hostProfileRedux?.data || // New dynamic structure
+        hostProfileRedux?.events || // Old structure
+        [];
+
+      console.log("Extracted events:", eventsData);
+      console.log("Number of events:", eventsData.length);
+      
+      setHostEvents(eventsData);
 
       dispatch(hostProfileData(""));
     }
@@ -372,6 +477,14 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
           { text: "Go Back", onPress: () => navigation.goBack() },
         ]
       );
+      return;
+    }
+
+    // For Table type events, navigate to ClubDetailScreen to show floor plan
+    if (event.type === "Table") {
+      (navigation as any).navigate("ClubDetailScreen", {
+        clubId: event._id || event.id,
+      });
       return;
     }
 
@@ -662,6 +775,31 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
     );
   };
 
+  const renderTableContent = () => {
+    // Get only Table type events from dynamic API data
+    const tableEvents = hostEvents.filter((event) => event.type === "Table");
+
+    return (
+      <View style={styles.tabContent}>
+        <Text style={styles.sectionTitle}>
+          Table Events ({tableEvents.length})
+        </Text>
+
+        {tableEvents.length > 0 ? (
+          tableEvents.map((table, index) => (
+            <TableCard
+              key={table._id || index}
+              table={table}
+              onPress={() => handleNextPress(table)}
+            />
+          ))
+        ) : (
+          <Text style={styles.noDataText}>No table events available</Text>
+        )}
+      </View>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "Club":
@@ -672,6 +810,8 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
         return renderEventTicketsContent();
       case "VIP Entry":
         return renderVipContent();
+      case "Table":
+        return renderTableContent();
       default:
         return renderClubContent();
     }
@@ -786,7 +926,145 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
         </>
       )}
 
-      <View style={styles.tabsContainer}>{tabs.map(renderTabButton)}</View>
+      <View style={styles.tabsWrapper}>
+        {/* Left gradient indicator */}
+        {showLeftIndicator && (
+          <Animated.View
+            style={[
+              styles.scrollIndicator,
+              styles.leftIndicator,
+              { opacity: leftIndicatorOpacity },
+            ]}
+            pointerEvents="none"
+          >
+            <LinearGradient
+              colors={[colors.cardBackground, 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientIndicator}
+            />
+            {/* Left arrow with animation */}
+            <Animated.View
+              style={[
+                styles.arrowContainer,
+                styles.leftArrowContainer,
+                {
+                  opacity: leftArrowOpacity,
+                  transform: [{ translateX: leftArrowTranslateX }],
+                },
+              ]}
+            >
+              <ArrowRightIcon transform={[{ rotate: '180deg' }]} width={20} height={20} color={colors.white} />
+            </Animated.View>
+          </Animated.View>
+        )}
+        
+        {/* Right gradient indicator */}
+        {showRightIndicator && (
+          <Animated.View
+            style={[
+              styles.scrollIndicator,
+              styles.rightIndicator,
+              { opacity: rightIndicatorOpacity },
+            ]}
+            pointerEvents="none"
+          >
+            <LinearGradient
+              colors={['transparent', colors.cardBackground]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientIndicator}
+            />
+            {/* Right arrow with animation */}
+            <Animated.View
+              style={[
+                styles.arrowContainer,
+                styles.rightArrowContainer,
+                {
+                  opacity: rightArrowOpacity,
+                  transform: [{ translateX: rightArrowTranslateX }],
+                },
+              ]}
+            >
+              <ArrowRightIcon width={16} height={16} color={colors.white} />
+            </Animated.View>
+          </Animated.View>
+        )}
+        
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsScrollContainer}
+          contentContainerStyle={styles.tabsContainer}
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            const scrollX = contentOffset.x;
+            const maxScrollX = contentSize.width - layoutMeasurement.width;
+            
+            // Show/hide left indicator
+            const shouldShowLeft = scrollX > 10;
+            if (shouldShowLeft !== showLeftIndicator) {
+              setShowLeftIndicator(shouldShowLeft);
+              Animated.parallel([
+                Animated.timing(leftIndicatorOpacity, {
+                  toValue: shouldShowLeft ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(leftArrowOpacity, {
+                  toValue: shouldShowLeft ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+              ]).start();
+            }
+            
+            // Show/hide right indicator
+            const shouldShowRight = scrollX < maxScrollX - 10;
+            if (shouldShowRight !== showRightIndicator) {
+              setShowRightIndicator(shouldShowRight);
+              Animated.parallel([
+                Animated.timing(rightIndicatorOpacity, {
+                  toValue: shouldShowRight ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(rightArrowOpacity, {
+                  toValue: shouldShowRight ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+              ]).start();
+            }
+          }}
+          onLayout={(event) => {
+            const { width } = event.nativeEvent.layout;
+            setContainerWidth(width);
+          }}
+          onContentSizeChange={(contentWidth) => {
+            const needsScroll = contentWidth > containerWidth;
+            if (needsScroll !== showRightIndicator && containerWidth > 0) {
+              setShowRightIndicator(needsScroll);
+              Animated.parallel([
+                Animated.timing(rightIndicatorOpacity, {
+                  toValue: needsScroll ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(rightArrowOpacity, {
+                  toValue: needsScroll ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+              ]).start();
+            }
+          }}
+          scrollEventThrottle={16}
+        >
+          {tabs.map(renderTabButton)}
+        </ScrollView>
+      </View>
       <ScrollView
         style={styles.contentContainer}
         showsVerticalScrollIndicator={false}

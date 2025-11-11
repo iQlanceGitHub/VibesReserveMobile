@@ -1365,22 +1365,33 @@ interface CreateeventPayload {
   details: string;
   entryFee: number;
   eventCapacity: number;
-  openingTime: string;
-  closeTime: string;
-  startDate: string;
-  endDate: string;
+  openingTime?: string; // Optional for Table type
+  closeTime?: string; // Optional for Table type
+  startDate?: string; // Optional for Table type
+  endDate?: string; // Optional for Table type
   address: string;
   coordinates: {
     type: string;
     coordinates: number[];
   };
   photos: string[];
-  facilities: string[];
-  tickets: Array<{
+  facilities?: string[]; // Optional for Table, Booth, VIP Entry types
+  tickets?: Array<{
     ticketType: string;
     ticketPrice: number;
     capacity: number;
   }>;
+  floorLayout?: string; // For Table type
+  booths?: Array<{
+    boothName: string;
+    boothType: string;
+    boothPrice: number;
+    capacity: number;
+    discountedPrice: number;
+    boothImage: string[];
+  }>;
+  ticketType?: string; // For Booth and VIP Entry types
+  discountPrice?: string; // For Booth and VIP Entry types
 }
 
 function* FavoriteslistSaga({
