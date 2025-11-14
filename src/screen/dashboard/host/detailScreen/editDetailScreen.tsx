@@ -149,6 +149,7 @@ const EditDetailScreen = () => {
   const [eventCapacity, setEventCapacity] = useState("");
   const [address, setAddress] = useState("");
   const [floorLayout, setFloorLayout] = useState(""); // Store image URL for floor layout
+  const [tableNumber, setTableNumber] = useState(""); // Table number for Table type
   const [coordinates, setCoordinates] = useState({
     type: "Point",
     coordinates: [0, 0],
@@ -190,6 +191,7 @@ const EditDetailScreen = () => {
     startDate: false,
     endDate: false,
     floorLayout: false,
+    tableNumber: false,
   });
 
   // Types for dropdown
@@ -780,6 +782,13 @@ const EditDetailScreen = () => {
         
         setEventCapacity(eventData.capacity?.toString() || eventData.eventCapacity?.toString() || eventData.event_capacity?.toString() || '');
         setFloorLayout(eventData.floorLayout || eventData.floor_layout || '');
+        // Handle tableNumber - convert number to string if needed
+        const tableNumberValue = eventData.tableNumber !== undefined && eventData.tableNumber !== null
+          ? String(eventData.tableNumber)
+          : eventData.table_number !== undefined && eventData.table_number !== null
+          ? String(eventData.table_number)
+          : '';
+        setTableNumber(tableNumberValue);
         setType(eventType);
         
         // Note: Booth loading is handled in separate useEffect when categories are available
@@ -984,7 +993,8 @@ const EditDetailScreen = () => {
       address: !address.trim(),
       startDate: !startDate.trim(),
       endDate: !endDate.trim(),
-      floorLayout: type === "Table" ? !floorLayout : false, // Required for Table type (image URL)
+      floorLayout: false, // Optional for Table type
+      tableNumber: type === "Table" ? !tableNumber.trim() : false, // Required for Table type
     });
 
     // Check basic required fields - matching add screen logic
@@ -1005,7 +1015,7 @@ const EditDetailScreen = () => {
       if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
         missingFields.push("Seating Capacity");
       }
-      if (!floorLayout) missingFields.push("Floor Layout");
+      // Floor Layout is optional for Table type
     } else {
       if (!name.trim()) missingFields.push("Name");
       if (!details.trim()) missingFields.push("Details"); // Required for Club/Event types
@@ -1104,9 +1114,10 @@ const EditDetailScreen = () => {
           payload.facilities = facilitiesList.filter(f => f.selected).map(f => f._id);
         }
 
-        // Add floorLayout for Table type
+        // Add floorLayout and tableNumber for Table type
         if (type === "Table") {
           payload.floorLayout = floorLayout;
+          payload.tableNumber = tableNumber;
         }
     
     console.log('Update payload:', JSON.stringify(payload, null, 2));
@@ -1324,6 +1335,24 @@ const EditDetailScreen = () => {
                   />
                 </View>
 
+                <View style={styles.formElement}>
+                  <CustomeTextInput
+                    label="Table Number*"
+                    placeholder="Enter table number"
+                    value={tableNumber}
+                    onChangeText={(text) => {
+                      setTableNumber(text);
+                      if (errors.tableNumber) {
+                        setErrors((prev) => ({ ...prev, tableNumber: false }));
+                      }
+                    }}
+                    error={errors.tableNumber}
+                    message={errors.tableNumber ? "Table number is required" : ""}
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
                 <DetailsInput
                   label="Details*"
                   placeholder="Enter here"
@@ -1377,7 +1406,7 @@ const EditDetailScreen = () => {
 
                 <View style={styles.formElement}>
                   <Text style={styles.sectionLabel}>
-                    Floor Layout*
+                    Floor Layout (Optional)
                   </Text>
                   <View>
                     <TouchableOpacity

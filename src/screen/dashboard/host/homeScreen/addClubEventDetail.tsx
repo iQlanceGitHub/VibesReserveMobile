@@ -130,6 +130,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [discountPrice, setDiscountPrice] = useState("");
   const [address, setAddress] = useState("");
   const [floorLayout, setFloorLayout] = useState(""); // Store image URL for floor layout
+  const [tableNumber, setTableNumber] = useState(""); // Table number for Table type
   const [coordinates, setCoordinates] = useState({
     type: "Point",
     coordinates: [0, 0], // Default coordinates
@@ -179,6 +180,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     uploadPhotos: false,
     startDate: false,
     endDate: false,
+    tableNumber: false,
     floorLayout: false,
   });
 
@@ -361,7 +363,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       uploadPhotos: uploadPhotos.length === 0, // Require photos for all types
       startDate: false, // Will be validated separately
       endDate: false, // Will be validated separately
-      floorLayout: type === "Table" ? !floorLayout : false, // Required for Table type (image URL)
+      floorLayout: false, // Optional for Table type
+      tableNumber: type === "Table" ? !tableNumber.trim() : false, // Required for Table type
     };
 
     // Check if type is selected
@@ -406,7 +409,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         Number(eventCapacity) <= 0
       )
         missingFields.push("Seating Capacity");
-      if (!floorLayout) missingFields.push("Floor Layout");
+      // Floor Layout is optional for Table type
       // Table type doesn't require dates, times, or facilities
     } else {
       if (!name.trim()) missingFields.push("Name");
@@ -1350,9 +1353,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       eventData.facilities = selectedFacilities;
     }
 
-    // Add floorLayout for Table type
+    // Add floorLayout and tableNumber for Table type
     if (type === "Table") {
       eventData.floorLayout = floorLayout;
+      eventData.tableNumber = tableNumber;
     }
 
     // Add booth or ticket specific data only if sections are enabled
@@ -1710,6 +1714,24 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                   />
                 </View>
 
+                <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Table Number*"
+                    placeholder="Enter table number"
+                    value={tableNumber}
+                    onChangeText={(text) => {
+                      setTableNumber(text);
+                      if (errors.tableNumber) {
+                        setErrors((prev) => ({ ...prev, tableNumber: false }));
+                      }
+                    }}
+                    error={errors.tableNumber}
+                    message={errors.tableNumber ? "Table number is required" : ""}
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
                 <DetailsInput
                   label="Details*"
                   placeholder="Enter here"
@@ -1772,7 +1794,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
                 <View style={addClubEventDetailStyle.formElement}>
                   <Text style={addClubEventDetailStyle.sectionLabel}>
-                    Floor Layout*
+                    Floor Layout (Optional)
                   </Text>
                   <View>
                     <TouchableOpacity

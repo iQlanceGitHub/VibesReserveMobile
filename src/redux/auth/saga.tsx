@@ -1943,6 +1943,7 @@ interface CheckBookedDatePayload {
   eventId?: string;
   startDate?: string;
   endDate?: string;
+  isTable?: string;
 }
 
 function* CheckBookedDateSaga({
@@ -1957,6 +1958,7 @@ function* CheckBookedDateSaga({
       eventId: payload?.eventId,
       startDate: payload?.startDate,
       endDate: payload?.endDate,
+      isTable: payload?.isTable,
     };
 
     const response = yield call(fetchPost, {

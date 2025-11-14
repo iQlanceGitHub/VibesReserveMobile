@@ -13,6 +13,7 @@ interface DateRangePickerProps {
   startDate?: string;
   endDate?: string;
   bookedDates?: string[];
+  allowPastDates?: boolean;
 }
 
 const DateRangePicker: React.FC<DateRangePickerProps> = ({
@@ -22,6 +23,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   startDate,
   endDate,
   bookedDates = [],
+  allowPastDates = false,
 }) => {
   // Initialize calendar to show the month of the selected start date
   const defaultStartDate = initialStartDate;
@@ -173,7 +175,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   // Removed all complex booked date range functions - using simple individual round shapes
 
   const isDateDisabled = (date: Date) => {
-    return !isDateInAllowedRange(date) || isDateBooked(date) || isPastDate(date);
+    const pastDateCheck = allowPastDates ? false : isPastDate(date);
+    return !isDateInAllowedRange(date) || isDateBooked(date) || pastDateCheck;
   };
 
   const handleDatePress = (date: Date) => {

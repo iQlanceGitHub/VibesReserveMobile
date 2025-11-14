@@ -123,7 +123,16 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
           maxLength={kType == keyboardType.email_address ? 80 : maxLength}
           multiline={multiline}
           keyboardType={
-            Platform.OS === "ios" ? "ascii-capable" : "visible-password"
+            kType === keyboardType.numeric || 
+            kType === keyboardType.number_pad || 
+            kType === "numeric" || 
+            kType === "number-pad"
+              ? (Platform.OS === "ios" ? "number-pad" : "numeric")
+              : kType === keyboardType.email_address || kType === "email-address"
+              ? "email-address"
+              : Platform.OS === "ios"
+              ? "ascii-capable"
+              : "visible-password"
           }
           placeholder={
             kType == keyboardType.email_address

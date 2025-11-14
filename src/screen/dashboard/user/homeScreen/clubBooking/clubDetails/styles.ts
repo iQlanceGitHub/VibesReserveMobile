@@ -183,6 +183,13 @@ export default StyleSheet.create({
     color: colors.white,
     //marginBottom: verticalScale(16),
   },
+
+  capcityTableTitle: {
+    fontSize: fontScale(16),
+    fontFamily: fonts.Bold,
+    color: colors.white,
+    //marginBottom: verticalScale(16),
+  },
   loungesContainer: {
     flexDirection: 'row',
     gap: horizontalScale(16),
