@@ -23,6 +23,7 @@ import LocationFavourite from "../../assets/svg/locationFavourite";
 import { useDispatch, useSelector } from "react-redux";
 import {
   cancelBookingData,
+  cancelBookingError,
   getBookingList,
   onCancelBooking,
 } from "../../redux/auth/actions";
@@ -345,7 +346,8 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     if (cancelBookingErr) {
-      showToast("error", "Failed to cancel booking. Please try again.");
+      showToast("error", cancelBookingErr?.message ? cancelBookingErr?.message : "Failed to cancel booking. Please try again.");
+      dispatch(cancelBookingError());
     }
   }, [cancelBookingErr]);
 
