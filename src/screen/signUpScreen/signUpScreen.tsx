@@ -477,11 +477,7 @@ const storeUser = async (user: any) => {
       return false;
     }
 
-    // Validate document upload for host role
-    if (selectedRole === "host" && !selectedDocument) {
-      showToast("error", "Please upload a document to become a host");
-      return false;
-    }
+    // Business licence is now optional - validation removed
 
     setErrors(newErrors);
     setErrorMessages(newErrorMessages);
@@ -514,12 +510,8 @@ const storeUser = async (user: any) => {
         
         setIsUploading(false);
         showToast("success", "Document uploaded successfully!");
-      } else if (selectedRole === "host") {
-        // This should not happen due to validation, but adding as safety check
-        showToast("error", "Document upload is required for host role");
-        setIsSubmitting(false);
-        return;
       }
+      // Business licence is now optional - no error if not provided
 
       const signupPayload = {
         currentRole: selectedRole === "explore" ? "user" : "host",
@@ -1287,7 +1279,7 @@ const storeUser = async (user: any) => {
             {selectedRole === "host" && (
               <View style={styles.documentSection}>
                 <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
-                  <Text style={styles.sectionTitle}>Upload a business licence *</Text>
+                  <Text style={styles.sectionTitle}>Upload a business licence</Text>
                   {selectedDocument ?  (
                         <View style={styles.selectedFileContainer}>
                           <TouchableOpacity
