@@ -28,6 +28,7 @@ export const Buttons: FC<ButtonProps> = ({
       style={[styles.button, style, { opacity: disabled ? 0.7 : 1 }]}
       onPress={onPress}
       disabled={disabled}
+      activeOpacity={1}
     >
       <Text style={[styles.titleText, { color: textColor }]}>{title}</Text>
     </TouchableOpacity>

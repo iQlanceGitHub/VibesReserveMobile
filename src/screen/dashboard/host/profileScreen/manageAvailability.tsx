@@ -260,7 +260,7 @@ const ManageAvailability: React.FC<ManageAvailabilityProps> = ({
 
     if (deleteEventErr) {
       console.log("Delete error:", deleteEventErr);
-      showToast("error", "Failed to delete event");
+      showToast("error", deleteEventErr ? deleteEventErr : "Failed to delete event");
       // Clear the error state
       dispatch(deleteEventError(""));
     }

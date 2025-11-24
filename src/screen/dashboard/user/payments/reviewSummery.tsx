@@ -1842,7 +1842,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                   }
                   onPress={processCardPayment}
                   style={styles.cardPaymentButton}
-                  disabled={isProcessingPayment}
+                  // disabled={isProcessingPayment}
+                  disabled={false}
                 />
               </View>
             )}

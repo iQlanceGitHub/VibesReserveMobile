@@ -398,6 +398,7 @@ const ClubBookingScreen: React.FC = () => {
       // Don't fetch date availability initially - wait for user to select dates
     }
   }, [currentEventData]);
+  
   useEffect(() => {
     if ((currentEventData as any)?.selectedTicket?.capacity) {
       const eventId = currentEventData?._id || (currentEventData as any)?.id;
