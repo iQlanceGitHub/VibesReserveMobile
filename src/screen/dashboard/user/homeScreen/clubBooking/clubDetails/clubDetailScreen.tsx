@@ -276,6 +276,7 @@ const ClubDetailScreen = () => {
     fetchClubDetails();
   }, [clubId, dispatch]);
 
+  console.log('new clubDetails.....', clubDetails);
   // Handle Viewdetails API response
   useEffect(() => {
     console.log("Viewdetails useEffect triggered with:", viewdetails);
@@ -1210,7 +1211,8 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
               <Text style={styles.sectionTitle}>Organizations</Text>
               <View style={styles.organizationCard}>
                 <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face' }}
+                  // source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face' }}
+                  source={(clubDetails as any)?.userId?.profilePicture ? {uri: (clubDetails as any)?.userId?.profilePicture} : {uri: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face' }}}
                   style={styles.organizerAvatar}
                 />
                 <View style={styles.organizerInfo}>
