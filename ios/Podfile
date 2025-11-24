@@ -5,6 +5,8 @@
 #    {paths: [process.argv[1]]},
 #  )', __dir__]).strip
 
+source 'https://cdn.cocoapods.org/'
+source 'https://github.com/margelo/nitro-modules-podspecs.git'
 
 def node_require(script)
    # Resolve script with node to allow for hoisting
@@ -67,9 +69,9 @@ target 'VibesReserveMobile' do
     pod 'GoogleUtilities', :modular_headers => true
     # React Native Maps dependencies
 
-    # rn_maps_path = '../node_modules/react-native-maps'
-    # pod 'react-native-maps/Google', :path => rn_maps_path
-pod 'react-native-google-maps', :path => '../node_modules/react-native-maps'
+    # React Native Maps dependencies
+    rn_maps_path = '../node_modules/react-native-maps'
+    pod 'react-native-maps', :path => rn_maps_path
 
     
   use_react_native!(

@@ -416,30 +416,31 @@ const ChatScreen = () => {
       <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 15) }]}>
         <TextInput
           style={styles.textInput}
-          placeholder="Write your message"
+          placeholder="Type your message..."
           placeholderTextColor="rgba(255, 255, 255, 0.6)"
           value={messageText}
           onChangeText={setMessageText}
           multiline
           maxLength={500}
         />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            messageText.trim() === "" && styles.sendButtonDisabled,
-            isLoading && styles.sendButtonLoading,
-          ]}
-          onPress={handleSendMessage}
-          disabled={messageText.trim() === "" || isLoading}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <PaperAirplaneIcon 
-            width={20} 
-            height={20} 
-            color={messageText.trim() === "" ? colors.vilate20 : colors.violate} 
-          />
-        </TouchableOpacity>
+        {messageText.trim() !== "" && (
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              isLoading && styles.sendButtonLoading,
+            ]}
+            onPress={handleSendMessage}
+            disabled={isLoading}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <PaperAirplaneIcon 
+              width={20} 
+              height={20} 
+              color={colors.violate} 
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
