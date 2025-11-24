@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import HomeIcon from "../../assets/svg/homeIcon";
 import FavouriteIcon from "../../assets/svg/favouriteIcon";
@@ -11,14 +11,69 @@ import SelectFavourite from "../../assets/svg/selectFavourite";
 import SelectBookings from "../../assets/svg/selectBookings";
 import SelectChat from "../../assets/svg/selectChat";
 import SelectProfile from "../../assets/svg/selectProfile";
+import UnreadBadge from "../../components/UnreadBadge";
+import { calculateTotalUnreadCount } from "../../utilis/chatUtils";
+import { store } from "../../reduxSaga/StoreProvider";
+import { onChatClick, chatClickData } from "../../redux/auth/actions";
+import globalUnreadCountService from "../../services/globalUnreadCountService";
 import styles from "./styles";
 import * as appConstant from "../../utilis/appConstant";
 import { colors } from "../../utilis/colors";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
+  
+  // Global unread count service will handle updates every 10 seconds
+  
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
+  
+  // Use global unread count service
+  const [unreadCount, setUnreadCount] = useState(0);
+  
+  // Subscribe to global unread count updates
+  useEffect(() => {
+    console.log('Bottom tab: Subscribing to global unread count service...');
+    
+    // Get initial count
+    setUnreadCount(globalUnreadCountService.getUnreadCount());
+    
+    // Subscribe to updates
+    const unsubscribe = globalUnreadCountService.subscribe((count: number) => {
+      console.log('Bottom tab: Received unread count update:', count);
+      setUnreadCount(count);
+    });
+    
+    return () => {
+      console.log('Bottom tab: Unsubscribing from global service...');
+      unsubscribe();
+    };
+  }, []);
+
+  // Listen for chat click actions and trigger force update
+  useEffect(() => {
+    const unsubscribe = (store as any).subscribe(() => {
+      const currentState = (store as any).getState();
+      const chatClick = currentState.auth?.chatClick;
+      
+      if (chatClick && chatClick !== "") {
+        console.log('Chat click detected, forcing global update...');
+        globalUnreadCountService.forceUpdate();
+        
+        // Clear the chat click state to prevent repeated triggers
+        (store as any).dispatch(chatClickData(""));
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+  
+  // Debug: Log current unread count
+  console.log('Bottom tab: Current unread count:', unreadCount);
+
+
   
   return (
     <View style={[
@@ -74,11 +129,14 @@ const HomeBottomTabNavigator = (props: BottomTabBarProps) => {
                       <BookingIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                     )
                   ) : index == 3 ? (
-                    isFocused ? (
-                      <SelectChat width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
-                    ) : (
-                      <ChatIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
-                    )
+                    <View style={{ position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+                      {isFocused ? (
+                        <SelectChat width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      ) : (
+                        <ChatIcon color={colors.gray100} width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
+                      )}
+                      <UnreadBadge count={unreadCount} size="small" />
+                    </View>
                   ) : isFocused ? (
                     <SelectProfile width={appConstant.verticalScale(24)} height={appConstant.horizontalScale(24)} />
                   ) : (

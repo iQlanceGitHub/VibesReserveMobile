@@ -8,6 +8,7 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from "react-native";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -36,6 +37,7 @@ interface FavouriteScreenProps {
 const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
   const [events, setEvents] = useState<any[]>([]);
   const [userId, setUserId] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     title: "",
@@ -71,7 +73,6 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
       }
       return null;
     } catch (error) {
-      console.log("Error getting user ID:", error);
       return null;
     }
   };
@@ -85,10 +86,24 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
     dispatch(onFavoriteslist(payload));
   };
 
+  // Handle pull to refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchFavoritesList();
+    } catch (error) {
+      console.error('Error refreshing favorites:', error);
+    } finally {
+      // Add a small delay to show the refresh indicator
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+    }
+  }, []);
+
   // Fetch favorites on component mount and every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      console.log('FavouriteScreen: Screen focused, fetching favorites...');
       getUserID();
       fetchFavoritesList();
     }, [])
@@ -102,19 +117,19 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
       favoriteslist?.status === 1 ||
       favoriteslist?.status === "1"
     ) {
-      console.log("favoriteslist response:", favoriteslist);
       if (favoriteslist?.data) {
-        console.log("Setting events data:", favoriteslist.data.length, "items");
         setEvents(favoriteslist.data);
       } else {
-        console.log("No data in response, setting empty array");
         setEvents([]);
       }
+      // Stop refreshing when data is loaded
+      setRefreshing(false);
       dispatch(favoriteslistData(""));
     }
 
     if (favoriteslistErr) {
-      console.log("favoriteslistErr:", favoriteslistErr);
+      // Stop refreshing on error
+      setRefreshing(false);
       dispatch(favoriteslistError(""));
     }
   }, [favoriteslist, favoriteslistErr, dispatch]);
@@ -127,10 +142,8 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
       togglefavorite?.status === 1 ||
       togglefavorite?.status === "1"
     ) {
-      console.log("togglefavorite response in favorites:", togglefavorite);
       // Immediately update local state if we know the item was removed
       if (togglefavorite?.data?.isFavorited === false) {
-        console.log("Item was unfavorited, removing from local state");
         setEvents(prevEvents => prevEvents.filter(event => {
           const eventId = event.eventId?._id || event._id;
           return eventId !== togglefavorite?.data?.eventId;
@@ -142,21 +155,18 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
     }
 
     if (togglefavoriteErr) {
-      console.log("togglefavoriteErr in favorites:", togglefavoriteErr);
       fetchFavoritesList();
       dispatch(togglefavoriteError(""));
     }
   }, [togglefavorite, togglefavoriteErr, dispatch]);
 
   const handleEventPress = (eventId: string) => {
-    console.log("Event pressed:", eventId);
     (navigation as any).navigate("ClubDetailScreen", {
       clubId: eventId || "68b6eceba9ae1fc590695248",
     });
   };
 
   const handleFavoritePress = async (eventId: string) => {
-    console.log("Toggling favorite for event ID:", eventId);
 
     // Check if user has permission to like/favorite
     const hasPermission = await handleRestrictedAction(
@@ -272,7 +282,8 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
           </View>
 
           <View style={styles.eventFooter}>
-            <Text style={styles.eventPrice}>{getEventPrice(event)}</Text>
+            {/* <Text style={styles.eventPrice}>{getEventPrice(event)}</Text> */}
+            <Text style={styles.eventPrice}></Text>
             <TouchableOpacity style={styles.arrowButton} onPress={() => handleEventPress(eventId)}>
               <Text style={styles.arrowIcon}>→</Text>
             </TouchableOpacity>
@@ -305,9 +316,10 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
             <Text style={styles.title}>Favourite</Text>
           </View>
 
+          {/* <Text style={styles.subTitle}>Favorited event</Text> */}
+
           {/* Events List */}
           <View style={styles.eventsContainer}>
-            {console.log('Rendering favorites screen with', events.length, 'events')}
             {events && events.length > 0 ? (
               <FlatList
                 data={events}
@@ -319,15 +331,37 @@ const FavouriteScreen: React.FC<FavouriteScreenProps> = ({ navigation }) => {
                   index.toString()
                 }
                 renderItem={renderEventCard}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor={colors.white}
+                    colors={[colors.white]}
+                    progressBackgroundColor={colors.gradient_light_purple}
+                  />
+                }
               />
             ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyTitle}>No Favorites</Text>
-                <Text style={styles.emptySubtitle}>
-                  You haven't added any events to your favorites yet.{'\n'}
-                  Start exploring and add events you love!
-                </Text>
-              </View>
+              <ScrollView
+                contentContainerStyle={styles.emptyScrollContainer}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor={colors.white}
+                    colors={[colors.white]}
+                    progressBackgroundColor={colors.gradient_light_purple}
+                  />
+                }
+              >
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyTitle}>No Favorites</Text>
+                  <Text style={styles.emptySubtitle}>
+                    You haven't added any events to your favorites yet.{'\n'}
+                    Start exploring and add events you love!
+                  </Text>
+                </View>
+              </ScrollView>
             )}
           </View>
           

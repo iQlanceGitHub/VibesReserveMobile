@@ -143,7 +143,6 @@
 //   useEffect(() => {
 //     const timer = setTimeout(() => {
 //       if (!mapReady) {
-//         console.log('Map loading timeout - forcing map ready');
 //         setMapReady(true);
 //       }
 //     }, 5000); // 5 second timeout
@@ -154,7 +153,6 @@
 //   // Force map ready after 5 seconds regardless
 //   useEffect(() => {
 //     const forceReady = setTimeout(() => {
-//       console.log('Forcing map ready after 5 seconds');
 //       setMapReady(true);
 //     }, 5000);
 
@@ -164,7 +162,6 @@
 //   // Force map to center on correct region when map is ready
 //   useEffect(() => {
 //     if (mapReady && mapRef.current) {
-//       console.log('Forcing map to center on correct region:', mapRegion);
 //       mapRef.current.animateToRegion(mapRegion, 1000);
 //     }
 //   }, [mapReady, mapRegion]);
@@ -194,8 +191,6 @@
 //   };
 
 //   const handleFilterApply = (filterValues: any) => {
-//     console.log('=== FILTER APPLY CALLED ===');
-//     console.log('Filter Values:', filterValues);
     
 //     // Format the filter data according to API requirements
 //     const filterPayload = {
@@ -210,7 +205,6 @@
 //       userId: userId || "68c147b05f4b76754d914383" // fallback user ID
 //     };
 
-//     console.log('Filter Payload:', filterPayload);
     
 //     // Call filter API
 //     dispatch(onFilter(filterPayload));
@@ -252,7 +246,6 @@
 //       }
 //       return null;
 //     } catch (error) {
-//       console.log('Error getting user ID:', error);
 //       return null;
 //     }
 //   };
@@ -275,10 +268,7 @@
 //       home?.status === 1 ||
 //       home?.status === "1"
 //     ) {
-//       console.log("home data in explore screen:", home);
 //       if (home?.data?.nearby) {
-//         console.log("Setting nearby events from home API:", home.data.nearby);
-//         console.log("First event coordinates:", home.data.nearby[0]?.coordinates);
 //         setNearbyEvents(home.data.nearby);
 //         // Calculate map bounds to show all nearby events
 //         setTimeout(() => {
@@ -286,14 +276,12 @@
 //         }, 500); // Small delay to ensure map is ready
 //       }
 //       if (home?.data?.featured) {
-//         console.log("Setting featured events from home API:", home.data.featured);
 //         setFeaturedEvents(home.data.featured);
 //       }
 //       dispatch(homeData(''));
 //     }
 
 //     if (homeErr) {
-//       console.log("homeErr in explore screen:", homeErr);
 //       dispatch(homeError(''));
 //     }
 //   }, [home, homeErr, dispatch]);
@@ -306,7 +294,6 @@
 //       togglefavorite?.status === 1 ||
 //       togglefavorite?.status === "1"
 //     ) {
-//       console.log("togglefavorite response in explore screen:", togglefavorite);
 //       // Update the favorite status in the nearby events
 //       if (togglefavorite?.data?.eventId) {
 //         setNearbyEvents(prevEvents => 
@@ -321,7 +308,6 @@
 //     }
 
 //     if (togglefavoriteErr) {
-//       console.log("togglefavoriteErr in explore screen:", togglefavoriteErr);
 //       dispatch(togglefavoriteError(''));
 //     }
 //   }, [togglefavorite, togglefavoriteErr, dispatch]);
@@ -340,9 +326,7 @@
 //           },
 //         );
 //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-//           console.log('Location permission granted');
 //         } else {
-//           console.log('Location permission denied');
 //         }
 //       } catch (err) {
 //         console.warn(err);
@@ -351,14 +335,12 @@
 //   };
 
 //   const handleBookNow = (eventId?: string) => {
-//     console.log('Book Now clicked for event:', eventId);
 //     if (eventId) {
 //       (navigation as any).navigate("ClubDetailScreen", { clubId: eventId });
 //     }
 //   };
 
 //   const handleFavoritePress = async (eventId: string) => {
-//     console.log('Toggling favorite for event ID:', eventId);
     
 //     // Check if user has permission to like/favorite
 //     const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this event');
@@ -391,7 +373,6 @@
 //   };
 
 //   const handleSearch = async (searchText: string) => {
-//     console.log('handleSearch called:', searchText);
     
 //     setSearchVal(searchText);
     
@@ -415,7 +396,6 @@
 //    };
 
 //    const centerMapOnIndia = () => {
-//      console.log('Manually centering map on India');
 //      if (mapRef.current) {
 //        mapRef.current.animateToRegion(mapRegion, 1000);
 //      }
@@ -463,12 +443,10 @@
 //    // Render nearby event markers
 //    const renderEventMarker = (event: any) => {
 //      if (!event.coordinates || !event.coordinates.coordinates) {
-//        console.log('Event missing coordinates:', event.name);
 //        return null;
 //      }
 
 //      const [longitude, latitude] = event.coordinates.coordinates;
-//      console.log(`Rendering marker for ${event.name}: lat=${latitude}, lng=${longitude}`);
      
 //      return (
 //        <Marker
@@ -480,7 +458,6 @@
 //           longitude: latitude,
 //          }}
 //          onPress={() => {
-//            console.log('Event pressed:', event.name);
 //            // Navigate to event details
 //            (navigation as any).navigate("ClubDetailScreen", { clubId: event._id || event.id });
 //          }}
@@ -504,7 +481,6 @@
 //     <Marker
 //       key={person.id}
 //       coordinate={person.position}
-//       onPress={() => console.log('Avatar pressed:', person.name)}
 //     >
 //       <View style={[
 //         styles.avatarMarker,
@@ -532,7 +508,6 @@
 //          provider={undefined}
 //          initialRegion={mapRegion}
 //          onMapReady={() => {
-//            console.log('Map is ready - centering on user location');
 //            setMapReady(true);
 //            // Force center on user location
 //            setTimeout(() => {
@@ -542,11 +517,9 @@
 //            }, 500);
 //          }}
 //          onMapLoaded={() => {
-//            console.log('Map loaded - ensuring correct region');
 //            setMapReady(true);
 //          }}
 //          onPress={() => {
-//            console.log('Map pressed');
 //          }}
 //          showsUserLocation={true}
 //          showsMyLocationButton={false}
@@ -633,7 +606,6 @@
 //            </TouchableOpacity>
 //            <TouchableOpacity 
 //              onPress={() => {
-//                console.log('Testing map ref:', mapRef.current);
 //                if (mapRef.current) {
 //                  mapRef.current.animateToRegion({
 //                    latitude: 23.012649201096547,
@@ -783,7 +755,6 @@
 // //         provider={PROVIDER_GOOGLE} // Force Google Maps
 // //         initialRegion={initialRegion}
 // //         onMapReady={() => {
-// //           console.log('✅ Map is ready!');
 // //           setMapReady(true);
 // //           Alert.alert('Map Ready', 'Map should show markers now');
 // //         }}
@@ -948,7 +919,6 @@
 //   useEffect(() => {
 //     const timer = setTimeout(() => {
 //       if (!mapReady) {
-//         console.log('Map loading timeout - forcing map ready');
 //         setMapReady(true);
 //       }
 //     }, 10000); // 10 second timeout
@@ -972,8 +942,6 @@
 //   };
 
 //   const handleFilterApply = (filterValues: any) => {
-//     console.log('=== FILTER APPLY CALLED ===');
-//     console.log('Filter Values:', filterValues);
     
 //     // Format the filter data according to API requirements
 //     const filterPayload = {
@@ -988,7 +956,6 @@
 //       userId: userId || "68c147b05f4b76754d914383" // fallback user ID
 //     };
 
-//     console.log('Filter Payload:', filterPayload);
     
 //     // Call filter API
 //     dispatch(onFilter(filterPayload));
@@ -1030,7 +997,6 @@
 //       }
 //       return null;
 //     } catch (error) {
-//       console.log('Error getting user ID:', error);
 //       return null;
 //     }
 //   };
@@ -1053,7 +1019,6 @@
 //       home?.status === 1 ||
 //       home?.status === "1"
 //     ) {
-//       console.log("home data in explore screen:", home);
 //       if (home?.data?.nearby) {
 //         setNearbyEvents(home.data.nearby);
 //         // Calculate map bounds to show all nearby events
@@ -1068,7 +1033,6 @@
 //     }
 
 //     if (homeErr) {
-//       console.log("homeErr in explore screen:", homeErr);
 //       dispatch(homeError(''));
 //     }
 //   }, [home, homeErr, dispatch]);
@@ -1081,7 +1045,6 @@
 //       togglefavorite?.status === 1 ||
 //       togglefavorite?.status === "1"
 //     ) {
-//       console.log("togglefavorite response in explore screen:", togglefavorite);
 //       // Update the favorite status in the nearby events
 //       if (togglefavorite?.data?.eventId) {
 //         setNearbyEvents(prevEvents => 
@@ -1096,7 +1059,6 @@
 //     }
 
 //     if (togglefavoriteErr) {
-//       console.log("togglefavoriteErr in explore screen:", togglefavoriteErr);
 //       dispatch(togglefavoriteError(''));
 //     }
 //   }, [togglefavorite, togglefavoriteErr, dispatch]);
@@ -1115,9 +1077,7 @@
 //           },
 //         );
 //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-//           console.log('Location permission granted');
 //         } else {
-//           console.log('Location permission denied');
 //         }
 //       } catch (err) {
 //         console.warn(err);
@@ -1126,14 +1086,12 @@
 //   };
 
 //   const handleBookNow = (eventId?: string) => {
-//     console.log('Book Now clicked for event:', eventId);
 //     if (eventId) {
 //       (navigation as any).navigate("ClubDetailScreen", { clubId: eventId });
 //     }
 //   };
 
 //   const handleFavoritePress = (eventId: string) => {
-//     console.log('Toggling favorite for event ID:', eventId);
 //     dispatch(onTogglefavorite({ eventId }));
 //   };
 
@@ -1206,12 +1164,10 @@
 //    // Render nearby event markers
 //    const renderEventMarker = (event: any) => {
 //      if (!event.coordinates || !event.coordinates.coordinates) {
-//        console.log('Event missing coordinates:', event.name);
 //        return null;
 //      }
 
 //      const [longitude, latitude] = event.coordinates.coordinates;
-//      console.log(`Rendering marker for ${event.name}: lat=${latitude}, lng=${longitude}`);
      
 //      return (
 //        <Marker
@@ -1223,7 +1179,6 @@
 //           longitude: latitude,
 //          }}
 //          onPress={() => {
-//            console.log('Event pressed:', event.name);
 //            // Navigate to event details
 //            (navigation as any).navigate("ClubDetailScreen", { clubId: event._id || event.id });
 //          }}
@@ -1247,7 +1202,6 @@
 //     <Marker
 //       key={person.id}
 //       coordinate={person.position}
-//       onPress={() => console.log('Avatar pressed:', person.name)}
 //     >
 //       <View style={[
 //         styles.avatarMarker,
@@ -1273,20 +1227,16 @@
 //          provider={undefined}
 //          initialRegion={mapRegion}
 //          onMapReady={() => {
-//            console.log('Map is ready');
 //            setMapReady(true);
 //          }}
 //          onMapLoaded={() => {
-//            console.log('Map loaded');
 //            setMapReady(true);
 //          }}
 //          onError={(error) => {
-//            console.log('Map error:', error);
 //            // Set map as ready even if there's an error to hide loading
 //            setMapReady(true);
 //          }}
 //          onPress={() => {
-//            console.log('Map pressed');
 //          }}
 //          showsUserLocation={true}
 //          showsMyLocationButton={false}

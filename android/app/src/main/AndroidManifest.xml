@@ -27,6 +27,17 @@
     
     <!-- For file downloads and uploads -->
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
+    
+    <!-- Push notification permissions -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <!-- Additional permissions for Notifee -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
       android:name=".MainApplication"
@@ -41,7 +52,7 @@
       <!-- Google Maps API Key -->
       <meta-data
         android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY" />
+        android:value="AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8" />
       
       <!-- Google Play Services version -->
       <meta-data
@@ -57,6 +68,35 @@
       <meta-data
         android:name="android.app.lib_name"
         android:value="reactnative" />
+      
+      <!-- Firebase Messaging Auto Init -->
+      <meta-data
+        android:name="firebase_messaging_auto_init_enabled"
+        android:value="true" />
+      <meta-data
+        android:name="firebase_analytics_collection_enabled"
+        android:value="true" />
+      
+      <!-- Firebase Cloud Messaging -->
+      <service
+        android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
+        android:exported="false">
+        <intent-filter>
+          <action android:name="com.google.firebase.MESSAGING_EVENT" />
+        </intent-filter>
+      </service>
+      
+      <!-- Firebase Messaging Background Service -->
+      <service
+        android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingHeadlessService"
+        android:exported="false" />
+      
+      <!-- Notifee Service -->
+      <service
+        android:name="app.notifee.core.ForegroundService"
+        android:foregroundServiceType="specialUse"
+        android:exported="false" />
+      
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

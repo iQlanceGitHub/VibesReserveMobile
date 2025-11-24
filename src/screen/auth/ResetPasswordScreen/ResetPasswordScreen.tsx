@@ -94,7 +94,6 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
       resetPassword?.status === 1 ||
       resetPassword?.status === "1"
     ) {
-      console.log("resetPassword:+>", resetPassword);
       if(resetPassword?.message?.toString() == "Password has been reset successfully.") {
         navigation.navigate('PasswordChangedSucessScreen')
       } else {
@@ -104,7 +103,6 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     }
 
     if (resetPasswordErr) {
-      console.log("resetPasswordErr:+>", resetPasswordErr);
       setMsg(resetPasswordErr?.message?.toString())
       dispatch(resetPasswordError(''));
     }
@@ -273,7 +271,6 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
       type: "resetpassword"
     };
 
-    console.log("Saving password with data:", requestData);
     dispatch(onResetPassword(requestData));
   };
 

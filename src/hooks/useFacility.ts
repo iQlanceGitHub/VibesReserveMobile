@@ -34,7 +34,6 @@ export const useFacility = () => {
   // Handle API response
   useEffect(() => {
     if (facility?.status === true || facility?.status === 'true' || facility?.status === 1 || facility?.status === "1") {
-      console.log("Facility API Success:", facility);
       if (facility?.data) {
         setFacilities(facility.data);
         saveFacilitiesToStorage(facility.data);
@@ -45,7 +44,6 @@ export const useFacility = () => {
     }
 
     if (facilityErr) {
-      console.log("Facility API Error:", facilityErr);
       setError(facilityErr?.message?.toString() || 'Failed to load facilities');
       dispatch(facilityError(''));
       setIsLoading(false);
@@ -58,19 +56,15 @@ export const useFacility = () => {
       if (storedFacilities) {
         const parsedFacilities = JSON.parse(storedFacilities);
         setFacilities(parsedFacilities);
-        console.log("Facilities loaded from storage:", parsedFacilities);
       }
     } catch (error) {
-      console.log("Error loading facilities from storage:", error);
     }
   };
 
   const saveFacilitiesToStorage = async (facilityData: FacilityItem[]) => {
     try {
       await AsyncStorage.setItem(FACILITY_STORAGE_KEY, JSON.stringify(facilityData));
-      console.log("Facilities saved to storage");
     } catch (error) {
-      console.log("Error saving facilities to storage:", error);
     }
   };
 
@@ -79,7 +73,6 @@ export const useFacility = () => {
       const apiCalled = await AsyncStorage.getItem(FACILITY_API_CALLED_KEY);
       return apiCalled === 'true';
     } catch (error) {
-      console.log("Error checking API call status:", error);
       return false;
     }
   };
@@ -87,9 +80,7 @@ export const useFacility = () => {
   const markApiAsCalled = async () => {
     try {
       await AsyncStorage.setItem(FACILITY_API_CALLED_KEY, 'true');
-      console.log("Facility API marked as called");
     } catch (error) {
-      console.log("Error marking API as called:", error);
     }
   };
 
@@ -97,16 +88,13 @@ export const useFacility = () => {
     const hasApiBeenCalled = await checkIfApiCalled();
     
     if (hasApiBeenCalled) {
-      console.log("Facility API already called, using stored data");
       return;
     }
 
     if (facilities.length > 0) {
-      console.log("Facilities already loaded from storage");
       return;
     }
 
-    console.log("Calling Facility API...");
     setIsLoading(true);
     setError(null);
     dispatch(onFacility({ page: 1, limit: 100 }));
@@ -114,7 +102,6 @@ export const useFacility = () => {
   };
 
   const refreshFacilities = () => {
-    console.log("Refreshing facilities...");
     setIsLoading(true);
     setError(null);
     dispatch(onFacility({ page: 1, limit: 100 }));
@@ -125,9 +112,7 @@ export const useFacility = () => {
       await AsyncStorage.removeItem(FACILITY_STORAGE_KEY);
       await AsyncStorage.removeItem(FACILITY_API_CALLED_KEY);
       setFacilities([]);
-      console.log("Facilities cleared");
     } catch (error) {
-      console.log("Error clearing facilities:", error);
     }
   };
 

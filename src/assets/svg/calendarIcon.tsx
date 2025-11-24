@@ -1,7 +1,7 @@
 import * as React from "react";
 import Svg, { Path } from "react-native-svg";
 
-const CalendarIcon = (props) => (
+const CalendarIcon = (props: any) => (
   <Svg
     width={20}
     height={20}

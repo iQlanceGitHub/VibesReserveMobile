@@ -320,12 +320,10 @@ const ClubBarListScreen = () => {
   // Log the eventId when component mounts
   React.useEffect(() => {
     if (eventId) {
-      console.log("ClubBarListScreen loaded with eventId:", eventId);
     }
   }, [eventId]);
 
   const handleViewProfile = (clubId: string) => {
-    console.log("View Profile clicked for club:", clubId);
     (navigation as any).navigate("ClubProfileScreen", { clubId });
   };
 

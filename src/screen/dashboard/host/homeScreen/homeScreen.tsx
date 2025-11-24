@@ -156,6 +156,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     navigation?.navigate("AddClubEventDetailScreen");
   };
 
+  const handleNotificationPress = () => {
+    navigation?.navigate("NotificationScreen");
+  };
+
   const getUser = async () => {
     try {
       const user = await AsyncStorage.getItem("user");
@@ -429,7 +433,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         ]}
       >
         <View style={styles.safeArea}>
-          <Header userName={UserName} onAddPress={handleAddPress} />
+          <Header userName={UserName} onAddPress={handleAddPress} onNotificationPress={handleNotificationPress} />
 
           {/* Business Profile Completion Container - Show when businesspofileUpdate is "No" (Priority 1) */}
           {((profileDetail && profileDetail.businesspofileUpdate === "No") || 

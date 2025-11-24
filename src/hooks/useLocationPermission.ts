@@ -23,7 +23,6 @@ export const useLocationPermission = (): UseLocationPermissionReturn => {
       setError(result.error || null);
       return result.granted;
     } catch (err) {
-      console.log('Error checking location permission:', err);
       setError('Failed to check location permission');
       setHasPermission(false);
       return false;
@@ -42,7 +41,6 @@ export const useLocationPermission = (): UseLocationPermissionReturn => {
       
       return result.granted;
     } catch (err) {
-      console.log('Error requesting location permission:', err);
       setError('Failed to request location permission');
       setHasPermission(false);
       return false;
@@ -71,7 +69,6 @@ export const useLocationPermission = (): UseLocationPermissionReturn => {
         return null;
       }
     } catch (err) {
-      console.log('Error getting current location:', err);
       setError('Failed to get current location');
       return null;
     } finally {

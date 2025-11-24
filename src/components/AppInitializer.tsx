@@ -15,7 +15,6 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   useEffect(() => {
     // Initialize app data when component mounts
     const initializeApp = async () => {
-      console.log('App Initializer: Starting app initialization...');
       
       // Fetch categories and facilities data (these will only call API once due to the hook logic)
       await Promise.all([
@@ -23,7 +22,6 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
         fetchFacilities(),
       ]);
       
-      console.log('App Initializer: App initialization completed');
     };
 
     initializeApp();

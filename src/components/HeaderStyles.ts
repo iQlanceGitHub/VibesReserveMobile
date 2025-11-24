@@ -42,6 +42,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.addButtonBackground,
   },
+  iconsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 99,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.addButtonBackground,
+    marginRight: horizontalScale(12),
+  },
 });
 
 export default styles;

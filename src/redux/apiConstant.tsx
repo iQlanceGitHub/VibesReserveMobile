@@ -11,4 +11,8 @@ export const accepted: string = "Accepted";
 export const audio: string = "Audio";
 export const video: string = "Video";
 export const chat: string = "Chat";
-export const api_endpoint: Record<string, unknown> = {};
+export const api_endpoint: Record<string, unknown> = {
+  // Notification endpoints
+  getNotificationList: "user/notificationlist",
+  markNotificationAsRead: "user/marknotificationasread",
+};

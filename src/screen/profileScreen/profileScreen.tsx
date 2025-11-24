@@ -10,6 +10,8 @@ import {
   Image,
   Switch,
   ActivityIndicator,
+  Share,
+  Alert,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
@@ -45,27 +47,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     checkUserStatus();
   }, []);
 
-  // Refresh user status when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       checkUserStatus();
+      fetchProfileDetail();
     }, [])
   );
 
-  // Call profile detail API when user is logged in
   useEffect(() => {
     if (userStatus === "logged_in") {
       fetchProfileDetail();
     }
   }, [userStatus]);
 
-  // Handle profile detail API response
   useEffect(() => {
     if (getProfileDetail && getProfileDetail.status === 1) {
       setProfileData(getProfileDetail.data);
-      console.log("Profile detail data:", getProfileDetail.data);
+      setIsLoading(false);
     } else if (getProfileDetailErr) {
-      console.log("Profile detail error:", getProfileDetailErr);
+      setIsLoading(false);
     }
   }, [getProfileDetail, getProfileDetailErr]);
 
@@ -81,6 +81,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const fetchProfileDetail = () => {
+    setIsLoading(true);
     dispatch(onGetProfileDetail());
   };
 
@@ -109,8 +110,29 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     setNotifications(!notifications);
   };
 
-  const handleShareWithFriends = () => {
-    console.log("Share with friends pressed");
+  const handleShareWithFriends = async () => {
+    try {
+      const shareMessage = `VibesReserve`;
+
+      const shareOptions = {
+        message: shareMessage,
+        title: "VibesReserve",
+        url: "",
+      };
+
+      const result = await Share.share(shareOptions);
+
+      if (result.action === Share.sharedAction) {
+      } else if (result.action === Share.dismissedAction) {
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      Alert.alert(
+        "Share Error",
+        "Unable to share at this time. Please try again later.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   const handleLogout = () => {
@@ -118,7 +140,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
 
   const handleLogoutConfirm = () => {
-    console.log("Logout confirmed");
     setShowLogoutPopup(false);
   };
 
@@ -186,7 +207,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 <Text style={styles.title}>Profile</Text>
                 <View style={styles.placeholder} />
               </View>
-              {loader && userStatus === "logged_in" ? (
+              {isLoading && userStatus === "logged_in" ? (
                 <View
                   style={{
                     flex: 1,
@@ -345,7 +366,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   {renderMenuOption(
                     "Share with Friends",
                     handleShareWithFriends,
-                    <View style={styles.shareIconsContainer}></View>,
+                    <View />,
                     true
                   )}
 

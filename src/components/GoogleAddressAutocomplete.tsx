@@ -43,7 +43,7 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
   const [loading, setLoading] = useState(false);
 
   // Google Places API key
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY';
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8';
 
   // Real Google Places API call
   const searchAddresses = async (query: string) => {
@@ -76,11 +76,9 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
         }));
         setPredictions(predictions);
       } else {
-        console.log('Google Places API error:', data.status);
         setPredictions([]);
       }
     } catch (error) {
-      console.log('Address search error:', error);
       setPredictions([]);
     } finally {
       setLoading(false);
@@ -107,7 +105,6 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
         return data.result;
       }
     } catch (error) {
-      console.log('Place details error:', error);
     }
     return null;
   };

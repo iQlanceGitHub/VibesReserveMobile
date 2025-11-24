@@ -8,6 +8,7 @@ import {
   Image,
   ScrollView,
   Modal,
+  Alert,
 } from "react-native";
 import styles from "./styles";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -26,6 +27,7 @@ import SearchIcon from "../../../../assets/svg/searchIcon";
 import FilterScreen from "./FilterScreen/FilterScreen";
 import { useCategory } from "../../../../hooks/useCategory";
 import { useFacility } from "../../../../hooks/useFacility";
+import { longPollingService } from "../../../../services/longPollingService";
 import {
   LocationProvider,
   useLocation,
@@ -180,7 +182,8 @@ const HomeScreenContent = () => {
     locationData?.longitude?.toString() || "72.51123340677258";
 
   const handleNextPress = () => {
-    setShowComingSoonDialog(true);
+   // setShowComingSoonDialog(true);
+   navigation.navigate("NotificationScreen" as never);
   };
 
   // Refresh home data when location changes

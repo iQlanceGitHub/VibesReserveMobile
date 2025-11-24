@@ -73,6 +73,6 @@ export default StyleSheet.create({
     color: colors.textcolor,
     lineHeight: verticalScale(16),
     marginLeft: horizontalScale(60),
-    marginTop: verticalScale(-15),
+   // marginTop: verticalScale(-15),
   },
 });

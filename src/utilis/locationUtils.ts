@@ -4,7 +4,7 @@ import Geocoder from 'react-native-geocoding';
 import LocationPermissionManager from './locationPermissionUtils';
 
 // Initialize Geocoder with API key
-Geocoder.init('AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y');
+Geocoder.init('AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8');
 
 export interface LocationData {
   latitude: number;
@@ -31,7 +31,6 @@ export const checkLocationPermission = async (): Promise<LocationPermissionResul
       message: result.error
     };
   } catch (error) {
-    console.log('Error checking location permission:', error);
     return { 
       granted: false, 
       message: 'Error checking location permission' 
@@ -50,7 +49,6 @@ export const requestLocationPermission = async (): Promise<LocationPermissionRes
       message: result.error
     };
   } catch (error) {
-    console.log('Error requesting location permission:', error);
     return { 
       granted: false, 
       message: 'Error requesting location permission' 
@@ -75,7 +73,6 @@ export const getCurrentLocation = async (): Promise<LocationData> => {
     }
 
     const { latitude, longitude } = result.data;
-    console.log("Location obtained:", latitude, longitude);
     
     // Reverse geocode to get address
     const addressData = await reverseGeocode(latitude, longitude);
@@ -91,7 +88,6 @@ export const getCurrentLocation = async (): Promise<LocationData> => {
     
     return locationData;
   } catch (error) {
-    console.log('Error getting current location:', error);
     throw error;
   }
 };
@@ -143,7 +139,6 @@ export const reverseGeocode = async (latitude: number, longitude: number): Promi
       fullAddress: result.formatted_address,
     };
   } catch (error) {
-    console.log('Error reverse geocoding:', error);
     // Return fallback data
     return {
       city: 'Unknown City',

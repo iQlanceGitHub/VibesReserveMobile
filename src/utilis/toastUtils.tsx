@@ -91,7 +91,6 @@ export async function requestSmsPermissions() {
         console.warn("SMS permissions not granted");
       }
     } catch (err) {
-      console.log("Permission error", err);
     }
   }
 }

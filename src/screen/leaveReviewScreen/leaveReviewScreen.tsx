@@ -24,7 +24,7 @@ import ClockIcon from "../../assets/svg/clockIcon";
 import ArrowRightIcon from "../../assets/svg/arrowRightIcon";
 import StarRating from "../../components/StarRating";
 import { handleRestrictedAction } from "../../utilis/userPermissionUtils";
-import { onRatingReview } from "../../redux/auth/actions";
+import { onRatingReview, ratingReviewData, ratingReviewError } from "../../redux/auth/actions";
 import { showToast } from "../../utilis/toastUtils";
 
 interface LeaveReviewScreenProps {
@@ -48,6 +48,16 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
   const [reviewText, setReviewText] = useState("");
 
   const bookingData = route?.params?.bookingData;
+
+ // Check if review already exists
+  useEffect(() => {
+    if (bookingData?.isReview) {
+      showToast("info", "You have already reviewed this booking.");
+      setTimeout(() => {
+        navigation?.goBack();
+      }, 2000);
+    }
+  }, [bookingData]);
 
   const handleSubmit = () => {
     if (rating === 0) {
@@ -77,11 +87,13 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
         navigation?.goBack();
       }, 2000);
     }
+    dispatch(ratingReviewData(""));
   }, [ratingReview]);
 
   useEffect(() => {
     if (ratingReviewErr) {
       showToast("error", "Failed to submit review. Please try again.");
+      dispatch(ratingReviewError(""));
     }
   }, [ratingReviewErr]);
 
@@ -93,14 +105,14 @@ const LeaveReviewScreen: React.FC<LeaveReviewScreenProps> = ({
     );
 
     if (hasPermission) {
-      console.log("User has permission to like");
+      // User has permission to like
     } else {
       showToast("error", "Please sign in to like this event.");
     }
   };
 
   const handleEventPress = () => {
-    console.log("Navigate to event details");
+    // Navigate to event details
   };
 
   return (

@@ -150,10 +150,6 @@ export const {
   checkBookedDateBoothData,
   checkBookedDateBoothError,
 
-  onCheckBookedDate,
-  checkBookedDateData,
-  checkBookedDateError,
-  
   onRatingReview,
   ratingReviewData,
   ratingReviewError,
@@ -179,9 +175,29 @@ export const {
   onStopLongPolling,
   onUpdateMessages,
 
+  onCheckBookedDate,
+  checkBookedDateData,
+  checkBookedDateError,
+
   setLoginToken,
 
   setLoginUserDetails,
+
+  setDeviceToken,
+
+  // Notification Actions
+  onGetNotificationList,
+  getNotificationListData,
+  getNotificationListError,
+
+  onMarkNotificationAsRead,
+  markNotificationAsReadData,
+  markNotificationAsReadError,
+
+  // Chat Click Trigger Actions
+  onChatClick,
+  chatClickData,
+  chatClickError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -320,6 +336,7 @@ export const {
   "CANCEL_BOOKING_DATA",
   "CANCEL_BOOKING_ERROR",
 
+
   "ON_ACCEPTREJECT",
   "ACCEPTREJECT_DATA",
   "ACCEPTREJECT_ERROR",
@@ -339,6 +356,7 @@ export const {
   "GET_BOOKING_LIST",
   "BOOKING_LIST_DATA",
   "BOOKING_LIST_ERROR",
+  
   "ON_HOST_PROFILE",
   "HOST_PROFILE_DATA",
   "HOST_PROFILE_ERROR",
@@ -360,7 +378,27 @@ export const {
   "ON_STOP_LONG_POLLING",
   "ON_UPDATE_MESSAGES",
 
+  "ON_CHECK_BOOKED_DATE",
+  "CHECK_BOOKED_DATE_DATA",
+  "CHECK_BOOKED_DATE_ERROR",
+
   "SET_LOGIN_TOKEN",
 
-  "SET_LOGIN_USER_DETAILS"
+  "SET_LOGIN_USER_DETAILS",
+
+  "SET_DEVICE_TOKEN",
+
+  // Notification Action Types
+  "ON_GET_NOTIFICATION_LIST",
+  "GET_NOTIFICATION_LIST_DATA",
+  "GET_NOTIFICATION_LIST_ERROR",
+
+  "ON_MARK_NOTIFICATION_AS_READ",
+  "MARK_NOTIFICATION_AS_READ_DATA",
+  "MARK_NOTIFICATION_AS_READ_ERROR",
+
+  // Chat Click Trigger Action Types
+  "ON_CHAT_CLICK",
+  "CHAT_CLICK_DATA",
+  "CHAT_CLICK_ERROR"
 );

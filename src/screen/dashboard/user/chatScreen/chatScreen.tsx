@@ -62,6 +62,7 @@ const ChatScreen = () => {
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -104,7 +105,21 @@ const ChatScreen = () => {
   // Load conversation on component mount
   useEffect(() => {
     if (otherUserId) {
+      // Clear messages immediately when opening new chat
+      setMessages([]);
+      setIsLoadingConversation(true);
+      
+      // Start 6-second loader timer
+      const loaderTimer = setTimeout(() => {
+        setIsLoadingConversation(false);
+      }, 1000);
+      
+      // Fetch conversation data
       dispatch(onGetConversation({ otherUserId }));
+      
+      return () => {
+        clearTimeout(loaderTimer);
+      };
     }
   }, [otherUserId, dispatch]);
 
@@ -147,12 +162,10 @@ const ChatScreen = () => {
       
       // Only scroll if there are new messages
       if (hasNew) {
-        console.log('New messages detected - scrolling to bottom');
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
       } else {
-        console.log('No new messages - not scrolling');
       }
       
       // Update refs for next comparison
@@ -163,6 +176,24 @@ const ChatScreen = () => {
       }
     }
   }, [conversation]);
+
+  // Clear messages when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Clear messages when screen is focused
+      setMessages([]);
+      setIsLoadingConversation(true);
+      
+      // Start 6-second loader timer
+      const loaderTimer = setTimeout(() => {
+        setIsLoadingConversation(false);
+      }, 6000);
+      
+      return () => {
+        clearTimeout(loaderTimer);
+      };
+    }, [])
+  );
 
   // Handle send message response
   useEffect(() => {
@@ -241,7 +272,6 @@ const ChatScreen = () => {
           clearInterval(refreshIntervalRef.current);
         }
         refreshIntervalRef.current = setInterval(() => {
-          console.log('Local refresh triggered for otherUserId:', otherUserId);
           if (otherUserId) {
             dispatch(onGetConversation({ otherUserId }));
           }
@@ -288,12 +318,10 @@ const ChatScreen = () => {
       clearTimeout(sendTimeoutRef.current);
     }
     sendTimeoutRef.current = setTimeout(() => {
-      console.log('Send message timeout - resetting loading state');
       setIsLoading(false);
     }, 10000); // 10 second timeout
     
     // Always scroll to bottom when user sends a message
-    console.log('User sending message - will scroll to bottom');
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
@@ -308,7 +336,6 @@ const ChatScreen = () => {
   // Handle refresh
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    console.log('Manual refresh triggered');
     if (otherUserId) {
       dispatch(onGetConversation({ otherUserId }));
     }
@@ -371,7 +398,7 @@ const ChatScreen = () => {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { paddingBottom: insets.bottom }]}
-      behavior={Platform.OS === "ios" ? "padding" : ""}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <StatusBar barStyle="light-content" backgroundColor={colors.violate} />
       
@@ -394,23 +421,29 @@ const ChatScreen = () => {
       </View>
 
       {/* Messages List */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item._id}
-        renderItem={renderMessage}
-        contentContainerStyle={styles.messagesContainer}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.white}
-            colors={[colors.white]}
-          />
-        }
-      />
+      {isLoadingConversation ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading conversation...</Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item._id}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.white}
+              colors={[colors.white]}
+            />
+          }
+        />
+      )}
 
       {/* Message Input */}
       <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 15) }]}>
@@ -493,6 +526,17 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingVertical: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: colors.white,
+    opacity: 0.7,
   },
   messageContainer: {
     marginVertical: 4,

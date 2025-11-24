@@ -17,9 +17,9 @@ import {
   onGetChatList,
   getChatListData,
   getChatListError,
-  onStartLongPolling,
-  onStopLongPolling,
+  onChatClick,
 } from "../../../../redux/auth/actions";
+import { horizontalScale } from "../../../../utilis/appConstant";
 
 interface ChatItem {
   _id: string;
@@ -46,24 +46,17 @@ const ChatListScreen = () => {
   // Redux state
   const chatList = useSelector((state: any) => state.auth.chatList) || [];
   const chatListErr = useSelector((state: any) => state.auth.chatListErr);
-  const isLongPollingActive = useSelector((state: any) => state.auth.isLongPollingActive);
 
   // Load chat list on component mount
   useEffect(() => {
     dispatch(onGetChatList());
   }, [dispatch]);
 
-  // Start long polling when screen is focused
+  // Refresh chat list when screen is focused
   useFocusEffect(
     useCallback(() => {
-      dispatch(onStartLongPolling());
-      
       // Refresh chat list when screen comes into focus
       dispatch(onGetChatList());
-      
-      return () => {
-        dispatch(onStopLongPolling());
-      };
     }, [dispatch])
   );
 
@@ -97,7 +90,10 @@ const ChatListScreen = () => {
     <TouchableOpacity
       style={styles.chatItem}
       onPress={() => {
-        console.log("Chat item pressed:", item);
+        // Trigger chat click action to refresh bottom indicator
+        console.log('Chat clicked, dispatching onChatClick action...');
+        dispatch(onChatClick({}));
+        
         (navigation as any).navigate("ChatScreen", {
           otherUserId: item.userId || item.otherUserId,
           otherUserName: item.businessName || item.fullName,
@@ -205,7 +201,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: colors.white,
     flex: 1,
+    //textAlign: "center",
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    alignContent: "center",
     textAlign: "center",
+    marginLeft: horizontalScale(24),
   },
   headerSpacer: {
     width: 40,

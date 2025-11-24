@@ -76,11 +76,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem('user_token');
       if (token !== null) {
-        console.log('User token retrieved:', token);
         return token;
       }
     } catch (e) {
-      console.log('Failed to fetch the user token.', e);
     }
   };
 
@@ -92,7 +90,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const storeUserToken = async (token: any) => {
     try {
       await AsyncStorage.setItem("user_token", token);
-      console.log("User token saved:", token);
       getUserToken();
     } catch (e) {
       console.error("Failed to save the user token.", e);
@@ -103,7 +100,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
   const storeUserId = async (userId: any) => {
     try {
       await AsyncStorage.setItem("user_id", userId);
-      console.log("User ID saved:", userId);
     } catch (e) {
       console.error("Failed to save the user ID.", e);
     }
@@ -115,7 +111,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       const user = await AsyncStorage.getItem("user");
       if (user !== null) {
         const parsedUser = JSON.parse(user);
-        console.log("User retrieved:", parsedUser);
         return parsedUser;
       }
     } catch (e) {
@@ -125,11 +120,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     getUserToken().then((token) => {
-      console.log('token:===>',token)
       if(token){
         getUser().then((user) => {
-          console.log('user::===>',user)
-          console.log('user::===>',user?.currentRole)
           if(user?.currentRole === 'user'){
             navigation.navigate('HomeTabs' as never);
           }else if(user?.currentRole === 'host'){
@@ -145,7 +137,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       socialLogin?.status === 1 ||
       socialLogin?.status === "1"
     ) {
-      console.log("socialLogin:+>", socialLogin);
       //  setMsg(socialLogin?.message?.toString());
       showToast(
         "success",
@@ -166,7 +157,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           socialLogin?.status === 1 ||
           socialLogin?.status === "1"
         ) {
-          console.log("socialLogin:+>", socialLogin);
           //  setMsg(socialLogin?.message?.toString());
           showToast(
             "success",
@@ -213,7 +203,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     }
 
     if (socialLoginErr) {
-      console.log("signinErr:+>", socialLoginErr);
       showToast(
         "error",
         socialLoginErr?.message || "Something went wrong. Please try again."
@@ -228,8 +217,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log('User Info:', userInfo?.data?.user?.email);
-      console.log('User Info:', userInfo);
 
       let obj = {
         "email": userInfo?.data?.user?.email,
@@ -242,11 +229,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
         dispatch(onSocialLogin(obj));
       }
-      console.log("socialData+>>>>", socialData);
       //Alert.alert('Success', 'You have successfully signed in with Google!');
       // navigation.navigate('NameScreen')
     } catch (error) {
-      console.log('Google Sign-In error:', error);
     }
   };
 
@@ -281,9 +266,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
     } catch (error: any) {
       if (error.code === appleAuth.Error.CANCELED) {
-        console.log('Apple Login: User cancelled the login flow.');
       } else {
-        console.log('Apple Login: Error occurred:', error.message);
       }
     }
   };
@@ -315,7 +298,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       ]);
       
       await AsyncStorage.setItem("user_status", status);
-      console.log("User status saved:", status);
 
       // Store additional metadata based on status
       if (status === 'skipped') {

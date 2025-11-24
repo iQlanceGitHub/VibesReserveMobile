@@ -162,17 +162,13 @@ export const asyncData = {
 export const storeData = async (key: string, value: string) => {
   try {
     await AsyncStorage.setItem(key, value);
-    // console.log('Async Stored Successfull');
   } catch (e) {
-    // console.log('Async Stored Failed', e);
   }
 };
 export const storeJSOONData = async (key: string, value: any) => {
   try {
     await AsyncStorage.setItem(key, JSON.stringify(value));
-    // console.log('Async Stored Successfull');
   } catch (e) {
-    // console.log('Async Stored Failed', e);
   }
 };
 export async function checkStorageCameraPermission() {
@@ -271,11 +267,7 @@ export async function getAuthToken() {
   ) {
     var data = await getData(asyncData.SIGNIN_DATA);
     const storedData = JSON.parse(data || "{}");
-    // console.log('==================================== TOKEN');
-    // console.log(storedData);
-    // console.log('==================================== TOKEN');
     if ((await getData(asyncData.SIGNIN_DATA)) == "{}") {
-      // console.log(
       //   '==================================== ASYNC ERROR',
       //   await getData(asyncData.SIGNIN_DATA),
       // );

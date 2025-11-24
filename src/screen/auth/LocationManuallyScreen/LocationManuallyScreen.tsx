@@ -39,7 +39,7 @@ import { useLocationPermission } from "../../../hooks/useLocationPermission";
 import Geocoder from "react-native-geocoding";
 
 // Initialize Geocoder
-Geocoder.init("AIzaSyCfQjOzSoQsfX2h6m4jc2SaOzJB2pG0x7Y");
+Geocoder.init("AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8");
 // Define types for location data
 interface LocationResult {
   id: string;
@@ -96,7 +96,7 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
   );
 
   // Google Maps API key (store this securely in your app configuration)
-  const GOOGLE_MAPS_API_KEY = "AIzaSyAuNmySs9bQau79bffjocK1CM-neMrXdaY";
+  const GOOGLE_MAPS_API_KEY = "AIzaSyANTuJKviWz3jnUFMiqr_1FgghfAAek0q8";
 
   // Function to search locations using Google Maps API
   const searchLocations = async (query: string) => {
@@ -134,7 +134,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
         setSearchResults([]);
       }
     } catch (error) {
-      console.log("Error searching locations:", error);
       Alert.alert(
         "Error",
         "Failed to search locations. Please check your connection."
@@ -152,7 +151,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
       updateLocation?.status === 1 ||
       updateLocation?.status === "1"
     ) {
-      console.log("updateLocation:+>", updateLocation);
       navigation.navigate("VerificationSucessScreen", { id: uid });
       //  setMsg(updateLocation?.message?.toString());
       showToast(
@@ -163,7 +161,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
     }
 
     if (updateLocationErr) {
-      console.log("updateLocationErr:+>", updateLocationErr);
       showToast(
         "error",
         updateLocationErr?.message || "Something went wrong. Please try again."
@@ -191,7 +188,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
       }
       return null;
     } catch (error) {
-      console.log("Error getting place details:", error);
       return null;
     }
   };
@@ -205,7 +201,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
 
       if (locationData) {
         const { latitude, longitude } = locationData;
-        console.log("Location obtained:", latitude, longitude);
 
         try {
           // Reverse geocode to get address using Geocoder
@@ -251,7 +246,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
             // showToast("success", "Location obtained (coordinates only)");
           }
         } catch (geocodingError) {
-          console.log("Error reverse geocoding:", geocodingError);
           // Fallback with coordinates
           setFormData({
             location: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(
@@ -273,7 +267,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
         showToast("error", "Failed to get current location");
       }
     } catch (error) {
-      console.log("Error getting current location:", error);
       showToast("error", "Failed to get current location");
     } finally {
       setIsLoadingCurrentLocation(false);
@@ -329,7 +322,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
       longitude: location.longitude,
     };
 
-    console.log("Selected location:==", locationData);
     const obj = {
       userId: uid,
       longitude: location.longitude,
@@ -375,7 +367,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
             latitude: lat,
             longitude: lng,
           };
-          console.log("locationData:==>", locationData);
           const obj = {
             userId: uid,
             longitude: lng,
@@ -387,7 +378,6 @@ const LocationManuallyScreen: React.FC<LocationManuallyScreenProps> = ({
           Alert.alert("Error", "Could not find the specified location");
         }
       } catch (error) {
-        console.log("Error geocoding address:", error);
         Alert.alert("Error", "Failed to validate the location");
       } finally {
         setIsLoading(false);

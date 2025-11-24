@@ -341,7 +341,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   }, [reviewSummary]);
 
   // Generate booking payload for API
-  const generateBookingPayload = (pricing: any) => {
+  const generateBookingPayload = (pricing: any, paymentIntentId?: string) => {
     const baseEntryFee =
       (entryFee || 0) * (memberCount || 1) * (numberOfDays || 1);
     const baseTicketPrice =
@@ -367,7 +367,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       discount: Math.round(pricing.discount),
       fees: pricing.fees,
       totalAmount: Math.round(pricing.total),
-      transactionInfo: `TXN${Date.now()}`, // Generate unique transaction ID
+      transactionInfo: paymentIntentId || `TXN${Date.now()}`, // Use payment intent ID or generate unique transaction ID
       bookingStartDate: selectedStartDate || new Date().toISOString(),
       bookingEndDate: selectedEndDate || new Date().toISOString(),
     };
@@ -864,8 +864,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   };
 
   // Send booking data to API using Redux
-  const sendBookingToAPI = () => {
-    const bookingPayload = generateBookingPayload(dynamicPricing);
+  const sendBookingToAPI = (paymentIntentId?: string) => {
+    const bookingPayload = generateBookingPayload(dynamicPricing, paymentIntentId);
     console.log("=== SENDING BOOKING TO API VIA REDUX ===");
     console.log("API Endpoint: POST /user/booking");
     console.log("Payload:====>", JSON.stringify(bookingPayload, null, 2));
@@ -1018,12 +1018,14 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
 
       const paymentIntent = await paymentIntentResponse.json();
 
+      console.log("💳 CARD PAYMENT INTENT RESPONSE:", paymentIntent);
+
       if (paymentIntent.error) {
         Alert.alert("Payment Error", paymentIntent.error.message);
       } else {
         // Send booking data to API after successful payment
         console.log("💳 CARD PAYMENT SUCCESSFUL - Creating booking...");
-        sendBookingToAPI();
+        sendBookingToAPI(paymentIntent.id);
         // Alert.alert('Success', 'Payment processed successfully!');
         navigation.navigate("PaymentSuccessScreen");
       }
@@ -1089,7 +1091,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       } else {
         // Send booking data to API after successful payment
         console.log("🍎 APPLE PAY SUCCESSFUL - Creating booking...");
-        sendBookingToAPI();
+        sendBookingToAPI(paymentIntent?.id);
         // Alert.alert('Success', 'Apple Pay payment successful!');
         navigation.navigate("PaymentSuccessScreen");
       }
@@ -1148,7 +1150,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       } else {
         // Send booking data to API after successful payment
         console.log("📱 GOOGLE PAY SUCCESSFUL - Creating booking...");
-        sendBookingToAPI();
+        sendBookingToAPI(paymentIntent?.id);
         Alert.alert("Success", "Google Pay payment successful!");
         navigation.navigate("PaymentSuccessScreen");
       }

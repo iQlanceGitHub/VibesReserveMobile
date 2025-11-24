@@ -7,10 +7,10 @@ import {
   Platform,
   TouchableOpacity,
   Image,
-  RefreshControl,
   Modal,
   TextInput,
   Keyboard,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,7 +21,11 @@ import styles from "./styles";
 import ClockIcon from "../../assets/svg/clockIcon";
 import LocationFavourite from "../../assets/svg/locationFavourite";
 import { useDispatch, useSelector } from "react-redux";
-import { getBookingList, onCancelBooking } from "../../redux/auth/actions";
+import {
+  cancelBookingData,
+  getBookingList,
+  onCancelBooking,
+} from "../../redux/auth/actions";
 import { showToast } from "../../utilis/toastUtils";
 import CloseIcon from "../../assets/svg/closeIcon";
 
@@ -70,7 +74,6 @@ const formatBookingDate = (
 
     return `${dateFormatted} - ${timeFormatted}`;
   } catch (error) {
-    console.log("Error formatting date:", error);
     return "Date not available";
   }
 };
@@ -79,7 +82,8 @@ const BookingCard: React.FC<{
   booking: any;
   onCancel: () => void;
   onLeaveReview?: () => void;
-}> = ({ booking, onCancel, onLeaveReview }) => {
+  selectedTab?: string;
+}> = ({ booking, onCancel, onLeaveReview, selectedTab }) => {
   const getButtonText = () => {
     switch (booking.status) {
       case "confirmed":
@@ -92,11 +96,12 @@ const BookingCard: React.FC<{
   };
 
   const shouldShowLeaveReviewButton = () => {
-    return (
-      booking.status === "confirmed" &&
-      !booking.isReview &&
-      booking.displayStatus === "completed"
-    );
+    // Simplified logic: Show Leave Review button for confirmed bookings in the completed tab
+    const isConfirmed = booking.status === "confirmed";
+    const isInCompletedTab = selectedTab === "confirmed";
+    const hasEnded = booking.bookingEndDate && new Date(booking.bookingEndDate) < new Date();
+    
+    return isConfirmed && (isInCompletedTab || hasEnded);
   };
 
   const shouldShowCancelButton = () => {
@@ -168,10 +173,12 @@ const BookingCard: React.FC<{
 
           {shouldShowLeaveReviewButton() ? (
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={styles.leaveReviewButton}
               onPress={handleButtonPress}
             >
-              <Text style={styles.cancelButtonText}>Leave Review</Text>
+              <Text style={styles.leaveReviewButtonText}>
+                Leave Review
+              </Text>
             </TouchableOpacity>
           ) : shouldShowCancelButton() ? (
             <TouchableOpacity
@@ -208,7 +215,6 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
 
   const [selectedTab, setSelectedTab] = useState("pending");
-  const [refreshing, setRefreshing] = useState(false);
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
   const [confirmedBookings, setConfirmedBookings] = useState<any[]>([]);
   const [cancelledBookings, setCancelledBookings] = useState<any[]>([]);
@@ -217,22 +223,36 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
     confirmed: false,
     cancelled: false,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreData, setHasMoreData] = useState(true);
 
-  // Cancel booking modal state
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  const fetchBookingList = async () => {
-    // Since the API returns all data at once, we don't need status parameter
-    const payload = {};
+  const fetchBookingList = async (
+    page: number = 1,
+    limit: number = 10,
+    status?: string
+  ) => {
+    const payload = {
+      page,
+      limit,
+      status,
+    };
     dispatch(getBookingList(payload));
   };
 
-  const fetchDataForTab = (tabId: string) => {
-    // Just fetch all data since API returns everything
-    fetchBookingList();
+  const fetchDataForTab = (tabId: string, page: number = 1) => {
+    setCurrentPage(page);
+    const statusMap: { [key: string]: string } = {
+      pending: "pending",
+      confirmed: "confirmed",
+      cancelled: "cancelled",
+    };
+    fetchBookingList(page, 10, statusMap[tabId]);
   };
 
   useFocusEffect(
@@ -246,16 +266,25 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
       setPendingBookings([]);
       setConfirmedBookings([]);
       setCancelledBookings([]);
+      setCurrentPage(1);
+      setHasMoreData(true);
 
-      fetchBookingList();
+      fetchBookingList(1, 10);
     }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedTab) {
+        fetchDataForTab(selectedTab);
+      }
+    }, [selectedTab])
   );
 
   useEffect(() => {
     if (bookingList && bookingList.data) {
       const { upcoming, completed, cancelled } = bookingList.data;
 
-      // Set all data at once since the API returns all three arrays
       setPendingBookings(upcoming || []);
       setConfirmedBookings(completed || []);
       setCancelledBookings(cancelled || []);
@@ -268,24 +297,38 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
     }
   }, [bookingList]);
 
-  // Keyboard listeners
+  // Improved keyboard handling with height tracking
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => setKeyboardVisible(true)
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (event) => {
+        setKeyboardHeight(event.endCoordinates.height);
+        setKeyboardVisible(true);
+      }
     );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => setKeyboardVisible(false)
+
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+        setKeyboardVisible(false);
+      }
     );
 
     return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
+      keyboardWillShowListener?.remove();
+      keyboardWillHideListener?.remove();
     };
   }, []);
 
-  // Handle cancel booking success
+  // Reset keyboard state when modal closes
+  useEffect(() => {
+    if (!showCancelModal) {
+      setKeyboardVisible(false);
+      setKeyboardHeight(0);
+    }
+  }, [showCancelModal]);
+
   useEffect(() => {
     if (cancelBooking && cancelBooking.status === 1) {
       showToast(
@@ -295,11 +338,11 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
       setShowCancelModal(false);
       setCancelReason("");
       setSelectedBooking(null);
-      fetchBookingList(); // Refresh the booking list
+      fetchBookingList(1, 10);
+      dispatch(cancelBookingData(""));
     }
   }, [cancelBooking]);
 
-  // Handle cancel booking error
   useEffect(() => {
     if (cancelBookingErr) {
       showToast("error", "Failed to cancel booking. Please try again.");
@@ -317,6 +360,9 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
   };
 
   const handleCancelModalClose = () => {
+    Keyboard.dismiss();
+    setKeyboardVisible(false);
+    setKeyboardHeight(0);
     setShowCancelModal(false);
     setCancelReason("");
     setSelectedBooking(null);
@@ -334,20 +380,13 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
     }
   };
 
-  const handleKeyboardDismiss = () => {
+  // Handle keyboard dismiss with a more stable approach
+  const handleKeyboardDismiss = useCallback(() => {
     Keyboard.dismiss();
-  };
+  }, []);
 
   const handleLeaveReview = (booking: any) => {
     navigation?.navigate("LeaveReviewScreen", { bookingData: booking });
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchBookingList();
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
   };
 
   const getBookingsForTab = () => {
@@ -421,18 +460,8 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
             style={styles.bookingsContainer}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.bookingsContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={[colors.violate]}
-                tintColor={colors.violate}
-                title="Pull to refresh"
-                titleColor={colors.white}
-              />
-            }
           >
-            {loading || refreshing ? (
+            {loading ? (
               <View style={styles.emptyContainer}></View>
             ) : currentBookings && currentBookings.length > 0 ? (
               currentBookings.map((booking) => (
@@ -441,6 +470,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
                   booking={booking}
                   onCancel={() => handleCancelBooking(booking)}
                   onLeaveReview={() => handleLeaveReview(booking)}
+                  selectedTab={selectedTab}
                 />
               ))
             ) : (
@@ -464,60 +494,64 @@ const BookingScreen: React.FC<BookingScreenProps> = ({ navigation }) => {
           hardwareAccelerated={true}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Cancel Booking</Text>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={handleCancelModalClose}
-                >
-                  <CloseIcon size={24} color={colors.white} />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.modalSubtitle}>
-                Please provide a reason for cancellation:
-              </Text>
+            <View style={styles.keyboardAvoidingContainer}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "position" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+                style={styles.keyboardAvoidingView}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Cancel Booking</Text>
+                    <TouchableOpacity
+                      style={styles.closeButton}
+                      onPress={handleCancelModalClose}
+                    >
+                      <CloseIcon size={24} color={colors.white} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.modalSubtitle}>
+                    Please provide a reason for cancellation:
+                  </Text>
 
-              <TextInput
-                style={styles.reasonTextInput}
-                placeholder="Enter reason for cancellation..."
-                placeholderTextColor={colors.textColor}
-                value={cancelReason}
-                onChangeText={setCancelReason}
-                multiline
-                numberOfLines={2}
-                textAlignVertical="top"
-              />
+                  <TextInput
+                    style={styles.reasonTextInput}
+                    placeholder="Enter reason for cancellation..."
+                    placeholderTextColor={colors.textColor}
+                    value={cancelReason}
+                    onChangeText={(text) => {
+                      if (text.length <= 160) {
+                        setCancelReason(text);
+                      }
+                    }}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    maxLength={160}
+                    returnKeyType="done"
+                    onSubmitEditing={handleKeyboardDismiss}
+                    blurOnSubmit={true}
+                  />
 
-              {/* Show Done button when keyboard is visible */}
-              {isKeyboardVisible && (
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={styles.doneButton}
-                    onPress={handleKeyboardDismiss}
-                  >
-                    <Text style={styles.doneButtonText}>Done</Text>
-                  </TouchableOpacity>
+                  <View style={styles.modalButtons}>
+                    {isKeyboardVisible ? (
+                      <TouchableOpacity
+                        style={styles.doneButton}
+                        onPress={handleKeyboardDismiss}
+                      >
+                        <Text style={styles.doneButtonText}>Done</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={handleCancelConfirm}
+                      >
+                        <Text style={styles.cancelButtonText}>Confirm</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
-              )}
-
-              {/* Hide buttons when keyboard is visible */}
-              {!isKeyboardVisible && (
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={styles.modalCancelButton}
-                    onPress={handleCancelModalClose}
-                  >
-                    <Text style={styles.modalCancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.confirmButton}
-                    onPress={handleCancelConfirm}
-                  >
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              </KeyboardAvoidingView>
             </View>
           </View>
         </Modal>

@@ -1,0 +1,88 @@
+import * as React from "react";
+import Svg, { Path } from "react-native-svg";
+const Calender = (props: any) => (
+  <Svg
+    width={20}
+    height={20}
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <Path
+      d="M6.66669 1.66699V4.16699"
+      stroke="#868C98"
+      strokeWidth={1.5}
+      strokeMiterlimit={10}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13.3333 1.66699V4.16699"
+      stroke="#868C98"
+      strokeWidth={1.5}
+      strokeMiterlimit={10}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M2.91666 7.5752H17.0833"
+      stroke="#868C98"
+      strokeWidth={1.5}
+      strokeMiterlimit={10}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M17.5 7.08366V14.167C17.5 16.667 16.25 18.3337 13.3333 18.3337H6.66667C3.75 18.3337 2.5 16.667 2.5 14.167V7.08366C2.5 4.58366 3.75 2.91699 6.66667 2.91699H13.3333C16.25 2.91699 17.5 4.58366 17.5 7.08366Z"
+      stroke="#868C98"
+      strokeWidth={1.5}
+      strokeMiterlimit={10}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13.0789 11.4167H13.0864"
+      stroke="#868C98"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13.0789 13.9167H13.0864"
+      stroke="#868C98"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M9.99626 11.4167H10.0037"
+      stroke="#868C98"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M9.99626 13.9167H10.0037"
+      stroke="#868C98"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M6.91191 11.4167H6.91939"
+      stroke="#868C98"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M6.91191 13.9167H6.91939"
+      stroke="#868C98"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+export default Calender;

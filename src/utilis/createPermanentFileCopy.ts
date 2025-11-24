@@ -22,7 +22,6 @@ export const reatePermanentFileCopy = async (file: any) => {
       permanentPath: destPath // Keep track of the permanent path
     };
   } catch (error) {
-    console.log('Error creating file copy:', error);
     return file; // Fallback to original file
   }
 };

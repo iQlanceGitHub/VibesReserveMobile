@@ -9,6 +9,7 @@ import SplashScreen from "react-native-splash-screen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/utilis/toastUtils.tsx";
 import AppInitializer from "./src/components/AppInitializer";
+import AppWrapper from "./src/utilis/AppWrapper";
 import {StripeProvider} from '@stripe/stripe-react-native';
 import {stripeTestKey} from './src/utilis/appConstant';
 import { longPollingService } from './src/services/longPollingService';
@@ -16,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import messaging from '@react-native-firebase/messaging';
 import { PermissionsAndroid, Alert } from 'react-native';
 import firebase from '@react-native-firebase/app';
+import globalUnreadCountService from './src/services/globalUnreadCountService';
 
 
 const initialState = {};
@@ -268,14 +270,21 @@ function App(): React.JSX.Element {
 
     // Initialize push notifications
     initializePushNotifications();
+    // Start long polling service for background chat updates after a small delay
+    setTimeout(() => {
+      longPollingService.startPolling();
+    }, 2000); // 2 second delay to ensure store is ready
+
+    // Start global unread count service
+    setTimeout(() => {
+      globalUnreadCountService.startService();
+    }, 3000); // 3 second delay to ensure store is ready
 
     // Handle app state changes for chat polling
     const handleAppStateChange = (nextAppState: string) => {
-      console.log('App state changed to:', nextAppState);
       if (nextAppState === 'active') {
         // App came to foreground, ensure long polling is active
         if (longPollingService.isPollingActive()) {
-          console.log('App became active, triggering immediate poll...');
           // The long polling service will handle the immediate poll
         }
       }
@@ -285,6 +294,10 @@ function App(): React.JSX.Element {
 
     return () => {
       subscription?.remove();
+      // Stop long polling when app unmounts
+      longPollingService.stopPolling();
+      // Stop global unread count service when app unmounts
+      globalUnreadCountService.stopService();
     };
   }, []);
 
@@ -299,6 +312,7 @@ function App(): React.JSX.Element {
         }}
       >
         <AppInitializer>
+          <AppWrapper />
           <View style={{ flex: 1 }}>
             <StatusBar
               translucent
