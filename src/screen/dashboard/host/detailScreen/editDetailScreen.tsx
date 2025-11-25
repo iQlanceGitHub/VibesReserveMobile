@@ -150,6 +150,8 @@ const EditDetailScreen = () => {
   const [address, setAddress] = useState("");
   const [floorLayout, setFloorLayout] = useState(""); // Store image URL for floor layout
   const [tableNumber, setTableNumber] = useState(""); // Table number for Table type
+  const [minGuest, setMinGuest] = useState(""); // Minimum guests for Table type
+  const [maxGuest, setMaxGuest] = useState(""); // Maximum guests for Table type
   const [coordinates, setCoordinates] = useState({
     type: "Point",
     coordinates: [0, 0],
@@ -192,6 +194,8 @@ const EditDetailScreen = () => {
     endDate: false,
     floorLayout: false,
     tableNumber: false,
+    minGuest: false,
+    maxGuest: false,
   });
 
   // Types for dropdown
@@ -789,6 +793,19 @@ const EditDetailScreen = () => {
           ? String(eventData.table_number)
           : '';
         setTableNumber(tableNumberValue);
+        // Handle minGuest and maxGuest - convert number to string if needed
+        const minGuestValue = eventData.minGuest !== undefined && eventData.minGuest !== null
+          ? String(eventData.minGuest)
+          : eventData.min_guest !== undefined && eventData.min_guest !== null
+          ? String(eventData.min_guest)
+          : '';
+        setMinGuest(minGuestValue);
+        const maxGuestValue = eventData.maxGuest !== undefined && eventData.maxGuest !== null
+          ? String(eventData.maxGuest)
+          : eventData.max_guest !== undefined && eventData.max_guest !== null
+          ? String(eventData.max_guest)
+          : '';
+        setMaxGuest(maxGuestValue);
         setType(eventType);
         
         // Note: Booth loading is handled in separate useEffect when categories are available
@@ -995,6 +1012,8 @@ const EditDetailScreen = () => {
       endDate: !endDate.trim(),
       floorLayout: false, // Optional for Table type
       tableNumber: type === "Table" ? !tableNumber.trim() : false, // Required for Table type
+      minGuest: type === "Table" ? (!minGuest.trim() || isNaN(Number(minGuest)) || Number(minGuest) <= 0) : false,
+      maxGuest: type === "Table" ? (!maxGuest.trim() || isNaN(Number(maxGuest)) || Number(maxGuest) <= 0) : false,
     });
 
     // Check basic required fields - matching add screen logic
@@ -1012,8 +1031,26 @@ const EditDetailScreen = () => {
       if (!name.trim()) missingFields.push("Table Name");
       if (!details.trim()) missingFields.push("Details");
       if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Table Fee");
-      if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
-        missingFields.push("Seating Capacity");
+      // if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
+      //   missingFields.push("Seating Capacity");
+      // }
+      if (!minGuest.trim() || isNaN(Number(minGuest)) || Number(minGuest) <= 0) {
+        missingFields.push("Minimum Guests");
+      }
+      if (!maxGuest.trim() || isNaN(Number(maxGuest)) || Number(maxGuest) <= 0) {
+        missingFields.push("Maximum Guests");
+      }
+      // Validate minGuest <= maxGuest
+      if (
+        minGuest.trim() &&
+        maxGuest.trim() &&
+        !isNaN(Number(minGuest)) &&
+        !isNaN(Number(maxGuest)) &&
+        Number(minGuest) > Number(maxGuest)
+      ) {
+        Alert.alert("Error", "Minimum guests must be less than or equal to maximum guests");
+        setErrors((prev) => ({ ...prev, minGuest: true, maxGuest: true }));
+        return;
       }
       // Floor Layout is optional for Table type
     } else {
@@ -1114,10 +1151,12 @@ const EditDetailScreen = () => {
           payload.facilities = facilitiesList.filter(f => f.selected).map(f => f._id);
         }
 
-        // Add floorLayout and tableNumber for Table type
+        // Add floorLayout, tableNumber, minGuest, and maxGuest for Table type
         if (type === "Table") {
           payload.floorLayout = floorLayout;
           payload.tableNumber = tableNumber;
+          payload.minGuest = parseInt(minGuest || '0');
+          payload.maxGuest = parseInt(maxGuest || '0');
         }
     
     console.log('Update payload:', JSON.stringify(payload, null, 2));
@@ -1386,7 +1425,7 @@ const EditDetailScreen = () => {
                   />
                 </View>
 
-                <View style={styles.formElement}>
+                {/* <View style={styles.formElement}>
                   <CustomeTextInput
                     label="Seating Capacity*"
                     placeholder="Enter seating capacity"
@@ -1402,7 +1441,104 @@ const EditDetailScreen = () => {
                     leftImage=""
                     kType="numeric"
                   />
-                </View>
+                </View> */}
+
+              
+<View style={styles.formElement}>
+  <CustomeTextInput
+    label="Minimum Guests*"
+    placeholder="Enter minimum guests"
+    value={minGuest}
+    onChangeText={(text) => {
+      setMinGuest(text);
+      
+      // Clear both errors initially
+      const updatedErrors = {
+        ...errors,
+        minGuest: false,
+        maxGuest: false
+      };
+      
+      // Check if minimum guests is valid (not blank, is number, > 0)
+      const isMinValid = text.trim() && !isNaN(Number(text)) && Number(text) > 0;
+      
+      // Check if maximum guests is valid
+      const isMaxValid = maxGuest.trim() && !isNaN(Number(maxGuest)) && Number(maxGuest) > 0;
+      
+      if (!isMinValid) {
+        updatedErrors.minGuest = true;
+      }
+      
+      // Check relationship only if both fields are valid
+      if (isMinValid && isMaxValid) {
+        if (Number(text) > Number(maxGuest)) {
+          updatedErrors.minGuest = true;
+          updatedErrors.maxGuest = true;
+        }
+      }
+      
+      setErrors(updatedErrors);
+    }}
+    error={errors.minGuest}
+    message={
+      errors.minGuest
+        ? !minGuest.trim() || isNaN(Number(minGuest)) || Number(minGuest) <= 0
+          ? "Valid minimum guests is required"
+          : "Minimum guests must be less than or equal to maximum guests"
+        : ""
+    }
+    leftImage=""
+    kType="numeric"
+  />
+</View>
+
+<View style={styles.formElement}>
+  <CustomeTextInput
+    label="Maximum Guests*"
+    placeholder="Enter maximum guests"
+    value={maxGuest}
+    onChangeText={(text) => {
+      setMaxGuest(text);
+      
+      // Clear both errors initially
+      const updatedErrors = {
+        ...errors,
+        minGuest: false,
+        maxGuest: false
+      };
+      
+      // Check if maximum guests is valid (not blank, is number, > 0)
+      const isMaxValid = text.trim() && !isNaN(Number(text)) && Number(text) > 0;
+      
+      // Check if minimum guests is valid
+      const isMinValid = minGuest.trim() && !isNaN(Number(minGuest)) && Number(minGuest) > 0;
+      
+      if (!isMaxValid) {
+        updatedErrors.maxGuest = true;
+      }
+      
+      // Check relationship only if both fields are valid
+      if (isMinValid && isMaxValid) {
+        if (Number(minGuest) > Number(text)) {
+          updatedErrors.minGuest = true;
+          updatedErrors.maxGuest = true;
+        }
+      }
+      
+      setErrors(updatedErrors);
+    }}
+    error={errors.maxGuest}
+    message={
+      errors.maxGuest
+        ? !maxGuest.trim() || isNaN(Number(maxGuest)) || Number(maxGuest) <= 0
+          ? "Valid maximum guests is required"
+          : "Maximum guests must be greater than or equal to minimum guests"
+        : ""
+    }
+    leftImage=""
+    kType="numeric"
+  />
+</View>
 
                 <View style={styles.formElement}>
                   <Text style={styles.sectionLabel}>

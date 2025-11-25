@@ -185,7 +185,7 @@ export default StyleSheet.create({
   },
 
   capcityTableTitle: {
-    fontSize: fontScale(16),
+    fontSize: fontScale(14),
     fontFamily: fonts.Bold,
     color: colors.white,
     //marginBottom: verticalScale(16),

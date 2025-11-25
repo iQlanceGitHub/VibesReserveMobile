@@ -131,6 +131,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [address, setAddress] = useState("");
   const [floorLayout, setFloorLayout] = useState(""); // Store image URL for floor layout
   const [tableNumber, setTableNumber] = useState(""); // Table number for Table type
+  const [minGuest, setMinGuest] = useState(""); // Minimum guests for Table type
+  const [maxGuest, setMaxGuest] = useState(""); // Maximum guests for Table type
   const [coordinates, setCoordinates] = useState({
     type: "Point",
     coordinates: [0, 0], // Default coordinates
@@ -182,6 +184,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     endDate: false,
     tableNumber: false,
     floorLayout: false,
+    minGuest: false,
+    maxGuest: false,
   });
 
   // Redux
@@ -353,10 +357,11 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       name: !name.trim(),
       details: (type === "Club" || type === "Event" || type === "Table") ? !details.trim() : false, // Required for Club/Event/Table, optional for Booth/VIP Entry
       entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
-      eventCapacity:
+      eventCapacity: type === "Table" ? false : ( // Not required for Table type
         !eventCapacity.trim() ||
         isNaN(Number(eventCapacity)) ||
-        Number(eventCapacity) <= 0,
+        Number(eventCapacity) <= 0
+      ),
       // Remove date/time validation since we're using fallback values
       address: !address.trim(),
       // Remove ticket validation - tickets are handled in dynamic forms
@@ -365,6 +370,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       endDate: false, // Will be validated separately
       floorLayout: false, // Optional for Table type
       tableNumber: type === "Table" ? !tableNumber.trim() : false, // Required for Table type
+      minGuest: type === "Table" ? (!minGuest.trim() || isNaN(Number(minGuest)) || Number(minGuest) <= 0) : false,
+      maxGuest: type === "Table" ? (!maxGuest.trim() || isNaN(Number(maxGuest)) || Number(maxGuest) <= 0) : false,
     };
 
     // Check if type is selected
@@ -403,12 +410,23 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       if (!details.trim()) missingFields.push("Details");
       if (!entryFee.trim() || isNaN(Number(entryFee)))
         missingFields.push("Table Fee");
+      // REMOVED eventCapacity validation for Table type
+      if (!minGuest.trim() || isNaN(Number(minGuest)) || Number(minGuest) <= 0)
+        missingFields.push("Minimum Guests");
+      if (!maxGuest.trim() || isNaN(Number(maxGuest)) || Number(maxGuest) <= 0)
+        missingFields.push("Maximum Guests");
+      // Validate minGuest <= maxGuest
       if (
-        !eventCapacity.trim() ||
-        isNaN(Number(eventCapacity)) ||
-        Number(eventCapacity) <= 0
-      )
-        missingFields.push("Seating Capacity");
+        minGuest.trim() &&
+        maxGuest.trim() &&
+        !isNaN(Number(minGuest)) &&
+        !isNaN(Number(maxGuest)) &&
+        Number(minGuest) > Number(maxGuest)
+      ) {
+        showToast("error", "Minimum guests must be less than or equal to maximum guests");
+        setErrors((prev) => ({ ...prev, minGuest: true, maxGuest: true }));
+        return false;
+      }
       // Floor Layout is optional for Table type
       // Table type doesn't require dates, times, or facilities
     } else {
@@ -490,11 +508,6 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         if (!booth.boothType.trim()) missingBoothFields.push("Booth Type");
         if (!booth.boothPrice.trim() || isNaN(Number(booth.boothPrice)))
           missingBoothFields.push("Booth Price");
-        // if (
-        //   !booth.discountedPrice.trim() ||
-        //   isNaN(Number(booth.discountedPrice))
-        // )
-        //   missingBoothFields.push("Discounted Price");
         if (!booth.capacity.trim() || isNaN(Number(booth.capacity)))
           missingBoothFields.push("Capacity");
         if (booth.boothImages.length === 0)
@@ -1353,10 +1366,12 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       eventData.facilities = selectedFacilities;
     }
 
-    // Add floorLayout and tableNumber for Table type
+    // Add floorLayout, tableNumber, minGuest, and maxGuest for Table type
     if (type === "Table") {
       eventData.floorLayout = floorLayout;
       eventData.tableNumber = tableNumber;
+      eventData.minGuest = Number(minGuest);
+      eventData.maxGuest = Number(maxGuest);
     }
 
     // Add booth or ticket specific data only if sections are enabled
@@ -1766,7 +1781,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     kType="numeric"
                   />
                 </View>
-
+                {(type !== "Table") && (
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
                     label="Seating Capacity*"
@@ -1791,6 +1806,169 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     kType="numeric"
                   />
                 </View>
+                )}
+
+                {/* <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Minimum Guests*"
+                    placeholder="Enter minimum guests"
+                    value={minGuest}
+                    onChangeText={(text) => {
+                      setMinGuest(text);
+                      if (errors.minGuest) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          minGuest: false,
+                        }));
+                      }
+                      // Validate minGuest <= maxGuest if maxGuest is set
+                      if (maxGuest.trim() && !isNaN(Number(text)) && !isNaN(Number(maxGuest)) && Number(text) > Number(maxGuest)) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          minGuest: true,
+                          maxGuest: true,
+                        }));
+                      }
+                    }}
+                    error={errors.minGuest}
+                    message={
+                      errors.minGuest
+                        ? "Valid minimum guests is required"
+                        : ""
+                    }
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
+                <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Maximum Guests*"
+                    placeholder="Enter maximum guests"
+                    value={maxGuest}
+                    onChangeText={(text) => {
+                      setMaxGuest(text);
+                      if (errors.maxGuest) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          maxGuest: false,
+                        }));
+                      }
+                      // Validate minGuest <= maxGuest if minGuest is set
+                      if (minGuest.trim() && !isNaN(Number(text)) && !isNaN(Number(minGuest)) && Number(minGuest) > Number(text)) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          minGuest: true,
+                          maxGuest: true,
+                        }));
+                      }
+                    }}
+                    error={errors.maxGuest}
+                    message={
+                      errors.maxGuest
+                        ? "Valid maximum guests is required"
+                        : ""
+                    }
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View> */}
+
+<View style={addClubEventDetailStyle.formElement}>
+  <CustomeTextInput
+    label="Minimum Guests*"
+    placeholder="Enter minimum guests"
+    value={minGuest}
+    onChangeText={(text) => {
+      setMinGuest(text);
+      
+      // Clear both errors initially
+      const updatedErrors = {
+        ...errors,
+        minGuest: false,
+        maxGuest: false
+      };
+      
+      // Check if minimum guests is valid (not blank, is number, > 0)
+      const isMinValid = text.trim() && !isNaN(Number(text)) && Number(text) > 0;
+      
+      // Check if maximum guests is valid
+      const isMaxValid = maxGuest.trim() && !isNaN(Number(maxGuest)) && Number(maxGuest) > 0;
+      
+      if (!isMinValid) {
+        updatedErrors.minGuest = true;
+      }
+      
+      // Check relationship only if both fields are valid
+      if (isMinValid && isMaxValid) {
+        if (Number(text) > Number(maxGuest)) {
+          updatedErrors.minGuest = true;
+          updatedErrors.maxGuest = true;
+        }
+      }
+      
+      setErrors(updatedErrors);
+    }}
+    error={errors.minGuest}
+    message={
+      errors.minGuest
+        ? !minGuest.trim() || isNaN(Number(minGuest)) || Number(minGuest) <= 0
+          ? "Valid minimum guests is required"
+          : "Minimum guests must be less than or equal to maximum guests"
+        : ""
+    }
+    leftImage=""
+    kType="numeric"
+  />
+</View>
+
+<View style={addClubEventDetailStyle.formElement}>
+  <CustomeTextInput
+    label="Maximum Guests*"
+    placeholder="Enter maximum guests"
+    value={maxGuest}
+    onChangeText={(text) => {
+      setMaxGuest(text);
+      
+      // Clear both errors initially
+      const updatedErrors = {
+        ...errors,
+        minGuest: false,
+        maxGuest: false
+      };
+      
+      // Check if maximum guests is valid (not blank, is number, > 0)
+      const isMaxValid = text.trim() && !isNaN(Number(text)) && Number(text) > 0;
+      
+      // Check if minimum guests is valid
+      const isMinValid = minGuest.trim() && !isNaN(Number(minGuest)) && Number(minGuest) > 0;
+      
+      if (!isMaxValid) {
+        updatedErrors.maxGuest = true;
+      }
+      
+      // Check relationship only if both fields are valid
+      if (isMinValid && isMaxValid) {
+        if (Number(minGuest) > Number(text)) {
+          updatedErrors.minGuest = true;
+          updatedErrors.maxGuest = true;
+        }
+      }
+      
+      setErrors(updatedErrors);
+    }}
+    error={errors.maxGuest}
+    message={
+      errors.maxGuest
+        ? !maxGuest.trim() || isNaN(Number(maxGuest)) || Number(maxGuest) <= 0
+          ? "Valid maximum guests is required"
+          : "Maximum guests must be greater than or equal to minimum guests"
+        : ""
+    }
+    leftImage=""
+    kType="numeric"
+  />
+</View>
 
                 <View style={addClubEventDetailStyle.formElement}>
                   <Text style={addClubEventDetailStyle.sectionLabel}>

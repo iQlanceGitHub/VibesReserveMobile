@@ -1073,16 +1073,27 @@ Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id67544
               </Text>
             </View>
 
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Guests Capacity</Text>
+
             {/* Floor Plan Section for Table Type */}
             {(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.eventCapacity && (
               <View style={[styles.section, { marginTop: verticalScale(8), marginBottom: verticalScale(4) }]}>
-                <Text style={styles.capcityTableTitle}>Guests Capacity: {(clubDetails as any)?.eventCapacity || 'Loading...'} </Text>
+                <Text style={styles.capcityTableTitle}>Minimum Guests: {(clubDetails as any)?.minGuest || 'Loading...'} </Text>
               </View>
             )}
 
+{(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.eventCapacity && (
+              <View style={[styles.section, { marginTop: verticalScale(8), marginBottom: verticalScale(4) }]}>
+                <Text style={styles.capcityTableTitle}>Maximum Guests: {(clubDetails as any)?.maxGuest || 'Loading...'} </Text>
+              </View>
+            )}
+
+</View>
+
             {(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.tableNumber && (
               <View style={[styles.section, { marginTop: verticalScale(8), marginBottom: verticalScale(-2) }]}>
-                <Text style={styles.capcityTableTitle}>Table Number: {(clubDetails as any)?.tableNumber || 'Loading...'} </Text>
+                <Text style={styles.sectionTitle}>Table Number: {(clubDetails as any)?.tableNumber || 'Loading...'} </Text>
               </View>
             )}
 

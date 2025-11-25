@@ -384,7 +384,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     const basePayload = {
       eventId: eventData?._id || ticketId || "",
       hostId: eventData?.userId?._id || eventData?.userId,
-      members: eventData?.type === 'Table' ? eventData?.eventCapacity : memberCount || 1,
+      members: eventData?.type === 'Table' ? eventData?.maxGuest : memberCount || 1,
       discount: Number(pricing.discount.toFixed(2)), // Keep 2 decimal places for currency
       fees: Number(pricing.fees.toFixed(2)), // Keep 2 decimal places for currency
       totalAmount: Number(pricing.total.toFixed(2)), // Keep 2 decimal places for currency (13.56 not 14)

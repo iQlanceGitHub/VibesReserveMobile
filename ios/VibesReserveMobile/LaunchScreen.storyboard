@@ -17,15 +17,8 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="splesh" translatesAutoresizingMaskIntoConstraints="NO" id="Qub-Qq-Waj">
-                                <rect key="frame" x="-38" y="0.0" width="450" height="667"/>
+                                <rect key="frame" x="-16" y="0.0" width="407" height="667"/>
                                 <color key="backgroundColor" red="0.023230450230000001" green="0.015551231800000001" blue="0.1463580132" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                            </imageView>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="iq_image" translatesAutoresizingMaskIntoConstraints="NO" id="nRG-ZC-Vy0">
-                                <rect key="frame" x="67" y="566" width="240" height="81"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="240" id="JVr-qz-KeX"/>
-                                    <constraint firstAttribute="height" constant="81" id="uLB-ow-ex9"/>
-                                </constraints>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
@@ -34,10 +27,7 @@
                             <constraint firstItem="Qub-Qq-Waj" firstAttribute="top" secondItem="Bcu-3y-fUS" secondAttribute="top" constant="-20" id="7kV-cG-w20"/>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="Qub-Qq-Waj" secondAttribute="trailing" constant="-16" id="8yF-AJ-Nf6"/>
                             <constraint firstItem="Qub-Qq-Waj" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="-16" id="CwV-mz-0Ld"/>
-                            <constraint firstItem="nRG-ZC-Vy0" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="67" id="F0Q-ht-5Xh"/>
-                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="nRG-ZC-Vy0" secondAttribute="bottom" constant="20" id="IBd-kz-LBA"/>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="Qub-Qq-Waj" secondAttribute="bottom" id="PN0-gg-b6Q"/>
-                            <constraint firstItem="nRG-ZC-Vy0" firstAttribute="centerX" secondItem="Qub-Qq-Waj" secondAttribute="centerX" id="aeM-gG-1No"/>
                             <constraint firstItem="Qub-Qq-Waj" firstAttribute="bottom" secondItem="Bcu-3y-fUS" secondAttribute="bottom" id="e5F-AB-zPm"/>
                             <constraint firstItem="Qub-Qq-Waj" firstAttribute="trailing" secondItem="Bcu-3y-fUS" secondAttribute="trailing" constant="16" id="yzw-Kb-zJG"/>
                         </constraints>
@@ -49,7 +39,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="iq_image" width="506.5" height="248"/>
         <image name="splesh" width="450" height="812"/>
     </resources>
 </document>
