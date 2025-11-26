@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -25,45 +25,54 @@ import AppleIcon from "../../assets/svg/appleIcon";
 import { BackButton } from "../../components/BackButton";
 import EmailIcon from "../../assets/svg/emailIcon";
 import LockIcon from "../../assets/svg/lockIcon";
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import {
-    appleAuth,
-    AppleButton,
-} from '@invertase/react-native-apple-authentication';
-
+  appleAuth,
+  AppleButton,
+} from "@invertase/react-native-apple-authentication";
+import { showToast } from "../../utilis/toastUtils.tsx";
 //API
 import {
   onSignin,
   signinData,
   signinError,
-
   onSocialLogin,
   socialLoginData,
   socialLoginError,
   setUser,
-} from '../../redux/auth/actions';
+} from "../../redux/auth/actions";
 // import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch, useSelector } from 'react-redux';
-import { CustomAlertSingleBtn } from '../../components/CustomeAlertDialog';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import { useDispatch, useSelector } from "react-redux";
+import { CustomAlertSingleBtn } from "../../components/CustomeAlertDialog";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CommonActions } from "@react-navigation/native";
+import CustomAlert from "../../components/CustomAlert";
+import { UserPermissions } from "../../utilis/userPermissionUtils";
 interface SignInScreenProps {
   navigation?: any;
 }
 import styles from "./styles";
 
 const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const signin = useSelector((state: any) => state.auth.signin);
+  const signinErr = useSelector((state: any) => state.auth.signinErr);
+  const socialLogin = useSelector((state: any) => state.auth.socialLogin);
+  const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
+  const deviceToken = useSelector((state: any) => state.auth.deviceToken);
+  
+  // Debug logging for device token
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    deviceToken: "abcd",
+    deviceToken: deviceToken || "abcd", // Use Redux state or fallback
   });
   const [socialData, setSocialData] = useState({
-    email: '',
-    name: '',
-    socialID: '',
-});
+    email: "",
+    name: "",
+    socialID: "",
+  });
   const [errors, setErrors] = useState({
     email: false,
     password: false,
@@ -75,14 +84,17 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-
-  const dispatch = useDispatch();
-  const signin = useSelector((state: any) => state.auth.signin);
-  const signinErr = useSelector((state: any) => state.auth.signinErr);
-  const socialLogin = useSelector((state: any) => state.auth.socialLogin);
-  const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
-  const [msg, setMsg] = useState('');
-
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    primaryButtonText: '',
+    secondaryButtonText: '',
+    onPrimaryPress: () => {},
+    onSecondaryPress: () => {},
+  });
+  const [msg, setMsg] = useState("");
+  const [uid, setUid] = useState("");
   // Validation functions
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -96,42 +108,54 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
     // At least one lowercase letter (a-z)
     // At least one number (0-9)
     // At least one special character (e.g., ! @ # $ % ^ & *)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{7,16}$/;
     return passwordRegex.test(password);
   };
 
   const validateForm = () => {
     const emailValid = validateEmail(formData.email);
     const passwordValid = validatePassword(formData.password);
-    
+
     setIsFormValid(emailValid && passwordValid);
     return emailValid && passwordValid;
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Convert email to lowercase
+    const processedValue = field === "email" ? value.toLowerCase() : value;
     
-    // Validate field in real-time
-    if (field === "email") {
-      const isValid = validateEmail(value);
-      setErrors((prev) => ({ ...prev, email: !isValid }));
-      setErrorMessages((prev) => ({ 
-        ...prev, 
-        email: value && !isValid ? "Please enter a valid email address" : "" 
-      }));
-    }
-    
-    if (field === "password") {
-      const isValid = validatePassword(value);
-      setErrors((prev) => ({ ...prev, password: !isValid }));
-      setErrorMessages((prev) => ({ 
-        ...prev, 
-        password: value && !isValid ? "Password must meet all requirements" : "" 
-      }));
-    }
-    
-    // Validate entire form
-    validateForm();
+    // Update form data first
+    setFormData((prev) => {
+      const newFormData = { ...prev, [field]: processedValue };
+      
+      // Validate field in real-time
+      if (field === "email") {
+        const isValid = validateEmail(processedValue);
+        setErrors((prevErrors) => ({ ...prevErrors, email: !isValid }));
+        setErrorMessages((prevMessages) => ({
+          ...prevMessages,
+          email: processedValue && !isValid ? "Please enter a valid email address" : "",
+        }));
+      }
+
+      if (field === "password") {
+        const isValid = validatePassword(processedValue);
+        setErrors((prevErrors) => ({ ...prevErrors, password: !isValid }));
+        setErrorMessages((prevMessages) => ({
+          ...prevMessages,
+          password:
+            processedValue && !isValid ? "Password must meet all requirements" : "",
+        }));
+      }
+
+      // Validate entire form with updated data
+      const emailValid = field === "email" ? validateEmail(processedValue) : validateEmail(newFormData.email);
+      const passwordValid = field === "password" ? validatePassword(processedValue) : validatePassword(newFormData.password);
+      setIsFormValid(emailValid && passwordValid);
+      
+      return newFormData;
+    });
   };
 
   const handleSignIn = () => {
@@ -144,215 +168,337 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       }
       if (!formData.password) {
         setErrors((prev) => ({ ...prev, password: true }));
-        setErrorMessages((prev) => ({ ...prev, password: "Password is required" }));
+        setErrorMessages((prev) => ({
+          ...prev,
+          password: "Password is required",
+        }));
       }
       return;
     }
-    
+
     // Handle successful sign in logic
-    console.log("Sign in data:", formData);
     dispatch(onSignin(formData));
   };
 
-   // Get token
-   const getUserToken = async () => {
+  // Get token
+  const storeUserToken = async (token: any) => {
     try {
-        const token = await AsyncStorage.getItem('user_token');
-        if (token !== null) {
-            console.log('User token retrieved:', token);
-            return token;
-        }
+      await AsyncStorage.setItem("user_token", token);
+      getUserToken();
     } catch (e) {
-        console.error('Failed to fetch the user token.', e);
+      console.error("Failed to save the user token.", e);
     }
-};
+  };
 
-useEffect(() => {
-  getUserToken();
-},[])
+    const storeUserStatus = async (status: 'logged_in' | 'skipped' | 'guest') => {
+      try {
+        // Clear all stored preferences first
+        await AsyncStorage.multiRemove([
+          'user_status',
+          'user_permissions',
+          'skip_timestamp',
+        ]);
+        
+        await AsyncStorage.setItem("user_status", status);
 
-useEffect(() => {
-    if (
+        // Store additional metadata based on status
+        if (status === 'skipped') {
+          await AsyncStorage.setItem("skip_timestamp", Date.now().toString());
+          await AsyncStorage.setItem("user_permissions", JSON.stringify({
+            canLike: false,
+            canDislike: false,
+            canBookmark: false,
+            canReview: false,
+            canBook: false
+          }));
+        } else if (status === 'logged_in') {
+          // Clear any skip-related data when user logs in
+          await AsyncStorage.multiRemove(['skip_timestamp']);
+          await AsyncStorage.setItem("user_permissions", JSON.stringify({
+            canLike: true,
+            canDislike: true,
+            canBookmark: true,
+            canReview: true,
+            canBook: true
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to save the user status.", e);
+      }
+    };
+
+  const storeUser = async (user: any) => {
+    try {
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+    } catch (e) {
+      console.error("Failed to save the user.", e);
+    }
+  };
+
+  // Store user ID
+  const storeUserId = async (userId: any) => {
+    try {
+      await AsyncStorage.setItem("user_id", userId);
+    } catch (e) {
+      console.error("Failed to save the user ID.", e);
+    }
+  };
+
+  // Get token
+  const getUserToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem("user_token");
+      if (token !== null) {
+        return token;
+      }
+    } catch (e) {
+      console.error("Failed to fetch the user token.", e);
+    }
+  };
+
+  const getUser = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      if (user !== null) {
+        const parsedUser = JSON.parse(user);
+        return parsedUser;
+      }
+    } catch (e) {
+      console.error("Failed to fetch the user.", e);
+    }
+  };
+
+  useEffect(() => {
+    getUserToken();
+    getUser();
+  }, []);
+
+  // Update deviceToken when it changes in Redux state
+  useEffect(() => {
+    
+    if (deviceToken) {
+      setFormData(prev => ({
+        ...prev,
+        deviceToken: deviceToken
+      }));
+    } else {
+    }
+  }, [deviceToken]);
+
+  useEffect(() => {
+    const handleLoginSuccess = async () => {
+      if (
         signin?.status === true ||
-        signin?.status === 'true' || 
+        signin?.status === "true" ||
         signin?.status === 1 ||
         signin?.status === "1"
-    ) {
-        console.log("signin:+>", signin);
+      ) {
         setFormData({
-            email: '',
-            password: '',
+          email: "",
+          password: "",
+          deviceToken: deviceToken || "abcd",
         });
         setErrors({
-            email: false,
-            password: false,
-            terms: false,
-        })
+          email: false,
+          password: false,
+          terms: false,
+        });
         dispatch(setUser(signin));
-        setMsg(signin?.message?.toString())
-       // navigation.navigate('NameScreen')
-        dispatch(signinData(''));
-    }
+        // setMsg(signin?.message?.toString())
+        showToast(
+          "success",
+          signin?.message || "Something went wrong. Please try again."
+        );
+        
+        if (signin?.token) {
+          storeUserToken(signin?.token);
+        }
+        if (signin?.user) {
+          storeUser(signin?.user); 
+        }
+        if (signin?.user?.id) {
+          storeUserId(signin.user.id);
+        }
+        
+        // Store user status as logged in
+        await storeUserStatus('logged_in');
+        
+        // Role-based navigation
+        if (signin?.user?.currentRole === 'user') {
+          navigation.navigate('HomeTabs' as never);
+        } else if (signin?.user?.currentRole === 'host') {
+          navigation.navigate('HostTabs' as never);
+        } else {
+          // Default fallback to HomeTabs
+          navigation.navigate('HomeTabs' as never);
+        }
+        
+        dispatch(signinData(""));
+      }
+    };
+
+    getUserToken().then((token) => {
+      if (token) {
+        getUser().then((user) => {
+          if (user?.currentRole === "user") {
+            navigation.navigate("HomeTabs" as never);
+          } else if (user?.currentRole === "host") {
+            navigation.navigate("HostTabs" as never);
+          } else {
+          }
+        });
+      }
+    });
+   
+    handleLoginSuccess();
 
     if (signinErr) {
-        console.log("signinErr:+>", signinErr);
-        setMsg(signinErr?.message?.toString())
-        setFormData({
-            email: '',
-            password: '',
-        });
-        setErrors({
-            email: false,
-            password: false,
-            terms: false,
-        });
-        if (signinErr?.message == "Email is not verified. OTP has been sent to your email.") {
-            setFormData({
-                email: '',
-                password: '',
-            });
-            navigation.navigate('VerificationCodeScreen', { email: formData.email.toString() })
+      showToast(
+        "error",
+        signinErr?.message || "Something went wrong. Please try again."
+      );
+      // if (signinErr?.message == 'Your account is inactive. Please contact support.') {
 
-        } else {
-            // Alert.alert(signinErr.message);
-        }
-        dispatch(signinError(''));
+      // }
+      if (
+        signinErr?.message ==
+        "Your email has not been verified. An OTP has been sent to your registered email address."
+      ) {
+        navigation.navigate("OTPVerificationScreen", {
+          email: formData?.email,
+          type: "signup",
+          id: uid,
+        });
+        setFormData({
+          email: "",
+          password: "",
+          deviceToken: deviceToken || "abcd",
+        });
+      } else {
+      }
+      setUid(signinErr?.user?._id);
+      setErrors({
+        email: false,
+        password: false,
+        terms: false,
+      });
+      dispatch(signinError(""));
     }
 
-    if (
+    const handleSocialLoginSuccess = async () => {
+      if (
         socialLogin?.status === true ||
-        socialLogin?.status === 'true' ||
+        socialLogin?.status === "true" ||
         socialLogin?.status === 1 ||
         socialLogin?.status === "1"
-    ) {
-        console.log("socialLogin:+>", socialLogin);
-        setMsg(socialLogin?.message?.toString());
-        dispatch(setUser(socialLogin))
-        dispatch(socialLoginData(''));
-    }
+      ) {
+        //  setMsg(socialLogin?.message?.toString());
+        showToast(
+          "success",
+          socialLogin?.message || "Something went wrong. Please try again."
+        );
+        dispatch(setUser(socialLogin));
+        if (socialLogin?.token) {
+          storeUserToken(socialLogin?.token);
+        }
+        if (socialLogin?.user) {
+          storeUser(socialLogin?.user); 
+        }
+        if (socialLogin?.user?.id) {
+          storeUserId(socialLogin.user.id);
+        }
+        
+        // Store user status as logged in
+        await storeUserStatus('logged_in');
+        
+        // Role-based navigation
+        if (socialLogin?.user?.currentRole === 'user') {
+          navigation.navigate('HomeTabs' as never);
+        } else if (socialLogin?.user?.currentRole === 'host') {
+          navigation.navigate('HostTabs' as never);
+        } else {
+          // Default fallback to HomeTabs
+          navigation.navigate('HomeTabs' as never);
+        }
+        
+        dispatch(socialLoginData(""));
+      }
+    };
+
+    handleSocialLoginSuccess();
 
     if (socialLoginErr) {
-        console.log("signinErr:+>", socialLoginErr);
-        setMsg(socialLoginErr.message.toString())
-        dispatch(socialLoginError(''));
+      showToast(
+        "error",
+        socialLoginErr?.message || "Something went wrong. Please try again."
+      );
+      dispatch(socialLoginError(""));
     }
-}, [signin, signinErr, socialLogin, socialLoginErr]);
-
+  }, [signin, signinErr, socialLogin, socialLoginErr]);
 
   const handleGoogleSignIn = async () => {
     try {
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
-        console.log('User Info:', userInfo?.data?.user?.email);
-        console.log('User Info:', userInfo);
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
 
-        let obj = {
-            "email": userInfo?.data?.user?.email,
-            "socialId": userInfo?.data?.user?.id,
-            "loginType": "google",
-            "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-            "currentRole":"user",
-        }
-       
-        if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
-            dispatch(onSocialLogin(obj));
-        }
-        console.log("socialData+>>>>", socialData);
-        //Alert.alert('Success', 'You have successfully signed in with Google!');
-        // navigation.navigate('NameScreen')
+      let obj = {
+        email: userInfo?.data?.user?.email,
+        socialId: userInfo?.data?.user?.id,
+        loginType: "google",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        currentRole: "user",
+      };
+
+      if (userInfo?.data?.user?.email && userInfo?.data?.user?.id) {
+        dispatch(onSocialLogin(obj));
+      }
     } catch (error) {
-        console.error('Google Sign-In error:', error);
     }
-};
+  };
 
-const handleAppleSignIn = async () => {
+  const handleAppleSignIn = async () => {
     try {
-        console.log("Starting Apple Sign-In...");
-        
-        // Check if Apple Sign-In is available
-        const isAvailable = await appleAuth.isAvailable;
-        if (!isAvailable) {
-            Alert.alert("Error", "Apple Sign-In is not available on this device");
-            return;
-        }
+      const appleAuthRequestResponse = await appleAuth.performRequest({
+        requestedOperation: appleAuth.Operation.LOGIN,
+        requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+      });
 
-        const appleAuthRequestResponse = await appleAuth.performRequest({
-            requestedOperation: appleAuth.Operation.LOGIN,
-            requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
-        });
+      const {
+        identityToken,
+        email,
+        fullName: { givenName, familyName },
+      } = appleAuthRequestResponse;
+      const userId = appleAuthRequestResponse.user;
 
-        console.log("Apple Auth Response:", JSON.stringify(appleAuthRequestResponse, null, 2));
+      // Handle the obtained data as per your requirements
 
-        const {
-            identityToken,
-            email,
-            fullName,
-        } = appleAuthRequestResponse;
-        
-        const userId = appleAuthRequestResponse.user;
-        console.log("Apple User ID:", userId);
-        console.log("Apple Email:", email);
-        console.log("Apple Full Name:", fullName);
+      let obj = {
+        email: email == null ? "" : email,
+        socialId: userId,
+        loginType: "apple",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        currentRole: "user",
+      };
 
-        // Handle successful sign-in
-        if (identityToken) {
-            const fullNameStr = fullName ? 
-                `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : 
-                'Apple User';
+      if (userId) {
+        dispatch(onSocialLogin(obj));
 
-            let obj = {
-                "email": email || `apple_${userId}@privaterelay.appleid.com`,
-                "socialId": identityToken,
-                "loginType": "apple",
-                "timeZone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-                "currentRole": "user",
-                "name": fullNameStr,
-                "userId": userId
-            };
-
-            console.log("Apple Sign-In Object:", obj);
-            
-            // Dispatch the social login action
-            dispatch(onSocialLogin(obj));
-            
-            // Show success message
-            Alert.alert(
-                "Success", 
-                "Apple Sign-In successful!",
-                [{ text: "OK" }]
-            );
-            
-        } else {
-            console.error("No identity token received from Apple");
-            throw new Error("Apple Sign-In failed - no identity token returned");
-        }
-    } catch (error) {
-        console.error("Apple Sign-In Error:", error);
-        
-        // Handle specific Apple Sign-In errors
-        if (error.code === appleAuth.Error.CANCELED) {
-            console.log("Apple Sign-In was cancelled by user");
-            // Don't show alert for user cancellation - this is normal behavior
-            return;
-        } else if (error.code === appleAuth.Error.FAILED) {
-            console.error("Apple Sign-In failed");
-            Alert.alert("Error", "Apple Sign-In failed. Please try again.");
-        } else if (error.code === appleAuth.Error.INVALID_RESPONSE) {
-            console.error("Invalid response from Apple");
-            Alert.alert("Error", "Invalid response from Apple. Please try again.");
-        } else if (error.code === appleAuth.Error.NOT_HANDLED) {
-            console.error("Apple Sign-In not handled");
-            Alert.alert("Error", "Apple Sign-In not handled. Please try again.");
-        } else if (error.code === appleAuth.Error.UNKNOWN) {
-            console.error("Unknown Apple Sign-In error");
-            Alert.alert("Error", "Unknown error occurred during Apple Sign-In.");
-        } else {
-            console.error("Apple Sign-In error:", error.message);
-            Alert.alert("Error", `Apple Sign-In failed: ${error.message || 'Unknown error'}`);
-        }
+        // Show success message
+        // Alert.alert(
+        //   "Success",
+        //   "Apple Sign-In successful!",
+        //   [{ text: "OK" }]
+        // );
+      } else {
+        console.error("No identity token received from Apple");
+        throw new Error("Apple Sign-In failed - no identity token returned");
+      }
+    } catch (error: any) {
+      if (error.code === appleAuth.Error.CANCELED) {
+      } else {
+      }
     }
-};
-
+  };
 
   const handleRememberMe = () => {
     setRememberMe(!rememberMe);
@@ -362,8 +508,26 @@ const handleAppleSignIn = async () => {
     navigation?.navigate("ForgotPasswordScreen");
   };
 
+  const handleSkip = async () => {
+    try {
+      // Store skip status
+      await storeUserStatus('skipped');
+      
+      // Navigate to HomeTabs
+      navigation?.navigate("HomeTabs" as never);
+      
+      // Show toast message
+      showToast("info", "You can explore the app. Sign in to access all features!");
+    } catch (error) {
+      console.error("Error handling skip:", error);
+      showToast("error", "Something went wrong. Please try again.");
+    }
+  };
+
   return (
-    <View style={[styles.container, { paddingTop: Platform.OS === "ios" ? 0 : 0 }]}>
+    <View
+      style={[styles.container, { paddingTop: Platform.OS === "ios" ? 0 : 0 }]}
+    >
       <StatusBar
         barStyle="light-content"
         backgroundColor={Platform.OS === "ios" ? "transparent" : "transparent"}
@@ -379,21 +543,19 @@ const handleAppleSignIn = async () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
         >
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollViewContent}
-          >
+          
             <View style={styles.header}>
               <View style={styles.statusBar}>
                 <BackButton
                   navigation={navigation}
-                  onBackPress={() => navigation?.goBack()}
+                  onBackPress={() => navigation?.navigate("WelcomeScreen")}
                 />
-                <View style={styles.statusIcons}>
+                <TouchableOpacity
+                  onPress={handleSkip}
+                  style={styles.statusIcons}
+                >
                   <Text style={styles.skipText}>Skip</Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -402,8 +564,14 @@ const handleAppleSignIn = async () => {
               <Text style={styles.subtitle}>
                 Sign in to unlock your ultimate night out.
               </Text>
+              
             </View>
-
+            <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.scrollViewContent}
+          >
             <View style={styles.socialSection}>
               <TouchableOpacity
                 style={styles.socialButton}
@@ -418,21 +586,21 @@ const handleAppleSignIn = async () => {
                   </Text>
                 </View>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={handleAppleSignIn}
-              >
-                <View style={styles.socialButtonContent}>
-                  <View style={styles.appleIcons}>
-                    <AppleIcon />
+              {Platform.OS === "ios" && (
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={handleAppleSignIn}
+                >
+                  <View style={styles.socialButtonContent}>
+                    <View style={styles.appleIcons}>
+                      <AppleIcon />
+                    </View>
+                    <Text style={styles.socialButtonText}>
+                      Continue with Apple
+                    </Text>
                   </View>
-                  <Text style={styles.socialButtonText}>
-                    Continue with Apple
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
+                </TouchableOpacity>
+              )}
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>or</Text>
@@ -466,24 +634,56 @@ const handleAppleSignIn = async () => {
                   leftImage={<LockIcon />}
                   style={styles.customInput}
                 />
-                
+
                 {/* Password requirements hint */}
                 {formData.password && errors.password && (
                   <View style={styles.passwordRequirements}>
-                    <Text style={styles.requirementsTitle}>Password must contain:</Text>
-                    <Text style={[styles.requirement, formData.password.length >= 8 && formData.password.length <= 16 && styles.requirementMet]}>
+                    <Text style={styles.requirementsTitle}>
+                      Password must contain:
+                    </Text>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        formData.password.length >= 8 &&
+                          formData.password.length <= 16 &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • 8-16 characters
                     </Text>
-                    <Text style={[styles.requirement, /[A-Z]/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /[A-Z]/.test(formData.password) &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • At least one uppercase letter (A-Z)
                     </Text>
-                    <Text style={[styles.requirement, /[a-z]/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /[a-z]/.test(formData.password) &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • At least one lowercase letter (a-z)
                     </Text>
-                    <Text style={[styles.requirement, /\d/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /\d/.test(formData.password) && styles.requirementMet,
+                      ]}
+                    >
                       • At least one number (0-9)
                     </Text>
-                    <Text style={[styles.requirement, /[!@#$%^&*]/.test(formData.password) && styles.requirementMet]}>
+                    <Text
+                      style={[
+                        styles.requirement,
+                        /[!@#$%^&*]/.test(formData.password) &&
+                          styles.requirementMet,
+                      ]}
+                    >
                       • At least one special character (!@#$%^&*)
                     </Text>
                   </View>
@@ -522,7 +722,7 @@ const handleAppleSignIn = async () => {
                 isCap={false}
                 style={[
                   styles.signUpButton,
-                  !isFormValid && styles.disabledButton
+                  !isFormValid && styles.disabledButton,
                 ]}
                 disabled={!isFormValid}
               />
@@ -535,7 +735,7 @@ const handleAppleSignIn = async () => {
                 Don't have an account?{" "}
                 <Text
                   style={styles.loginLinkText}
-                  onPress={() => navigation?.navigate("signupScreen")}
+                  onPress={() => navigation?.navigate("SignupScreen")}
                 >
                   Register
                 </Text>
@@ -543,15 +743,42 @@ const handleAppleSignIn = async () => {
             </View>
           </View>
           <CustomAlertSingleBtn
-                            btn1Style={{ backgroundColor: colors.violate }}
-                            isVisible={msg != ''}
-                            message={msg}
-                            button2Text={'Ok'}
-                            onButton2Press={() => {
-                                setMsg('');
-                            }}
-                            title={'Curiouzz'}
-                        />
+            btn1Style={{ backgroundColor: colors.violate }}
+            isVisible={msg != ""}
+            message={msg}
+            button2Text={"Ok"}
+            onButton2Press={() => {
+              setMsg("");
+              if (
+                msg ==
+                "Your email has not been verified. An OTP has been sent to your registered email address."
+              ) {
+                navigation.navigate("OTPVerificationScreen", {
+                  email: formData?.email,
+                  type: "signup",
+                  id: uid,
+                });
+                setFormData({
+                  email: "",
+                  password: "",
+                  deviceToken: deviceToken || "abcd",
+                });
+              } else {
+              }
+            }}
+            title={"Curiouzz"}
+          />
+          
+          <CustomAlert
+            visible={showCustomAlert}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            primaryButtonText={alertConfig.primaryButtonText}
+            secondaryButtonText={alertConfig.secondaryButtonText}
+            onPrimaryPress={alertConfig.onPrimaryPress}
+            onSecondaryPress={alertConfig.onSecondaryPress}
+            onClose={() => setShowCustomAlert(false)}
+          />
         </KeyboardAvoidingView>
       </LinearGradient>
     </View>

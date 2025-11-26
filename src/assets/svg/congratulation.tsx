@@ -1,22 +1,20 @@
-
 import * as React from "react";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 const congratulation = (props: any) => (
   <Svg
-    width={165}
-    height={164}
-    viewBox="0 0 165 164"
+    width={94}
+    height={94}
+    viewBox="0 0 94 94"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <Circle opacity={0.1} cx={82.5} cy={82} r={82} fill="#8D34FF" />
     <Path
-      d="M82.9999 121.167C104.542 121.167 122.167 103.542 122.167 81.9999C122.167 60.4583 104.542 42.8333 82.9999 42.8333C61.4583 42.8333 43.8333 60.4583 43.8333 81.9999C43.8333 103.542 61.4583 121.167 82.9999 121.167Z"
+      d="M47.0002 86.1668C68.5418 86.1668 86.1668 68.5418 86.1668 47.0002C86.1668 25.4585 68.5418 7.8335 47.0002 7.8335C25.4585 7.8335 7.8335 25.4585 7.8335 47.0002C7.8335 68.5418 25.4585 86.1668 47.0002 86.1668Z"
       fill="#38C793"
     />
     <Path
-      d="M66.3542 81.9999L77.4384 93.0841L99.6459 70.9158"
+      d="M30.354 47.0002L41.4382 58.0844L63.6457 35.916"
       stroke="white"
       strokeWidth={8}
       strokeLinecap="round"

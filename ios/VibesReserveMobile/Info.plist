@@ -2,10 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.yourapp.refresh</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>VibesReserveMobile</string>
+	<string>Vibe Reserve</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -27,52 +31,28 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.233362513415-dlq70usscn8n825h5njp9osp4l6im5c7</string>
+				<string>com.googleusercontent.apps.668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
-	<key>RCTNewArchEnabled</key>
-	<true/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>PlusJakartaSans-Bold.ttf</string>
-		<string>PlusJakartaSans-Light.ttf</string>
-		<string>PlusJakartaSans-Medium.ttf</string>
-		<string>PlusJakartaSans-Regular.ttf</string>
-		<string>PlusJakartaSans-SemiBold.ttf</string>
-		<string>BlackerDisplayTrial-Bold.ttf</string>
-		<string>BlackerDisplayTrial-Light.ttf</string>
-		<string>BlackerDisplayTrial-Medium.ttf</string>
-		<string>BlackerDisplayTrial-Regular.ttf</string>
-	</array>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>arm64</string>
-	</array>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<true/>
+	<key>GCM_SENDER_ID</key>
+	<string>668464751409</string>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:668464751409:ios:b6431da367b3f2cd838610</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>telprompt</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
@@ -88,15 +68,89 @@
 				<string>TLSv1.2</string>
 				<key>NSIncludesSubdomains</key>
 				<true/>
+				<key>NSRequiresCertificateTransparency</key>
+				<true/>
 			</dict>
 			<key>maps.googleapis.com</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
+				<false/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
 				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSRequiresCertificateTransparency</key>
 				<true/>
 			</dict>
 		</dict>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Vibe Reserve needs access to your music library to enhance your media experience.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Vibe Reserve needs access to Bluetooth to connect with nearby devices and enhance app features.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Vibe Reserve needs access to your calendar to help schedule and manage events.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Vibe Reserve needs access to camera to take photos for your profile and documents</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Vibe Reserve needs access to your contacts to make it easier to connect and invite friends.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Vibe Reserve needs access to documents folder to select files for upload</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs, send location-based notifications, and provide enhanced features even when the app is in the background.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs when you're using the app.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Vibe Reserve needs access to the microphone to allow voice input and audio features.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Vibe Reserve uses motion data to improve activity tracking and user experience.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Vibe Reserve needs access to photo library to select images for your profile and documents</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Vibe Reserve needs access to speech recognition to convert your voice into text.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Vibe Reserve needs to send you notifications about events, bookings, and important updates.</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>PlusJakartaSans-Bold.ttf</string>
+		<string>PlusJakartaSans-Light.ttf</string>
+		<string>PlusJakartaSans-Medium.ttf</string>
+		<string>PlusJakartaSans-Regular.ttf</string>
+		<string>PlusJakartaSans-SemiBold.ttf</string>
+		<string>BlackerDisplayTrial-Bold.ttf</string>
+		<string>BlackerDisplayTrial-Light.ttf</string>
+		<string>BlackerDisplayTrial-Medium.ttf</string>
+		<string>BlackerDisplayTrial-Regular.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 </dict>
 </plist>

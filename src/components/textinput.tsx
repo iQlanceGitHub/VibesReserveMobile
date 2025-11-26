@@ -8,9 +8,12 @@ import {
   TouchableOpacity,
   PixelRatio,
   Platform,
+  TextInput as RNTextInput,
+  Modal,
+  Alert,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { HelperText, TextInput } from "react-native-paper";
-// import { parentStyles, textstyles } from "../../../utils/schema/commonStyles";
 
 import { shallowEqual } from "react-redux";
 import { colors } from "../utilis/colors";
@@ -18,12 +21,26 @@ import { keyboardType } from "../utilis/appConstant";
 import { fonts } from "../utilis/fonts";
 import EyeIcon from "../assets/svg/eyeIcon";
 import EyeClosedIcon from "../assets/svg/eyeClosedIcon";
-import CloseIcon from "../assets/svg/closeIcon";
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import ErrorIcon from "../assets/svg/errorIcon";
+import ArrowDownIcon from "../assets/svg/arrowDownIcon";
+import textinputStyles from "./textinputStyles";
 import {
-    appleAuth,
-    AppleButton,
-} from '@invertase/react-native-apple-authentication';
+  CountryItem,
+  CountryPicker,
+  countryCodes,
+} from "react-native-country-codes-picker";
+import {
+  CountryCode,
+  getExampleNumber,
+  parsePhoneNumberFromString,
+} from "libphonenumber-js";
+import examples from "libphonenumber-js/examples.mobile.json";
+import CloseIcon from "../assets/svg/closeIcon";
+
+const getCountryISOFromDialCode = (dialCode: string): string => {
+  const match = countryCodes.find((c) => c.dial_code === dialCode);
+  return match?.code || "US";
+};
 
 interface CustomTextInputProps {
   editable?: boolean;
@@ -66,18 +83,18 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
-            <Text style={{ color: "#868C98" }}> *</Text>
+            <Text style={{ color: "#868C98" }}> </Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -105,14 +122,22 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
           mode="outlined"
           maxLength={kType == keyboardType.email_address ? 80 : maxLength}
           multiline={multiline}
-          keyboardType={kType}
+          keyboardType={
+            kType === keyboardType.numeric || 
+            kType === keyboardType.number_pad || 
+            kType === "numeric" || 
+            kType === "number-pad"
+              ? (Platform.OS === "ios" ? "number-pad" : "numeric")
+              : kType === keyboardType.email_address || kType === "email-address"
+              ? "email-address"
+              : Platform.OS === "ios"
+              ? "ascii-capable"
+              : "visible-password"
+          }
           placeholder={
             kType == keyboardType.email_address
               ? "Enter your email"
               : placeholder
-          }
-          keyboardType={
-            Platform.OS === "ios" ? "ascii-capable" : "visible-password"
           }
           onChangeText={onChangeText}
           outlineColor={error == true ? colors.red : "#FFFFFF33"}
@@ -143,15 +168,6 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
               <TextInput.Icon icon={leftImage} color={colors.white} />
             ) : undefined
           }
-          // right={
-          //   rightImageShow == true && (
-          //     <TextInput.Icon
-          //       icon={images.ic_arrow_down}
-          //       size={15}
-          //       color={colors.darkGray} // Add this line to set the color
-          //     />
-          //   )
-          // }
         />
       </View>
       {error ? (
@@ -163,7 +179,7 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
           type="error"
           visible={error}
         >
-          {message !== "" ? `${message}` : `${label.replace(/\* ?/g, "")} field is required`}
+          {message !== "" ? `${message}` : `${label} field is required`}
         </HelperText>
       ) : null}
     </View>
@@ -200,7 +216,7 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
   onPressPhoneCode,
   phoneCode = "00",
 }) => {
-  const internalInputRef = useRef();
+  const internalInputRef = useRef<RNTextInput>(null);
   return (
     <View style={[style]}>
       <Text
@@ -211,18 +227,18 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View
@@ -249,20 +265,7 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
               marginTop: 20,
             }}
           >
-            <Text
-              // style={[textstyles.medium, { fontSize: 15 }]}
-              children={phoneCode}
-            />
-            {/* <Image
-              style={{
-                width: 12,
-                marginLeft: phoneCode.length > 4 ? 2 : 5,
-                resizeMode: "contain",
-                alignSelf: "center",
-                tintColor: colors.darkGray,
-              }}
-              source={images.ic_arrow_down}
-            /> */}
+            <Text children={phoneCode} />
           </View>
         </Pressable>
       </View>
@@ -271,9 +274,8 @@ export const CustomPhoneNumberInput: React.FC<CustomPhoneNumberInputProps> = ({
         ref={internalInputRef}
         mode="outlined"
         maxLength={12}
-        // error={props.error}
         value={value}
-        keyboardType={keyboardType.phone_pad}
+        keyboardType="phone-pad"
         placeholder={placeholder}
         onChangeText={(data) => {
           onChangeText(data.replace(/[^0-9]/g, ""));
@@ -357,18 +359,18 @@ export const CustomePasswordTextInput: React.FC<
           marginBottom: 8,
         }}
       >
-        {label.includes("(Optional)") ? (
+        {label && label.includes("(Optional)") ? (
           <>
             {label.replace(" (Optional)", "")}
             <Text style={{ color: "#868C98" }}> (Optional)</Text>
           </>
-        ) : label.includes("*") ? (
+        ) : label && label.includes("*") ? (
           <>
             {label.replace(" *", "")}
             <Text style={{ color: "#868C98" }}> *</Text>
           </>
         ) : (
-          label
+          label || ""
         )}
       </Text>
       <View style={{ position: "relative" }}>
@@ -443,6 +445,188 @@ export const CustomePasswordTextInput: React.FC<
             fontFamily: fonts.reguler,
             fontSize: 15,
           }}
+          //  right={secure ? <EyeIcon width={16} height={16} /> :  <EyeClosedIcon width={16} height={16} />}
+          left={
+            leftImage && typeof leftImage === "string" ? (
+              <TextInput.Icon
+                icon={leftImage}
+                onPress={() => console.log("")}
+                color={colors.white}
+              />
+            ) : undefined
+          }
+        />
+      </View>
+      {error ? (
+        <View style={textinputStyles.errorMessageContainer}>
+          <ErrorIcon width={16} height={16} />
+          <HelperText
+            style={textinputStyles.errorMessageText}
+            type="error"
+            visible={error}
+          >
+            {message != "" ? `${message}` : `${label} field is required`}
+          </HelperText>
+        </View>
+      ) : null}
+    </View>
+  );
+};
+interface CustomeSearchTextInputProps {
+  value: string;
+  kType?: KeyboardTypeOptions;
+  maxLength?: number;
+  multiline?: boolean;
+  error: boolean;
+  label: string;
+  placeholder: string;
+  onChangeText: (text: string) => void;
+  style: object;
+  message: string;
+  leftImage?: string | React.ReactNode;
+  rightIcon?: React.ReactNode; // Added rightIcon prop
+  secureTextEntry?: boolean; // Added secureTextEntry prop
+}
+
+export const CustomeSearchTextInput: React.FC<CustomeSearchTextInputProps> = ({
+  error,
+  label,
+  maxLength,
+  message,
+  multiline,
+  onChangeText,
+  placeholder,
+  style,
+  value,
+  kType = "default",
+  leftImage,
+  rightIcon,
+  secureTextEntry = false, // Default to false
+}) => {
+  const [secure, setSecure] = useState(secureTextEntry);
+
+  const onEyePress = () => {
+    setSecure(!secure);
+  };
+
+  const handleClearText = () => {
+    onChangeText(""); // Clear the text
+  };
+
+  return (
+    <View>
+      <Text
+        style={{
+          color: colors.white,
+          fontSize: 14,
+          fontFamily: fonts.medium,
+          marginBottom: 8,
+        }}
+      >
+        {label && label.includes("(Optional)") ? (
+          <>
+            {label.replace(" (Optional)", "")}
+            <Text style={{ color: "#868C98" }}> (Optional)</Text>
+          </>
+        ) : label && label.includes("*") ? (
+          <>
+            {label.replace(" *", "")}
+            <Text style={{ color: "#868C98" }}> *</Text>
+          </>
+        ) : (
+          label || ""
+        )}
+      </Text>
+      <View style={{ position: "relative" }}>
+        {leftImage && typeof leftImage !== "string" && (
+          <View
+            style={{
+              position: "absolute",
+              left: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {leftImage}
+          </View>
+        )}
+
+        {/* Clear button - only show when there's text and no custom rightIcon */}
+        {value && value.length > 0 && !rightIcon && (
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              right: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={handleClearText} // Use the clear function
+          >
+            <CloseIcon />
+          </TouchableOpacity>
+        )}
+
+        {/* Custom right icon */}
+        {rightIcon && (
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              right: 15,
+              top: 18,
+              zIndex: 1,
+              width: 20,
+              height: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={handleClearText} // Use the clear function
+          >
+            {rightIcon}
+          </TouchableOpacity>
+        )}
+
+        <TextInput
+          theme={{ colors: { text: colors.darkGray } }}
+          value={value}
+          mode="outlined"
+          maxLength={maxLength}
+          multiline={multiline}
+          keyboardType={kType}
+          placeholder={placeholder}
+          onChangeText={onChangeText}
+          outlineColor={error ? colors.red : "#FFFFFF33"}
+          activeOutlineColor={error ? colors.red : "#E2E4E9"}
+          cursorColor={colors.white}
+          secureTextEntry={secure} // Use the secure state
+          style={[
+            {
+              backgroundColor: "transparent",
+              fontFamily: fonts.reguler,
+              color: colors.white,
+              fontSize: 15,
+              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
+              paddingRight: (value && value.length > 0) || rightIcon ? 30 : 15, // Add right padding for icons
+            },
+            style,
+          ]}
+          placeholderTextColor={colors.textColor}
+          outlineStyle={{
+            borderRadius: 90,
+            borderWidth: error ? 1 : 1,
+          }}
+          contentStyle={{
+            color: colors.white,
+            fontFamily: fonts.reguler,
+            fontSize: 15,
+          }}
           left={
             leftImage && typeof leftImage === "string" ? (
               <TextInput.Icon
@@ -456,7 +640,7 @@ export const CustomePasswordTextInput: React.FC<
       </View>
       {error ? (
         <HelperText style={{ color: colors.red }} type="error" visible={error}>
-          {message != "" ? `${message}` : `${label} field is required`}
+          {message !== "" ? `${message}` : `${label} field is required`}
         </HelperText>
       ) : null}
     </View>
@@ -516,74 +700,443 @@ export const SearchBarTextInput: React.FC<SearchBarTextInputProps> = ({
   );
 };
 
-
-interface CustomeSearchTextInputProps {
+// New Phone Number Input Component with Country Code Picker
+interface PhoneNumberInputProps {
+  label?: string;
   value: string;
-  kType?: KeyboardTypeOptions;
-  maxLength?: number;
-  multiline?: boolean;
-  error: boolean;
-  label: string;
-  placeholder: string;
+  placeholder?: string;
   onChangeText: (text: string) => void;
-  style: object;
-  message: string;
-  leftImage: string | React.ReactNode;
+  onCountryCodeChange?: (code: string) => void;
+  error?: boolean;
+  message?: string;
+  style?: object;
+  phoneCode?: string;
+  phoneCodeFlag?: string;
+  onPressPhoneCode?: () => void;
+  validatePhone?: (isError: boolean) => void;
+  validationMode?: 'strict' | 'lenient';
 }
 
-export const CustomeSearchTextInput: React.FC<
-CustomeSearchTextInputProps
-> = ({
-  error,
+export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   label,
-  maxLength,
-  message,
-  multiline,
-  onChangeText,
-  placeholder,
-  style,
   value,
-  kType = "default",
-  leftImage,
+  placeholder = "Enter phone number",
+  onChangeText,
+  onCountryCodeChange,
+  error = false,
+  message = "",
+  style,
+  phoneCode = "+1",
+  phoneCodeFlag = "🇺🇸",
+  onPressPhoneCode,
+  validatePhone,
+  validationMode = 'strict',
 }) => {
-  const [secure, setSecure] = useState(true);
-  const onEyePress = () => {
-    setSecure(!secure);
+  const internalInputRef = useRef<RNTextInput>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [selectedCode, setSelectedCode] = useState(phoneCode);
+  const [selectedCodeFlag, setSelectedCodeFlag] = useState(phoneCodeFlag);
+  const [phoneError, setPhoneError] = useState("");
+  const [numberLength, setNumberLength] = useState(14);
+  const [pickerInitialState, setPickerInitialState] = useState("");
+
+  useEffect(() => {
+    const countryCode = countryCodes.find((c) => c.dial_code === phoneCode);
+    if (countryCode) {
+      setSelectedCode(countryCode.dial_code);
+      setSelectedCodeFlag(countryCode.flag);
+      onCountryCodeChange?.(countryCode.dial_code);
+    }
+    getNumberLength(countryCode?.dial_code);
+  }, [phoneCode]);
+
+  const getNumberLength = (code: any) => {
+    const countryISO = getCountryISOFromDialCode(code) as CountryCode;
+    if (countryISO) {
+      const exampleNumber = getExampleNumber(countryISO, examples);
+      if (exampleNumber) {
+        const nationalNumber = exampleNumber.nationalNumber.toString();
+        const maxLength = nationalNumber.length;
+        setNumberLength(maxLength);
+      }
+    }
   };
+
+  const handleCountrySelect = (country: CountryItem) => {
+    setSelectedCode(country.dial_code);
+    setSelectedCodeFlag(country.flag);
+    setShowPicker(false);
+    setPickerInitialState("");
+    onCountryCodeChange?.(country.dial_code);
+    getNumberLength(country.dial_code);
+  };
+
+  const validatePhoneNumber = (number: string, dialCode: string) => {
+    const digitsOnly = number.replace(/\D/g, "");
+    if (validationMode === 'lenient') {
+      // For lenient mode, consider valid if it matches the expected national length
+      return digitsOnly.length === numberLength;
+    }
+    const countryISO = getCountryISOFromDialCode(dialCode) as CountryCode;
+    if (!countryISO) return false;
+    const fullNumber = dialCode + digitsOnly;
+    const phoneObj = parsePhoneNumberFromString(fullNumber, countryISO);
+    return phoneObj?.isValid() || false;
+  };
+
+  const onPhoneChange = (text: string) => {
+    onChangeText(text);
+    const isValid = validatePhoneNumber(text, selectedCode);
+    if (!isValid) {
+      setPhoneError("Invalid phone number");
+      validatePhone?.(true);
+    } else {
+      setPhoneError("");
+      validatePhone?.(false);
+    }
+  };
+
   return (
-    <View>
-      <Text
+    <View style={[style]}>
+      {label && (
+        <Text
+          style={{
+            color: colors.white,
+            fontSize: 14,
+            fontFamily: fonts.medium,
+            marginBottom: 8,
+          }}
+        >
+          {label && label.includes("(Optional)") ? (
+            <>
+              {label.replace(" (Optional)", "")}
+              <Text style={{ color: "#868C98" }}> (Optional)</Text>
+            </>
+          ) : label && label.includes("*") ? (
+            <>
+              {label.replace(" *", "")}
+              <Text style={{ color: "#868C98" }}> *</Text>
+            </>
+          ) : (
+            label
+          )}
+        </Text>
+      )}
+
+      <View
         style={{
-          color: colors.white,
-          fontSize: 14,
-          fontFamily: fonts.medium,
-          marginBottom: 8,
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "transparent",
+          borderRadius: 90,
+          borderWidth: 1,
+          borderColor: error ? colors.red : "#FFFFFF33",
+          paddingHorizontal: 15,
+          paddingVertical: 15,
         }}
       >
-        {label.includes("(Optional)") ? (
-          <>
-            {label.replace(" (Optional)", "")}
-            <Text style={{ color: "#868C98" }}> (Optional)</Text>
-          </>
-        ) : label.includes("*") ? (
-          <>
-            {label.replace(" *", "")}
-            <Text style={{ color: "#868C98" }}> *</Text>
-          </>
-        ) : (
-          label
-        )}
-      </Text>
-      <View style={{ position: "relative" }}>
-        {leftImage && typeof leftImage !== "string" && (
+        {/* Country Code Picker */}
+        <TouchableOpacity
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginRight: 10,
+            paddingRight: 10,
+            borderRadius: 5,
+          }}
+          onPress={() => setShowPicker(true)}
+        >
+          <Text
+            style={{
+              color: colors.white,
+              fontSize: 16,
+              fontFamily: fonts.medium,
+              marginRight: 5,
+            }}
+          >
+            {selectedCodeFlag}
+          </Text>
+          <Text
+            style={{
+              color: colors.white,
+              fontSize: 16,
+              fontFamily: fonts.medium,
+              marginRight: 5,
+            }}
+          >
+            {selectedCode}
+          </Text>
+          <ArrowDownIcon width={12} height={12} color={colors.darkGray} />
+        </TouchableOpacity>
+
+        {/* Phone Number Input */}
+        <RNTextInput
+          ref={internalInputRef}
+          value={value}
+          placeholder={placeholder}
+          placeholderTextColor={colors.textColor}
+          onChangeText={onPhoneChange}
+          keyboardType="phone-pad"
+          maxLength={numberLength}
+          style={{
+            flex: 1,
+            color: colors.white,
+            fontSize: 16,
+            fontFamily: fonts.medium,
+            paddingVertical: 0,
+          }}
+        />
+      </View>
+      {(error && message) || phoneError ? (
+        <Text
+          style={{
+            color: colors.red,
+            fontSize: 12,
+            fontFamily: fonts.regular,
+            marginTop: 5,
+          }}
+        >
+          {message || phoneError}
+        </Text>
+      ) : null}
+
+      <CountryPicker
+        show={showPicker}
+        lang="en"
+        pickerButtonOnPress={handleCountrySelect}
+        onBackdropPress={() => {
+          setShowPicker(false);
+          setPickerInitialState("");
+        }}
+        initialState={pickerInitialState}
+        style={{
+          modal: {
+            height: Platform.OS === "ios" ? "70%" : "50%",
+          },
+          countryButtonStyles: {
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: "#ccc",
+          },
+          dialCode: {
+            color: "#000",
+            fontWeight: "bold",
+          },
+          countryName: {
+            color: "#333",
+            fontSize: 16,
+          },
+          searchMessageText: {
+            color: "gray",
+          },
+          textInput: {
+            backgroundColor: "#f0f0f0",
+            borderRadius: 8,
+            padding: 8,
+            color: "#000",
+          },
+          countryMessageContainer: {
+            padding: 16,
+          },
+        }}
+      />
+    </View>
+  );
+};
+
+// Date Picker Component for Date of Birth
+interface DatePickerInputProps {
+  label?: string;
+  value: string;
+  placeholder?: string;
+  onChangeText: (text: string) => void;
+  error?: boolean;
+  message?: string;
+  style?: object;
+  leftImage?: React.ReactNode;
+  allowFutureDates?: boolean; // New prop to allow future dates
+  maxDate?: Date; // New prop to set custom max date
+  minDate?: Date; // New prop to set custom min date
+  alwaysShowErrorBorder?: boolean; // When true, show red border even if value is blank
+}
+
+export const DatePickerInput: React.FC<DatePickerInputProps> = ({
+  label,
+  value,
+  placeholder = "Select your date of birth",
+  onChangeText,
+  error = false,
+  message = "",
+  style,
+  leftImage,
+  allowFutureDates = false, // Default to false for backward compatibility
+  maxDate: customMaxDate,
+  minDate: customMinDate,
+  alwaysShowErrorBorder = false,
+}) => {
+  const [showPicker, setShowPicker] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Parse the value prop to set the initial selectedDate
+  useEffect(() => {
+    if (value && value.trim()) {
+      try {
+        // Parse DD/MM/YYYY format
+        const [day, month, year] = value.split("/");
+        if (day && month && year) {
+          const parsedDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day)
+          );
+          if (!isNaN(parsedDate.getTime())) {
+            setSelectedDate(parsedDate);
+          }
+        }
+      } catch (error) {
+      }
+    }
+  }, [value]);
+
+  // Set date constraints based on props
+  const maxDate =
+    customMaxDate || (allowFutureDates ? new Date(2035, 11, 31) : new Date());
+  // No minimum date by default
+  const minDate = customMinDate ?? undefined;
+
+  const formatDate = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setShowPicker(false);
+    }
+
+    if (selectedDate) {
+      // Validate that the selected date is within the allowed range
+      if (selectedDate > maxDate) {
+        Alert.alert(
+          "Invalid Date",
+          allowFutureDates
+            ? "Please select a date within the allowed range."
+            : "Please select a date that is not in the future.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      // Validate that the selected date is not too old
+      if (minDate && selectedDate < minDate) {
+        Alert.alert(
+          "Invalid Date",
+          allowFutureDates
+            ? "Please select a valid date."
+            : "Please select a valid birth date.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      setSelectedDate(selectedDate);
+      const formattedDate = formatDate(selectedDate);
+      onChangeText(formattedDate);
+    }
+  };
+
+  const handlePress = () => {
+    if (Platform.OS === "ios") {
+      setShowModal(true);
+    } else {
+      setShowPicker(true);
+    }
+  };
+
+  const handleConfirm = () => {
+    // Validate that the selected date is within the allowed range
+    if (selectedDate > maxDate) {
+      Alert.alert(
+        "Invalid Date",
+        allowFutureDates
+          ? "Please select a date within the allowed range."
+          : "Please select a date that is not in the future.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // Validate that the selected date is not too old
+    if (minDate && selectedDate < minDate) {
+      Alert.alert(
+        "Invalid Date",
+        allowFutureDates
+          ? "Please select a valid date."
+          : "Please select a valid birth date.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    const formattedDate = formatDate(selectedDate);
+    onChangeText(formattedDate);
+    setShowModal(false);
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+  };
+
+  return (
+    <View style={[style]}>
+      {label && (
+        <Text
+          style={{
+            color: colors.white,
+            fontSize: 14,
+            fontFamily: fonts.medium,
+            marginBottom: 8,
+          }}
+        >
+          {label && label.includes("(Optional)") ? (
+            <>
+              {label.replace(" (Optional)", "")}
+              <Text style={{ color: "#868C98" }}> (Optional)</Text>
+            </>
+          ) : label && label.includes("*") ? (
+            <>
+              {label.replace(" *", "")}
+              <Text style={{ color: "#868C98" }}> *</Text>
+            </>
+          ) : (
+            label
+          )}
+        </Text>
+      )}
+
+      <TouchableOpacity
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "transparent",
+          borderRadius: 90,
+          borderWidth: 1,
+          borderColor:
+            (alwaysShowErrorBorder ? error : error && !!value)
+              ? colors.red
+              : "#FFFFFF33",
+          paddingHorizontal: 15,
+          paddingVertical: 15,
+        }}
+        onPress={handlePress}
+      >
+        {leftImage && (
           <View
             style={{
-              position: "absolute",
-              left: 15,
-              top: 18,
-              zIndex: 1,
-              width: 20,
-              height: 20,
+              marginRight: 10,
               justifyContent: "center",
               alignItems: "center",
             }}
@@ -591,77 +1144,129 @@ CustomeSearchTextInputProps
             {leftImage}
           </View>
         )}
-        {value && value.length > 0 && (
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              right: 15,
-              top: 18,
-              zIndex: 1,
-              width: 20,
-              height: 20,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={onEyePress}
-          >
-            {secure ? <CloseIcon /> : <CloseIcon />}
-          </TouchableOpacity>
-        )}
-        <TextInput
-          secureTextEntry={secure}
-          theme={{ colors: { text: colors.darkGray } }}
-          autoCorrect={false}
-          value={value}
-          mode="outlined"
-          maxLength={kType == keyboardType.email_address ? 80 : maxLength}
-          multiline={multiline}
-          keyboardType={kType}
-          placeholder={
-            kType == keyboardType.email_address
-              ? "Enter your email"
-              : placeholder
-          }
-          onChangeText={onChangeText}
-          outlineColor={error == true ? colors.red : "#FFFFFF33"}
-          activeOutlineColor={error == true ? colors.red : "#E2E4E9"}
-          cursorColor={colors.white}
-          style={[
-            {
-              backgroundColor: "transparent",
-              fontFamily: fonts.reguler,
-              color: colors.white,
-              fontSize: 15,
-              paddingLeft: leftImage && typeof leftImage !== "string" ? 30 : 15,
-            },
-            style,
-          ]}
-          placeholderTextColor={colors.textColor}
-          outlineStyle={{
-            borderRadius: 90,
-            borderWidth: error == true ? 1 : 1,
+
+        <Text
+          style={{
+            flex: 1,
+            color: value ? colors.white : colors.textColor,
+            fontSize: 16,
+            fontFamily: fonts.medium,
           }}
-          contentStyle={{
-            color: colors.white,
-            fontFamily: fonts.reguler,
-            fontSize: 15,
+        >
+          {value || placeholder}
+        </Text>
+      </TouchableOpacity>
+
+      {error && message && (
+        <Text
+          style={{
+            color: colors.red,
+            fontSize: 12,
+            fontFamily: fonts.regular,
+            marginTop: 5,
           }}
-          left={
-            leftImage && typeof leftImage === "string" ? (
-              <TextInput.Icon
-                icon={leftImage}
-                onPress={() => console.log("")}
-                color={colors.white}
-              />
-            ) : undefined
-          }
+        >
+          {message}
+        </Text>
+      )}
+
+      {/* Android Date Picker */}
+      {showPicker && Platform.OS === "android" && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+          maximumDate={maxDate} // Prevent future dates
+          minimumDate={minDate}
         />
-      </View>
-      {error ? (
-        <HelperText style={{ color: colors.red }} type="error" visible={error}>
-          {message != "" ? `${message}` : `${label} field is required`}
-        </HelperText>
-      ) : null}
+      )}
+
+      {/* iOS Modal Date Picker */}
+      {Platform.OS === "ios" && (
+        <Modal
+          visible={showModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={handleCancel}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              justifyContent: "flex-end",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "white",
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+                paddingHorizontal: 20,
+                paddingVertical: 20,
+                maxHeight: "50%",
+              }}
+            >
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 20,
+                }}
+              >
+                <TouchableOpacity onPress={handleCancel}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: "#007AFF",
+                      fontFamily: fonts.medium,
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontFamily: fonts.semiBold,
+                    color: "#000",
+                  }}
+                >
+                  Select Date
+                </Text>
+                <TouchableOpacity onPress={handleConfirm}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: "#007AFF",
+                      fontFamily: fonts.semiBold,
+                    }}
+                  >
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Date Picker */}
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="spinner"
+                onChange={(event, date) => {
+                  if (date) {
+                    setSelectedDate(date);
+                  }
+                }}
+                maximumDate={maxDate} // Prevent future dates
+                minimumDate={minDate}
+                style={{ backgroundColor: "white" }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 };

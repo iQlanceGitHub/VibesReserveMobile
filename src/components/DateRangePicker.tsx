@@ -1,0 +1,343 @@
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Dimensions } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
+import { colors } from "../utilis/colors";
+import ArrowLeft from "../assets/svg/ArrowLeft";
+import ArrowRight from "../assets/svg/ArrowRight";
+import { styles } from "./daterangepickerstyle";
+
+interface DateRangePickerProps {
+  onDateRangeSelect?: (startDate: Date | null, endDate: Date | null) => void;
+  initialStartDate?: Date;
+  initialEndDate?: Date;
+  startDate?: string;
+  endDate?: string;
+  bookedDates?: string[];
+  allowPastDates?: boolean;
+}
+
+const DateRangePicker: React.FC<DateRangePickerProps> = ({
+  onDateRangeSelect,
+  initialStartDate,
+  initialEndDate,
+  startDate,
+  endDate,
+  bookedDates = [],
+  allowPastDates = false,
+}) => {
+  // Initialize calendar to show the month of the selected start date
+  const defaultStartDate = initialStartDate;
+  const defaultEndDate = initialEndDate;
+  
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (defaultStartDate) {
+      return new Date(defaultStartDate.getFullYear(), defaultStartDate.getMonth(), 1);
+    }
+    return new Date(); // Current month as fallback
+  });
+
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(
+    defaultStartDate || null
+  );
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(
+    defaultEndDate || null
+  );
+
+  const screenWidth = Dimensions.get("window").width;
+  const calendarWidth = screenWidth - 40;
+  const dayWidth = calendarWidth / 7;
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+
+    return days;
+  };
+
+  const navigateMonth = (direction: "prev" | "next") => {
+    const newDate = new Date(currentDate);
+    if (direction === "prev") {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const isDateInRange = (date: Date) => {
+    if (!selectedStartDate || !selectedEndDate) return false;
+    return date >= selectedStartDate && date <= selectedEndDate;
+  };
+
+  const isDateSelected = (date: Date) => {
+    if (!selectedStartDate && !selectedEndDate) return false;
+    return (
+      (selectedStartDate && date.getTime() === selectedStartDate.getTime()) ||
+      (selectedEndDate && date.getTime() === selectedEndDate.getTime())
+    );
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    return dateOnly < todayDateOnly;
+  };
+
+  const isDateInAllowedRange = (date: Date) => {
+    if (!startDate || !endDate) return true;
+
+    const allowedStartDate = new Date(startDate);
+    const allowedEndDate = new Date(endDate);
+    const dateToCheck = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    const start = new Date(
+      allowedStartDate.getFullYear(),
+      allowedStartDate.getMonth(),
+      allowedStartDate.getDate()
+    );
+    const end = new Date(
+      allowedEndDate.getFullYear(),
+      allowedEndDate.getMonth(),
+      allowedEndDate.getDate()
+    );
+
+    return dateToCheck >= start && dateToCheck <= end;
+  };
+
+  // Check if date is booked
+  const isDateBooked = (date: Date) => {
+    if (!bookedDates || bookedDates.length === 0) return false;
+
+    const dateToCheck = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+    return bookedDates.some((bookedDateStr) => {
+      const bookedDate = new Date(bookedDateStr);
+      const bookedDateOnly = new Date(
+        bookedDate.getFullYear(),
+        bookedDate.getMonth(),
+        bookedDate.getDate()
+      );
+      return dateToCheck.getTime() === bookedDateOnly.getTime();
+    });
+  };
+
+  // Removed complex booked date range logic - now using simple individual round shapes
+
+  // Removed all complex booked date range functions - using simple individual round shapes
+
+  const isDateDisabled = (date: Date) => {
+    const pastDateCheck = allowPastDates ? false : isPastDate(date);
+    return !isDateInAllowedRange(date) || isDateBooked(date) || pastDateCheck;
+  };
+
+  const handleDatePress = (date: Date) => {
+    if (isDateDisabled(date)) {
+      return;
+    }
+
+    // Always ensure at least one date is selected
+    if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
+      // First selection or reset selection
+      setSelectedStartDate(date);
+      setSelectedEndDate(null);
+      
+      // Call onDateRangeSelect with single date (same as start and end)
+      if (onDateRangeSelect) {
+        onDateRangeSelect(date, date);
+      }
+    } else if (selectedStartDate && !selectedEndDate) {
+      // Second selection - set end date
+      if (date < selectedStartDate) {
+        setSelectedEndDate(selectedStartDate);
+        setSelectedStartDate(date);
+        
+        if (onDateRangeSelect) {
+          onDateRangeSelect(date, selectedStartDate);
+        }
+      } else if (date.getTime() === selectedStartDate.getTime()) {
+        // If clicking the same start date, keep it selected (don't deselect)
+        // This ensures we always have at least one date selected
+        return;
+      } else {
+        setSelectedEndDate(date);
+        
+        if (onDateRangeSelect) {
+          onDateRangeSelect(selectedStartDate, date);
+        }
+      }
+    }
+  };
+
+  const renderCalendar = () => {
+    const days = getDaysInMonth(currentDate);
+    const rows = [];
+
+    for (let i = 0; i < days.length; i += 7) {
+      const weekDays = days.slice(i, i + 7);
+      rows.push(weekDays);
+    }
+
+    return rows.map((week, weekIndex) => (
+      <View key={weekIndex} style={styles.weekRow}>
+        {week.map((day, dayIndex) => {
+          if (!day) {
+            return (
+              <View
+                key={dayIndex}
+                style={[styles.dayCell, styles.emptyCell]}
+              />
+            );
+          }
+
+          const isInRange = isDateInRange(day);
+          const isSelected = isDateSelected(day);
+          const isTodayDate = isToday(day);
+          const isStartDate =
+            selectedStartDate && day.getTime() === selectedStartDate.getTime();
+          const isEndDate =
+            selectedEndDate && day.getTime() === selectedEndDate.getTime();
+          const isSameDate = isStartDate && isEndDate;
+          const isFirstDateOnly = isStartDate && !selectedEndDate;
+          const isDisabled = isDateDisabled(day);
+          const isBooked = isDateBooked(day);
+
+          return (
+            <TouchableOpacity
+              key={dayIndex}
+              style={[
+                styles.dayCell,
+                isInRange && !isSelected && !isDisabled && styles.rangeDay,
+                isSelected && styles.selectedDay,
+                isTodayDate && !isSelected && !isDisabled && styles.todayDay,
+                isSameDate && styles.singleDateCapsule,
+                isFirstDateOnly && styles.singleDateCapsule,
+                isStartDate && !isSameDate && !isFirstDateOnly && styles.startDateCapsule,
+                isEndDate && !isSameDate && styles.endDateCapsule,
+                isInRange &&
+                  !isSelected &&
+                  !isStartDate &&
+                  !isEndDate &&
+                  !isDisabled &&
+                  styles.middleDateCapsule,
+                isDisabled && !isBooked,
+                // Booked date styling - individual round shapes for all booked dates
+                isBooked && styles.bookedDay,
+              ]}
+              onPress={() => handleDatePress(day)}
+              disabled={isDisabled}
+            >
+              <Text
+                style={[
+                  styles.dayText,
+                  isInRange &&
+                    !isSelected &&
+                    !isDisabled &&
+                    styles.rangeDayText,
+                  isSelected && styles.selectedDayText,
+                  isTodayDate &&
+                    !isSelected &&
+                    !isDisabled &&
+                    styles.todayDayText,
+                  isDisabled && !isBooked && styles.disabledDayText,
+                  isBooked && styles.bookedDayText,
+                ]}
+              >
+                {day.getDate()}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    ));
+  };
+
+  return (
+    <LinearGradient
+      colors={["#1F0045", "#120128"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
+      <View style={styles.header}>
+        <Text style={styles.monthYearText}>
+          {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+        </Text>
+        <View style={styles.navigationButtons}>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => navigateMonth("prev")}
+          >
+            <ArrowLeft width={22} height={22} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => navigateMonth("next")}
+          >
+            <ArrowRight width={22} height={22} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.daysOfWeekContainer}>
+        {daysOfWeek.map((day, index) => (
+          <Text key={index} style={styles.dayOfWeekText}>
+            {day}
+          </Text>
+        ))}
+      </View>
+
+      <View style={styles.calendarContainer}>{renderCalendar()}</View>
+    </LinearGradient>
+  );
+};
+
+export default DateRangePicker;

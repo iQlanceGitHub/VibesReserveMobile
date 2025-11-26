@@ -80,6 +80,30 @@ export default StyleSheet.create({
     letterSpacing: 0,
     opacity: 0.8,
   },
+  tokenContainer: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: horizontalScale(8),
+    padding: horizontalScale(12),
+    marginTop: verticalScale(16),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  tokenLabel: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.SemiBold,
+    fontWeight: "600",
+    color: colors.white,
+    marginBottom: verticalScale(4),
+    opacity: 0.9,
+  },
+  tokenText: {
+    fontSize: fontScale(10),
+    fontFamily: fonts.Regular,
+    fontWeight: "400",
+    color: colors.white,
+    lineHeight: fontScale(14),
+    opacity: 0.8,
+  },
   socialSection: {
     paddingHorizontal: horizontalScale(20),
     marginBottom: verticalScale(15),
@@ -97,6 +121,8 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.lightGray,
     alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
   socialButtonContent: {
     flexDirection: "row",
@@ -258,7 +284,7 @@ export default StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.primary_blue,
+    backgroundColor: '#120128',
   },
   signUpButton: {
     marginBottom: verticalScale(60),
