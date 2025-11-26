@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: verticalScale(20),
+    marginTop: verticalScale(60),
   },
   profileSection: {
     backgroundColor: colors.profileCardBackground,
@@ -219,6 +220,16 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: colors.white,
     marginTop: verticalScale(10),
+  },
+  blockedHostsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  blockedHostsCount: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.medium,
+    color: colors.white,
   },
 });
 

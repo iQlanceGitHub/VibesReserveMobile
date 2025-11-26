@@ -263,6 +263,28 @@ export default StyleSheet.create({
     paddingHorizontal: horizontalScale(20),
     paddingBottom: verticalScale(10),
   },
+  termsContainer: {
+    marginBottom: verticalScale(20),
+    paddingHorizontal: horizontalScale(10),
+  },
+  termsText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.Regular,
+    fontWeight: "400",
+    color: colors.white,
+    lineHeight: fontScale(18),
+    letterSpacing: 0,
+    textAlign: "center",
+  },
+  termsLink: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.Medium,
+    fontWeight: "500",
+    color: colors.violate,
+    lineHeight: fontScale(18),
+    letterSpacing: 0,
+    textDecorationLine: "underline",
+  },
   signUpButton: {
     marginBottom: verticalScale(20),
   },

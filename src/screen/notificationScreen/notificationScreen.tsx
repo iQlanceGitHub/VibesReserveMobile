@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../utilis/colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -58,6 +59,13 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   useEffect(() => {
     loadNotifications();
   }, []);
+
+  // Focus effect to refresh notifications when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadNotifications();
+    }, [])
+  );
 
   // Update notifications when Redux state changes
   useEffect(() => {

@@ -29,8 +29,14 @@ import {
   getConversationError,
   onStartLongPolling,
   onStopLongPolling,
+  onCreateHelpSupport,
 } from "../../../../redux/auth/actions";
 import { longPollingService } from "../../../../services/longPollingService";
+import FlagContentModal from "../../../../components/FlagContentModal";
+import BlockUserModal from "../../../../components/BlockUserModal";
+import UnblockUserModal from "../../../../components/UnblockUserModal";
+import ModerationService from "../../../../services/moderationService";
+import { useModeration } from "../../../../contexts/ModerationContext";
 
 interface Message {
   _id: string;
@@ -69,6 +75,15 @@ const ChatScreen = () => {
   const sendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastMessageCountRef = useRef<number>(0);
   const lastMessageIdRef = useRef<string>("");
+
+  // Moderation state
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  
+  // Moderation context
+  const { isUserBlocked, unblockUser } = useModeration();
 
   // Redux state
   const conversation = useSelector((state: any) => state.auth.conversation) || [];
@@ -226,14 +241,14 @@ const ChatScreen = () => {
         sendTimeoutRef.current = null;
       }
       
-      Alert.alert("Error", sendMessageErr);
+     // Alert.alert("Error", sendMessageErr);
     }
   }, [sendMessageErr]);
 
   // Handle conversation error
   useEffect(() => {
     if (conversationErr) {
-      Alert.alert("Error", conversationErr);
+     // Alert.alert("Error", conversationErr);
     }
   }, [conversationErr]);
 
@@ -356,16 +371,128 @@ const ChatScreen = () => {
     return sender === currentUserId;
   };
 
+  // Moderation functions
+  const handleFlagMessage = (message: Message) => {
+    setSelectedMessage(message);
+    setShowFlagModal(true);
+  };
+
+  const handleBlockUser = () => {
+    setShowBlockModal(true);
+  };
+
+  const handleSubmitFlag = async (reason: string, details: string) => {
+    if (!selectedMessage) return;
+    
+    try {
+      const moderationService = ModerationService.getInstance();
+      await moderationService.reportContent(
+        'message',
+        selectedMessage._id,
+        reason,
+        details,
+        currentUserId
+      );
+      
+      Alert.alert(
+        'Report Submitted',
+        'Thank you for your report. We will review this content within 24 hours.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
+    }
+  };
+
+  const handleSubmitBlock = async () => {
+    try {
+      const moderationService = ModerationService.getInstance();
+      const blockedUser = await moderationService.blockUser(
+        otherUserId,
+        currentUserId,
+        'User blocked from chat',
+        otherUserName,
+        otherUserProfilePicture
+      );
+      
+      // Automatically call help support API with blocked user information
+      try {
+        const blockedUsersData = [{
+          userId: blockedUser.userId,
+          userName: blockedUser.userName || 'Unknown User',
+          blockedBy: blockedUser.blockedBy,
+          reason: blockedUser.reason,
+          timestamp: blockedUser.timestamp,
+          status: blockedUser.status
+        }];
+
+        // Get current user profile data for the API call
+        const userProfile = await AsyncStorage.getItem('user');
+        const userData = userProfile ? JSON.parse(userProfile) : null;
+        
+        if (userData) {
+          dispatch(
+            onCreateHelpSupport({
+              fullName: userData.fullName || userData.name || 'User',
+              email: userData.email || '',
+              description: `User blocked: ${otherUserName} (ID: ${otherUserId})`,
+              blockedUsers: blockedUsersData,
+              userType: 'user'
+            })
+          );
+        }
+      } catch (helpSupportError) {
+        console.error('Failed to send help support notification:', helpSupportError);
+        // Don't show error to user as blocking was successful
+      }
+      
+      setShowBlockModal(false); // Close the modal first
+      Alert.alert(
+        'User Blocked',
+        `${otherUserName} has been blocked successfully.`,
+        [{ text: 'OK', onPress: () => navigation?.goBack() }]
+      );
+    } catch (error) {
+      console.error('Failed to block user:', error);
+      Alert.alert('Error', 'Failed to block user. Please try again.');
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    try {
+      await unblockUser(otherUserId, currentUserId);
+      setShowUnblockModal(false); // Close the modal first
+      Alert.alert(
+        'User Unblocked',
+        `${otherUserName} has been unblocked successfully.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Failed to unblock user:', error);
+      Alert.alert('Error', 'Failed to unblock user. Please try again.');
+    }
+  };
+
   // Render message item
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isUser = isCurrentUser(item.senderId);
+    const senderId = typeof item.senderId === "string" ? item.senderId : item.senderId?._id;
+    const isBlockedSender = senderId && isUserBlocked(senderId);
+    
+    // Don't render messages from blocked users (except current user's own messages)
+    if (isBlockedSender && !isUser) {
+      return null;
+    }
     
     return (
-      <View
+      <TouchableOpacity
         style={[
           styles.messageContainer,
           isUser ? styles.userMessageContainer : styles.otherMessageContainer,
         ]}
+        onLongPress={() => !isUser && !isBlockedSender && handleFlagMessage(item)}
+        activeOpacity={0.7}
       >
         <View
           style={[
@@ -391,7 +518,7 @@ const ChatScreen = () => {
             {item.isRead ? "" : ". Read"}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -417,7 +544,20 @@ const ChatScreen = () => {
             <Text style={styles.headerStatus}>Online</Text>
           </View>
         </View>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={[
+            styles.blockButton,
+            isUserBlocked(otherUserId) && styles.unblockButton
+          ]}
+          onPress={isUserBlocked(otherUserId) ? () => setShowUnblockModal(true) : handleBlockUser}
+        >
+          <Text style={[
+            styles.blockButtonText,
+            isUserBlocked(otherUserId) && styles.unblockButtonText
+          ]}>
+            {isUserBlocked(otherUserId) ? 'Unblock' : 'Block'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Messages List */}
@@ -474,6 +614,34 @@ const ChatScreen = () => {
           />
         </TouchableOpacity>
       </View>
+
+      {/* Moderation Modals */}
+      <FlagContentModal
+        visible={showFlagModal}
+        onClose={() => {
+          setShowFlagModal(false);
+          setSelectedMessage(null);
+        }}
+        onSubmit={handleSubmitFlag}
+        contentType="message"
+        contentId={selectedMessage?._id || ""}
+      />
+
+      <BlockUserModal
+        visible={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        onBlock={handleSubmitBlock}
+        userName={otherUserName}
+        userId={otherUserId}
+      />
+
+      <UnblockUserModal
+        visible={showUnblockModal}
+        onClose={() => setShowUnblockModal(false)}
+        onUnblock={handleUnblockUser}
+        userName={otherUserName}
+        userId={otherUserId}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -520,6 +688,23 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
+  },
+  blockButton: {
+    backgroundColor: '#FF4444',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+  },
+  blockButtonText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  unblockButton: {
+    backgroundColor: '#4CAF50',
+  },
+  unblockButtonText: {
+    color: colors.white,
   },
   messagesContainer: {
     flexGrow: 1,

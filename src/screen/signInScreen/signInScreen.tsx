@@ -124,30 +124,38 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const handleInputChange = (field: string, value: string) => {
     // Convert email to lowercase
     const processedValue = field === "email" ? value.toLowerCase() : value;
-    setFormData((prev) => ({ ...prev, [field]: processedValue }));
+    
+    // Update form data first
+    setFormData((prev) => {
+      const newFormData = { ...prev, [field]: processedValue };
+      
+      // Validate field in real-time
+      if (field === "email") {
+        const isValid = validateEmail(processedValue);
+        setErrors((prevErrors) => ({ ...prevErrors, email: !isValid }));
+        setErrorMessages((prevMessages) => ({
+          ...prevMessages,
+          email: processedValue && !isValid ? "Please enter a valid email address" : "",
+        }));
+      }
 
-    // Validate field in real-time
-    if (field === "email") {
-      const isValid = validateEmail(processedValue);
-      setErrors((prev) => ({ ...prev, email: !isValid }));
-      setErrorMessages((prev) => ({
-        ...prev,
-        email: processedValue && !isValid ? "Please enter a valid email address" : "",
-      }));
-    }
+      if (field === "password") {
+        const isValid = validatePassword(processedValue);
+        setErrors((prevErrors) => ({ ...prevErrors, password: !isValid }));
+        setErrorMessages((prevMessages) => ({
+          ...prevMessages,
+          password:
+            processedValue && !isValid ? "Password must meet all requirements" : "",
+        }));
+      }
 
-    if (field === "password") {
-      const isValid = validatePassword(processedValue);
-      setErrors((prev) => ({ ...prev, password: !isValid }));
-      setErrorMessages((prev) => ({
-        ...prev,
-        password:
-          processedValue && !isValid ? "Password must meet all requirements" : "",
-      }));
-    }
-
-    // Validate entire form
-    validateForm();
+      // Validate entire form with updated data
+      const emailValid = field === "email" ? validateEmail(processedValue) : validateEmail(newFormData.email);
+      const passwordValid = field === "password" ? validatePassword(processedValue) : validatePassword(newFormData.password);
+      setIsFormValid(emailValid && passwordValid);
+      
+      return newFormData;
+    });
   };
 
   const handleSignIn = () => {
@@ -392,6 +400,9 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
         dispatch(setUser(socialLogin));
         if (socialLogin?.token) {
           storeUserToken(socialLogin?.token);
+        }
+        if (socialLogin?.user) {
+          storeUser(socialLogin?.user); 
         }
         if (socialLogin?.user?.id) {
           storeUserId(socialLogin.user.id);

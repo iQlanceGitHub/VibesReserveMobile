@@ -1,4 +1,4 @@
-package com.vibesreservemobile
+package com.app.VibesReserveMobile
 
 import android.os.Build
 import android.os.Bundle

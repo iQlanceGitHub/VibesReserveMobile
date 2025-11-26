@@ -35,7 +35,12 @@ import {
   onGetProfileDetail,
   getProfileDetailData,
   getProfileDetailError,
+  onResendEmail,
+  resendEmailData,
+  resendEmailError,
 } from "../../../../redux/auth/actions";
+import { useCategory } from "../../../../hooks/useCategory";
+import { useFacility } from "../../../../hooks/useFacility";
 
 interface HostHomeScreenProps {
   navigation?: any;
@@ -58,6 +63,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   // Custom Alert states
   const [showInactiveAlert, setShowInactiveAlert] = useState(false);
   const [showProfileUpdateAlert, setShowProfileUpdateAlert] = useState(false);
+  const [showStripeAlert, setShowStripeAlert] = useState(false);
 
   // Get safe area insets for Android 15 compatibility
   const insets = useSafeAreaInsets();
@@ -71,10 +77,18 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const acceptrejectErr = useSelector(
     (state: any) => state.auth.acceptrejectErr
   );
-  const getProfileDetail = useSelector((state: any) => state.auth.getProfileDetail);
+  const getProfileDetail = useSelector(
+    (state: any) => state.auth.getProfileDetail
+  );
   const getProfileDetailErr = useSelector(
     (state: any) => state.auth.getProfileDetailErr
   );
+  const resendEmail = useSelector((state: any) => state.auth.resendEmail);
+  const resendEmailErr = useSelector((state: any) => state.auth.resendEmailErr);
+
+  // Category and Facility hooks
+  const { fetchCategories } = useCategory();
+  const { fetchFacilities } = useFacility();
 
   const handleAccept = (requestId: string) => {
     setSelectedRequestId(requestId);
@@ -134,9 +148,9 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   const handleAddPress = () => {
     // Check if profile is inactive
 
-
     // Check if business profile is not updated
-    const needsProfileUpdate = (profileDetail && profileDetail.businesspofileUpdate === "No") ||
+    const needsProfileUpdate =
+      (profileDetail && profileDetail.businesspofileUpdate === "No") ||
       (!profileDetail && userData && userData.businesspofileUpdate === "No");
 
     if (needsProfileUpdate) {
@@ -144,13 +158,26 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       return;
     }
 
-    const isInactive = (profileDetail && profileDetail.status === "inactive") ||
+    const isInactive =
+      (profileDetail && profileDetail.status === "inactive") ||
       (!profileDetail && userData && userData.status === "inactive");
 
     if (isInactive) {
       setShowInactiveAlert(true);
       return;
     }
+
+   
+    // Restrict creation if Stripe account not onboarded
+    // Check if stripeOnboard is not equal to "Yes" or "yes" (handles both cases)
+    const stripeOnboardValue = profileDetail?.stripeOnboard || userData?.stripeOnboard;
+    const isStripeOnboarded = stripeOnboardValue?.toLowerCase() === "yes";
+    const stripeNotOnboarded = !isStripeOnboarded;
+
+    // if (stripeNotOnboarded) {
+    //   setShowStripeAlert(true);
+    //   return;
+    // }
 
     // If all checks pass, navigate to add event screen
     navigation?.navigate("AddClubEventDetailScreen");
@@ -193,6 +220,8 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     navigation?.navigate("HostEditProfileScreen");
   };
 
+  const handleStripeAlertClose = () => setShowStripeAlert(false);
+
   const fetchBookingRequests = (page: number = 1) => {
     setLoading(true);
     setCurrentPage(page);
@@ -226,9 +255,32 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
   // Transform API data to match RequestCard format
   const transformBookingData = (apiData: any[]) => {
     return apiData.map((item) => {
-      // Format date
-      const startDate = new Date(item.eventId.startDate);
-      const endDate = new Date(item.bookingEndDate);
+      // Check if eventId exists and has required properties
+      if (!item.eventId) {
+        console.warn("EventId is null or undefined for item:", item._id);
+        return {
+          id: item._id,
+          _id: item._id,
+          name: item.userId?.fullName || "Unknown User",
+          category: "Event Not Available",
+          location: "Location Not Available",
+          date: "Date Not Available",
+          time: "Time Not Available",
+          people: `${item.members || 0} Person${
+            (item.members || 0) > 1 ? "s" : ""
+          }`,
+          price: `$${(item.totalAmount || 0).toFixed(2)}`,
+          originalData: item,
+        };
+      }
+
+      // Format date with null checks
+      const startDate = item.eventId.startDate
+        ? new Date(item.eventId.startDate)
+        : new Date();
+      const endDate = item.bookingEndDate
+        ? new Date(item.bookingEndDate)
+        : new Date();
       const formattedDate = `${startDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -249,18 +301,20 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       };
       const formattedTime = formatTime(item.eventId.openingTime);
 
-      // Format price
-      const formattedPrice = `$${item.totalAmount.toFixed(2)}`;
+      // Format price with null check
+      const formattedPrice = `$${(item.totalAmount || 0).toFixed(2)}`;
 
       return {
         id: item._id,
         _id: item._id,
-        name: item.userId.fullName,
-        category: item.eventId.name,
-        location: item.eventId.address,
+        name: item.userId?.fullName || "Unknown User",
+        category: item.eventId.name || "Event Not Available",
+        location: item.eventId.address || "Location Not Available",
         date: formattedDate,
         time: formattedTime,
-        people: `${item.members} Person${item.members > 1 ? "s" : ""}`,
+        people: `${item.members || 0} Person${
+          (item.members || 0) > 1 ? "s" : ""
+        }`,
         price: formattedPrice,
         // Additional data from API
         originalData: item,
@@ -326,7 +380,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       showToast(
         "error",
         acceptrejectErr?.message ||
-        "Failed to process request. Please try again."
+          "Failed to process request. Please try again."
       );
       dispatch(acceptrejectError(""));
     }
@@ -341,7 +395,10 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       getProfileDetail?.status === "1"
     ) {
       console.log("Profile detail response:", getProfileDetail);
-      console.log("Business profile update status:", getProfileDetail?.data?.businesspofileUpdate);
+      console.log(
+        "Business profile update status:",
+        getProfileDetail?.data?.businesspofileUpdate
+      );
       console.log("User status:", getProfileDetail?.data?.status);
       setProfileDetail(getProfileDetail?.data);
       dispatch(getProfileDetailData(""));
@@ -354,6 +411,21 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     }
   }, [getProfileDetail, getProfileDetailErr, dispatch]);
 
+  // Handle resend email response
+  useEffect(() => {
+    if (resendEmail) {
+      showToast(
+        "success",
+        "Please check your email for stripe verification link. Please click on the link & create your stripe account."
+      );
+      dispatch(resendEmailData(""));
+    }
+    if (resendEmailErr) {
+      showToast("error", "Failed to request Stripe verification email");
+      dispatch(resendEmailError(""));
+    }
+  }, [resendEmail, resendEmailErr, dispatch]);
+
   useEffect(() => {
     getUser();
     fetchProfileDetail();
@@ -365,6 +437,9 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
     useCallback(() => {
       // Fetch data when screen comes into focus
       console.log("Screen focused - refreshing profile details");
+      // Fetch categories and facilities when screen comes into focus
+      fetchCategories();
+      fetchFacilities();
       fetchProfileDetail();
       fetchBookingRequests(1);
 
@@ -372,7 +447,7 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
       return () => {
         clearBookingData();
       };
-    }, [])
+    }, [fetchCategories, fetchFacilities])
   );
 
   // Keyboard event listeners with more stable handling
@@ -433,37 +508,52 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         ]}
       >
         <View style={styles.safeArea}>
-          <Header userName={UserName} onAddPress={handleAddPress} onNotificationPress={handleNotificationPress} />
+          <Header
+            userName={UserName}
+            onAddPress={handleAddPress}
+            onNotificationPress={handleNotificationPress}
+          />
 
           {/* Business Profile Completion Container - Show when businesspofileUpdate is "No" (Priority 1) */}
-          {((profileDetail && profileDetail.businesspofileUpdate === "No") || 
-            (!profileDetail && userData && userData.businesspofileUpdate === "No")) && (
+          {((profileDetail && profileDetail.businesspofileUpdate === "No") ||
+            (!profileDetail &&
+              userData &&
+              userData.businesspofileUpdate === "No")) && (
             <View style={styles.businessProfileContainer}>
               <View style={styles.businessProfileContent}>
                 <Text style={styles.businessProfileTitle}>
-                Please complete your business profile to gain access to the Host section.
+                  Please complete your business profile to gain access to the
+                  Host section.
                 </Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.completeProfileButton}
                   onPress={() => {
                     // Navigate to profile completion screen
                     navigation?.navigate("HostEditProfileScreen");
                   }}
                 >
-                  <Text style={styles.completeProfileButtonText}>Complete Profile</Text>
+                  <Text style={styles.completeProfileButtonText}>
+                    Complete Profile
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
 
           {/* Profile Under Review Container - Show when status is inactive AND businesspofileUpdate is "Yes" (Priority 2) */}
-          {((profileDetail && profileDetail.status === "inactive" && profileDetail.businesspofileUpdate === "Yes") || 
-            (!profileDetail && userData && userData.status === "inactive" && userData.businesspofileUpdate === "Yes")) && (
+          {((profileDetail &&
+            profileDetail.status === "inactive" &&
+            profileDetail.businesspofileUpdate === "Yes") ||
+            (!profileDetail &&
+              userData &&
+              userData.status === "inactive" &&
+              userData.businesspofileUpdate === "Yes")) && (
             <View style={styles.businessProfileContainer}>
               <View style={styles.businessProfileContent}>
                 <Text style={styles.businessProfileTitle}>
-                Thank you for updating your profile. Your profile is currently under review. You will be able to access the Host section once it has been approved by the admin.
-
+                  Thank you for updating your profile. Your profile is currently
+                  under review. You will be able to access the Host section once
+                  it has been approved by the admin.
                 </Text>
               </View>
             </View>
@@ -472,49 +562,49 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
           {/* Only show main content if profile is active */}
           {((profileDetail && profileDetail.status === "active") ||
             (!profileDetail && userData && userData.status === "active")) && (
-              <View style={styles.contentContainer}>
-                <Text style={styles.sectionTitle}>View Request</Text>
+            <View style={styles.contentContainer}>
+              <Text style={styles.sectionTitle}>View Request</Text>
 
-                <ScrollView
-                  style={styles.scrollView}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.scrollContent}
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={onRefresh}
-                      colors={[colors.violate]} // Android
-                      tintColor={colors.violate} // iOS
-                      title="Pull to refresh"
-                      titleColor={colors.white}
+              <ScrollView
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[colors.violate]} // Android
+                    tintColor={colors.violate} // iOS
+                    title="Pull to refresh"
+                    titleColor={colors.white}
+                  />
+                }
+              >
+                {loading ? (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>Loading requests...</Text>
+                  </View>
+                ) : requests.length > 0 ? (
+                  requests.map((request, index) => (
+                    <RequestCard
+                      key={request._id || request.id}
+                      request={request}
+                      onAccept={() => handleAccept(request._id || request.id)}
+                      onReject={() => handleReject(request._id || request.id)}
+                      isLastItem={index === requests.length - 1}
                     />
-                  }
-                >
-                  {loading ? (
-                    <View style={styles.emptyContainer}>
-                      <Text style={styles.emptyText}>Loading requests...</Text>
-                    </View>
-                  ) : requests.length > 0 ? (
-                    requests.map((request, index) => (
-                      <RequestCard
-                        key={request._id || request.id}
-                        request={request}
-                        onAccept={() => handleAccept(request._id || request.id)}
-                        onReject={() => handleReject(request._id || request.id)}
-                        isLastItem={index === requests.length - 1}
-                      />
-                    ))
-                  ) : (
-                    <View style={styles.emptyContainer}>
-                      <Text style={styles.emptyText}>No pending requests</Text>
-                      <Text style={styles.emptySubtext}>
-                        New booking requests will appear here
-                      </Text>
-                    </View>
-                  )}
-                </ScrollView>
-              </View>
-            )}
+                  ))
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No pending requests</Text>
+                    <Text style={styles.emptySubtext}>
+                      New booking requests will appear here
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          )}
         </View>
       </LinearGradient>
 
@@ -639,6 +729,21 @@ const HostHomeScreen: React.FC<HostHomeScreenProps> = ({ navigation }) => {
         secondaryButtonText="Cancel"
         onPrimaryPress={handleUpdateProfilePress}
         onSecondaryPress={handleProfileUpdateAlertClose}
+        showSecondaryButton={true}
+      />
+
+      {/* Stripe Onboarding Restriction Alert */}
+      <CustomAlert
+        visible={showStripeAlert}
+        title="Stripe Onboarding Required"
+        message="You need to complete your Stripe account setup before creating events."
+        primaryButtonText="Resend Email"
+        secondaryButtonText="Cancel"
+        onPrimaryPress={() => {
+          setShowStripeAlert(false);
+          dispatch(onResendEmail());
+        }}
+        onSecondaryPress={handleStripeAlertClose}
         showSecondaryButton={true}
       />
     </View>

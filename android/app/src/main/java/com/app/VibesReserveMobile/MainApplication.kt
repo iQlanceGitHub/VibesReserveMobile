@@ -1,4 +1,4 @@
-package com.vibesreservemobile
+package com.app.VibesReserveMobile
 
 import android.app.Application
 import com.facebook.react.PackageList

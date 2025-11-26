@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,12 @@ import {
   ScrollView,
   Image,
   Alert,
+  Share,
+  Linking,
+  Platform,
+  Animated,
 } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./clubProfileStyle";
@@ -14,14 +19,25 @@ import { colors } from "../../../../../utilis/colors";
 import { BackButton } from "../../../../../components/BackButton";
 import LocationFavourite from "../../../../../assets/svg/locationFavourite";
 import ArrowRightIcon from "../../../../../assets/svg/arrowRightIcon";
+import ArrowLeft from "../../../../../assets/svg/ArrowLeft";
+import ArrowRight from "../../../../../assets/svg/ArrowRight";
 import MessageIcon from "../../../../../assets/svg/messageIcon";
 import PhoneIcon from "../../../../../assets/svg/phoneIcon";
 import EditIcon from "../../../../../assets/svg/editIcon";
+import ShareIcon from "../../../../../assets/svg/shareIcon";
+import BlockUserModal from "../../../../../components/BlockUserModal";
+import UnblockUserModal from "../../../../../components/UnblockUserModal";
+import ModerationService from "../../../../../services/moderationService";
 import {
   onHostProfile,
   hostProfileData,
   hostProfileError,
+  onCreateHelpSupport,
 } from "../../../../../redux/auth/actions";
+import { useModeration } from "../../../../../contexts/ModerationContext";
+import { horizontalScale, verticalScale } from "../../../../../utilis/appConstant";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import TableCard from "./components/TableCard";
 
 const clubProfileData = {
   id: "1",
@@ -43,6 +59,7 @@ const ClubProfileScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
+  const { isUserBlocked, unblockUser, getBlockedUserInfo } = useModeration();
   const { clubId, hostData, eventsData } = route.params as {
     clubId: string;
     hostData?: any;
@@ -52,12 +69,329 @@ const ClubProfileScreen = () => {
   const [activeTab, setActiveTab] = useState("Club");
   const [hostProfile, setHostProfile] = useState<any>(null);
   const [hostEvents, setHostEvents] = useState<any[]>([]);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
+
+  // Scroll indicators state
+  const [showLeftIndicator, setShowLeftIndicator] = useState(false);
+  const [showRightIndicator, setShowRightIndicator] = useState(true);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const leftIndicatorOpacity = useRef(new Animated.Value(0)).current;
+  const rightIndicatorOpacity = useRef(new Animated.Value(1)).current;
+  const leftArrowOpacity = useRef(new Animated.Value(0)).current;
+  const rightArrowOpacity = useRef(new Animated.Value(1)).current;
+  const leftArrowTranslateX = useRef(new Animated.Value(0)).current;
+  const rightArrowTranslateX = useRef(new Animated.Value(0)).current;
 
   // Redux state
   const hostProfileRedux = useSelector((state: any) => state.auth.hostProfile);
   const hostProfileErr = useSelector((state: any) => state.auth.hostProfileErr);
 
-  const tabs = ["Club", "Booth", "Event", "VIP Entry"];
+  const tabs = ["Club", "Booth", "Event", "VIP Entry", "Table"];
+
+  // Animate right indicator and arrow to pulse when scrollable
+  useEffect(() => {
+    if (showRightIndicator) {
+      // Pulse animation for gradient
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(rightIndicatorOpacity, {
+            toValue: 0.5,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(rightIndicatorOpacity, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      
+      // Bounce animation for arrow (slide right and back)
+      const arrowBounceAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(rightArrowTranslateX, {
+            toValue: 5,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(rightArrowTranslateX, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      
+      const timer = setTimeout(() => {
+        pulseAnimation.start();
+        arrowBounceAnimation.start();
+      }, 500);
+      
+      return () => {
+        clearTimeout(timer);
+        pulseAnimation.stop();
+        arrowBounceAnimation.stop();
+      };
+    }
+  }, [showRightIndicator]);
+
+  // Animate left arrow when visible
+  useEffect(() => {
+    if (showLeftIndicator) {
+      const arrowBounceAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(leftArrowTranslateX, {
+            toValue: -5,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(leftArrowTranslateX, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      
+      arrowBounceAnimation.start();
+      
+      return () => {
+        arrowBounceAnimation.stop();
+      };
+    }
+  }, [showLeftIndicator]);
+
+  // Block/Unblock handlers
+  const handleBlockUser = async () => {
+    try {
+      const moderationService = ModerationService.getInstance();
+      const currentUserId = "current_user_id"; // You might need to get this from Redux or props
+      
+      const blockedUser = await moderationService.blockUser(
+        hostProfile?._id || clubId,
+        currentUserId,
+        'User blocked from club profile',
+        hostProfile?.businessName || hostProfile?.fullName,
+        hostProfile?.businessPicture || hostProfile?.profilePicture
+      );
+      
+      // Automatically call help support API with blocked user information
+      try {
+        const blockedUsersData = [{
+          userId: blockedUser.userId,
+          userName: blockedUser.userName || 'Unknown User',
+          blockedBy: blockedUser.blockedBy,
+          reason: blockedUser.reason,
+          timestamp: blockedUser.timestamp,
+          status: blockedUser.status
+        }];
+
+        // Get current user profile data for the API call
+        const userProfile = await AsyncStorage.getItem('user');
+        const userData = userProfile ? JSON.parse(userProfile) : null;
+        
+        if (userData) {
+          dispatch(
+            onCreateHelpSupport({
+              fullName: userData.fullName || userData.name || 'User',
+              email: userData.email || '',
+              description: `Host blocked: ${hostProfile?.businessName || hostProfile?.fullName || 'Unknown Host'} (ID: ${hostProfile?._id || clubId})`,
+              blockedUsers: blockedUsersData,
+              userType: 'user'
+            })
+          );
+        }
+      } catch (helpSupportError) {
+        console.error('Failed to send help support notification:', helpSupportError);
+        // Don't show error to user as blocking was successful
+      }
+      
+      setShowBlockModal(false);
+      Alert.alert(
+        'User Blocked',
+        `${hostProfile?.businessName || hostProfile?.fullName || 'This host'} has been blocked successfully.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Failed to block user:', error);
+      Alert.alert('Error', 'Failed to block user. Please try again.');
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    try {
+      const currentUserId = "current_user_id"; // You might need to get this from Redux or props
+      
+      await unblockUser(hostProfile?._id || clubId, currentUserId);
+      setShowUnblockModal(false);
+      Alert.alert(
+        'User Unblocked',
+        `${hostProfile?.businessName || hostProfile?.fullName || 'This host'} has been unblocked successfully.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Failed to unblock user:', error);
+      Alert.alert('Error', 'Failed to unblock user. Please try again.');
+    }
+  };
+
+  const handleShare = async () => {
+    if (!hostProfile) {
+      Alert.alert('Error', 'Club details not available');
+      return;
+    }
+
+    const clubName = hostProfile?.businessName || hostProfile?.fullName || 'Amazing Club';
+    const clubAddress = hostProfile?.address || 'Great Location';
+    const clubDescription = hostProfile?.businessDescription || 'Experience the best nightlife';
+
+    // Create trendy share content
+    const shareMessage = `🎉 Check out ${clubName}! 🎉
+
+📍 ${clubAddress}
+
+${clubDescription}
+
+#Nightlife #Party #VibesReserve #Fun #Entertainment
+
+Download VibesReserve app to discover more amazing venues! 🚀
+Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id6754464237`;
+
+    try {
+      const result = await Share.share({
+        message: shareMessage,
+        title: `Discover ${clubName} on VibesReserve`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log('Content shared successfully');
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      Alert.alert('Error', 'Failed to share content');
+    }
+  };
+
+  const handlePhoneCall = async () => {
+    if (!hostProfile) {
+      Alert.alert('Error', 'Club details not available');
+      return;
+    }
+
+    // Try different possible phone number fields
+    const phoneNumber = 
+      hostProfile?.phone ||
+      hostProfile?.phoneNumber ||
+      hostProfile?.mobileNumber ||
+      hostProfile?.contactNumber ||
+      hostProfile?.businessPhone ||
+      hostProfile?.userId?.phoneNumber ||
+      hostProfile?.userId?.phone;
+
+    if (!phoneNumber) {
+      Alert.alert(
+        'Phone Number Not Available',
+        'Phone number is not available for this club. Please contact them through messaging or other available means.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // Get country code
+    const countryCode = 
+      hostProfile?.countrycode ||
+      hostProfile?.countryCode ||
+      hostProfile?.phoneCode ||
+      hostProfile?.userId?.countrycode ||
+      hostProfile?.userId?.countryCode ||
+      '';
+
+    // Format country code - ensure it starts with + and remove any non-digit characters except +
+    let formattedCountryCode = countryCode ? countryCode.replace(/[^\d+]/g, '') : '';
+    if (formattedCountryCode && !formattedCountryCode.startsWith('+')) {
+      formattedCountryCode = '+' + formattedCountryCode;
+    }
+
+    // Format phone number - remove any non-digit characters
+    const cleanedPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+
+    // Combine country code and phone number
+    let fullPhoneNumber = cleanedPhoneNumber;
+    if (formattedCountryCode) {
+      // Combine country code with phone number
+      fullPhoneNumber = formattedCountryCode + cleanedPhoneNumber;
+    } else if (!cleanedPhoneNumber.startsWith('+')) {
+      // If no country code and phone doesn't start with +, use as is
+      fullPhoneNumber = cleanedPhoneNumber;
+    }
+
+    // Create tel: URL
+    const phoneUrl = `tel:${fullPhoneNumber}`;
+    // For iOS, also try telprompt: as it might work better in some cases
+    const phoneUrlPrompt = Platform.OS === 'ios' ? `telprompt:${fullPhoneNumber}` : null;
+
+    console.log('Attempting to call:', phoneUrl);
+
+    try {
+      // Try to open the phone URL directly
+      // On iOS, canOpenURL can be unreliable for tel: URLs even when they work
+      // Note: iOS Simulator will show a warning but won't actually make calls
+      await Linking.openURL(phoneUrl);
+      
+      // If we reach here, the URL was opened successfully
+      // On iOS Simulator, this will still log a warning but won't throw an error
+      console.log('Phone URL opened successfully');
+    } catch (primaryError) {
+      console.log('Primary tel: URL failed, trying alternative...', primaryError);
+      
+      // On iOS, try telprompt: as fallback
+      if (phoneUrlPrompt && Platform.OS === 'ios') {
+        try {
+          console.log('Trying telprompt:', phoneUrlPrompt);
+          await Linking.openURL(phoneUrlPrompt);
+        } catch (promptError) {
+          console.error('Both tel: and telprompt: failed:', promptError);
+          Alert.alert(
+            'Cannot Make Call',
+            'Unable to open phone dialer. Please try dialing the number manually, or contact the club through messaging.',
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        // For Android or if telprompt is not available, show error
+        console.error('Error opening phone URL:', primaryError);
+        const errorMessage = (primaryError as any)?.message || 'Unknown error';
+        
+        if (errorMessage.includes('Unable to open')) {
+          Alert.alert(
+            'Cannot Make Call',
+            'Unable to open phone dialer. Please make sure your device supports phone calls and try again.',
+            [{ text: 'OK' }]
+          );
+        } else {
+          Alert.alert(
+            'Error',
+            'Failed to initiate phone call. Please try again or use messaging instead.',
+            [{ text: 'OK' }]
+          );
+        }
+      }
+    }
+  };
+
+  // Simple 3-dot menu component
+  const ThreeDotMenu = () => (
+    <View style={styles.threeDotMenu}>
+      <View style={styles.dot} />
+      <View style={styles.dot} />
+      <View style={styles.dot} />
+    </View>
+  );
 
   // Log the received data
   useEffect(() => {
@@ -89,9 +423,23 @@ const ClubProfileScreen = () => {
       );
       console.log("Host data:", hostProfileRedux?.host);
       console.log("Events data:", hostProfileRedux?.events);
+      console.log("Data array:", hostProfileRedux?.data);
 
-      setHostProfile(hostProfileRedux?.host);
-      setHostEvents(hostProfileRedux?.events || []);
+      // Set host profile data (support both old and new structure)
+      setHostProfile(hostProfileRedux?.host || hostProfileRedux?.hostData || null);
+
+      // Extract events from dynamic API response structure
+      // New structure: events in data array
+      // Old structure: events in events property
+      const eventsData = 
+        hostProfileRedux?.data || // New dynamic structure
+        hostProfileRedux?.events || // Old structure
+        [];
+
+      console.log("Extracted events:", eventsData);
+      console.log("Number of events:", eventsData.length);
+      
+      setHostEvents(eventsData);
 
       dispatch(hostProfileData(""));
     }
@@ -129,6 +477,14 @@ const ClubProfileScreen = () => {
           { text: "Go Back", onPress: () => navigation.goBack() },
         ]
       );
+      return;
+    }
+
+    // For Table type events, navigate to ClubDetailScreen to show floor plan
+    if (event.type === "Table") {
+      (navigation as any).navigate("ClubDetailScreen", {
+        clubId: event._id || event.id,
+      });
       return;
     }
 
@@ -419,6 +775,31 @@ const ClubProfileScreen = () => {
     );
   };
 
+  const renderTableContent = () => {
+    // Get only Table type events from dynamic API data
+    const tableEvents = hostEvents.filter((event) => event.type === "Table");
+
+    return (
+      <View style={styles.tabContent}>
+        <Text style={styles.sectionTitle}>
+          Table Events ({tableEvents.length})
+        </Text>
+
+        {tableEvents.length > 0 ? (
+          tableEvents.map((table, index) => (
+            <TableCard
+              key={table._id || index}
+              table={table}
+              onPress={() => handleNextPress(table)}
+            />
+          ))
+        ) : (
+          <Text style={styles.noDataText}>No table events available</Text>
+        )}
+      </View>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "Club":
@@ -429,6 +810,8 @@ const ClubProfileScreen = () => {
         return renderEventTicketsContent();
       case "VIP Entry":
         return renderVipContent();
+      case "Table":
+        return renderTableContent();
       default:
         return renderClubContent();
     }
@@ -439,7 +822,27 @@ const ClubProfileScreen = () => {
       <View style={styles.header}>
         <BackButton navigation={navigation} />
         <Text style={styles.headerTitle}>Profile</Text>
-        <View style={styles.headerSpacer} />
+        <View style={styles.headerRightButtons}>
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={handleShare}
+          >
+            <ShareIcon size={20} color={colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => {
+              const hostId = hostProfile?._id || clubId;
+              if (isUserBlocked(hostId)) {
+                setShowUnblockModal(true);
+              } else {
+                setShowBlockModal(true);
+              }
+            }}
+          >
+            <ThreeDotMenu />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.profileCardContainer}>
@@ -503,19 +906,188 @@ const ClubProfileScreen = () => {
             >
               <MessageIcon width={20} height={20} color={colors.violate} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handlePhoneCall}
+            >
               <PhoneIcon width={20} height={20} color={colors.violate} />
             </TouchableOpacity>
           </View>
       </View>
 
-      <View style={styles.tabsContainer}>{tabs.map(renderTabButton)}</View>
+       {/* Blocked User Indicator */}
+       {hostProfile && hostProfile._id && isUserBlocked(hostProfile._id) && (
+       <> <View style={styles.blockedUserIndicator}>
+          <Text style={styles.blockedUserText}>
+          ⚠️ You’ve previously blocked this host. We recommend contacting support before proceeding with your booking.
+          </Text>
+          
+        </View><View style={{marginBottom: verticalScale(10)}}></View>
+        </>
+      )}
+
+      <View style={styles.tabsWrapper}>
+        {/* Left gradient indicator */}
+        {showLeftIndicator && (
+          <Animated.View
+            style={[
+              styles.scrollIndicator,
+              styles.leftIndicator,
+              { opacity: leftIndicatorOpacity },
+            ]}
+            pointerEvents="none"
+          >
+            <LinearGradient
+              colors={[colors.cardBackground, 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientIndicator}
+            />
+            {/* Left arrow with animation */}
+            <Animated.View
+              style={[
+                styles.arrowContainer,
+                styles.leftArrowContainer,
+                {
+                  opacity: leftArrowOpacity,
+                  transform: [{ translateX: leftArrowTranslateX }],
+                },
+              ]}
+            >
+              <ArrowRightIcon transform={[{ rotate: '180deg' }]} width={20} height={20} color={colors.white} />
+            </Animated.View>
+          </Animated.View>
+        )}
+        
+        {/* Right gradient indicator */}
+        {showRightIndicator && (
+          <Animated.View
+            style={[
+              styles.scrollIndicator,
+              styles.rightIndicator,
+              { opacity: rightIndicatorOpacity },
+            ]}
+            pointerEvents="none"
+          >
+            <LinearGradient
+              colors={['transparent', colors.cardBackground]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientIndicator}
+            />
+            {/* Right arrow with animation */}
+            <Animated.View
+              style={[
+                styles.arrowContainer,
+                styles.rightArrowContainer,
+                {
+                  opacity: rightArrowOpacity,
+                  transform: [{ translateX: rightArrowTranslateX }],
+                },
+              ]}
+            >
+              <ArrowRightIcon width={16} height={16} color={colors.white} />
+            </Animated.View>
+          </Animated.View>
+        )}
+        
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsScrollContainer}
+          contentContainerStyle={styles.tabsContainer}
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            const scrollX = contentOffset.x;
+            const maxScrollX = contentSize.width - layoutMeasurement.width;
+            
+            // Show/hide left indicator
+            const shouldShowLeft = scrollX > 10;
+            if (shouldShowLeft !== showLeftIndicator) {
+              setShowLeftIndicator(shouldShowLeft);
+              Animated.parallel([
+                Animated.timing(leftIndicatorOpacity, {
+                  toValue: shouldShowLeft ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(leftArrowOpacity, {
+                  toValue: shouldShowLeft ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+              ]).start();
+            }
+            
+            // Show/hide right indicator
+            const shouldShowRight = scrollX < maxScrollX - 10;
+            if (shouldShowRight !== showRightIndicator) {
+              setShowRightIndicator(shouldShowRight);
+              Animated.parallel([
+                Animated.timing(rightIndicatorOpacity, {
+                  toValue: shouldShowRight ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(rightArrowOpacity, {
+                  toValue: shouldShowRight ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+              ]).start();
+            }
+          }}
+          onLayout={(event) => {
+            const { width } = event.nativeEvent.layout;
+            setContainerWidth(width);
+          }}
+          onContentSizeChange={(contentWidth) => {
+            const needsScroll = contentWidth > containerWidth;
+            if (needsScroll !== showRightIndicator && containerWidth > 0) {
+              setShowRightIndicator(needsScroll);
+              Animated.parallel([
+                Animated.timing(rightIndicatorOpacity, {
+                  toValue: needsScroll ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(rightArrowOpacity, {
+                  toValue: needsScroll ? 1 : 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }),
+              ]).start();
+            }
+          }}
+          scrollEventThrottle={16}
+        >
+          {tabs.map(renderTabButton)}
+        </ScrollView>
+      </View>
       <ScrollView
         style={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
         {renderTabContent()}
       </ScrollView>
+
+      {/* Block/Unblock Modals */}
+      <BlockUserModal
+        visible={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        onBlock={handleBlockUser}
+        userName={hostProfile?.businessName || hostProfile?.fullName || 'this host'}
+        userId={hostProfile?._id || clubId}
+      />
+
+      <UnblockUserModal
+        visible={showUnblockModal}
+        onClose={() => setShowUnblockModal(false)}
+        onUnblock={handleUnblockUser}
+        userName={hostProfile?.businessName || hostProfile?.fullName || 'this host'}
+        userId={hostProfile?._id || clubId}
+      />
     </View>
   );
 };

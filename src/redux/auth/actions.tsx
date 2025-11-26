@@ -58,6 +58,18 @@ export const {
   logoutData,
   logoutError,
 
+  onDeleteAccount,
+  deleteAccountData,
+  deleteAccountError,
+
+  onGetCmsContent,
+  getCmsContentData,
+  getCmsContentError,
+
+  onResendEmail,
+  resendEmailData,
+  resendEmailError,
+
   onGetDynamicContent,
   getDynamicContentData,
   getDynamicContentError,
@@ -242,6 +254,10 @@ export const {
   onSwitchRole,
   switchRoleData,
   switchRoleError,
+
+  onNearbyHostViewAll,
+  nearbyHostViewAllData,
+  nearbyHostViewAllError,
 } = createActions(
   "CLEAR_AUTH_STORE",
 
@@ -299,6 +315,19 @@ export const {
   "ON_LOGOUT",
   "LOGOUT_DATA",
   "LOGOUT_ERROR",
+
+
+  'ON_DELETE_ACCOUNT',
+  'DELETE_ACCOUNT_DATA',
+  'DELETE_ACCOUNT_ERROR',
+
+  'ON_GET_CMS_CONTENT',
+  'GET_CMS_CONTENT_DATA',
+  'GET_CMS_CONTENT_ERROR',
+
+  'ON_RESEND_EMAIL',
+  'RESEND_EMAIL_DATA',
+  'RESEND_EMAIL_ERROR',
 
   "ON_GET_DYNAMIC_CONTENT",
   "GET_DYNAMIC_CONTENT_DATA",
@@ -494,5 +523,10 @@ export const {
   // Switch Role Action Types
   "ON_SWITCH_ROLE",
   "SWITCH_ROLE_DATA",
-  "SWITCH_ROLE_ERROR"
+  "SWITCH_ROLE_ERROR",
+
+  // Nearby Host View All Action Types
+  "ON_NEARBY_HOST_VIEW_ALL",
+  "NEARBY_HOST_VIEW_ALL_DATA",
+  "NEARBY_HOST_VIEW_ALL_ERROR"
 );

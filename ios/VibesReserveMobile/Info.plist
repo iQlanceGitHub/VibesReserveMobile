@@ -2,10 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.yourapp.refresh</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>VibesReserveMobile</string>
+	<string>Vibe Reserve</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -27,7 +31,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m</string>
+				<string>com.googleusercontent.apps.668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3</string>
 			</array>
 		</dict>
 	</array>
@@ -38,9 +42,14 @@
 	<key>FirebaseMessagingAutoInitEnabled</key>
 	<true/>
 	<key>GCM_SENDER_ID</key>
-	<string>581614872749</string>
+	<string>668464751409</string>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:581614872749:ios:46fdc180306c2023effe24</string>
+	<string>1:668464751409:ios:b6431da367b3f2cd838610</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>telprompt</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
@@ -76,39 +85,31 @@
 		</dict>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>This app needs access to your music library to enhance your media experience.</string>
+	<string>Vibe Reserve needs access to your music library to enhance your media experience.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>This app needs access to Bluetooth to connect with nearby devices and enhance app features.</string>
+	<string>Vibe Reserve needs access to Bluetooth to connect with nearby devices and enhance app features.</string>
 	<key>NSCalendarsUsageDescription</key>
-	<string>This app needs access to your calendar to help schedule and manage events.</string>
+	<string>Vibe Reserve needs access to your calendar to help schedule and manage events.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to camera to take photos for your profile and documents</string>
+	<string>Vibe Reserve needs access to camera to take photos for your profile and documents</string>
 	<key>NSContactsUsageDescription</key>
-	<string>This app needs access to your contacts to make it easier to connect and invite friends.</string>
+	<string>Vibe Reserve needs access to your contacts to make it easier to connect and invite friends.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>This app needs access to documents folder to select files for upload</string>
+	<string>Vibe Reserve needs access to documents folder to select files for upload</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs access to your location even when in the background to provide location-based features.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to your location even when in the background to provide location-based features.</string>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs, send location-based notifications, and provide enhanced features even when the app is in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to find nearby events and provide better service.</string>
+	<string>Vibe Reserve needs access to your location to find nearby events and clubs when you're using the app.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs access to the microphone to allow voice input and audio features.</string>
+	<string>Vibe Reserve needs access to the microphone to allow voice input and audio features.</string>
 	<key>NSMotionUsageDescription</key>
-	<string>This app uses motion data to improve activity tracking and user experience.</string>
+	<string>Vibe Reserve uses motion data to improve activity tracking and user experience.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to photo library to select images for your profile and documents</string>
+	<string>Vibe Reserve needs access to photo library to select images for your profile and documents</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app needs access to speech recognition to convert your voice into text.</string>
+	<string>Vibe Reserve needs access to speech recognition to convert your voice into text.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>This app needs to send you notifications about events, bookings, and important updates.</string>
-  
-  <key>BGTaskSchedulerPermittedIdentifiers</key>
-  <array>
-      <string>com.yourapp.refresh</string>
-  </array>
-  
+	<string>Vibe Reserve needs to send you notifications about events, bookings, and important updates.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIAppFonts</key>
@@ -125,7 +126,6 @@
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>location</string>
 		<string>remote-notification</string>
 		<string>fetch</string>
 		<string>processing</string>

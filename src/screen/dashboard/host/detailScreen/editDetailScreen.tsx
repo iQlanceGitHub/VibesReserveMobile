@@ -148,6 +148,8 @@ const EditDetailScreen = () => {
   const [discountPrice, setDiscountPrice] = useState("");
   const [eventCapacity, setEventCapacity] = useState("");
   const [address, setAddress] = useState("");
+  const [floorLayout, setFloorLayout] = useState(""); // Store image URL for floor layout
+  const [tableNumber, setTableNumber] = useState(""); // Table number for Table type
   const [coordinates, setCoordinates] = useState({
     type: "Point",
     coordinates: [0, 0],
@@ -170,7 +172,7 @@ const EditDetailScreen = () => {
   const [loading, setLoading] = useState(false);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [currentImageType, setCurrentImageType] = useState<"main" | "booth" | "event">("main");
+  const [currentImageType, setCurrentImageType] = useState<"main" | "booth" | "event" | "floorLayout">("main");
   const [currentBoothIndex, setCurrentBoothIndex] = useState(0);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
@@ -188,6 +190,8 @@ const EditDetailScreen = () => {
     address: false,
     startDate: false,
     endDate: false,
+    floorLayout: false,
+    tableNumber: false,
   });
 
   // Types for dropdown
@@ -196,6 +200,7 @@ const EditDetailScreen = () => {
     { id: "2", name: "Booth" },
     { id: "3", name: "Event" },
     { id: "4", name: "VIP Entry" },
+    { id: "5", name: "Table" },
   ];
 
   // Convert categories to booth types format
@@ -216,15 +221,10 @@ const EditDetailScreen = () => {
   // Disable swipe-back gesture on iOS
   useFocusEffect(
     React.useCallback(() => {
+      // Keep gestures disabled
       navigation.setOptions({
         gestureEnabled: false,
       });
-
-      return () => {
-        navigation.setOptions({
-          gestureEnabled: true,
-        });
-      };
     }, [navigation])
   );
 
@@ -237,8 +237,64 @@ const EditDetailScreen = () => {
     });
   };
 
+  // Format date to DD/MM/YYYY format (matching add screen)
   const formatDateString = (date: Date): string => {
-    return date.toISOString().split('T')[0];
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Convert DD/MM/YYYY format to YYYY-MM-DD for API (matching add screen)
+  const convertDateToAPIFormat = (dateString: string): string => {
+    if (!dateString) return "";
+    try {
+      // Handle DD/MM/YYYY format
+      if (dateString.includes("/")) {
+        const [day, month, year] = dateString.split("/");
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (isNaN(date.getTime())) return "";
+        return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+      }
+      // Handle YYYY-MM-DD format (already correct)
+      if (dateString.includes("-") && dateString.length === 10) {
+        return dateString;
+      }
+      // Try parsing as date string
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+      return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+    } catch (error) {
+      console.error("Error converting date:", error);
+      return "";
+    }
+  };
+
+  // Validate dates - matching add screen logic
+  const validateDates = (startDateStr: string, endDateStr: string): boolean => {
+    if (!startDateStr || !endDateStr) return true; // Allow empty dates initially
+
+    try {
+      // Parse dates from DD/MM/YYYY format
+      const parseDate = (dateStr: string) => {
+        const [day, month, year] = dateStr.split("/");
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      };
+
+      const startDate = parseDate(startDateStr);
+      const endDate = parseDate(endDateStr);
+
+      // Check if dates are valid
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return false;
+      }
+
+      // Check if end date is same or after start date
+      return endDate >= startDate;
+    } catch (error) {
+      console.log("Error validating dates:", error);
+      return false;
+    }
   };
 
   const handleBack = () => {
@@ -361,7 +417,7 @@ const EditDetailScreen = () => {
   };
 
   // Image picker with permissions
-  const handleImagePicker = async (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event", boothIndex: number, eventIndex: number) => {
+  const handleImagePicker = async (type: 'camera' | 'gallery', imageType: "main" | "booth" | "event" | "floorLayout", boothIndex: number, eventIndex: number) => {
     setCurrentImageType(imageType);
     if (imageType === "booth") {
       setCurrentBoothIndex(boothIndex);
@@ -405,6 +461,11 @@ const EditDetailScreen = () => {
                 newPhotos.push(uploadedUrl);
               }
               setUploadPhotos(newPhotos);
+            } else if (imageType === "floorLayout") {
+              setFloorLayout(uploadedUrl);
+              if (errors.floorLayout) {
+                setErrors((prev) => ({ ...prev, floorLayout: false }));
+              }
             } else if (imageType === "booth") {
               console.log('Updating booth image:', {
                 currentBoothIndex,
@@ -478,6 +539,13 @@ const EditDetailScreen = () => {
     fetchCategories();
     fetchFacilities();
   }, [fetchCategories, fetchFacilities]);
+
+  // Clear details error when type changes to Booth or VIP Entry
+  useEffect(() => {
+    if (type === "Booth" || type === "VIP Entry") {
+      setErrors((prev) => ({ ...prev, details: false }));
+    }
+  }, [type]);
 
   // Initialize facilities list when facilities are loaded
   useEffect(() => {
@@ -672,18 +740,33 @@ const EditDetailScreen = () => {
         setEndTime(formattedEndTime);
         
         // Load coordinates from API response
+        // Swap only if coordinates appear to be in [lng, lat] format
         if (eventData.coordinates && eventData.coordinates.coordinates) {
           console.log('Loading coordinates:', eventData.coordinates);
-          setCoordinates(eventData.coordinates);
+          const [firstCoord, secondCoord] = eventData.coordinates.coordinates;
+          // Check if coordinates might be in [lng, lat] format
+          // For India region: lng is typically 68-88, lat is 6-37
+          // If first coord is in lng range and larger than second, likely [lng, lat]
+          const looksLikeLngLat = firstCoord > 60 && firstCoord < 100 && secondCoord > 0 && secondCoord < 40 && firstCoord > secondCoord;
+          setCoordinates({
+            type: eventData.coordinates.type || "Point",
+            coordinates: looksLikeLngLat ? [secondCoord, firstCoord] : [firstCoord, secondCoord], // Swap if needed to ensure [lat, lng]
+          });
         }
-        // Format dates properly
+        // Format dates properly - use DD/MM/YYYY format (matching add screen)
         if (eventData.startDate) {
-          const startDate = new Date(eventData.startDate);
-          setStartDate(startDate.toISOString().split('T')[0]);
+          const startDateObj = new Date(eventData.startDate);
+          const day = String(startDateObj.getDate()).padStart(2, '0');
+          const month = String(startDateObj.getMonth() + 1).padStart(2, '0');
+          const year = startDateObj.getFullYear();
+          setStartDate(`${day}/${month}/${year}`);
         }
         if (eventData.endDate) {
-          const endDate = new Date(eventData.endDate);
-          setEndDate(endDate.toISOString().split('T')[0]);
+          const endDateObj = new Date(eventData.endDate);
+          const day = String(endDateObj.getDate()).padStart(2, '0');
+          const month = String(endDateObj.getMonth() + 1).padStart(2, '0');
+          const year = endDateObj.getFullYear();
+          setEndDate(`${day}/${month}/${year}`);
         }
         setEntryFee(eventData.entryFee?.toString() || eventData.price?.toString() || eventData.entry_fee?.toString() || '');
         
@@ -691,13 +774,21 @@ const EditDetailScreen = () => {
         const eventType = eventData.type || 'Event';
         if (eventType === 'Booth' || eventType === 'VIP Entry') {
           // For Booth and VIP Entry, discount price might be in details field
-          setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || eventData.details?.toString() || '');
+          setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || '');
         } else {
           // For other types, use normal discount price fields
           setDiscountPrice(eventData.discountPrice?.toString() || eventData.discount_price?.toString() || '');
         }
         
         setEventCapacity(eventData.capacity?.toString() || eventData.eventCapacity?.toString() || eventData.event_capacity?.toString() || '');
+        setFloorLayout(eventData.floorLayout || eventData.floor_layout || '');
+        // Handle tableNumber - convert number to string if needed
+        const tableNumberValue = eventData.tableNumber !== undefined && eventData.tableNumber !== null
+          ? String(eventData.tableNumber)
+          : eventData.table_number !== undefined && eventData.table_number !== null
+          ? String(eventData.table_number)
+          : '';
+        setTableNumber(tableNumberValue);
         setType(eventType);
         
         // Note: Booth loading is handled in separate useEffect when categories are available
@@ -864,7 +955,7 @@ const EditDetailScreen = () => {
     if (addressResult.geometry && addressResult.geometry.location) {
       setCoordinates({
         type: "Point",
-        coordinates: [addressResult.geometry.location.lng, addressResult.geometry.location.lat],
+        coordinates: [addressResult.geometry.location.lat, addressResult.geometry.location.lng],
       });
     }
     setShowAddressModal(false);
@@ -888,44 +979,82 @@ const EditDetailScreen = () => {
     console.log("Enable Booths:", enableBooths);
     console.log("Enable Tickets:", enableTickets);
 
-    // Validation - discount price only required for Booth and VIP Entry
-    const newErrors = {
+    // Validation - matching add screen validation logic
+    // Details optional for Booth/VIP Entry, required for Club/Event
+    // Discount price is optional for all types
+    
+    // Set errors for field highlighting (matching add screen approach)
+    setErrors({
       name: !name.trim(),
-      details: !details.trim(),
-      entryFee: !entryFee.trim(),
-      discountPrice: (type === 'Booth' || type === 'VIP Entry') ? !discountPrice.trim() : false,
-      eventCapacity: !eventCapacity.trim(),
+      details: (type === "Club" || type === "Event" || type === "Table") ? !details.trim() : false,
+      entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
+      discountPrice: false, // Always optional
+      eventCapacity: !eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0,
       address: !address.trim(),
       startDate: !startDate.trim(),
       endDate: !endDate.trim(),
-    };
+      floorLayout: false, // Optional for Table type
+      tableNumber: type === "Table" ? !tableNumber.trim() : false, // Required for Table type
+    });
 
-    console.log("=== VALIDATION ERRORS ===");
-    console.log("Name error:", newErrors.name);
-    console.log("Details error:", newErrors.details);
-    console.log("Entry Fee error:", newErrors.entryFee);
-    console.log("Discount Price error:", newErrors.discountPrice);
-    console.log("Event Capacity error:", newErrors.eventCapacity);
-    console.log("Address error:", newErrors.address);
-    console.log("Start Date error:", newErrors.startDate);
-    console.log("End Date error:", newErrors.endDate);
+    // Check basic required fields - matching add screen logic
+    const missingFields = [];
 
-    setErrors(newErrors);
+    // Different validation based on type (matching add screen)
+    if (type === "Booth" || type === "VIP Entry") {
+      if (!name.trim()) missingFields.push("Name");
+      if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Price"); // Use "Price" for Booth/VIP Entry (matching add screen)
+      if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
+        missingFields.push("Capacity"); // Use "Capacity" for Booth/VIP Entry (matching add screen)
+      }
+      // Discount price is optional - no validation required
+    } else if (type === "Table") {
+      if (!name.trim()) missingFields.push("Table Name");
+      if (!details.trim()) missingFields.push("Details");
+      if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Table Fee");
+      if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
+        missingFields.push("Seating Capacity");
+      }
+      // Floor Layout is optional for Table type
+    } else {
+      if (!name.trim()) missingFields.push("Name");
+      if (!details.trim()) missingFields.push("Details"); // Required for Club/Event types
+      if (!entryFee.trim() || isNaN(Number(entryFee))) missingFields.push("Entry Fee");
+      if (!eventCapacity.trim() || isNaN(Number(eventCapacity)) || Number(eventCapacity) <= 0) {
+        missingFields.push("Event Capacity");
+      }
+    }
 
-    if (Object.values(newErrors).some(error => error)) {
-      const missingFields = [];
-      if (newErrors.name) missingFields.push("Name");
-      if (newErrors.details) missingFields.push("Details");
-      if (newErrors.entryFee) missingFields.push("Entry Fee");
-      if (newErrors.discountPrice && (type === 'Booth' || type === 'VIP Entry')) missingFields.push("Discount Price");
-      if (newErrors.eventCapacity) missingFields.push("Event Capacity");
-      if (newErrors.address) missingFields.push("Address");
-      if (newErrors.startDate) missingFields.push("Start Date");
-      if (newErrors.endDate) missingFields.push("End Date");
-      
+    // Common fields for all types (except Table)
+    if (type !== "Table") {
+      if (!startTime.trim()) missingFields.push("Start Time");
+      if (!endTime.trim()) missingFields.push("End Time");
+      if (!startDate.trim()) missingFields.push("Start Date");
+      if (!endDate.trim()) missingFields.push("End Date");
+    }
+    // Address and photos required for all types
+    if (!address.trim()) missingFields.push("Address");
+    if (uploadPhotos.length === 0) missingFields.push("Upload Photos");
+
+    // Validate date constraints (only for non-Table types)
+    if (type !== "Table" && startDate.trim() && endDate.trim() && !validateDates(startDate, endDate)) {
+      showToast("error", "End date must be same or after start date");
+      setErrors((prev) => ({ ...prev, endDate: true }));
+      return;
+    }
+
+    // Check for missing booths/tickets based on type and enabled state (matching add screen)
+    if (type === "Club") {
+      if (enableBooths && booths.length === 0) missingFields.push("Booths");
+    }
+    if (type === "Event") {
+      if (enableTickets && events.length === 0) missingFields.push("Tickets");
+    }
+
+    if (missingFields.length > 0) {
       console.log("=== MISSING FIELDS ===");
       console.log("Missing fields:", missingFields);
-      console.log("Type:", type, "- Discount required:", (type === 'Booth' || type === 'VIP Entry'));
+      console.log("Type:", type);
       
       Alert.alert('Error', `Please fill in all required fields. Missing: ${missingFields.join(", ")}`);
       return;
@@ -957,7 +1086,11 @@ const EditDetailScreen = () => {
           detailsField = discountPrice;
         }
 
-        const payload = {
+        // Convert dates from DD/MM/YYYY to YYYY-MM-DD format for API (only for non-Table types)
+        const formattedStartDate = type !== "Table" ? convertDateToAPIFormat(startDate) : "";
+        const formattedEndDate = type !== "Table" ? convertDateToAPIFormat(endDate) : "";
+
+        const payload: any = {
           id: clubId,
           type,
           name,
@@ -965,17 +1098,27 @@ const EditDetailScreen = () => {
           entryFee: parseInt(entryFee || '0'),
           discountPrice: parseInt(discountPrice || '0'),
           eventCapacity: eventCapacity,
-          openingTime: startTime,
-          closeTime: endTime,
-          startDate,
-          endDate,
           address,
           coordinates,
           photos: uploadPhotos,
-          facilities: facilitiesList.filter(f => f.selected).map(f => f._id),
           booths: transformedBooths,
           tickets: transformedTickets,
         };
+
+        // Add date/time fields only for non-Table types
+        if (type !== "Table") {
+          payload.openingTime = startTime;
+          payload.closeTime = endTime;
+          payload.startDate = formattedStartDate;
+          payload.endDate = formattedEndDate;
+          payload.facilities = facilitiesList.filter(f => f.selected).map(f => f._id);
+        }
+
+        // Add floorLayout and tableNumber for Table type
+        if (type === "Table") {
+          payload.floorLayout = floorLayout;
+          payload.tableNumber = tableNumber;
+        }
     
     console.log('Update payload:', JSON.stringify(payload, null, 2));
     const updateAction = onUpdateEvent(payload);
@@ -1032,35 +1175,38 @@ const EditDetailScreen = () => {
               options={types}
               selectedValue={type}
               onSelect={(value) => {
-                setType(typeof value === "string" ? value : value.name);
-                if (errors.name) {
-                  setErrors((prev) => ({ ...prev, name: false }));
-                }
+                showToast("error", 'You can not change the type of the event');
+                // setType(typeof value === "string" ? value : value.name);
+                // if (errors.name) {
+                //   setErrors((prev) => ({ ...prev, name: false }));
+                // }
               }}
               error={
                 !type ||
                 (type !== "Club" &&
                   type !== "Event" &&
                   type !== "VIP Entry" &&
-                  type !== "Booth")
+                  type !== "Booth" &&
+                  type !== "Table")
               }
               message={
                 !type ||
-                (type !== "Club" &&
-                  type !== "Event" &&
-                  type !== "VIP Entry" &&
-                  type !== "Booth")
+                  (type !== "Club" &&
+                    type !== "Event" &&
+                    type !== "VIP Entry" &&
+                    type !== "Booth" &&
+                    type !== "Table")
                   ? "Please select a type"
                   : ""
               }
             />
 
             {/* Show different fields based on type */}
-            {type !== "Booth" && type !== "VIP Entry" && (
+            {type !== "Booth" && type !== "VIP Entry" && type !== "Table" && (
               <>
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Name"
+                    label="Name*"
                     placeholder="Enter name"
                     value={name}
                     onChangeText={(text) => {
@@ -1077,7 +1223,7 @@ const EditDetailScreen = () => {
                 </View>
 
                 <DetailsInput
-                  label="Details"
+                  label="Details*"
                   placeholder="Enter here"
                   value={details}
                   onChangeText={(text) => {
@@ -1093,7 +1239,7 @@ const EditDetailScreen = () => {
 
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Entry Fee"
+                    label="Entry Fee*"
                     placeholder="Enter fee"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1111,7 +1257,7 @@ const EditDetailScreen = () => {
 
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Event Capacity"
+                    label="Event Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
                     onChangeText={(text) => {
@@ -1133,7 +1279,7 @@ const EditDetailScreen = () => {
             {(type === "Booth" || type === "VIP Entry") && (
               <View style={styles.formElement}>
                 <CustomeTextInput
-                  label="Name"
+                  label="Name*"
                   placeholder="Enter name"
                   value={name}
                   onChangeText={(text) => {
@@ -1150,87 +1296,263 @@ const EditDetailScreen = () => {
               </View>
             )}
 
-            {/* Date Pickers */}
-            <View style={styles.formElement}>
-              <DatePickerInput
-                label="Start Date"
-                placeholder="Select date"
-                value={startDate}
+            {/* Show Details field for Booth and VIP Entry types */}
+            {(type === "Booth" || type === "VIP Entry") && (
+              <DetailsInput
+                label="Details*"
+                placeholder="Enter here"
+                value={details}
                 onChangeText={(text) => {
-                  setStartDate(text);
-                  if (errors.startDate) {
-                    setErrors((prev) => ({ ...prev, startDate: false }));
+                  setDetails(text);
+                  if (errors.details) {
+                    setErrors((prev) => ({ ...prev, details: false }));
                   }
                 }}
-                error={errors.startDate}
-                message={errors.startDate ? "Start date is required" : ""}
-                leftImage=""
-                style={styles.datePickerWrapper}
-                allowFutureDates={true}
-                minDate={new Date()}
-                maxDate={new Date(2035, 11, 31)}
+                error={errors.details}
+                message={errors.details ? "Details are required" : ""}
+                required={false}
               />
-            </View>
+            )}
 
-            <View style={styles.formElement}>
-              <DatePickerInput
-                label="End Date"
-                placeholder="Select date"
-                value={endDate}
-                onChangeText={(text) => {
-                  setEndDate(text);
-                  if (errors.endDate) {
-                    setErrors((prev) => ({ ...prev, endDate: false }));
-                  }
-                }}
-                error={errors.endDate}
-                message={errors.endDate ? "End date is required" : ""}
-                leftImage=""
-                style={styles.datePickerWrapper}
-                allowFutureDates={true}
-                minDate={new Date()}
-                maxDate={new Date(2035, 11, 31)}
-              />
-            </View>
+            {/* Table-specific fields */}
+            {type === "Table" && (
+              <>
+                <View style={styles.formElement}>
+                  <CustomeTextInput
+                    label="Table Name*"
+                    placeholder="Enter table name"
+                    value={name}
+                    onChangeText={(text) => {
+                      setName(text);
+                      if (errors.name) {
+                        setErrors((prev) => ({ ...prev, name: false }));
+                      }
+                    }}
+                    error={errors.name}
+                    message={errors.name ? "Table name is required" : ""}
+                    leftImage=""
+                    kType="default"
+                  />
+                </View>
 
-            {/* Time Pickers */}
-            <View style={styles.formElement}>
-              <Text style={styles.label}>Start Time</Text>
-              <TouchableOpacity
-                style={styles.timeInputButton}
-                onPress={() => handleTimePicker("start")}
-              >
-                <Text
-                  style={
-                    startTime
-                      ? styles.timeInputText
-                      : styles.timeInputPlaceholder
-                  }
-                >
-                  {startTime || "Select time"}
-                </Text>
-                <TimeIcon />
-              </TouchableOpacity>
-            </View>
+                <View style={styles.formElement}>
+                  <CustomeTextInput
+                    label="Table Number*"
+                    placeholder="Enter table number"
+                    value={tableNumber}
+                    onChangeText={(text) => {
+                      setTableNumber(text);
+                      if (errors.tableNumber) {
+                        setErrors((prev) => ({ ...prev, tableNumber: false }));
+                      }
+                    }}
+                    error={errors.tableNumber}
+                    message={errors.tableNumber ? "Table number is required" : ""}
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
 
-            <View style={styles.formElement}>
-              <Text style={styles.label}>End Time</Text>
-              <TouchableOpacity
-                style={styles.timeInputButton}
-                onPress={() => handleTimePicker("end")}
-              >
-                <Text
-                  style={
-                    endTime
-                      ? styles.timeInputText
-                      : styles.timeInputPlaceholder
-                  }
-                >
-                  {endTime || "Select time"}
-                </Text>
-                <TimeIcon />
-              </TouchableOpacity>
-            </View>
+                <DetailsInput
+                  label="Details*"
+                  placeholder="Enter here"
+                  value={details}
+                  onChangeText={(text) => {
+                    setDetails(text);
+                    if (errors.details) {
+                      setErrors((prev) => ({ ...prev, details: false }));
+                    }
+                  }}
+                  error={errors.details}
+                  message={errors.details ? "Details are required" : ""}
+                  required={false}
+                />
+
+                <View style={styles.formElement}>
+                  <CustomeTextInput
+                    label="Table Fee*"
+                    placeholder="Enter table fee"
+                    value={entryFee}
+                    onChangeText={(text) => {
+                      setEntryFee(text);
+                      if (errors.entryFee) {
+                        setErrors((prev) => ({ ...prev, entryFee: false }));
+                      }
+                    }}
+                    error={errors.entryFee}
+                    message={errors.entryFee ? "Valid table fee is required" : ""}
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
+                <View style={styles.formElement}>
+                  <CustomeTextInput
+                    label="Seating Capacity*"
+                    placeholder="Enter seating capacity"
+                    value={eventCapacity}
+                    onChangeText={(text) => {
+                      setEventCapacity(text);
+                      if (errors.eventCapacity) {
+                        setErrors((prev) => ({ ...prev, eventCapacity: false }));
+                      }
+                    }}
+                    error={errors.eventCapacity}
+                    message={errors.eventCapacity ? "Valid seating capacity is required" : ""}
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
+                <View style={styles.formElement}>
+                  <Text style={styles.sectionLabel}>
+                    Floor Layout (Optional)
+                  </Text>
+                  <View>
+                    <TouchableOpacity
+                      style={styles.floorLayoutImageBox}
+                      onPress={() => {
+                        if (floorLayout) {
+                          Alert.alert("Error", "Floor layout image already exists. Please delete it first.");
+                          return;
+                        }
+                        setCurrentImageIndex(0);
+                        setCurrentImageType("floorLayout");
+                        setShowImagePicker(true);
+                      }}
+                    >
+                      {floorLayout ? (
+                        <Image
+                          source={{ uri: floorLayout }}
+                          style={styles.floorLayoutImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <GalleryIcon />
+                      )}
+                    </TouchableOpacity>
+                    {floorLayout && (
+                      <TouchableOpacity
+                        style={[styles.deleteButton, { top: verticalScale(5), right: horizontalScale(5) }]}
+                        onPress={() => {
+                          Alert.alert("Delete Image", "Are you sure you want to delete this floor layout image?", [
+                            {
+                              text: "Cancel",
+                              style: "cancel",
+                            },
+                            {
+                              text: "Delete",
+                              style: "destructive",
+                              onPress: () => {
+                                setFloorLayout("");
+                                if (errors.floorLayout) {
+                                  setErrors((prev) => ({ ...prev, floorLayout: false }));
+                                }
+                                showToast("success", "Floor layout image deleted");
+                              },
+                            },
+                          ]);
+                        }}
+                      >
+                        <DeleteIconNew width={20} height={20} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  {errors.floorLayout && (
+                    <Text style={styles.errorText}>
+                      Floor layout image is required
+                    </Text>
+                  )}
+                </View>
+              </>
+            )}
+
+            {/* Date and Time fields - not shown for Table type */}
+            {type !== "Table" && (
+              <>
+                {/* Date Pickers */}
+                <View style={styles.formElement}>
+                  <DatePickerInput
+                    label="Start Date *"
+                    placeholder="Select date"
+                    value={startDate}
+                    onChangeText={(text) => {
+                      setStartDate(text);
+                      if (errors.startDate) {
+                        setErrors((prev) => ({ ...prev, startDate: false }));
+                      }
+                    }}
+                    error={errors.startDate}
+                    message={errors.startDate ? "Start date is required" : ""}
+                    leftImage=""
+                    style={styles.datePickerWrapper}
+                    allowFutureDates={true}
+                    minDate={new Date()}
+                    maxDate={new Date(2035, 11, 31)}
+                  />
+                </View>
+
+                <View style={styles.formElement}>
+                  <DatePickerInput
+                    label="End Date *"
+                    placeholder="Select date"
+                    value={endDate}
+                    onChangeText={(text) => {
+                      setEndDate(text);
+                      if (errors.endDate) {
+                        setErrors((prev) => ({ ...prev, endDate: false }));
+                      }
+                    }}
+                    error={errors.endDate}
+                    message={errors.endDate ? "End date is required" : ""}
+                    leftImage=""
+                    style={styles.datePickerWrapper}
+                    allowFutureDates={true}
+                    minDate={new Date()}
+                    maxDate={new Date(2035, 11, 31)}
+                  />
+                </View>
+
+                {/* Time Pickers */}
+                <View style={styles.formElement}>
+                  <Text style={styles.label}>Start Time*</Text>
+                  <TouchableOpacity
+                    style={styles.timeInputButton}
+                    onPress={() => handleTimePicker("start")}
+                  >
+                    <Text
+                      style={
+                        startTime
+                          ? styles.timeInputText
+                          : styles.timeInputPlaceholder
+                      }
+                    >
+                      {startTime || "Select time"}
+                    </Text>
+                    <TimeIcon />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.formElement}>
+                  <Text style={styles.label}>End Time*</Text>
+                  <TouchableOpacity
+                    style={styles.timeInputButton}
+                    onPress={() => handleTimePicker("end")}
+                  >
+                    <Text
+                      style={
+                        endTime
+                          ? styles.timeInputText
+                          : styles.timeInputPlaceholder
+                      }
+                    >
+                      {endTime || "Select time"}
+                    </Text>
+                    <TimeIcon />
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
 
             {/* Address */}
             <View style={styles.formElement}>
@@ -1275,7 +1597,7 @@ const EditDetailScreen = () => {
               <>
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Price"
+                    label="Price*"
                     placeholder="Enter price"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1291,7 +1613,9 @@ const EditDetailScreen = () => {
                   />
                 </View>
 
-                <View style={styles.formElement}>
+               
+
+                {/* <View style={styles.formElement}>
                   <CustomeTextInput
                     label="Discount Price"
                     placeholder="Enter discount price"
@@ -1307,11 +1631,11 @@ const EditDetailScreen = () => {
                     leftImage=""
                     kType="numeric"
                   />
-                </View>
+                </View> */}
 
                 <View style={styles.formElement}>
                   <CustomeTextInput
-                    label="Capacity"
+                    label="Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
                     onChangeText={(text) => {
@@ -1560,8 +1884,8 @@ const EditDetailScreen = () => {
               </View>
             </View>
 
-            {/* Facilities section - not shown for Booth and VIP Entry types */}
-            {type !== "Booth" && type !== "VIP Entry" && (
+            {/* Facilities section - not shown for Booth, VIP Entry, and Table types, and only show if facilities exist */}
+            {type !== "Booth" && type !== "VIP Entry" && type !== "Table" && facilitiesList && facilitiesList.length > 0 && (
               <View style={styles.formElement}>
                 <Text style={styles.sectionLabel}>
                   Facilities
@@ -1668,10 +1992,52 @@ const EditDetailScreen = () => {
       {/* Date Picker */}
       {showDatePicker && (
         <DateTimePicker
-          value={new Date()}
+          value={(() => {
+            try {
+              if (datePickerMode === "start" && startDate) {
+                // Parse DD/MM/YYYY format
+                const [day, month, year] = startDate.split("/");
+                return new Date(
+                  parseInt(year),
+                  parseInt(month) - 1,
+                  parseInt(day)
+                );
+              } else if (datePickerMode === "end" && endDate) {
+                // Parse DD/MM/YYYY format
+                const [day, month, year] = endDate.split("/");
+                return new Date(
+                  parseInt(year),
+                  parseInt(month) - 1,
+                  parseInt(day)
+                );
+              }
+              return new Date();
+            } catch (error) {
+              return new Date();
+            }
+          })()}
           mode="date"
-          display="default"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={handleDateChange}
+          textColor={colors.white}
+          themeVariant="dark"
+          minimumDate={(() => {
+            try {
+              if (datePickerMode === "end" && startDate) {
+                // Parse DD/MM/YYYY format
+                const [day, month, year] = startDate.split("/");
+                return new Date(
+                  parseInt(year),
+                  parseInt(month) - 1,
+                  parseInt(day)
+                );
+              }
+              return new Date();
+            } catch (error) {
+              return new Date();
+            }
+          })()}
+          maximumDate={new Date(2035, 11, 31)} // Allow dates up to 2035
         />
       )}
 
@@ -1691,11 +2057,19 @@ const EditDetailScreen = () => {
           onClose={() => setShowImagePicker(false)}
           onCameraPress={() => {
             console.log("Camera pressed for", currentImageType);
-            handleImagePicker("camera", currentImageType, currentBoothIndex, currentEventIndex);
+            if (currentImageType === "floorLayout") {
+              handleImagePicker("camera", currentImageType, -1, -1);
+            } else {
+              handleImagePicker("camera", currentImageType, currentBoothIndex, currentEventIndex);
+            }
           }}
           onGalleryPress={() => {
             console.log("Gallery pressed for", currentImageType);
-            handleImagePicker("gallery", currentImageType, currentBoothIndex, currentEventIndex);
+            if (currentImageType === "floorLayout") {
+              handleImagePicker("gallery", currentImageType, -1, -1);
+            } else {
+              handleImagePicker("gallery", currentImageType, currentBoothIndex, currentEventIndex);
+            }
           }}
         />
       )}

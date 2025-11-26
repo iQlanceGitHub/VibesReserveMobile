@@ -243,8 +243,9 @@ const ClubBookingScreen: React.FC = () => {
 
   // Function to call checkBookedDate API
   const callCheckBookedDateAPI = (eventId: string, startDate: string, endDate: string) => {
-    console.log("Calling checkBookedDate API with:", { eventId, startDate, endDate });
-    dispatch(onCheckBookedDate({ eventId, startDate, endDate }));
+    const isTable = currentEventData?.type === 'Table' ? 'yes' : 'no';
+    console.log("Calling checkBookedDate API with:", { eventId, startDate, endDate, isTable });
+    dispatch(onCheckBookedDate({ eventId, startDate, endDate, isTable }));
   };
 
   // Function to fetch date-wise availability for selected date range
@@ -312,8 +313,9 @@ const ClubBookingScreen: React.FC = () => {
 
       console.log("🔍 Original dates:", { startDate, endDate });
       console.log("🔍 Generated API dates:", { startDateStr, endDateStr });
-      console.log("Calling API for date availability:", { eventId, startDate: startDateStr, endDate: endDateStr });
-      dispatch(onCheckBookedDate({ eventId, startDate: startDateStr, endDate: endDateStr }));
+      const isTable = currentEventData?.type === 'Table' ? 'yes' : 'no';
+      console.log("Calling API for date availability:", { eventId, startDate: startDateStr, endDate: endDateStr, isTable });
+      dispatch(onCheckBookedDate({ eventId, startDate: startDateStr, endDate: endDateStr, isTable }));
 
       // Set initial data structure - will be updated when API response comes
       setDateAvailability(dates);
@@ -369,10 +371,16 @@ const ClubBookingScreen: React.FC = () => {
       setBookingData({
         startDate: currentEventData?.startDate || new Date().toISOString(),
         endDate: currentEventData?.endDate || new Date().toISOString(),
-        bookedDates: [], // Will be updated when API response is received
+        bookedDates: currentEventData?.type === 'Table' ? [] : [], // For Table type, all dates are open
       });
 
-      // Call API to get booked dates if we have eventId and boothId
+      // For Table type, all dates are open - skip API calls for booked dates
+      if (currentEventData?.type === 'Table') {
+        console.log("Table type - All dates are open for booking, skipping booked dates API call");
+        return;
+      }
+
+      // Call API to get booked dates if we have eventId and boothId (for non-Table types)
       const eventId = currentEventData?._id || (currentEventData as any)?.id;
       const boothId = (currentEventData as any)?.selectedTicket?.boothId ||
         (currentEventData as any)?.selectedTicket?.id ||
@@ -390,6 +398,7 @@ const ClubBookingScreen: React.FC = () => {
       // Don't fetch date availability initially - wait for user to select dates
     }
   }, [currentEventData]);
+  
   useEffect(() => {
     if ((currentEventData as any)?.selectedTicket?.capacity) {
       const eventId = currentEventData?._id || (currentEventData as any)?.id;
@@ -401,10 +410,17 @@ const ClubBookingScreen: React.FC = () => {
     }
   }, [currentEventData]);
 
+  // For Table type, all dates are open for booking - no need to fetch booked dates
+
 
 
   // Handle API response for booked dates
   useEffect(() => {
+    // For Table type, all dates are open - skip processing booked dates
+    if (currentEventData?.type === 'Table') {
+      return;
+    }
+
     if (checkBookedDateBooth && checkBookedDateBooth.status === 1) {
       console.log("Received booked dates from API:", checkBookedDateBooth);
       const bookedDates = checkBookedDateBooth.bookedDates || [];
@@ -419,12 +435,38 @@ const ClubBookingScreen: React.FC = () => {
       console.log("Error fetching booked dates:", checkBookedDateBoothErr);
       showExtendedToast('error', 'Failed to load booked dates. Please try again.', 5000);
     }
-  }, [checkBookedDateBooth, checkBookedDateBoothErr]);
+  }, [checkBookedDateBooth, checkBookedDateBoothErr, currentEventData?.type]);
 
   // Handle API response for checking booked date availability
   useEffect(() => {
     if (checkBookedDate && checkBookedDate.status === 1) {
       console.log("Received checkBookedDate response:", checkBookedDate);
+
+      // For Table type, extract dates with totalBookedMembers > 0 and mark them as booked
+      if (currentEventData?.type === 'Table') {
+        console.log("Table type - Processing booked dates from response");
+        
+        if (checkBookedDate.data && Array.isArray(checkBookedDate.data)) {
+          // Extract dates where totalBookedMembers > 0 (or >= 1)
+          const bookedDatesFromResponse = checkBookedDate.data
+            .filter((item: any) => (item.totalBookedMembers || 0) > 0)
+            .map((item: any) => {
+              // Convert date string to ISO format with time
+              const dateStr = item.date; // Format: "2025-11-13"
+              return `${dateStr}T00:00:00.000Z`;
+            });
+          
+          console.log("Table type - Dates with bookings (totalBookedMembers > 0):", bookedDatesFromResponse);
+          
+          if (bookedDatesFromResponse.length > 0) {
+            setBookingData(prevData => ({
+              ...prevData,
+              bookedDates: [...prevData.bookedDates, ...bookedDatesFromResponse]
+            }));
+          }
+        }
+        return; // Skip further processing for Table type
+      }
 
       // Check if response has data array (new format)
       if (checkBookedDate.data && Array.isArray(checkBookedDate.data)) {
@@ -458,10 +500,15 @@ const ClubBookingScreen: React.FC = () => {
         [{ text: 'OK' }]
       );
     }
-  }, [checkBookedDate, checkBookedDateErr, memberCount]);
+  }, [checkBookedDate, checkBookedDateErr, memberCount, currentEventData?.type]);
 
   // Separate useEffect to update date availability when API response comes in
   useEffect(() => {
+    // Skip processing for Table type - no availability checks needed
+    if (currentEventData?.type === 'Table') {
+      return;
+    }
+
     if (checkBookedDate && checkBookedDate.status === 1 && checkBookedDate.data && Array.isArray(checkBookedDate.data)) {
       console.log("🔍 API Response data:", checkBookedDate.data);
       console.log("🔍 API Response dates:", checkBookedDate.data.map((item: any) => ({
@@ -591,7 +638,7 @@ const ClubBookingScreen: React.FC = () => {
         }
       }
     }
-  }, [checkBookedDate, isCheckingAvailability, memberCount]);
+  }, [checkBookedDate, isCheckingAvailability, memberCount, currentEventData?.type]);
 
   // Custom toast function with extended duration for this screen
   const showExtendedToast = (type: string, text: string, duration: number = 5000) => {
@@ -691,7 +738,7 @@ const ClubBookingScreen: React.FC = () => {
     setSelectedEndDate(endDate);
     console.log("Selected date range:", { startDate, endDate });
 
-    // Fetch date availability when dates are selected
+    // Fetch date availability when dates are selected (for all types including Table)
     if (startDate) {
       const eventId = currentEventData?._id || (currentEventData as any)?.id;
       if (eventId) {
@@ -844,6 +891,7 @@ const ClubBookingScreen: React.FC = () => {
     console.log("🔍 selectedStartDate:", selectedStartDate);
     console.log("🔍 selectedEndDate:", selectedEndDate);
     console.log("🔍 !selectedStartDate:", !selectedStartDate);
+    console.log("🔍 Event type:", currentEventData?.type);
 
     // Validate required data before proceeding
     if (!selectedStartDate) {
@@ -861,6 +909,48 @@ const ClubBookingScreen: React.FC = () => {
 
     console.log("📅 Final dates - Start:", finalStartDate, "End:", finalEndDate);
 
+    // For Table type, check if any selected date is disabled (booked)
+    if (currentEventData?.type === 'Table') {
+      console.log("✅ Table type detected - checking for disabled dates");
+      
+      // Generate all dates in the selected range
+      const datesInRange: Date[] = [];
+      const currentDate = new Date(finalStartDate);
+      const endDate = new Date(finalEndDate);
+      
+      while (currentDate <= endDate) {
+        datesInRange.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      // Check if any date in the range is booked
+      const bookedDatesSet = new Set(
+        bookingData.bookedDates.map(bookedDate => bookedDate.split('T')[0]) // Get YYYY-MM-DD part
+      );
+      
+      const hasBookedDate = datesInRange.some(date => {
+        const dateStr = date.getFullYear() + '-' +
+          String(date.getMonth() + 1).padStart(2, '0') + '-' +
+          String(date.getDate()).padStart(2, '0');
+        return bookedDatesSet.has(dateStr);
+      });
+      
+      if (hasBookedDate) {
+        console.log("❌ Selected date(s) are booked/disabled for Table type");
+        showExtendedToast(
+          'error',
+          'One or more selected dates are not available. Please select different dates.',
+          4000
+        );
+        return;
+      }
+      
+      console.log("✅ Table type - All selected dates are available, proceeding directly");
+      proceedToNextScreen();
+      return;
+    }
+
+    // For non-Table types, validate member count
     if (memberCount < 1) {
       Alert.alert('Invalid Member Count', 'Please select at least 1 member for your booking.');
       return;
@@ -1037,16 +1127,15 @@ const ClubBookingScreen: React.FC = () => {
               onDateRangeSelect={handleDateRangeSelect}
               initialStartDate={undefined}
               initialEndDate={undefined}
-              startDate={bookingData.startDate}
-              endDate={bookingData.endDate}
+              startDate={currentEventData?.type === 'Table' ? undefined : bookingData.startDate}
+              endDate={currentEventData?.type === 'Table' ? undefined : bookingData.endDate}
               bookedDates={bookingData.bookedDates}
             />
           </View>
 
          
-          {/* Date Availability Display */}
-
-          {!((currentEventData as any)?.selectedTicket?.capacity) && (
+          {/* Date Availability Display - Hide for Table type */}
+          {currentEventData?.type !== 'Table' && !((currentEventData as any)?.selectedTicket?.capacity) && (
           <DateAvailabilityCard
             availability={dateAvailability}
             isLoading={isLoadingAvailability}
@@ -1054,6 +1143,8 @@ const ClubBookingScreen: React.FC = () => {
           />
           )}
 
+          {/* Add Member Section - Hide for Table type */}
+          {currentEventData?.type !== 'Table' && (
           <View style={clubBookingStyles.memberSection}>
             <Text style={clubBookingStyles.memberTitle}>Add Member</Text>
             <View style={clubBookingStyles.memberRow}>
@@ -1083,6 +1174,7 @@ const ClubBookingScreen: React.FC = () => {
               </View>
             </View>
           </View>
+          )}
 
           {/* Price Display Section */}
           {/* <View style={clubBookingStyles.priceSection}>

@@ -30,9 +30,12 @@ import {
   onSignup, signupData, signupError, onSocialLogin,
   socialLoginData,
   socialLoginError,
-  setUser
+  setUser,
+  onGetCmsContent,
 } from "../../redux/auth/actions";
 import FilePickerPopup from "../../components/FilePickerPopup";
+import EULAAgreement from "../../components/EULAAgreement";
+import { useModeration } from "../../contexts/ModerationContext";
 import { openSettings } from 'react-native-permissions';
 import LinearGradient from "react-native-linear-gradient";
 import { Buttons } from "../../components/buttons";
@@ -70,11 +73,12 @@ interface SignupScreenProps {
 
 const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
+  const { eulaAccepted } = useModeration();
   const socialLogin = useSelector((state: any) => state.auth.socialLogin);
   const socialLoginErr = useSelector((state: any) => state.auth.socialLoginErr);
   const deviceToken = useSelector((state: any) => state.auth.deviceToken);
 
-  const { signup, signupErr, loader } = useSelector((state: any) => state.auth);
+  const { signup, signupErr, loader, cmsContent, cmsContentErr } = useSelector((state: any) => state.auth);
   const [selectedRole, setSelectedRole] = useState<string>("explore");
   const [phoneCode, setPhoneCode] = useState<string>("+1");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -114,6 +118,21 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [showFilePicker, setShowFilePicker] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [showEULA, setShowEULA] = useState<boolean>(false);
+  const [pendingCmsNavigation, setPendingCmsNavigation] = useState<{identifier: string, title: string} | null>(null);
+
+  // CMS Content functions
+  const handlePrivacyPolicy = () => {
+    console.log('🔍 Requesting privacy policy content');
+    setPendingCmsNavigation({ identifier: 'privacy_policy', title: 'Privacy Policy' });
+    dispatch(onGetCmsContent({ identifier: 'privacy_policy' }));
+  };
+
+  const handleTermsConditions = () => {
+    console.log('🔍 Requesting terms & conditions content');
+    setPendingCmsNavigation({ identifier: 'terms_condition', title: 'Terms & Conditions' });
+    dispatch(onGetCmsContent({ identifier: 'terms_condition' }));
+  };
 
 
   // Get token
@@ -154,6 +173,13 @@ const storeUser = async (user: any) => {
       console.error("Failed to save the user ID.", e);
     }
   };
+
+  // Check EULA acceptance on component mount
+  useEffect(() => {
+    if (!eulaAccepted) {
+      setShowEULA(true);
+    }
+  }, [eulaAccepted]);
 
   // Update deviceToken when it changes in Redux state
   useEffect(() => {
@@ -216,6 +242,9 @@ const storeUser = async (user: any) => {
       if (socialLogin?.token) {
         storeUserToken(socialLogin?.token);
       }
+      if (socialLogin?.user) {
+        storeUser(socialLogin?.user); 
+      }
       if (socialLogin?.user?.id) {
         storeUserId(socialLogin.user.id);
       }
@@ -235,6 +264,9 @@ const storeUser = async (user: any) => {
           dispatch(setUser(socialLogin));
           if (socialLogin?.token) {
             storeUserToken(socialLogin?.token);
+          }
+          if (socialLogin?.user) {
+            storeUser(socialLogin?.user); 
           }
           if (socialLogin?.user?.id) {
             storeUserId(socialLogin.user.id);
@@ -258,17 +290,6 @@ const storeUser = async (user: any) => {
       };
   
       handleSocialLoginSuccess();
-      
-      // Role-based navigation
-      if (socialLogin?.user?.currentRole === 'user') {
-        navigation.navigate('HomeTabs' as never);
-      } else if (socialLogin?.user?.currentRole === 'host') {
-        navigation.navigate('HostTabs' as never);
-      } else {
-        // Default fallback to HomeTabs
-        navigation.navigate('HomeTabs' as never);
-      }
-      dispatch(socialLoginData(""));
     }
 
     if (socialLoginErr) {
@@ -287,6 +308,26 @@ const storeUser = async (user: any) => {
     if (processedValue.length === 0) {
       setErrors((prev) => ({ ...prev, [field]: false }));
       setErrorMessages((prev) => ({ ...prev, [field]: "" }));
+    } else {
+      // Live clear validation when input becomes valid
+      if (field === "email") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailRegex.test(processedValue)) {
+          setErrors((prev) => ({ ...prev, email: false }));
+          setErrorMessages((prev) => ({ ...prev, email: "" }));
+        }
+      } else if (field === "fullName") {
+        if (processedValue.trim().length >= 2) {
+          setErrors((prev) => ({ ...prev, fullName: false }));
+          setErrorMessages((prev) => ({ ...prev, fullName: "" }));
+        }
+      } else if (field === "dateOfBirth") {
+        // Optional; just clear any previous error once user selects a date
+        if (processedValue.trim().length > 0) {
+          setErrors((prev) => ({ ...prev, dateOfBirth: false }));
+          setErrorMessages((prev) => ({ ...prev, dateOfBirth: "" }));
+        }
+      }
     }
     if (field === "password") {
       validatePasswordRequirements(processedValue);
@@ -436,11 +477,7 @@ const storeUser = async (user: any) => {
       return false;
     }
 
-    // Validate document upload for host role
-    if (selectedRole === "host" && !selectedDocument) {
-      showToast("error", "Please upload a document to become a host");
-      return false;
-    }
+    // Business licence is now optional - validation removed
 
     setErrors(newErrors);
     setErrorMessages(newErrorMessages);
@@ -473,12 +510,8 @@ const storeUser = async (user: any) => {
         
         setIsUploading(false);
         showToast("success", "Document uploaded successfully!");
-      } else if (selectedRole === "host") {
-        // This should not happen due to validation, but adding as safety check
-        showToast("error", "Document upload is required for host role");
-        setIsSubmitting(false);
-        return;
       }
+      // Business licence is now optional - no error if not provided
 
       const signupPayload = {
         currentRole: selectedRole === "explore" ? "user" : "host",
@@ -533,9 +566,11 @@ const storeUser = async (user: any) => {
       const {
         identityToken,
         email,
-        fullName: { givenName, familyName },
+        fullName,
       } = appleAuthRequestResponse;
       const userId = appleAuthRequestResponse.user;
+      const givenName = fullName?.givenName || '';
+      const familyName = fullName?.familyName || '';
 
       // Handle the obtained data as per your requirements
 
@@ -797,6 +832,28 @@ const storeUser = async (user: any) => {
       cleanupTemporaryFiles();
     };
   }, [selectedDocument]);
+
+  // Handle CMS content response and navigate with content
+  useEffect(() => {
+    if (cmsContent && cmsContent.data && pendingCmsNavigation) {
+      console.log('📄 CMS Content received, navigating with content:', cmsContent.data);
+      navigation.navigate('CmsContentScreen', { 
+        identifier: pendingCmsNavigation.identifier, 
+        title: pendingCmsNavigation.title,
+        content: cmsContent.data.content
+      });
+      setPendingCmsNavigation(null);
+    }
+  }, [cmsContent, pendingCmsNavigation]);
+
+  // Handle CMS content error
+  useEffect(() => {
+    if (cmsContentErr && pendingCmsNavigation) {
+      console.log('CMS content error:', cmsContentErr);
+      showToast('error', 'Failed to load content. Please try again.');
+      setPendingCmsNavigation(null);
+    }
+  }, [cmsContentErr, pendingCmsNavigation]);
 
   const validateAndSetFile = (file: any) => {
     // React Native files have uri, name, type, and size properties
@@ -1222,7 +1279,7 @@ const storeUser = async (user: any) => {
             {selectedRole === "host" && (
               <View style={styles.documentSection}>
                 <View style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
-                  <Text style={styles.sectionTitle}>Upload a business licence *</Text>
+                  <Text style={styles.sectionTitle}>Upload a business licence</Text>
                   {selectedDocument ?  (
                         <View style={styles.selectedFileContainer}>
                           <TouchableOpacity
@@ -1284,6 +1341,24 @@ const storeUser = async (user: any) => {
             )}
 
             <View style={styles.buttonSection}>
+              <View style={styles.termsContainer}>
+                <Text style={styles.termsText}>
+                  By creating an account, you accept our{" "}
+                  <Text style={styles.termsLink} onPress={handleTermsConditions}>
+                    Terms and Conditions
+                  </Text>{" "}
+                  and{" "}
+                  <Text style={styles.termsLink} onPress={() => setShowEULA(true)}>
+                    End User License Agreement (EULA)
+                  </Text>
+                  , and you read our{" "}
+                  <Text style={styles.termsLink} onPress={handlePrivacyPolicy}>
+                    Privacy Policy
+                  </Text>
+                  . Our EULA includes a zero tolerance policy for objectionable content and abusive behavior.
+                </Text>
+              </View>
+
               <Buttons
                 title={
                   isUploading 
@@ -1319,6 +1394,14 @@ const storeUser = async (user: any) => {
         onCameraPress={handleCameraCapture}
         onGalleryPress={handleGallerySelection}
         onDocumentPress={handleDocumentSelection}
+      />
+
+      {/* EULA Modal */}
+      <EULAAgreement
+        visible={showEULA}
+        onAccept={() => setShowEULA(false)}
+        onDecline={() => navigation?.goBack()}
+        title="End User License Agreement (EULA)"
       />
 
       {/* Loading Overlay */}

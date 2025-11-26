@@ -130,6 +130,7 @@ export default StyleSheet.create({
   socialSection: {
     paddingHorizontal: horizontalScale(20),
     marginBottom: verticalScale(15),
+    alignItems: "center",
   },
   socialButton: {
     backgroundColor: colors.white,
@@ -144,6 +145,8 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.lightGray,
     alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
   socialButtonContent: {
     flexDirection: "row",
@@ -279,18 +282,20 @@ export default StyleSheet.create({
     paddingHorizontal: horizontalScale(20),
     paddingBottom: verticalScale(30),
     flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: horizontalScale(10),
   },
   signUpButton: {
-    width: horizontalScale(169),
-    height: verticalScale(50),
+    width: horizontalScale(175),
+    height: verticalScale(58),
     borderRadius: verticalScale(30),
     borderWidth: 1,
     marginBottom: verticalScale(0),
   },
   signInButton: {
-    width: horizontalScale(169),
-    height: verticalScale(50),
+    width: horizontalScale(175),
+    height: verticalScale(58),
     borderRadius: verticalScale(30),
     borderWidth: 1,
     borderColor: colors.violate,

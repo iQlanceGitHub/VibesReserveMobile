@@ -9,7 +9,7 @@ import { fonts } from "../utilis/fonts";
 
 export const styles = StyleSheet.create({
   container: {
-    height: verticalScale(336),
+    // height: verticalScale(350),
     borderRadius: horizontalScale(20),
     alignItems: "center",
     borderWidth: 1,

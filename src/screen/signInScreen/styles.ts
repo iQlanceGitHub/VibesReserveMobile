@@ -121,6 +121,8 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.lightGray,
     alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
   socialButtonContent: {
     flexDirection: "row",

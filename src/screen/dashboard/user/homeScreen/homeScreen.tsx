@@ -154,7 +154,9 @@ const HomeScreenContent = () => {
     (state: any) => state.auth.togglefavoriteErr
   );
   const favoriteslist = useSelector((state: any) => state.auth.favoriteslist);
-  const favoriteslistErr = useSelector((state: any) => state.auth.favoriteslistErr);
+  const favoriteslistErr = useSelector(
+    (state: any) => state.auth.favoriteslistErr
+  );
   const [msg, setMsg] = useState("");
   const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -182,8 +184,8 @@ const HomeScreenContent = () => {
     locationData?.longitude?.toString() || "72.51123340677258";
 
   const handleNextPress = () => {
-   // setShowComingSoonDialog(true);
-   navigation.navigate("NotificationScreen" as never);
+    // setShowComingSoonDialog(true);
+    navigation.navigate("NotificationScreen" as never);
   };
 
   // Refresh home data when location changes
@@ -264,6 +266,9 @@ const HomeScreenContent = () => {
     React.useCallback(() => {
       const loadData = async () => {
         const userId = await getUser();
+        // Fetch categories and facilities when screen comes into focus
+        fetchCategories();
+        fetchFacilities();
         // Fetch home data
         dispatch(
           onHomenew({
@@ -276,7 +281,7 @@ const HomeScreenContent = () => {
         fetchFavoritesList();
       };
       loadData();
-    }, [])
+    }, [fetchCategories, fetchFacilities])
   );
 
   useEffect(() => {
@@ -455,7 +460,7 @@ const HomeScreenContent = () => {
   useEffect(() => {
     if (
       favoriteslist?.status === true ||
-      favoriteslist?.status === 'true' ||
+      favoriteslist?.status === "true" ||
       favoriteslist?.status === 1 ||
       favoriteslist?.status === "1"
     ) {
@@ -463,12 +468,12 @@ const HomeScreenContent = () => {
       if (favoriteslist?.data) {
         setFavoriteEvents(favoriteslist.data);
       }
-      dispatch(favoriteslistData(''));
+      dispatch(favoriteslistData(""));
     }
 
     if (favoriteslistErr) {
       console.log("favoriteslistErr in home:", favoriteslistErr);
-      dispatch(favoriteslistError(''));
+      dispatch(favoriteslistError(""));
     }
   }, [favoriteslist, favoriteslistErr, dispatch]);
 
@@ -675,33 +680,37 @@ const HomeScreenContent = () => {
         contentContainerStyle={styles.eventsContent}
       >
         {/* Featured Event */}
-        <Text style={styles.sectionTitle}>Featured ({featured.length})</Text>
-        <FlatList
-          horizontal
-          data={featured.length > 0 ? featured : []}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.FeatureEventContainer}
-          keyExtractor={(item, index) => (item as any)._id || index.toString()}
-          renderItem={({ item }) => {
-            return (
-              <EventCard
-                title={(item as any).name}
-                location={(item as any).address}
-                date={new Date((item as any).startDate).toLocaleDateString()}
-                price={`$${(item as any).entryFee}`}
-                tag={(item as any).type}
-                image={(item as any).photos?.[0] || ""}
-                rating={(item as any).avgRating}
-                isFavorite={(item as any).isFavorite || false}
-                onBookNow={() => handleBookNow((item as any)._id)}
-                onFavoritePress={() =>
-                  handleFavoritePress((item as any)._id || (item as any).id)
-                }
-                _id={(item as any)._id || (item as any).id}
-              />
-            );
-          }}
-        />
+        {featured.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Featured ({featured.length})</Text>
+            <FlatList
+              horizontal
+              data={featured}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.FeatureEventContainer}
+              keyExtractor={(item, index) => (item as any)._id || index.toString()}
+              renderItem={({ item }) => {
+                return (
+                  <EventCard
+                    title={(item as any).name}
+                    location={(item as any).address}
+                    date={new Date((item as any).startDate).toLocaleDateString()}
+                    price={`$${(item as any).entryFee}`}
+                    tag={(item as any).type}
+                    image={(item as any).photos?.[0] || ""}
+                    rating={(item as any).avgRating}
+                    isFavorite={(item as any).isFavorite || false}
+                    onBookNow={() => handleBookNow((item as any)._id)}
+                    onFavoritePress={() =>
+                      handleFavoritePress((item as any)._id || (item as any).id)
+                    }
+                    _id={(item as any)._id || (item as any).id}
+                  />
+                );
+              }}
+            />
+          </>
+        )}
 
         {/* Nearby Events */}
         <View style={styles.nearbyHeaderRow}>
@@ -718,7 +727,7 @@ const HomeScreenContent = () => {
         </View>
         {nearby.length > 0 ? (
           <FlatList
-            data={nearby}
+            data={nearby.slice(0, 5)}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.nearbyEventsContainer}
             keyExtractor={(item, index) =>

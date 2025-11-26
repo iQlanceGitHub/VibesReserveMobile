@@ -149,12 +149,55 @@ export default StyleSheet.create({
     marginHorizontal: horizontalScale(10),
   },
 
+  tabsWrapper: {
+    position: 'relative',
+    marginBottom: verticalScale(15),
+  },
+  tabsScrollContainer: {
+    // ScrollView container
+  },
+  scrollIndicator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: horizontalScale(30),
+    zIndex: 10,
+    pointerEvents: 'none',
+  },
+  leftIndicator: {
+    left: 0,
+  },
+  rightIndicator: {
+    right: 0,
+  },
+  gradientIndicator: {
+    flex: 1,
+    width: '100%',
+  },
+  arrowContainer: {
+    position: 'absolute',
+    top: '50%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: horizontalScale(24),
+    height: horizontalScale(24),
+    borderRadius: horizontalScale(12),
+    backgroundColor: colors.violate,
+    opacity: 0.9,
+  },
+  leftArrowContainer: {
+    left: horizontalScale(3),
+    marginTop: -horizontalScale(12),
+  },
+  rightArrowContainer: {
+    right: horizontalScale(3),
+    marginTop: -horizontalScale(12),
+  },
   tabsContainer: {
     flexDirection: "row",
     backgroundColor: colors.cardBackground,
-    borderRadius: verticalScale(16),
+    borderRadius: verticalScale(12),
     padding: verticalScale(2),
-    marginBottom: verticalScale(20),
     borderWidth: 1,
     borderColor: colors.purpleBorder,
     shadowColor: colors.purpleBorder,
@@ -165,15 +208,18 @@ export default StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    minWidth: '100%',
+    height: verticalScale(50),
+   
   },
   tabButton: {
-    flex: 1,
-    paddingVertical: verticalScale(14),
-    paddingHorizontal: horizontalScale(12),
-    borderRadius: verticalScale(12),
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: horizontalScale(22),
+    borderRadius: verticalScale(10),
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: horizontalScale(2),
+    minWidth: horizontalScale(80),
   },
   activeTabButton: {
     backgroundColor: colors.violate,
@@ -187,7 +233,7 @@ export default StyleSheet.create({
     elevation: 3,
   },
   tabButtonText: {
-    fontSize: fontScale(13),
+    fontSize: fontScale(15),
     fontFamily: fonts.medium,
     color: colors.white,
     textAlign: "center",
@@ -198,6 +244,7 @@ export default StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+   // marginTop: verticalScale(-340),
   },
   tabContent: {
     paddingBottom: verticalScale(100),
@@ -413,52 +460,49 @@ export default StyleSheet.create({
     elevation: 4,
     marginTop: verticalScale(10),
   },
-  profileContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  blockedUserIndicator: {
+    backgroundColor: 'rgba(255, 68, 68, 0.1)',
+    borderRadius: verticalScale(8),
+    paddingHorizontal: horizontalScale(12),
+    paddingVertical: verticalScale(8),
+    marginHorizontal: horizontalScale(20),
+    marginBottom: verticalScale(12),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 68, 68, 0.3)',
   },
-  profileImageContainer: {
-    position: "relative",
-    marginRight: horizontalScale(16),
+  blockedUserText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.medium,
+    color: '#FF4444',
+    textAlign: 'center',
+    lineHeight: fontScale(16),
   },
-  profileImage: {
-    width: horizontalScale(80),
-    height: verticalScale(80),
-    borderRadius: verticalScale(40),
-    borderWidth: 2,
-    borderColor: colors.violate,
+  headerRightButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: horizontalScale(8),
   },
-  editIconContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: horizontalScale(24),
-    height: verticalScale(24),
-    borderRadius: verticalScale(12),
-    backgroundColor: colors.violate,
-    borderWidth: 2,
-    borderColor: colors.gradient_dark_purple,
-    alignItems: "center",
-    justifyContent: "center",
+  shareButton: {
+    padding: horizontalScale(8),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  profileDetails: {
-    flex: 1,
+  menuButton: {
+    padding: horizontalScale(8),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  profileName: {
-    fontSize: fontScale(18),
-    fontFamily: fonts.bold,
-    color: colors.white,
-    marginBottom: verticalScale(4),
+  threeDotMenu: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: verticalScale(16),
+    width: horizontalScale(4),
   },
-  profileEmail: {
-    fontSize: fontScale(14),
-    fontFamily: fonts.regular,
-    color: colors.white,
-    marginBottom: verticalScale(2),
-  },
-  profilePhone: {
-    fontSize: fontScale(14),
-    fontFamily: fonts.regular,
-    color: colors.white,
+  dot: {
+    width: horizontalScale(4),
+    height: horizontalScale(4),
+    borderRadius: horizontalScale(2),
+    backgroundColor: colors.white,
   },
 });

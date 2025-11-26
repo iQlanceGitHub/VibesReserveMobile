@@ -200,6 +200,21 @@ const addClubEventDetailStyle = StyleSheet.create({
     alignItems: "center",
     marginRight: horizontalScale(10),
   },
+  floorLayoutImageBox: {
+    width: '100%',
+    height: verticalScale(150),
+    borderRadius: horizontalScale(12),
+    borderWidth: horizontalScale(1),
+    borderColor: colors.whiteTransparentMedium,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: verticalScale(10),
+  },
+  floorLayoutImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: horizontalScale(12),
+  },
   addNewBoothButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -650,6 +665,36 @@ const addClubEventDetailStyle = StyleSheet.create({
   },
   textInputError: {
     borderColor: colors.red,
+  },
+  // Category Selection Styles
+  categoryButton: {
+    backgroundColor: colors.transparent,
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: horizontalScale(16),
+    borderRadius: horizontalScale(20),
+    borderWidth: 1,
+    borderColor: colors.white,
+    marginRight: horizontalScale(8),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryButtonSelected: {
+    backgroundColor: colors.violate,
+    borderColor: colors.violate,
+    shadowColor: colors.violate,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  categoryButtonText: {
+    fontSize: fontScale(12),
+    fontFamily: fonts.Medium,
+    color: colors.textColor,
+  },
+  categoryButtonTextSelected: {
+    color: colors.white,
+    fontFamily: fonts.SemiBold,
   },
 });
 

@@ -375,8 +375,15 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
     }
 
     const today = new Date();
-    const age = today.getFullYear() - selectedDate.getFullYear();
-    return age >= 18 && age <= 100;
+    // Must not be in the future and must be at least 18 years old
+    if (selectedDate.getTime() > today.getTime()) return false;
+
+    const eighteenYearsAgo = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );
+    return selectedDate.getTime() <= eighteenYearsAgo.getTime();
   };
 
   const formatDateForAPI = (dateString: string) => {
@@ -493,6 +500,25 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
           "Phone Number",
           "Please enter a valid 10-digit phone number"
         );
+      }
+      hasError = true;
+    }
+
+    // Validate Date of Birth
+    if (!dateOfBirth.trim()) {
+      setDateError(true);
+      setDateErrorMessage("Date of birth is required");
+      if (!hasError) {
+        firstErrorField = "Date of Birth";
+        showFieldErrorToast("Date of Birth", "Date of birth is required");
+      }
+      hasError = true;
+    } else if (!validateDateOfBirth(dateOfBirth.trim())) {
+      setDateError(true);
+      setDateErrorMessage("Date of birth must be 18+ years");
+      if (!hasError) {
+        firstErrorField = "Date of Birth";
+        showFieldErrorToast("Date of Birth", "Date of birth must be 18+ years");
       }
       hasError = true;
     }
@@ -700,6 +726,7 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 message={phoneErrorMessage}
                 placeholder="Enter your phone number"
                 style={styles.inputField}
+                validationMode="lenient"
               />
               <DatePickerInput
                 label="Date of Birth *"
@@ -710,6 +737,7 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                 placeholder="Select your date of birth"
                 leftImage={<CalendarIcon />}
                 style={styles.inputField}
+                alwaysShowErrorBorder={true}
               />
 
               {/* Business Information Section */}
@@ -769,7 +797,9 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                   style={styles.updateButton}
                   onPress={handleDocumentUpload}
                 >
-                  <Text style={styles.updateButtonText}>Update</Text>
+                  <Text style={styles.updateButtonText}>
+                    {documentImage ? "Update" : "Upload"}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {documentError && (
@@ -811,7 +841,9 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                   style={styles.updateButton}
                   onPress={handleBusinessPictureUpload}
                 >
-                  <Text style={styles.updateButtonText}>Update</Text>
+                  <Text style={styles.updateButtonText}>
+                    {businessPicture ? "Update" : "Upload"}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {businessPictureError && (
@@ -855,7 +887,9 @@ const HostEditProfileScreen: React.FC<HostEditProfileScreenProps> = ({
                   style={styles.updateButton}
                   onPress={handleBusinessBannerUpload}
                 >
-                  <Text style={styles.updateButtonText}>Update</Text>
+                  <Text style={styles.updateButtonText}>
+                    {businessBanner ? "Update" : "Upload"}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {businessBannerError && (

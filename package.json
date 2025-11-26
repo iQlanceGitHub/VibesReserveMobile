@@ -40,6 +40,7 @@
     "react-native-aws3": "^0.0.9",
     "react-native-country-codes-picker": "^2.3.5",
     "react-native-deck-swiper": "^2.0.19",
+    "react-native-device-info": "^14.1.1",
     "react-native-fs": "^2.20.0",
     "react-native-geocoding": "^0.5.0",
     "react-native-geolocation-service": "^5.3.1",

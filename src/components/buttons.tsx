@@ -3,6 +3,7 @@ import React, { FC } from "react";
 import { colors } from "../utilis/colors";
 import * as appConstant from "../utilis/appConstant";
 import { fonts } from "../utilis/fonts";
+import { fontScale } from "../utilis/appConstant";
 
 interface ButtonProps {
   title: string;
@@ -27,6 +28,7 @@ export const Buttons: FC<ButtonProps> = ({
       style={[styles.button, style, { opacity: disabled ? 0.7 : 1 }]}
       onPress={onPress}
       disabled={disabled}
+      activeOpacity={1}
     >
       <Text style={[styles.titleText, { color: textColor }]}>{title}</Text>
     </TouchableOpacity>
@@ -41,8 +43,9 @@ const styles = StyleSheet.create({
     borderRadius: appConstant.verticalScale(99),
     alignSelf: "center",
     alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: appConstant.verticalScale(12),
-    paddingVertical: appConstant.verticalScale(12),
+    paddingVertical: appConstant.verticalScale(0),
   },
   titleText: {
     fontSize: appConstant.fontScale(16),
@@ -52,6 +55,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: appConstant.fontScale(24),
     color: colors.white,
-
   },
 });

@@ -126,6 +126,7 @@ interface UserData {
   phoneNumber: string;
   email: string;
   boothName: string;
+  tableNumber: string;
 }
 
 interface PriceBreakdown {
@@ -231,6 +232,26 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
   };
 
   const numberOfDays = calculateDays();
+
+  // Format Canadian phone number
+  const formatCanadianPhoneNumber = (phone: string): string => {
+    if (!phone) return phone;
+    
+    // Remove all non-digit characters
+    const digitsOnly = phone.replace(/\D/g, '');
+    
+    // If it starts with 1, remove it (country code)
+    const phoneNumber = digitsOnly.startsWith('1') ? digitsOnly.slice(1) : digitsOnly;
+    
+    // Check if it's a valid 10-digit Canadian number
+    if (phoneNumber.length === 10) {
+      // Format as (XXX) XXX-XXXX
+      return `+1 (${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6)}`;
+    }
+    
+    // If not 10 digits, return as is with +1 prefix
+    return `+1 ${phone}`;
+  };
 
   // Debug: Log all data to see what's being passed
   console.log("=== REVIEW SUMMARY - COMPLETE DATA ===");
@@ -363,14 +384,17 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
     const basePayload = {
       eventId: eventData?._id || ticketId || "",
       hostId: eventData?.userId?._id || eventData?.userId,
-      members: memberCount || 1,
-      discount: Math.round(pricing.discount),
-      fees: pricing.fees,
-      totalAmount: Math.round(pricing.total),
+      members: eventData?.type === 'Table' ? eventData?.eventCapacity : memberCount || 1,
+      discount: Number(pricing.discount.toFixed(2)), // Keep 2 decimal places for currency
+      fees: Number(pricing.fees.toFixed(2)), // Keep 2 decimal places for currency
+      totalAmount: Number(pricing.total.toFixed(2)), // Keep 2 decimal places for currency (13.56 not 14)
       transactionInfo: paymentIntentId || `TXN${Date.now()}`, // Use payment intent ID or generate unique transaction ID
       bookingStartDate: selectedStartDate || new Date().toISOString(),
       bookingEndDate: selectedEndDate || new Date().toISOString(),
+      isTable: eventData?.type === 'Table' ? 'yes' : 'no', // Pass yes/no (lowercase) based on event type
     };
+
+    console.log("===> basePayload", basePayload);
 
     // Extract IDs with better fallbacks
     let extractedId =
@@ -779,22 +803,39 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
       reviewSummary.data &&
       reviewSummary.data.userId
     ) {
+    console.log("reviewSummary.data", reviewSummary.data);
+      // Get tableNumber from eventData first, then fallback to API response
+      const tableNumberValue = eventData?.tableNumber !== undefined && eventData?.tableNumber !== null
+        ? String(eventData.tableNumber)
+        : reviewSummary.data.tableNumber !== undefined && reviewSummary.data.tableNumber !== null
+        ? String(reviewSummary.data.tableNumber)
+        : "N/A";
+      
       setUserData({
         fullName: reviewSummary.data.userId.fullName || "N/A",
         phoneNumber: reviewSummary.data.userId.phone || "N/A",
         email: reviewSummary.data.userId.email || "N/A",
-        boothName: ticketType || "N/A", // Use dynamic ticket type
+        boothName: ticketType || "N/A", 
+        tableNumber: tableNumberValue,
       });
     } else {
+      console.log("reviewSummary.data", reviewSummary.data);
+
       // Set fallback user data if API doesn't provide it
+      // Get tableNumber from eventData if available
+      const tableNumberValue = eventData?.tableNumber !== undefined && eventData?.tableNumber !== null
+        ? String(eventData.tableNumber)
+        : "N/A";
+      
       setUserData({
         fullName: "N/A",
         phoneNumber: "N/A",
         email: "N/A",
         boothName: ticketType || "N/A",
+        tableNumber: tableNumberValue,
       });
     }
-  }, [reviewSummary, ticketType]);
+  }, [reviewSummary, ticketType, eventData]);
 
   // Handle booking creation response
   useEffect(() => {
@@ -1007,7 +1048,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           },
           body: new URLSearchParams({
             amount: amountInCents.toString(),
-            currency: "usd",
+            currency: "cad",
             customer: stripeCustomerId, // Use dynamic customer ID
             payment_method: paymentData.selectedCard.id,
             off_session: "true",
@@ -1061,7 +1102,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           },
           body: new URLSearchParams({
             amount: amountInCents.toString(),
-            currency: "usd",
+            currency: "cad",
             customer: stripeCustomerId, // Use dynamic customer ID
           }).toString(),
         }
@@ -1080,8 +1121,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                 paymentType: "Immediate",
               } as any,
             ],
-            merchantCountryCode: "US",
-            currencyCode: "USD",
+            merchantCountryCode: "CA",
+            currencyCode: "CAD",
           },
         }
       );
@@ -1125,7 +1166,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
           },
           body: new URLSearchParams({
             amount: amountInCents.toString(),
-            currency: "usd",
+            currency: "cad",
             customer: stripeCustomerId, // Use dynamic customer ID
           }).toString(),
         }
@@ -1138,8 +1179,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
         {
           googlePay: {
             merchantName: "VibesReserve",
-            merchantCountryCode: "US",
-            currencyCode: "USD",
+            merchantCountryCode: "CA",
+            currencyCode: "CAD",
             testEnv: false,
           },
         }
@@ -1354,6 +1395,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                     <LocationFavourite color={colors.violate} />
                     <Text style={styles.detailText}>{eventData.address}</Text>
                   </View>
+                  {/* Hide date for Table type */}
+                  {eventData.type !== 'Table' && (
                   <View style={styles.detailRow}>
                     <ClockIcon color={colors.violate} />
                     <Text style={styles.detailText}>
@@ -1361,6 +1404,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                       {eventData.openingTime}
                     </Text>
                   </View>
+                  )}
                 </View>
 
                 {/* <TouchableOpacity style={styles.eventActionButton}>
@@ -1387,7 +1431,13 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             </View>
           )}
 
+          
+
           <View style={styles.sectionContainer}>
+
+          <View style={styles.infoRow}>
+          <Text style={[styles.infoLabel,{color: colors.white, fontWeight: 'bold'}]}>Host Details</Text>
+          </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Full Name</Text>
               <Text style={styles.infoValue}>
@@ -1402,7 +1452,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               <Text style={styles.infoLabel}>Phone Number</Text>
               <Text style={styles.infoValue}>
                 {eventData
-                  ? eventData?.userId?.phone
+                  ? formatCanadianPhoneNumber(eventData?.userId?.phone || '')
                   : loader
                   ? "Loading..."
                   : "N/A"}
@@ -1419,9 +1469,11 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               </Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Booth Name</Text>
+              <Text style={styles.infoLabel}>
+                {eventData?.type === 'Table' ? 'Table Number' : 'Booth Name'}
+              </Text>
               <Text style={styles.infoValue}>
-                {userData ? userData.boothName : loader ? "Loading..." : "N/A"}
+                {userData ? userData.tableNumber : loader ? "Loading..." : "N/A"}
               </Text>
             </View>
           </View>
@@ -1647,7 +1699,9 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             {dynamicPricing.entryFee != 0 ? (
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>
-                  Entry Fee ({memberCount} members × {numberOfDays} days)
+                  {eventData?.type === 'Table' 
+                    ? 'Price' 
+                    : `Entry Fee (${memberCount} members × ${numberOfDays} days)`}
                 </Text>
                 <Text style={styles.priceValue}>
                   ${dynamicPricing.entryFee.toFixed(2)}
@@ -1656,6 +1710,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
             ) : (
               <></>
             )}
+            {/* Hide Ticket Price for Table type */}
+            {eventData?.type !== 'Table' && (
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>
                 Ticket Price ({memberCount} members × {numberOfDays} days)
@@ -1664,6 +1720,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                 ${dynamicPricing.ticketPrice.toFixed(2)}
               </Text>
             </View>
+            )}
             <View style={styles.priceRow}>
               <Text style={styles.priceLabel}>
                 Discount{" "}
@@ -1683,7 +1740,7 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
               </Text>
             </View>
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Fees</Text>
+              <Text style={styles.priceLabel}>HST</Text>
               <Text style={styles.priceValue}>
                 ${dynamicPricing.fees.toFixed(2)}
               </Text>
@@ -1785,7 +1842,8 @@ export const ReviewSummary: FC<ReviewSummaryProps> = ({
                   }
                   onPress={processCardPayment}
                   style={styles.cardPaymentButton}
-                  disabled={isProcessingPayment}
+                  // disabled={isProcessingPayment}
+                  disabled={false}
                 />
               </View>
             )}

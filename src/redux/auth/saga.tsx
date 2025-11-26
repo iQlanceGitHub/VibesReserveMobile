@@ -43,6 +43,15 @@ import {
   onLogout,
   logoutData,
   logoutError,
+  onDeleteAccount,
+  deleteAccountData,
+  deleteAccountError,
+  onGetCmsContent,
+  getCmsContentData,
+  getCmsContentError,
+  onResendEmail,
+  resendEmailData,
+  resendEmailError,
   onGetDynamicContent,
   getDynamicContentData,
   getDynamicContentError,
@@ -180,6 +189,9 @@ import {
   onDeletePromoCode,
   deletePromoCodeData,
   deletePromoCodeError,
+  onNearbyHostViewAll,
+  nearbyHostViewAllData,
+  nearbyHostViewAllError,
 } from "./actions";
 
 import { base_url_client, base_url_qa, api_endpoint } from "../apiConstant";
@@ -855,6 +867,113 @@ function* LogoutSaga({ payload }: { payload: LogoutPayload }): SagaIterator {
   }
 }
 
+interface DeleteAccountPayload {}
+
+function* DeleteAccountSaga({ payload }: { payload: DeleteAccountPayload }): SagaIterator {
+  try {
+    console.log("🗑️ DELETE ACCOUNT SAGA STARTED");
+    yield put(displayLoading(true));
+    
+    const params = payload;
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${"user/delete-account"}`,
+      params,
+    });
+
+    console.log("🗑️ DELETE ACCOUNT - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("🗑️ DELETE ACCOUNT - SUCCESS, dispatching deleteAccountData");
+      yield put(deleteAccountData(response));
+    } else {
+      console.log("🗑️ DELETE ACCOUNT - ERROR, dispatching deleteAccountError");
+      yield put(deleteAccountError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("🗑️ DELETE ACCOUNT - CATCH ERROR:", error);
+    yield put(deleteAccountError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+interface GetCmsContentPayload {
+  identifier: string; // 'privacy_policy', 'about_us', 'terms_condition'
+}
+
+function* GetCmsContentSaga({ payload }: { payload: GetCmsContentPayload }): SagaIterator {
+  try {
+    console.log("📄 GET CMS CONTENT SAGA STARTED - payload:", payload);
+    yield put(displayLoading(true));
+    
+    const params = payload;
+    const response = yield call(fetchGet, {
+      url: `${baseurl}${"user/cms-content/" + payload.identifier}`,
+      params,
+    });
+
+    console.log("📄 GET CMS CONTENT - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("📄 GET CMS CONTENT - SUCCESS, dispatching getCmsContentData");
+      yield put(getCmsContentData(response));
+      yield put(displayLoading(false));
+    } else {
+      console.log("📄 GET CMS CONTENT - ERROR, dispatching getCmsContentError");
+      yield put(getCmsContentError(response));
+      yield put(displayLoading(false));
+    }
+
+  } catch (error) {
+    console.log("📄 GET CMS CONTENT - CATCH ERROR:", error);
+    yield put(getCmsContentError(error));
+    yield put(displayLoading(false));
+  }
+}
+
+function* ResendEmailSaga(): SagaIterator {
+  try {
+    console.log("📧 RESEND EMAIL SAGA STARTED");
+    yield put(displayLoading(true));
+    
+    const response = yield call(fetchGet, {
+      url: `${baseurl}user/resend-email`,
+    });
+
+    console.log("📧 RESEND EMAIL - response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log("📧 RESEND EMAIL - SUCCESS, dispatching resendEmailData");
+      yield put(resendEmailData(response));
+    } else {
+      console.log("📧 RESEND EMAIL - ERROR, dispatching resendEmailError");
+      yield put(resendEmailError(response?.message || "Failed to resend email"));
+    }
+    
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("📧 RESEND EMAIL - CATCH ERROR:", error);
+    yield put(resendEmailError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 interface ViewdetailsPayload {
   id?: string;
   userId?: string;
@@ -1246,22 +1365,33 @@ interface CreateeventPayload {
   details: string;
   entryFee: number;
   eventCapacity: number;
-  openingTime: string;
-  closeTime: string;
-  startDate: string;
-  endDate: string;
+  openingTime?: string; // Optional for Table type
+  closeTime?: string; // Optional for Table type
+  startDate?: string; // Optional for Table type
+  endDate?: string; // Optional for Table type
   address: string;
   coordinates: {
     type: string;
     coordinates: number[];
   };
   photos: string[];
-  facilities: string[];
-  tickets: Array<{
+  facilities?: string[]; // Optional for Table, Booth, VIP Entry types
+  tickets?: Array<{
     ticketType: string;
     ticketPrice: number;
     capacity: number;
   }>;
+  floorLayout?: string; // For Table type
+  booths?: Array<{
+    boothName: string;
+    boothType: string;
+    boothPrice: number;
+    capacity: number;
+    discountedPrice: number;
+    boothImage: string[];
+  }>;
+  ticketType?: string; // For Booth and VIP Entry types
+  discountPrice?: string; // For Booth and VIP Entry types
 }
 
 function* FavoriteslistSaga({
@@ -1813,6 +1943,7 @@ interface CheckBookedDatePayload {
   eventId?: string;
   startDate?: string;
   endDate?: string;
+  isTable?: string;
 }
 
 function* CheckBookedDateSaga({
@@ -1827,6 +1958,7 @@ function* CheckBookedDateSaga({
       eventId: payload?.eventId,
       startDate: payload?.startDate,
       endDate: payload?.endDate,
+      isTable: payload?.isTable,
     };
 
     const response = yield call(fetchPost, {
@@ -2218,6 +2350,15 @@ interface CreateHelpSupportPayload {
   fullName: string;
   email: string;
   description: string;
+  blockedUsers?: Array<{
+    userId: string;
+    userName: string;
+    blockedBy: string;
+    reason: string;
+    timestamp: string;
+    status: string;
+  }>;
+  userType?: string;
 }
 
 function* CreateHelpSupportSaga({
@@ -2232,6 +2373,8 @@ function* CreateHelpSupportSaga({
       fullName: payload?.fullName,
       email: payload?.email,
       description: payload?.description,
+      blockedUsers: payload?.blockedUsers || [],
+      userType: payload?.userType || 'host',
     };
 
     const response = yield call(fetchPost, {
@@ -2411,6 +2554,72 @@ function* DeletePromoCodeSaga({
   }
 }
 
+// Nearby Host View All Saga
+interface NearbyHostViewAllPayload {
+  lat: string;
+  long: string;
+  userId: string;
+  page?: number;
+  limit?: number;
+}
+
+function* NearbyHostViewAllSaga({
+  payload,
+}: {
+  payload: NearbyHostViewAllPayload;
+}): SagaIterator {
+  try {
+    console.log(
+      "🚀 NEARBY HOST VIEW ALL SAGA: Starting with payload:",
+      payload
+    );
+    yield put(displayLoading(true));
+
+    const params = {
+      lat: payload?.lat,
+      long: payload?.long,
+      userId: payload?.userId,
+    };
+
+    const page = payload?.page || 1;
+    const limit = payload?.limit || 10;
+
+    const apiUrl = `${baseurl}${api_endpoint.nearbyHostViewAll}?page=${page}&limit=${limit}`;
+    console.log("🌐 NEARBY HOST VIEW ALL SAGA: Making API call to:", apiUrl);
+    console.log("📤 NEARBY HOST VIEW ALL SAGA: Request params:", params);
+
+    const response = yield call(fetchPost, {
+      url: apiUrl,
+      params,
+    });
+
+    console.log("📡 NEARBY HOST VIEW ALL SAGA: API Response:", response);
+
+    if (
+      response?.status === true ||
+      response?.status === "true" ||
+      response?.status === 1 ||
+      response?.status === "1"
+    ) {
+      console.log(
+        "✅ NEARBY HOST VIEW ALL SAGA: Success - dispatching nearbyHostViewAllData"
+      );
+      yield put(nearbyHostViewAllData(response));
+    } else {
+      console.log(
+        "❌ NEARBY HOST VIEW ALL SAGA: Error - dispatching nearbyHostViewAllError"
+      );
+      yield put(nearbyHostViewAllError(response));
+    }
+
+    yield put(displayLoading(false));
+  } catch (error) {
+    console.log("💥 NEARBY HOST VIEW ALL SAGA: Exception caught:", error);
+    yield put(nearbyHostViewAllError(error));
+    yield put(displayLoading(false));
+  }
+}
+
 // Chat Click Saga
 function* ChatClickSaga({ payload }: { payload: any }): SagaIterator {
   try {
@@ -2479,6 +2688,9 @@ function* authSaga() {
   yield takeLatest(onSocialLogin().type as any, SocialLoginSaga);
   yield takeLatest(onProfile().type as any, getProfileSaga);
   yield takeLatest(onLogout().type as any, LogoutSaga);
+  yield takeLatest(onDeleteAccount().type as any, DeleteAccountSaga);
+  yield takeLatest(onGetCmsContent().type as any, GetCmsContentSaga);
+  yield takeLatest(onResendEmail().type as any, ResendEmailSaga);
   yield takeLatest(onUpdateLocation().type as any, onUpdateLocationSaga);
 
   yield takeLatest(onHome().type as any, HomeSaga);
@@ -2549,6 +2761,9 @@ function* authSaga() {
 
   // Delete Promo Code saga
   yield takeLatest(onDeletePromoCode().type as any, DeletePromoCodeSaga);
+
+  // Nearby Host View All saga
+  yield takeLatest(onNearbyHostViewAll().type as any, NearbyHostViewAllSaga);
 }
 
 export default authSaga;

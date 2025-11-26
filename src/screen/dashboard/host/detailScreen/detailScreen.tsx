@@ -54,12 +54,14 @@ import PhoneIcon from '../../../../assets/svg/phoneIcon';
 import CocktailIcon from '../../../../assets/svg/cocktailIcon';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocation, LocationProvider } from '../../../../contexts/LocationContext';
+import { useModeration } from '../../../../contexts/ModerationContext';
 import ClubDetailScreen from '../../user/homeScreen/clubBooking/clubDetails/clubDetailScreen';
 
 const DetailScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { locationData } = useLocation();
+    const { isUserBlocked, getBlockedUserInfo } = useModeration();
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
@@ -72,6 +74,7 @@ const DetailScreen = () => {
     const [msg, setMsg] = useState('');
     const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
     const [showCustomAlert, setShowCustomAlert] = useState(false);
+    const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);
     const [alertConfig, setAlertConfig] = useState({
         title: '',
         message: '',
@@ -95,17 +98,10 @@ const DetailScreen = () => {
     // Disable swipe-back gesture on iOS
     useFocusEffect(
         React.useCallback(() => {
-            // Disable gesture when screen is focused
+            // Disable gesture when screen is focused and keep it disabled
             navigation.setOptions({
                 gestureEnabled: false,
             });
-
-            // Re-enable gesture when screen is unfocused (optional)
-            return () => {
-                navigation.setOptions({
-                    gestureEnabled: true,
-                });
-            };
         }, [navigation])
     );
     const viewdetailsErr = useSelector((state: any) => state.auth.viewdetailsErr);
@@ -560,11 +556,12 @@ const DetailScreen = () => {
 ${clubDetails_text}
 
 🏷️ Type: ${clubType}
-💰 Entry: ₹${entryFee}
+💰 Entry: $${entryFee}
 
 #Nightlife #Party #${clubType} #VibesReserve #Fun #Entertainment
 
-Download VibesReserve app to discover more amazing venues! 🚀`;
+Download VibesReserve app to discover more amazing venues! 🚀\n
+Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id6754464237`;
 
         try {
             const result = await Share.share({
@@ -864,20 +861,32 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
                         <Text style={styles.eventTitle}>{(clubDetails as any)?.name || 'Loading...'}</Text>
 
+                        {/* Blocked User Indicator */}
+                        {clubDetails && (clubDetails as any)?.userId && isUserBlocked((clubDetails as any).userId._id) && (
+                            <View style={styles.blockedUserIndicator}>
+                                <Text style={styles.blockedUserText}>
+                                ⚠️ You’ve previously blocked this host. We recommend contacting support before proceeding with your booking.
+                                </Text>
+                            </View>
+                        )}
+
                         <View style={styles.eventDetails}>
                             <View style={styles.detailRow}>
                                 <LocationFavourite size={16} color={colors.violate} />
                                 <Text style={styles.detailText}>{(clubDetails as any)?.address || 'Loading...'}</Text>
                             </View>
-                            <View style={styles.detailRow}>
-                                <ClockIcon size={16} color={colors.violate} />
-                                <Text style={styles.detailText}>
-                                    {clubDetails ?
-                                        `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
-                                        'Loading...'
-                                    }
-                                </Text>
-                            </View>
+                            {/* Date & Time - Only show for non-Table types */}
+                            {(clubDetails as any)?.type !== 'Table' && (
+                                <View style={styles.detailRow}>
+                                    <ClockIcon size={16} color={colors.violate} />
+                                    <Text style={styles.detailText}>
+                                        {clubDetails && (clubDetails as any).startDate && (clubDetails as any).openingTime ?
+                                            `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
+                                            'Loading...'
+                                        }
+                                    </Text>
+                                </View>
+                            )}
                         </View>
 
                         {(clubDetails as any)?.type !== 'VIP Entry' && (clubDetails as any)?.type !== 'Booth' && (
@@ -886,6 +895,28 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                                 <Text style={styles.aboutText}>
                                     {(clubDetails as any)?.details}
                                 </Text>
+                            </View>
+                        )}
+
+                        {/* Floor Plan Section for Table Type */}
+                        {(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.floorLayout && (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Floor Plan</Text>
+                                <TouchableOpacity
+                                    style={styles.floorPlanButton}
+                                    onPress={() => setShowFloorPlanModal(true)}
+                                >
+                                    <View style={styles.floorPlanPreviewContainer}>
+                                        <Image
+                                            source={{ uri: (clubDetails as any)?.floorLayout }}
+                                            style={styles.floorPlanPreview}
+                                            resizeMode="cover"
+                                        />
+                                        <View style={styles.floorPlanOverlay}>
+                                            <Text style={styles.floorPlanButtonText}>View Floor Plan</Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
                             </View>
                         )}
 
@@ -1046,32 +1077,32 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                                 </MapView>
                             </View>
                         </View>
-                        {/* Facilities */}
-                        {(clubDetails as any)?.type !== 'VIP Entry' && (clubDetails as any)?.type !== 'Booth' ? (
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Facilities</Text>
-                            <View style={styles.facilitiesContainer}>
-                                {facilities.map((facility: any) => (
-                                    <TouchableOpacity
-                                        key={facility.id}
-                                        style={[
-                                            styles.facilityButton,
-                                            selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
-                                        ]}
-                                        onPress={() => handleFacilityToggle(facility.id)}
-                                    >
-                                        {/* {facility.icon} */}
-                                        <Text style={[
-                                            styles.facilityText,
-                                            selectedFacilities.includes(facility.id) && styles.facilityTextSelected
-                                        ]}>
-                                            {facility.title}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
+                        {/* Facilities - Only show if facilities exist and not for VIP Entry, Booth, or Table types */}
+                        {(clubDetails as any)?.type !== 'VIP Entry' && (clubDetails as any)?.type !== 'Booth' && (clubDetails as any)?.type !== 'Table' && facilities && facilities.length > 0 && (
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Facilities</Text>
+                                <View style={styles.facilitiesContainer}>
+                                    {facilities.map((facility: any) => (
+                                        <TouchableOpacity
+                                            key={facility.id}
+                                            style={[
+                                                styles.facilityButton,
+                                                selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
+                                            ]}
+                                            onPress={() => handleFacilityToggle(facility.id)}
+                                        >
+                                            {/* {facility.icon} */}
+                                            <Text style={[
+                                                styles.facilityText,
+                                                selectedFacilities.includes(facility.id) && styles.facilityTextSelected
+                                            ]}>
+                                                {facility.title}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
                             </View>
-                        </View>
-                        ) : null}
+                        )}
                     </View>
                     <View style={{ marginTop: verticalScale(100) }}></View>
                 </ScrollView>
@@ -1097,6 +1128,43 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
                 onSecondaryPress={alertConfig.onSecondaryPress}
                 onClose={() => setShowCustomAlert(false)}
             />
+
+            {/* Floor Plan Modal */}
+            <Modal
+                visible={showFloorPlanModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowFloorPlanModal(false)}
+            >
+                <View style={styles.floorPlanModalOverlay}>
+                    <View style={styles.floorPlanModalContainer}>
+                        <View style={styles.floorPlanModalHeader}>
+                            <Text style={styles.floorPlanModalTitle}>Floor Plan</Text>
+                            <TouchableOpacity
+                                style={styles.floorPlanCloseButton}
+                                onPress={() => setShowFloorPlanModal(false)}
+                            >
+                                <Text style={styles.floorPlanCloseButtonText}>✕</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView
+                            style={styles.floorPlanScrollView}
+                            contentContainerStyle={styles.floorPlanScrollContent}
+                            showsVerticalScrollIndicator={true}
+                            showsHorizontalScrollIndicator={true}
+                            maximumZoomScale={3}
+                            minimumZoomScale={1}
+                            bouncesZoom={true}
+                        >
+                            <Image
+                                source={{ uri: (clubDetails as any)?.floorLayout }}
+                                style={styles.floorPlanFullImage}
+                                resizeMode="contain"
+                            />
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };

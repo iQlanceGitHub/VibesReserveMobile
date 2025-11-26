@@ -21,6 +21,7 @@ import {
 } from "../../../../components/textinput";
 import { Buttons } from "../../../../components/buttons";
 import { colors } from "../../../../utilis/colors";
+import { verticalScale, horizontalScale } from "../../../../utilis/appConstant";
 import DetailsInput from "../../../../components/DetailsInput";
 import CustomDropdown from "../../../../components/CustomDropdown";
 import ImageSelectionBottomSheet from "../../../../components/ImageSelectionBottomSheet";
@@ -125,7 +126,11 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [endDate, setEndDate] = useState("");
   const [entryFee, setEntryFee] = useState("");
   const [eventCapacity, setEventCapacity] = useState("");
+  const [ticketType, setTicketType] = useState("");
+  const [discountPrice, setDiscountPrice] = useState("");
   const [address, setAddress] = useState("");
+  const [floorLayout, setFloorLayout] = useState(""); // Store image URL for floor layout
+  const [tableNumber, setTableNumber] = useState(""); // Table number for Table type
   const [coordinates, setCoordinates] = useState({
     type: "Point",
     coordinates: [0, 0], // Default coordinates
@@ -154,7 +159,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentImageType, setCurrentImageType] = useState<
-    "main" | "booth" | "event"
+    "main" | "booth" | "event" | "floorLayout"
   >("main");
   const [currentBoothIndex, setCurrentBoothIndex] = useState(0);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
@@ -175,6 +180,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     uploadPhotos: false,
     startDate: false,
     endDate: false,
+    tableNumber: false,
+    floorLayout: false,
   });
 
   // Redux
@@ -187,6 +194,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     { id: "2", name: "Booth" },
     { id: "3", name: "Event" },
     { id: "4", name: "VIP Entry" },
+    { id: "5", name: "Table" },
   ];
 
   // Convert categories to booth types format (use all categories)
@@ -209,6 +217,13 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     fetchCategories();
     fetchFacilities();
   }, [fetchCategories, fetchFacilities]);
+
+  // Clear details error when type changes to Booth or VIP Entry
+  useEffect(() => {
+    if (type === "Booth" || type === "VIP Entry") {
+      setErrors((prev) => ({ ...prev, details: false }));
+    }
+  }, [type]);
 
   // Handle address selection from GoogleAddressAutocomplete
   const handleAddressSelect = (selectedAddress: any) => {
@@ -256,7 +271,19 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       );
       setAddress(eventData.address || "");
 
-      if (eventData.coordinates) {
+      // Load coordinates from existing data
+      // Swap only if coordinates appear to be in [lng, lat] format
+      if (eventData.coordinates && eventData.coordinates.coordinates) {
+        const [firstCoord, secondCoord] = eventData.coordinates.coordinates;
+        // Check if coordinates might be in [lng, lat] format
+        // For India region: lng is typically 68-88, lat is 6-37
+        // If first coord is in lng range and larger than second, likely [lng, lat]
+        const looksLikeLngLat = firstCoord > 60 && firstCoord < 100 && secondCoord > 0 && secondCoord < 40 && firstCoord > secondCoord;
+        setCoordinates({
+          type: eventData.coordinates.type || "Point",
+          coordinates: looksLikeLngLat ? [secondCoord, firstCoord] : [firstCoord, secondCoord], // Swap if needed to ensure [lat, lng]
+        });
+      } else if (eventData.coordinates) {
         setCoordinates(eventData.coordinates);
       }
 
@@ -324,7 +351,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
     const newErrors = {
       name: !name.trim(),
-      details: !details.trim(),
+      details: (type === "Club" || type === "Event" || type === "Table") ? !details.trim() : false, // Required for Club/Event/Table, optional for Booth/VIP Entry
       entryFee: !entryFee.trim() || isNaN(Number(entryFee)),
       eventCapacity:
         !eventCapacity.trim() ||
@@ -336,6 +363,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       uploadPhotos: uploadPhotos.length === 0, // Require photos for all types
       startDate: false, // Will be validated separately
       endDate: false, // Will be validated separately
+      floorLayout: false, // Optional for Table type
+      tableNumber: type === "Table" ? !tableNumber.trim() : false, // Required for Table type
     };
 
     // Check if type is selected
@@ -344,11 +373,12 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       (type !== "Club" &&
         type !== "Event" &&
         type !== "VIP Entry" &&
-        type !== "Booth")
+        type !== "Booth" &&
+        type !== "Table")
     ) {
       showToast(
         "error",
-        "Please select a type (Club, Booth, Event, or VIP Entry)"
+        "Please select a type (Club, Booth, Event, VIP Entry, or Table)"
       );
       return false;
     }
@@ -367,11 +397,23 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         Number(eventCapacity) <= 0
       )
         missingFields.push("Capacity");
-      if (!details.trim() || isNaN(Number(details)))
-        missingFields.push("Discount Price");
+      // Discount price is now optional - no validation required
+    } else if (type === "Table") {
+      if (!name.trim()) missingFields.push("Table Name");
+      if (!details.trim()) missingFields.push("Details");
+      if (!entryFee.trim() || isNaN(Number(entryFee)))
+        missingFields.push("Table Fee");
+      if (
+        !eventCapacity.trim() ||
+        isNaN(Number(eventCapacity)) ||
+        Number(eventCapacity) <= 0
+      )
+        missingFields.push("Seating Capacity");
+      // Floor Layout is optional for Table type
+      // Table type doesn't require dates, times, or facilities
     } else {
       if (!name.trim()) missingFields.push("Name");
-      if (!details.trim()) missingFields.push("Details");
+      if (!details.trim()) missingFields.push("Details"); // Required for Club/Event types
       if (!entryFee.trim() || isNaN(Number(entryFee)))
         missingFields.push("Entry Fee");
       if (
@@ -382,16 +424,20 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         missingFields.push("Event Capacity");
     }
 
-    // Common fields for all types
-    if (!startTime.trim()) missingFields.push("Start Time");
-    if (!endTime.trim()) missingFields.push("End Time");
-    if (!startDate.trim()) missingFields.push("Start Date");
-    if (!endDate.trim()) missingFields.push("End Date");
+    // Common fields for all types (except Table)
+    if (type !== "Table") {
+      if (!startTime.trim()) missingFields.push("Start Time");
+      if (!endTime.trim()) missingFields.push("End Time");
+      if (!startDate.trim()) missingFields.push("Start Date");
+      if (!endDate.trim()) missingFields.push("End Date");
+    }
+    // Address and photos required for all types
     if (!address.trim()) missingFields.push("Address");
     if (uploadPhotos.length === 0) missingFields.push("Upload Photos");
 
-    // Validate date constraints
+    // Validate date constraints (only for non-Table types)
     if (
+      type !== "Table" &&
       startDate.trim() &&
       endDate.trim() &&
       !validateDates(startDate, endDate)
@@ -409,7 +455,24 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       if (enableTickets && events.length === 0) missingFields.push("Tickets");
     }
 
+    // Safety check: Remove "Details" from missing fields if type is Booth or VIP Entry
+    if (type === "Booth" || type === "VIP Entry") {
+      const filteredMissingFields = missingFields.filter(field => field !== "Details");
+      if (filteredMissingFields.length !== missingFields.length) {
+        console.log("=== REMOVED DETAILS FROM MISSING FIELDS ===");
+        console.log("Original missing fields:", missingFields);
+        console.log("Filtered missing fields:", filteredMissingFields);
+        missingFields.length = 0;
+        missingFields.push(...filteredMissingFields);
+      }
+    }
+
     if (missingFields.length > 0) {
+      console.log("=== MISSING FIELDS DEBUG ===");
+      console.log("Type:", type);
+      console.log("Missing fields:", missingFields);
+      console.log("Details field value:", details);
+      console.log("Details error state:", newErrors.details);
       showToast("error", `Please fill in: ${missingFields.join(", ")}`);
       setErrors((prev) => ({ ...prev, ...newErrors }));
       return false;
@@ -427,11 +490,11 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         if (!booth.boothType.trim()) missingBoothFields.push("Booth Type");
         if (!booth.boothPrice.trim() || isNaN(Number(booth.boothPrice)))
           missingBoothFields.push("Booth Price");
-        if (
-          !booth.discountedPrice.trim() ||
-          isNaN(Number(booth.discountedPrice))
-        )
-          missingBoothFields.push("Discounted Price");
+        // if (
+        //   !booth.discountedPrice.trim() ||
+        //   isNaN(Number(booth.discountedPrice))
+        // )
+        //   missingBoothFields.push("Discounted Price");
         if (!booth.capacity.trim() || isNaN(Number(booth.capacity)))
           missingBoothFields.push("Capacity");
         if (booth.boothImages.length === 0)
@@ -566,7 +629,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
   const handleImagePicker = (
     type: "camera" | "gallery",
-    imageType: "main" | "booth" | "event" = "main",
+    imageType: "main" | "booth" | "event" | "floorLayout" = "main",
     boothIndex: number = 0,
     eventIndex: number = 0
   ) => {
@@ -582,9 +645,16 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       boothIndex < booths.length
     ) {
       currentImages = booths[boothIndex]?.boothImages || [];
+    } else if (imageType === "floorLayout") {
+      // Floor layout is single image, so if it exists, no slots available
+      if (floorLayout) {
+        showToast("error", "Floor layout image already exists. Please delete it first.");
+        return;
+      }
+      currentImages = []; // Single image for floor layout
     }
 
-    const remainingSlots = Math.max(0, 3 - currentImages.length);
+    const remainingSlots = imageType === "floorLayout" ? 1 : Math.max(0, 3 - currentImages.length);
 
     // Check if user can add more images
     if (remainingSlots <= 0) {
@@ -597,7 +667,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       quality: 0.7 as any, // Reduced quality to prevent memory issues
       maxWidth: 800, // Reduced size to prevent memory issues
       maxHeight: 800,
-      selectionLimit: remainingSlots > 0 ? remainingSlots : 1, // Limit selection based on remaining slots
+      selectionLimit: imageType === "floorLayout" ? 1 : (remainingSlots > 0 ? remainingSlots : 1), // Single image for floor layout, limit for others
       includeBase64: false, // Disable base64 to save memory
     };
 
@@ -630,18 +700,22 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         if (validAssets.length < response.assets.length) {
           showToast(
             "warning",
-            `${
-              response.assets.length - validAssets.length
+            `${response.assets.length - validAssets.length
             } images were too large and skipped`
           );
         }
 
-        handleMultipleImageUpload(
-          validAssets,
-          imageType,
-          boothIndex,
-          eventIndex
-        );
+        if (imageType === "floorLayout") {
+          // Handle single image upload for floor layout
+          handleSingleImageUpload(validAssets[0], "floorLayout");
+        } else {
+          handleMultipleImageUpload(
+            validAssets,
+            imageType,
+            boothIndex,
+            eventIndex
+          );
+        }
       } else {
         showToast("error", "No images selected");
       }
@@ -671,6 +745,42 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
           showToast("error", "Storage permission denied");
         }
       );
+    }
+  };
+
+  const handleSingleImageUpload = async (
+    asset: any,
+    imageType: "floorLayout"
+  ) => {
+    try {
+      setLoading(true);
+      
+      if (!asset || !asset.uri) {
+        showToast("error", "No image selected");
+        return;
+      }
+
+      const fileName = `floorLayout_${Date.now()}.jpg`;
+      const uploadedUrl = await uploadFileToS3(
+        asset.uri,
+        fileName,
+        "image/jpeg"
+      );
+
+      if (uploadedUrl) {
+        setFloorLayout(uploadedUrl);
+        if (errors.floorLayout) {
+          setErrors((prev) => ({ ...prev, floorLayout: false }));
+        }
+        showToast("success", "Floor layout image uploaded successfully");
+      } else {
+        showToast("error", "Failed to upload floor layout image");
+      }
+    } catch (error) {
+      console.log("Floor layout image upload error:", error);
+      showToast("error", "Failed to upload floor layout image");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1023,8 +1133,8 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
     const selectedFacilities =
       type !== "Booth" && type !== "VIP Entry"
         ? facilitiesList
-            .filter((facility) => facility.selected)
-            .map((facility) => facility._id)
+          .filter((facility) => facility.selected)
+          .map((facility) => facility._id)
         : [];
 
     // Use dynamic coordinates from address selection
@@ -1200,11 +1310,11 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       });
     };
 
-    // Use static values if fields are empty
-    const finalStartDate = formatDate(startDate) || getCurrentDate();
-    const finalEndDate = formatDate(endDate) || getCurrentDate();
-    const finalStartTime = formatTime(startTime) || "09:00";
-    const finalEndTime = formatTime(endTime) || "18:00";
+    // Use static values if fields are empty (only for non-Table types)
+    const finalStartDate = type !== "Table" ? (formatDate(startDate) || getCurrentDate()) : "";
+    const finalEndDate = type !== "Table" ? (formatDate(endDate) || getCurrentDate()) : "";
+    const finalStartTime = type !== "Table" ? (formatTime(startTime) || "09:00") : "";
+    const finalEndTime = type !== "Table" ? (formatTime(endTime) || "18:00") : "";
 
     console.log("Using fallback values:", {
       startDate: finalStartDate,
@@ -1219,18 +1329,34 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       details: details,
       entryFee: Number(entryFee),
       eventCapacity: Number(eventCapacity),
-      openingTime: finalStartTime,
-      closeTime: finalEndTime,
-      startDate: finalStartDate,
-      endDate: finalEndDate,
       address: address,
       coordinates: coordinates,
       photos: uploadPhotos, // Include photos for all types
     };
 
-    // Add facilities only for Club and Event types
+    // Add date/time fields only for non-Table types
+    if (type !== "Table") {
+      eventData.openingTime = finalStartTime;
+      eventData.closeTime = finalEndTime;
+      eventData.startDate = finalStartDate;
+      eventData.endDate = finalEndDate;
+    }
+
+    // Add ticket type and discount price for Booth and VIP Entry types
+    if (type === "Booth" || type === "VIP Entry") {
+      eventData.ticketType = ticketType;
+      eventData.discountPrice = discountPrice;
+    }
+
+    // Add facilities only for Club and Event types (not Table)
     if (type === "Club" || type === "Event") {
       eventData.facilities = selectedFacilities;
+    }
+
+    // Add floorLayout and tableNumber for Table type
+    if (type === "Table") {
+      eventData.floorLayout = floorLayout;
+      eventData.tableNumber = tableNumber;
     }
 
     // Add booth or ticket specific data only if sections are enabled
@@ -1243,12 +1369,13 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
         discountedPrice: Number(booth.discountedPrice),
         boothImage: booth.boothImages,
       }));
-    } else if (type === "Event" && enableTickets) {
-      eventData.tickets = events.map((event) => ({
+    } else if (type === "Event") {
+      // Always include tickets field - empty array if tickets disabled, populated if enabled
+      eventData.tickets = enableTickets ? events.map((event) => ({
         ticketType: event.ticketType, // Pass as string ID
         ticketPrice: Number(event.ticketPrice),
         capacity: Number(event.capacity),
-      }));
+      })) : []; // Empty array when tickets are disabled
     }
     // Note: Booth and VIP Entry types only send basic payload without booth/ticket data
 
@@ -1269,6 +1396,13 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       "Formatted event data to be sent:",
       JSON.stringify(eventData, null, 2)
     );
+    console.log("Event type:", type);
+    console.log("Includes openingTime:", eventData.openingTime !== undefined);
+    console.log("Includes closeTime:", eventData.closeTime !== undefined);
+    console.log("Includes startDate:", eventData.startDate !== undefined);
+    console.log("Includes endDate:", eventData.endDate !== undefined);
+    console.log("Includes facilities:", eventData.facilities !== undefined);
+    console.log("Includes floorLayout:", eventData.floorLayout !== undefined);
 
     // Note: Using fallback values for date/time, so no need to validate them
 
@@ -1422,25 +1556,28 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 (type !== "Club" &&
                   type !== "Event" &&
                   type !== "VIP Entry" &&
-                  type !== "Booth")
+                  type !== "Booth" &&
+                  type !== "Table")
               }
               message={
                 !type ||
-                (type !== "Club" &&
-                  type !== "Event" &&
-                  type !== "VIP Entry" &&
-                  type !== "Booth")
+                  (type !== "Club" &&
+                    type !== "Event" &&
+                    type !== "VIP Entry" &&
+                    type !== "Booth" &&
+                    type !== "Table")
                   ? "Please select a type"
                   : ""
               }
             />
 
+
             {/* Show different fields based on type */}
-            {type !== "Booth" && type !== "VIP Entry" && (
+            {type !== "Booth" && type !== "VIP Entry" && type !== "Table" && (
               <>
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Name"
+                    label="Name*"
                     placeholder="Enter name"
                     value={name}
                     onChangeText={(text) => {
@@ -1457,7 +1594,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 </View>
 
                 <DetailsInput
-                  label="Details"
+                  label="Details*"
                   placeholder="Enter here"
                   value={details}
                   onChangeText={(text) => {
@@ -1472,7 +1609,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 />
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Entry Fee"
+                    label="Entry Fee*"
                     placeholder="Enter fee"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1492,7 +1629,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Event Capacity"
+                    label="Event Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
                     onChangeText={(text) => {
@@ -1521,7 +1658,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             {(type === "Booth" || type === "VIP Entry") && (
               <View style={addClubEventDetailStyle.formElement}>
                 <CustomeTextInput
-                  label="Name"
+                  label="Name*"
                   placeholder="Enter name"
                   value={name}
                   onChangeText={(text) => {
@@ -1529,7 +1666,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                     if (errors.name) {
                       setErrors((prev) => ({ ...prev, name: false }));
                     }
-                  }}
+                  }}  
                   error={errors.name}
                   message={errors.name ? "Name is required" : ""}
                   leftImage=""
@@ -1538,167 +1675,324 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </View>
             )}
 
-            <View style={addClubEventDetailStyle.formElement}>
-              <DatePickerInput
-                label="Start Date"
-                placeholder="Select date"
-                value={startDate}
+            {/* Show Details field for Booth and VIP Entry types */}
+            {(type === "Booth" || type === "VIP Entry") && (
+              <DetailsInput
+                label="Details*"
+                placeholder="Enter here"
+                value={details}
                 onChangeText={(text) => {
-                  console.log("Start date selected:", text);
-                  setStartDate(text);
-                  // Clear errors when user types
-                  if (errors.startDate) {
-                    setErrors((prev) => ({ ...prev, startDate: false }));
-                  }
-                  // Validate dates if end date is set
-                  if (endDate && !validateDates(text, endDate)) {
-                    setErrors((prev) => ({ ...prev, endDate: true }));
-                    showToast(
-                      "error",
-                      "End date must be same or after start date"
-                    );
+                  setDetails(text);
+                  if (errors.details) {
+                    setErrors((prev) => ({ ...prev, details: false }));
                   }
                 }}
-                error={errors.startDate}
-                message={errors.startDate ? "Start date is required" : ""}
-                leftImage=""
-                style={addClubEventDetailStyle.datePickerWrapper}
-                allowFutureDates={true}
-                minDate={new Date()}
-                maxDate={new Date(2035, 11, 31)}
+                error={errors.details}
+                message={errors.details ? "Details are required" : ""}
+                required={false}
               />
-              <TouchableOpacity
-                style={addClubEventDetailStyle.datePickerRightIcon}
-                onPress={() => triggerDatePicker("start")}
-              >
-                <CalendarIcon />
-              </TouchableOpacity>
-            </View>
-            <View style={addClubEventDetailStyle.formElement}>
-              <DatePickerInput
-                label="End Date"
-                placeholder="Select date"
-                value={endDate}
-                onChangeText={(text) => {
-                  console.log("End date selected:", text);
-                  setEndDate(text);
-                  // Clear errors when user types
-                  if (errors.endDate) {
-                    setErrors((prev) => ({ ...prev, endDate: false }));
-                  }
-                  // Validate dates if start date is set
-                  if (startDate && !validateDates(startDate, text)) {
-                    setErrors((prev) => ({ ...prev, endDate: true }));
-                    showToast(
-                      "error",
-                      "End date must be same or after start date"
-                    );
-                  }
-                }}
-                error={errors.endDate}
-                message={
-                  errors.endDate
-                    ? "End date must be same or after start date"
-                    : ""
-                }
-                leftImage=""
-                style={addClubEventDetailStyle.datePickerWrapper}
-                allowFutureDates={true}
-                minDate={
-                  startDate
-                    ? (() => {
-                        try {
-                          const [day, month, year] = startDate.split("/");
-                          return new Date(
-                            parseInt(year),
-                            parseInt(month) - 1,
-                            parseInt(day)
-                          );
-                        } catch (error) {
-                          return new Date();
+            )}
+
+            {/* Table-specific fields */}
+            {type === "Table" && (
+              <>
+                <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Table Name*"
+                    placeholder="Enter table name"
+                    value={name}
+                    onChangeText={(text) => {
+                      setName(text);
+                      if (errors.name) {
+                        setErrors((prev) => ({ ...prev, name: false }));
+                      }
+                    }}
+                    error={errors.name}
+                    message={errors.name ? "Table name is required" : ""}
+                    leftImage=""
+                    kType="default"
+                  />
+                </View>
+
+                <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Table Number*"
+                    placeholder="Enter table number"
+                    value={tableNumber}
+                    onChangeText={(text) => {
+                      setTableNumber(text);
+                      if (errors.tableNumber) {
+                        setErrors((prev) => ({ ...prev, tableNumber: false }));
+                      }
+                    }}
+                    error={errors.tableNumber}
+                    message={errors.tableNumber ? "Table number is required" : ""}
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
+                <DetailsInput
+                  label="Details*"
+                  placeholder="Enter here"
+                  value={details}
+                  onChangeText={(text) => {
+                    setDetails(text);
+                    if (errors.details) {
+                      setErrors((prev) => ({ ...prev, details: false }));
+                    }
+                  }}
+                  error={errors.details}
+                  message={errors.details ? "Details are required" : ""}
+                  required={false}
+                />
+
+                <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Table Fee*"
+                    placeholder="Enter table fee"
+                    value={entryFee}
+                    onChangeText={(text) => {
+                      setEntryFee(text);
+                      if (errors.entryFee) {
+                        setErrors((prev) => ({ ...prev, entryFee: false }));
+                      }
+                    }}
+                    error={errors.entryFee}
+                    message={
+                      errors.entryFee ? "Valid table fee is required" : ""
+                    }
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
+                <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Seating Capacity*"
+                    placeholder="Enter seating capacity"
+                    value={eventCapacity}
+                    onChangeText={(text) => {
+                      setEventCapacity(text);
+                      if (errors.eventCapacity) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          eventCapacity: false,
+                        }));
+                      }
+                    }}
+                    error={errors.eventCapacity}
+                    message={
+                      errors.eventCapacity
+                        ? "Valid seating capacity is required"
+                        : ""
+                    }
+                    leftImage=""
+                    kType="numeric"
+                  />
+                </View>
+
+                <View style={addClubEventDetailStyle.formElement}>
+                  <Text style={addClubEventDetailStyle.sectionLabel}>
+                    Floor Layout (Optional)
+                  </Text>
+                  <View>
+                    <TouchableOpacity
+                      style={addClubEventDetailStyle.floorLayoutImageBox}
+                      onPress={() => {
+                        if (floorLayout) {
+                          showToast("error", "Floor layout image already exists. Please delete it first.");
+                          return;
                         }
-                      })()
-                    : new Date()
-                }
-                maxDate={new Date(2035, 11, 31)}
-              />
-              <TouchableOpacity
-                style={addClubEventDetailStyle.datePickerRightIcon}
-                onPress={() => triggerDatePicker("end")}
-              >
-                <CalendarIcon />
-              </TouchableOpacity>
-            </View>
+                        setCurrentImageIndex(0);
+                        setCurrentImageType("floorLayout");
+                        setShowImagePicker(true);
+                      }}
+                    >
+                      {floorLayout ? (
+                        <Image
+                          source={{ uri: floorLayout }}
+                          style={addClubEventDetailStyle.floorLayoutImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <GalleryIcon />
+                      )}
+                    </TouchableOpacity>
+                    {floorLayout && (
+                      <TouchableOpacity
+                        style={[addClubEventDetailStyle.deleteButton, { top: verticalScale(5), right: horizontalScale(5) }]}
+                        onPress={() => {
+                          Alert.alert("Delete Image", "Are you sure you want to delete this floor layout image?", [
+                            {
+                              text: "Cancel",
+                              style: "cancel",
+                            },
+                            {
+                              text: "Delete",
+                              style: "destructive",
+                              onPress: () => {
+                                setFloorLayout("");
+                                if (errors.floorLayout) {
+                                  setErrors((prev) => ({ ...prev, floorLayout: false }));
+                                }
+                                showToast("success", "Floor layout image deleted");
+                              },
+                            },
+                          ]);
+                        }}
+                      >
+                        <DeleteIconNew width={20} height={20} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  {errors.floorLayout && (
+                    <Text style={addClubEventDetailStyle.errorText}>
+                      Floor layout image is required
+                    </Text>
+                  )}
+                </View>
+              </>
+            )}
 
-            <View style={addClubEventDetailStyle.formElement}>
-              <Text style={addClubEventDetailStyle.label}>Start Time</Text>
-              <TouchableOpacity
-                style={addClubEventDetailStyle.timeInputButton}
-                onPress={() => {
-                  showTimePickerModal("start");
-                }}
-              >
-                <Text
-                  style={
-                    startTime
-                      ? addClubEventDetailStyle.timeInputText
-                      : addClubEventDetailStyle.timeInputPlaceholder
-                  }
-                >
-                  {startTime || "Select time"}
-                </Text>
-                <TimeIcon />
-              </TouchableOpacity>
-              {/* Fallback text input for time */}
-              {/* <CustomeTextInput
-                placeholder="Or enter time manually (e.g., 8:30 AM)"
-                value={startTime}
-                onChangeText={(text) => {
-                  console.log('Manual start time input:', text);
-                  setStartTime(text);
-                }}
-                leftImage=""
-                error={false}
-                label=""
-                message=""
-                style={{ marginTop: 8 }}
-              /> */}
-            </View>
+            {/* Date and Time fields - not shown for Table type */}
+            {type !== "Table" && (
+              <>
+                <View style={addClubEventDetailStyle.formElement}>
+                  <DatePickerInput
+                    label="Start Date *"
+                    placeholder="Select date"
+                    value={startDate}
+                    onChangeText={(text) => {
+                      console.log("Start date selected:", text);
+                      setStartDate(text);
+                      // Clear errors when user types
+                      if (errors.startDate) {
+                        setErrors((prev) => ({ ...prev, startDate: false }));
+                      }
+                      // Validate dates if end date is set
+                      if (endDate && !validateDates(text, endDate)) {
+                        setErrors((prev) => ({ ...prev, endDate: true }));
+                        showToast(
+                          "error",
+                          "End date must be same or after start date"
+                        );
+                      }
+                    }}
+                    error={errors.startDate}
+                    message={errors.startDate ? "Start date is required" : ""}
+                    leftImage=""
+                    style={addClubEventDetailStyle.datePickerWrapper}
+                    allowFutureDates={true}
+                    minDate={new Date()}
+                    maxDate={new Date(2035, 11, 31)}
+                  />
+                  <TouchableOpacity
+                    style={addClubEventDetailStyle.datePickerRightIcon}
+                    onPress={() => triggerDatePicker("start")}
+                  >
+                    <CalendarIcon />
+                  </TouchableOpacity>
+                </View>
+                <View style={addClubEventDetailStyle.formElement}>
+                  <DatePickerInput
+                    label="End Date *"
+                    placeholder="Select date"
+                    value={endDate}
+                    onChangeText={(text) => {
+                      console.log("End date selected:", text);
+                      setEndDate(text);
+                      // Clear errors when user types
+                      if (errors.endDate) {
+                        setErrors((prev) => ({ ...prev, endDate: false }));
+                      }
+                      // Validate dates if start date is set
+                      if (startDate && !validateDates(startDate, text)) {
+                        setErrors((prev) => ({ ...prev, endDate: true }));
+                        showToast(
+                          "error",
+                          "End date must be same or after start date"
+                        );
+                      }
+                    }}
+                    error={errors.endDate}
+                    message={
+                      errors.endDate
+                        ? "End date must be same or after start date"
+                        : ""
+                    }
+                    leftImage=""
+                    style={addClubEventDetailStyle.datePickerWrapper}
+                    allowFutureDates={true}
+                    minDate={
+                      startDate
+                        ? (() => {
+                          try {
+                            const [day, month, year] = startDate.split("/");
+                            return new Date(
+                              parseInt(year),
+                              parseInt(month) - 1,
+                              parseInt(day)
+                            );
+                          } catch (error) {
+                            return new Date();
+                          }
+                        })()
+                        : new Date()
+                    }
+                    maxDate={new Date(2035, 11, 31)}
+                  />
+                  <TouchableOpacity
+                    style={addClubEventDetailStyle.datePickerRightIcon}
+                    onPress={() => triggerDatePicker("end")}
+                  >
+                    <CalendarIcon />
+                  </TouchableOpacity>
+                </View>
 
-            <View style={addClubEventDetailStyle.formElement}>
-              <Text style={addClubEventDetailStyle.label}>End Time</Text>
-              <TouchableOpacity
-                style={addClubEventDetailStyle.timeInputButton}
-                onPress={() => {
-                  showTimePickerModal("end");
-                }}
-              >
-                <Text
-                  style={
-                    endTime
-                      ? addClubEventDetailStyle.timeInputText
-                      : addClubEventDetailStyle.timeInputPlaceholder
-                  }
-                >
-                  {endTime || "Select time"}
-                </Text>
-                <TimeIcon />
-              </TouchableOpacity>
-              {/* Fallback text input for time */}
-              {/* <CustomeTextInput
-                placeholder="Or enter time manually (e.g., 11:30 PM)"
-                value={endTime}
-                onChangeText={(text) => {
-                  console.log('Manual end time input:', text);
-                  setEndTime(text);
-                }}
-                leftImage=""
-                error={false}
-                label=""
-                message=""
-                style={{ marginTop: 8 }}
-              /> */}
-            </View>
+                <View style={addClubEventDetailStyle.formElement}>
+                  <Text style={addClubEventDetailStyle.label}>Start Time*</Text>
+                  <TouchableOpacity
+                    style={addClubEventDetailStyle.timeInputButton}
+                    onPress={() => {
+                      showTimePickerModal("start");
+                    }}
+                  >
+                    <Text
+                      style={
+                        startTime
+                          ? addClubEventDetailStyle.timeInputText
+                          : addClubEventDetailStyle.timeInputPlaceholder
+                      }
+                    >
+                      {startTime || "Select time"}
+                    </Text>
+                    <TimeIcon />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={addClubEventDetailStyle.formElement}>
+                  <Text style={addClubEventDetailStyle.label}>End Time*</Text>
+                  <TouchableOpacity
+                    style={addClubEventDetailStyle.timeInputButton}
+                    onPress={() => {
+                      showTimePickerModal("end");
+                    }}
+                  >
+                    <Text
+                      style={
+                        endTime
+                          ? addClubEventDetailStyle.timeInputText
+                          : addClubEventDetailStyle.timeInputPlaceholder
+                      }
+                    >
+                      {endTime || "Select time"}
+                    </Text>
+                    <TimeIcon />
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
 
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.label}>Address*</Text>
@@ -1742,7 +2036,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               <>
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Price"
+                    label="Price*"
                     placeholder="Enter price"
                     value={entryFee}
                     onChangeText={(text) => {
@@ -1760,10 +2054,10 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
 
                 <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Capacity"
+                    label="Capacity*"
                     placeholder="Enter capacity"
                     value={eventCapacity}
-                    onChangeText={(text) => {
+                    onChangeText={(text) => { 
                       setEventCapacity(text);
                       if (errors.eventCapacity) {
                         setErrors((prev) => ({
@@ -1782,9 +2076,38 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                 </View>
 
                 <View style={addClubEventDetailStyle.formElement}>
+                  <Text style={addClubEventDetailStyle.sectionLabel}>Ticket Type*</Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ maxHeight: 50 }}
+                    contentContainerStyle={{ paddingRight: 16 }}
+                  >
+                    {eventTypes.map((category) => (
+                      <TouchableOpacity
+                        key={category.id}
+                        style={[
+                          addClubEventDetailStyle.categoryButton,
+                          ticketType === category.id && addClubEventDetailStyle.categoryButtonSelected
+                        ]}
+                        onPress={() => setTicketType(category.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          addClubEventDetailStyle.categoryButtonText,
+                          ticketType === category.id && addClubEventDetailStyle.categoryButtonTextSelected
+                        ]}>
+                          {category.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+
+                {/* <View style={addClubEventDetailStyle.formElement}>
                   <CustomeTextInput
-                    label="Discount Price"
-                    placeholder="Enter discount price"
+                    label="Details (Optional)"
+                    placeholder="Enter details"
                     value={details}
                     onChangeText={(text) => {
                       setDetails(text);
@@ -1792,14 +2115,27 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                         setErrors((prev) => ({ ...prev, details: false }));
                       }
                     }}
-                    error={errors.details}
-                    message={
-                      errors.details ? "Valid discount price is required" : ""
-                    }
+                    error={false}
+                    message=""
+                    leftImage=""
+                    kType="default"
+                  />
+                </View> */}
+
+                {/* <View style={addClubEventDetailStyle.formElement}>
+                  <CustomeTextInput
+                    label="Discount Price (Optional)"
+                    placeholder="Enter discount price"
+                    value={discountPrice}
+                    onChangeText={(text) => {
+                      setDiscountPrice(text);
+                    }}
+                    error={false}
+                    message=""
                     leftImage=""
                     kType="numeric"
                   />
-                </View>
+                </View> */}
               </>
             )}
 
@@ -1815,7 +2151,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                       style={[
                         addClubEventDetailStyle.toggleButton,
                         enableBooths &&
-                          addClubEventDetailStyle.toggleButtonActive,
+                        addClubEventDetailStyle.toggleButtonActive,
                       ]}
                       onPress={() => {
                         setEnableBooths(!enableBooths);
@@ -1829,7 +2165,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                         style={[
                           addClubEventDetailStyle.toggleButtonText,
                           enableBooths &&
-                            addClubEventDetailStyle.toggleButtonTextActive,
+                          addClubEventDetailStyle.toggleButtonTextActive,
                         ]}
                       >
                         {enableBooths ? "Enabled" : "Disabled"}
@@ -1880,7 +2216,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                       style={[
                         addClubEventDetailStyle.toggleButton,
                         enableTickets &&
-                          addClubEventDetailStyle.toggleButtonActive,
+                        addClubEventDetailStyle.toggleButtonActive,
                       ]}
                       onPress={() => {
                         setEnableTickets(!enableTickets);
@@ -1894,7 +2230,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                         style={[
                           addClubEventDetailStyle.toggleButtonText,
                           enableTickets &&
-                            addClubEventDetailStyle.toggleButtonTextActive,
+                          addClubEventDetailStyle.toggleButtonTextActive,
                         ]}
                       >
                         {enableTickets ? "Enabled" : "Disabled"}
@@ -1933,7 +2269,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
             {/* Upload Photos */}
             <View style={addClubEventDetailStyle.formElement}>
               <Text style={addClubEventDetailStyle.sectionLabel}>
-                Upload Photos ({uploadPhotos.length}/3)
+                Upload Photos ({uploadPhotos.length}/3)*
               </Text>
               <View style={addClubEventDetailStyle.uploadPhotosRow}>
                 {[0, 1, 2].map((index) => (
@@ -1974,11 +2310,11 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
               </View>
             </View>
 
-            {/* Facilities section - not shown for Booth and VIP Entry types */}
-            {type !== "Booth" && type !== "VIP Entry" && (
+            {/* Facilities section - not shown for Booth, VIP Entry, and Table types */}
+            {type !== "Booth" && type !== "VIP Entry" && type !== "Table" && (
               <View style={addClubEventDetailStyle.formElement}>
                 <Text style={addClubEventDetailStyle.sectionLabel}>
-                  Facilities
+                  Facilities*
                 </Text>
                 {facilitiesLoading ? (
                   <Text style={addClubEventDetailStyle.loadingText}>
@@ -1998,7 +2334,7 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
                           style={[
                             addClubEventDetailStyle.facilityCheckbox,
                             facility.selected &&
-                              addClubEventDetailStyle.facilityCheckedBox,
+                            addClubEventDetailStyle.facilityCheckedBox,
                           ]}
                         >
                           {facility.selected && (
@@ -2244,15 +2580,15 @@ const AddClubDetailScreen: React.FC<AddClubDetailScreenProps> = ({
       )}
 
       <ImageSelectionBottomSheet
-        visible={showImagePicker && currentImageType === "main"}
+        visible={showImagePicker && (currentImageType === "main" || currentImageType === "floorLayout")}
         onClose={() => setShowImagePicker(false)}
         onCameraPress={() => {
-          console.log("Main photos - Camera pressed");
-          handleImagePicker("camera", "main", -1, -1);
+          console.log(`${currentImageType} - Camera pressed`);
+          handleImagePicker("camera", currentImageType, -1, -1);
         }}
         onGalleryPress={() => {
-          console.log("Main photos - Gallery pressed");
-          handleImagePicker("gallery", "main", -1, -1);
+          console.log(`${currentImageType} - Gallery pressed`);
+          handleImagePicker("gallery", currentImageType, -1, -1);
         }}
       />
 

@@ -58,9 +58,28 @@ import GoogleSignIn
 @main
 class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
   
+  
+  // Override window property to force light mode
+//  override var window: UIWindow? {
+//    get {
+//      return super.window
+//    }
+//    set {
+//      super.window = newValue
+//      if #available(iOS 13.0, *) {
+//        super.window?.overrideUserInterfaceStyle = .light
+//      }
+//    }
+//  }
+  
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
     print("🚀 AppDelegate: didFinishLaunchingWithOptions called")
     NSLog("🚀 AppDelegate: didFinishLaunchingWithOptions called")
+    
+    // Force light mode - disable dark mode
+//    if #available(iOS 13.0, *) {
+//      window?.overrideUserInterfaceStyle = .light
+//    }
     
     self.moduleName = "VibesReserveMobile"
     self.dependencyProvider = RCTAppDependencyProvider()
@@ -100,6 +119,17 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate, MessagingDe
     
     print("🏁 AppDelegate: didFinishLaunchingWithOptions completed")
     NSLog("🏁 AppDelegate: didFinishLaunchingWithOptions completed")
+    
+    // Ensure light mode is forced after window is created
+//    DispatchQueue.main.async {
+//      if #available(iOS 13.0, *) {
+//        self.window?.overrideUserInterfaceStyle = .light
+//        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+//          windowScene.windows.forEach { $0.overrideUserInterfaceStyle = .light }
+//        }
+//      }
+//    }
+    
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
   

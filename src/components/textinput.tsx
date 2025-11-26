@@ -123,7 +123,16 @@ export const CustomeTextInput: React.FC<CustomTextInputProps> = ({
           maxLength={kType == keyboardType.email_address ? 80 : maxLength}
           multiline={multiline}
           keyboardType={
-            Platform.OS === "ios" ? "ascii-capable" : "visible-password"
+            kType === keyboardType.numeric || 
+            kType === keyboardType.number_pad || 
+            kType === "numeric" || 
+            kType === "number-pad"
+              ? (Platform.OS === "ios" ? "number-pad" : "numeric")
+              : kType === keyboardType.email_address || kType === "email-address"
+              ? "email-address"
+              : Platform.OS === "ios"
+              ? "ascii-capable"
+              : "visible-password"
           }
           placeholder={
             kType == keyboardType.email_address
@@ -705,6 +714,7 @@ interface PhoneNumberInputProps {
   phoneCodeFlag?: string;
   onPressPhoneCode?: () => void;
   validatePhone?: (isError: boolean) => void;
+  validationMode?: 'strict' | 'lenient';
 }
 
 export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
@@ -720,6 +730,7 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   phoneCodeFlag = "🇺🇸",
   onPressPhoneCode,
   validatePhone,
+  validationMode = 'strict',
 }) => {
   const internalInputRef = useRef<RNTextInput>(null);
   const [showPicker, setShowPicker] = useState(false);
@@ -761,10 +772,14 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   };
 
   const validatePhoneNumber = (number: string, dialCode: string) => {
+    const digitsOnly = number.replace(/\D/g, "");
+    if (validationMode === 'lenient') {
+      // For lenient mode, consider valid if it matches the expected national length
+      return digitsOnly.length === numberLength;
+    }
     const countryISO = getCountryISOFromDialCode(dialCode) as CountryCode;
     if (!countryISO) return false;
-
-    const fullNumber = dialCode + number.replace(/\D/g, "");
+    const fullNumber = dialCode + digitsOnly;
     const phoneObj = parsePhoneNumberFromString(fullNumber, countryISO);
     return phoneObj?.isValid() || false;
   };
@@ -942,6 +957,7 @@ interface DatePickerInputProps {
   allowFutureDates?: boolean; // New prop to allow future dates
   maxDate?: Date; // New prop to set custom max date
   minDate?: Date; // New prop to set custom min date
+  alwaysShowErrorBorder?: boolean; // When true, show red border even if value is blank
 }
 
 export const DatePickerInput: React.FC<DatePickerInputProps> = ({
@@ -956,6 +972,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   allowFutureDates = false, // Default to false for backward compatibility
   maxDate: customMaxDate,
   minDate: customMinDate,
+  alwaysShowErrorBorder = false,
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -985,7 +1002,8 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   // Set date constraints based on props
   const maxDate =
     customMaxDate || (allowFutureDates ? new Date(2035, 11, 31) : new Date());
-  const minDate = customMinDate || new Date(1900, 0, 1);
+  // No minimum date by default
+  const minDate = customMinDate ?? undefined;
 
   const formatDate = (date: Date) => {
     const day = date.getDate().toString().padStart(2, "0");
@@ -1013,7 +1031,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
       }
 
       // Validate that the selected date is not too old
-      if (selectedDate < minDate) {
+      if (minDate && selectedDate < minDate) {
         Alert.alert(
           "Invalid Date",
           allowFutureDates
@@ -1052,7 +1070,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     }
 
     // Validate that the selected date is not too old
-    if (selectedDate < minDate) {
+    if (minDate && selectedDate < minDate) {
       Alert.alert(
         "Invalid Date",
         allowFutureDates
@@ -1106,7 +1124,10 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           backgroundColor: "transparent",
           borderRadius: 90,
           borderWidth: 1,
-          borderColor: error ? colors.red : "#FFFFFF33",
+          borderColor:
+            (alwaysShowErrorBorder ? error : error && !!value)
+              ? colors.red
+              : "#FFFFFF33",
           paddingHorizontal: 15,
           paddingVertical: 15,
         }}
@@ -1157,7 +1178,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
           display="default"
           onChange={handleDateChange}
           maximumDate={maxDate} // Prevent future dates
-          minimumDate={minDate} // Prevent dates before 1900
+          minimumDate={minDate}
         />
       )}
 
@@ -1239,7 +1260,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
                   }
                 }}
                 maximumDate={maxDate} // Prevent future dates
-                minimumDate={minDate} // Prevent dates before 1900
+                minimumDate={minDate}
                 style={{ backgroundColor: "white" }}
               />
             </View>

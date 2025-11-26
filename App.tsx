@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StatusBar, Platform, AppState } from "react-native";
 import NavigationStack from "./src/navigation/navigation";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -16,22 +16,43 @@ import {stripeTestKey} from './src/utilis/appConstant';
 import { longPollingService } from './src/services/longPollingService';
 import globalUnreadCountService from './src/services/globalUnreadCountService';
 import { LocationProvider } from './src/contexts/LocationContext';
+import { ModerationProvider } from './src/contexts/ModerationContext';
+import forceUpdateService from './src/services/forceUpdateService';
+import ForceUpdateModal from './src/components/ForceUpdateModal';
 
 
 const initialState = {};
 const store: any = configureStore(initialState);
 
 function App(): React.JSX.Element {
+  const [forceUpdateVisible, setForceUpdateVisible] = useState(false);
+  const [storeUrl, setStoreUrl] = useState('');
+
   GoogleSignin.configure({
-    webClientId: "581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com", // From GoogleService-Info.plist
+    webClientId: "668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3.apps.googleusercontent.com", // From GoogleService-Info.plist
     offlineAccess: true,
-    iosClientId: "581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com", // From GoogleService-Info.plist
+    iosClientId: "668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3.apps.googleusercontent.com", // From GoogleService-Info.plist
     forceCodeForRefreshToken: true,
   });
 
   useEffect(() => {
     // Hide splash screen when app is ready
     SplashScreen.hide();
+
+    // Check for app updates first
+    const checkForUpdates = async () => {
+      try {
+        const needsUpdate = await forceUpdateService.checkForUpdate();
+        if (needsUpdate) {
+          setStoreUrl(forceUpdateService.getStoreUrl());
+          setForceUpdateVisible(true);
+        }
+      } catch (error) {
+        console.error('Error checking for updates:', error);
+      }
+    };
+
+    checkForUpdates();
 
     // Start long polling service for background chat updates after a small delay
     setTimeout(() => {
@@ -50,6 +71,9 @@ function App(): React.JSX.Element {
         if (longPollingService.isPollingActive()) {
           // The long polling service will handle the immediate poll
         }
+        
+        // Check for updates when app comes to foreground
+        checkForUpdates();
       }
     };
 
@@ -77,22 +101,30 @@ function App(): React.JSX.Element {
         <AppInitializer>
           <AppWrapper />
           <LocationProvider>
-            <View style={{ flex: 1 }}>
-              <StatusBar
-                translucent
-                backgroundColor="transparent"
-                barStyle="dark-content"
-                // Enhanced StatusBar configuration for Android 15
-                {...(Platform.OS === 'android' && {
-                  // Ensure proper edge-to-edge handling on Android 15
-                  statusBarTranslucent: true,
-                  statusBarBackgroundColor: 'transparent',
-                })}
-              />
+            <ModerationProvider>
+              <View style={{ flex: 1 }}>
+                <StatusBar
+                  translucent
+                  backgroundColor="transparent"
+                  barStyle="dark-content"
+                  // Enhanced StatusBar configuration for Android 15
+                  {...(Platform.OS === 'android' && {
+                    // Ensure proper edge-to-edge handling on Android 15
+                    statusBarTranslucent: true,
+                    statusBarBackgroundColor: 'transparent',
+                  })}
+                />
 
-              <NavigationStack />
-              <Toast config={toastConfig} />
-            </View>
+                <NavigationStack />
+                <Toast config={toastConfig} />
+                
+                {/* Force Update Modal */}
+                <ForceUpdateModal
+                  visible={forceUpdateVisible}
+                  storeUrl={storeUrl}
+                />
+              </View>
+            </ModerationProvider>
           </LocationProvider>
         </AppInitializer>
       </SafeAreaProvider>

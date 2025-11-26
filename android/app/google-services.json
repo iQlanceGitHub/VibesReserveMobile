@@ -1,48 +1,40 @@
 {
   "project_info": {
-    "project_number": "581614872749",
-    "project_id": "vibesreservemobile-5e5f4",
-    "storage_bucket": "vibesreservemobile-5e5f4.firebasestorage.app"
+    "project_number": "668464751409",
+    "project_id": "vibe-reserve",
+    "storage_bucket": "vibe-reserve.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:581614872749:android:68265db5abdd1bb3effe24",
+        "mobilesdk_app_id": "1:668464751409:android:8c990da013172e78838610",
         "android_client_info": {
-          "package_name": "com.vibesreservemobile"
+          "package_name": "com.app.VibesReserveMobile"
         }
       },
       "oauth_client": [
         {
-          "client_id": "581614872749-6sis217nhe70qr6vlv4ms0uvm0gldulq.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.vibesreservemobile",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
-          }
-        },
-        {
-          "client_id": "581614872749-kjh1qf6gi879cuheh0gc0dkslekvrmu8.apps.googleusercontent.com",
+          "client_id": "668464751409-km4pm4td2ibd4kvb0p9g0o8ddh7b9bap.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD9_jSIycd0jjGZO1_a6WIMDKDJRzSZE4w"
+          "current_key": "AIzaSyDMDJSCZbrM-gS_Sdj3e2S6CLZJeCUO2TA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "581614872749-kjh1qf6gi879cuheh0gc0dkslekvrmu8.apps.googleusercontent.com",
+              "client_id": "668464751409-km4pm4td2ibd4kvb0p9g0o8ddh7b9bap.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "581614872749-mb9dgfo6cl0fhmqds46t3m3anru2pd5m.apps.googleusercontent.com",
+              "client_id": "668464751409-22fa189d4dr1d5pqgk9f59oqt4n0pht3.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "org.reactjs.native.example.VibesReserveMobile"
+                "bundle_id": "com.app.VibesReserveMobile"
               }
             }
           ]

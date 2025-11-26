@@ -522,7 +522,9 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
           );
         }
 
-        if (profileImage && profileImage.startsWith("file://")) {
+        // Check if profileImage is a local path (not a URL from S3/server)
+        // Local paths can be: file://, content://, or paths starting with / (absolute paths)
+        if (profileImage && !profileImage.startsWith("http://") && !profileImage.startsWith("https://")) {
           setIsUploading(true);
           uploadedProfileImageUrl = await uploadFileToS3(
             profileImage,
@@ -620,6 +622,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
                 message=""
                 leftImage={<EmailIcon />}
                 style={styles.inputField}
+                editable={false}
               />
               <PhoneNumberInput
                 label="Phone Number *"

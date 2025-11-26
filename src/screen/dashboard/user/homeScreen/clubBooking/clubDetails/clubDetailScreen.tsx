@@ -51,30 +51,33 @@ import PhoneIcon from '../../../../../../assets/svg/phoneIcon';
 import CocktailIcon from '../../../../../../assets/svg/cocktailIcon';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocation, LocationProvider } from '../../../../../../contexts/LocationContext';
+import { useModeration } from '../../../../../../contexts/ModerationContext';
 
 const ClubDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { locationData } = useLocation();
+  const { isUserBlocked, getBlockedUserInfo } = useModeration();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [selectedLounge, setSelectedLounge] = useState('');
   const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
   const [viewedMap, setViewedMap] = useState(false);
-  const [clubDetails, setClubDetails] = useState(null);
+  const [clubDetails, setClubDetails] = useState<any>(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [msg, setMsg] = useState('');
   const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [showFloorPlanModal, setShowFloorPlanModal] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     title: '',
     message: '',
     primaryButtonText: '',
     secondaryButtonText: '',
-    onPrimaryPress: () => {},
-    onSecondaryPress: () => {},
+    onPrimaryPress: () => { },
+    onSecondaryPress: () => { },
   });
 
   // Get safe area insets for Android 15 compatibility
@@ -82,24 +85,17 @@ const ClubDetailScreen = () => {
 
   const dispatch = useDispatch();
   const viewdetails = useSelector((state: any) => state.auth.viewdetails);
-  
+
   // Debug: Log viewdetails to see if it's populated
   console.log("ClubDetailScreen viewdetails from Redux:", viewdetails);
 
   // Disable swipe-back gesture on iOS
   useFocusEffect(
     React.useCallback(() => {
-      // Disable gesture when screen is focused
+      // Disable gesture when screen is focused and keep it disabled
       navigation.setOptions({
         gestureEnabled: false,
       });
-
-      // Re-enable gesture when screen is unfocused (optional)
-      return () => {
-        navigation.setOptions({
-          gestureEnabled: true,
-        });
-      };
     }, [navigation])
   );
   const viewdetailsErr = useSelector((state: any) => state.auth.viewdetailsErr);
@@ -204,6 +200,60 @@ const ClubDetailScreen = () => {
 
     const fetchClubDetails = async () => {
       if (clubId) {
+        // Static test data for ID "1" or test ID
+        if (clubId === "1") {
+          console.log('Using static test data for clubId:', clubId);
+          setIsDataLoading(true);
+          setIsDataLoaded(false);
+
+          // Static test data based on provided JSON
+          const staticTestData = {
+            "_id": "68e66a761c196abe967b7638",
+            "type": "Table",
+            "userId": {
+              "_id": "68e668871c196abe967b75fc",
+              "fullName": "Cera",
+              "email": "cera@yopmail.com",
+              "phone": "4163061172",
+              "profilePicture": "https://shw-doc-app.s3.amazonaws.com/profile_1759930581690.jpg"
+            },
+            "name": "Table 1",
+            "details": "Table discription",
+            "entryFee": 12,
+            "address": "20 ON-10, Markdale, ON N0C 1H0, Canada",
+            "eventCapacity": 2,
+            "coordinates": {
+              "type": "Point",
+              "coordinates": [44.3180203, -80.6474539]
+            },
+            "booths": [],
+            "tickets": [],
+            "photos": [
+              "https://myapp-uploads-vr.s3.amazonaws.com/main_1762850173741_0.jpg",
+              "https://shw-doc-app.s3.amazonaws.com/main_1759930992303_2.jpg"
+            ],
+            "floorLayout": "https://myapp-uploads-vr.s3.amazonaws.com/floorLayout_1762850155161.jpg",
+            "status": "active",
+            "isFeature": false,
+            "createdAt": "2025-10-08T13:43:18.394Z",
+            "updatedAt": "2025-10-08T13:43:18.394Z",
+            "__v": 0,
+            "isFavorite": false
+          };
+
+          // Simulate API response delay
+          setTimeout(() => {
+            setClubDetails(staticTestData);
+            setIsDataLoading(false);
+            setIsDataLoaded(true);
+            setIsLiked(staticTestData.isFavorite || false);
+            const localBookmark = isClubBookmarked(clubId);
+            setIsBookmarked(localBookmark);
+            console.log('Static test data loaded successfully');
+          }, 500);
+          return;
+        }
+
         console.log('Calling Viewdetails API with ID:', clubId);
         setIsDataLoading(true);
         setIsDataLoaded(false);
@@ -212,9 +262,9 @@ const ClubDetailScreen = () => {
           console.log('user::===>', user);
           console.log('user::===>', user?.currentRole);
           console.log('user::===>', { id: clubId, userId: user?.id });
-          
+
           // Call API with user ID, fallback to clubId if user not found
-          dispatch(onViewdetails({ id: clubId, userId: user?.id  }));
+          dispatch(onViewdetails({ id: clubId, userId: user?.id }));
         } catch (error) {
           console.error('Error fetching user or calling API:', error);
           // Fallback: call API without userId
@@ -231,7 +281,7 @@ const ClubDetailScreen = () => {
     console.log("Viewdetails useEffect triggered with:", viewdetails);
     console.log("Viewdetails status:", viewdetails?.status);
     console.log("Viewdetails data:", viewdetails?.data);
-    
+
     if (
       viewdetails?.status === true ||
       viewdetails?.status === 'true' ||
@@ -580,11 +630,12 @@ const ClubDetailScreen = () => {
 ${clubDetails_text}
 
 🏷️ Type: ${clubType}
-💰 Entry: ₹${entryFee}
+💰 Entry: $${entryFee}
 
 #Nightlife #Party #${clubType} #VibesReserve #Fun #Entertainment
 
-Download VibesReserve app to discover more amazing venues! 🚀`;
+Download VibesReserve app to discover more amazing venues! 🚀\n
+Download from App Store: 👉 https://apps.apple.com/us/app/vibe-reserve/id6754464237`;
 
     try {
       const result = await Share.share({
@@ -618,7 +669,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
     // Check if user has permission to like/favorite
     const hasPermission = await handleRestrictedAction('canLike', navigation, 'like this club');
-    
+
     if (!hasPermission) {
       // Show custom alert for login required
       setAlertConfig({
@@ -673,7 +724,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
     // Check if user has permission to bookmark
     const hasPermission = await handleRestrictedAction('canBookmark', navigation, 'bookmark this club');
-    
+
     if (!hasPermission) {
       // Show custom alert for login required
       setAlertConfig({
@@ -714,17 +765,17 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
     // Check both tickets and booths for the selected item
     let selectedData = null;
-    
+
     // First check tickets
     if (transformedTickets && transformedTickets.length > 0) {
       selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
     }
-    
+
     // If not found in tickets, check booths
     if (!selectedData && lounges && lounges.length > 0) {
       selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
     }
-    
+
     return selectedData ? selectedData.price : ((clubDetails as any)?.entryFee || 0);
   };
 
@@ -770,10 +821,10 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
     console.log("ClubDetailScreen viewdetails (booking):", viewdetails);
     console.log("ClubDetailScreen viewdetails type:", typeof viewdetails);
     console.log("ClubDetailScreen viewdetails keys:", viewdetails ? Object.keys(viewdetails) : 'viewdetails is null/undefined');
-    
+
     // Pass the actual event data (either from viewdetails.data or viewdetails itself)
     const baseEventData = viewdetails?.data || viewdetails || clubDetails;
-    
+
     // Combine event data with selected ticket information
     const combinedEventData = {
       ...(baseEventData || {}),
@@ -796,7 +847,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
         // Don't include ticketCost, ticketType, ticketid
       })
     };
-    
+
     console.log("ClubDetailScreen combinedEventData:", combinedEventData);
     console.log("ClubDetailScreen navigating to ClubBookingScreen with (booking):", { eventData: combinedEventData });
     (navigation as any).navigate("ClubBookingScreen", { eventData: combinedEventData });
@@ -824,12 +875,14 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
         'Data Not Available',
         'Unable to load club details. Please try again or go back and select a different club.',
         [
-          { text: 'Try Again', onPress: () => {
-            // Retry loading data
-            setIsDataLoading(true);
-            setIsDataLoaded(false);
-            dispatch(onViewdetails({ id: clubId }));
-          }},
+          {
+            text: 'Try Again', onPress: () => {
+              // Retry loading data
+              setIsDataLoading(true);
+              setIsDataLoaded(false);
+              dispatch(onViewdetails({ id: clubId }));
+            }
+          },
           { text: 'Go Back', onPress: () => navigation.goBack() }
         ]
       );
@@ -838,28 +891,28 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
     let selectedData: any = null;
     let isBooth = false;
-    
+
     // Check if a booth or ticket is selected
     if (selectedLounge) {
       // Check both tickets and booths for the selected item
       if (transformedTickets && transformedTickets.length > 0) {
         selectedData = transformedTickets.find((ticket: any) => ticket.id === selectedLounge);
       }
-      
+
       if (!selectedData && lounges && lounges.length > 0) {
         selectedData = lounges.find((lounge: any) => lounge.id === selectedLounge);
       }
-      
+
       // Determine if this is a booth or ticket based on the data structure
       isBooth = selectedData?.boothType !== undefined;
     }
-   
+
     console.log("selectedData:=>", selectedData);
     console.log("clubDetails:=>", clubDetails);
-    
+
     // If no booth/ticket selected, use entryFee as the price
     const entryFee = (clubDetails as any)?.entryFee || 0;
-    
+
     // Combine event data with selected information
     const baseEventData = clubDetails as any || {};
     const combinedEventData = {
@@ -888,7 +941,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
         // Don't include boothCost, boothType, boothId, ticketCost, ticketType, ticketid
       })
     };
-    
+
     console.log("Combined event data for booking:", combinedEventData);
     (navigation as any).navigate('ClubBookingScreen', { eventData: combinedEventData });
   };
@@ -969,7 +1022,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
             <Text style={styles.loadingText}>Loading club details...</Text>
           </View>
         )} */}
-        
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Event Details Card */}
           <View style={styles.eventCard}>
@@ -985,20 +1038,31 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
 
             <Text style={styles.eventTitle}>{(clubDetails as any)?.name || 'Loading...'}</Text>
 
+            {/* Blocked User Indicator */}
+            {clubDetails && (clubDetails as any)?.userId && isUserBlocked((clubDetails as any).userId._id) && (
+              <View style={styles.blockedUserIndicator}>
+                <Text style={styles.blockedUserText}>
+                  ⚠️ You’ve previously blocked this host. We recommend contacting support before proceeding with your booking.
+                </Text>
+              </View>
+            )}
+
             <View style={styles.eventDetails}>
               <View style={styles.detailRow}>
                 <LocationFavourite size={16} color={colors.violate} />
                 <Text style={styles.detailText}>{(clubDetails as any)?.address || 'Loading...'}</Text>
               </View>
-              <View style={styles.detailRow}>
-                <ClockIcon size={16} color={colors.violate} />
-                <Text style={styles.detailText}>
-                  {clubDetails ?
-                    `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
-                    'Loading...'
-                  }
-                </Text>
-              </View>
+              {(clubDetails as any)?.type !== 'Table' && (
+                <View style={styles.detailRow}>
+                  <ClockIcon size={16} color={colors.violate} />
+                  <Text style={styles.detailText}>
+                    {clubDetails && (clubDetails as any).startDate && (clubDetails as any).openingTime ?
+                      `${new Date((clubDetails as any).startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${(clubDetails as any).openingTime}` :
+                      'Loading...'
+                    }
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.aboutSection}>
@@ -1008,202 +1072,239 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
               </Text>
             </View>
 
-          {/* Booking Options */}
-          <View style={styles.section}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.loungesContainer}
-            >
-              {lounges.map((lounge: any) => (
-                <TouchableOpacity
-                  key={lounge.id}
-                  style={[
-                    styles.loungeCard,
-                    selectedLounge === lounge.id && styles.loungeCardSelected
-                  ]}
-                  onPress={() => handleLoungeSelect(lounge.id)}
-                >
-                  <Image source={{ uri: lounge.image }} style={styles.loungeImage} />
-                  <View style={styles.loungeContent}>
-                    <Text style={styles.loungeName}>{lounge.name}</Text>
-                    <Text style={styles.loungeDetails}>
-                      <Text style={styles.loungeTitle}>Booth Type: </Text>
-                      <Text style={styles.loungeDetails}>{lounge.type}</Text>
-                      {'\n'}
-                      <Text style={styles.loungeTitle}>Capacity: </Text>
-                      <Text style={styles.loungeDetails}>{lounge.capacity}</Text>
-                    </Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <TouchableOpacity
-                        style={[
-                          styles.selectButton,
-                          selectedLounge === lounge.id && styles.selectButtonSelected
-                        ]}
-                        onPress={() => handleLoungeSelect(lounge.id)}
-                      >
-                        <Text style={[
-                          styles.selectButtonText,
-                          selectedLounge === lounge.id && styles.selectButtonTextSelected
-                        ]}>
-                          {selectedLounge === lounge.id ? 'Selected' : 'Select'}
-                        </Text>
-                      </TouchableOpacity>
-                      <View style={styles.priceContainer}>
-                        <Text style={styles.originalPrice}>${lounge.originalPrice}</Text>
-                        <Text style={styles.discountedPrice}>${lounge.discountedPrice}</Text>
-                      </View>
-                    </View>
+            {/* Floor Plan Section for Table Type */}
+            {(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.eventCapacity && (
+              <View style={[styles.section, { marginTop: verticalScale(8), marginBottom: verticalScale(4) }]}>
+                <Text style={styles.capcityTableTitle}>Guests Capacity: {(clubDetails as any)?.eventCapacity || 'Loading...'} </Text>
+              </View>
+            )}
 
+            {(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.tableNumber && (
+              <View style={[styles.section, { marginTop: verticalScale(8), marginBottom: verticalScale(-2) }]}>
+                <Text style={styles.capcityTableTitle}>Table Number: {(clubDetails as any)?.tableNumber || 'Loading...'} </Text>
+              </View>
+            )}
+
+            {/* Floor Plan Section for Table Type */}
+            {(clubDetails as any)?.type === 'Table' && (clubDetails as any)?.floorLayout && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Floor Plan</Text>
+                <TouchableOpacity
+                  style={styles.floorPlanButton}
+                  onPress={() => setShowFloorPlanModal(true)}
+                >
+                  <View style={styles.floorPlanPreviewContainer}>
+                    <Image
+                      source={{ uri: (clubDetails as any)?.floorLayout }}
+                      style={styles.floorPlanPreview}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.floorPlanOverlay}>
+                      <Text style={styles.floorPlanButtonText}>View Floor Plan</Text>
+                    </View>
                   </View>
                 </TouchableOpacity>
-              ))}
-
-              {transformedTickets.map((ticket: any) => (
-                <TouchableOpacity
-                  key={ticket.id}
-                  style={[
-                    styles.ticketCard,
-                    selectedLounge === ticket.id && styles.loungeCardSelected
-                  ]}
-                  onPress={() => handleLoungeSelect(ticket.id)}
-                >
-
-                  <View style={styles.loungeContent}>
-
-                    <Text style={styles.loungeDetails}>
-                      <Text style={styles.loungeTitle}>Ticket Type: </Text>
-                      <Text style={styles.loungeDetails}>{ticket.type}</Text>
-                      {'\n'}
-                      <Text style={styles.loungeTitle}>Capacity: </Text>
-                      <Text style={styles.loungeDetails}>{ticket.capacity}</Text>
-                    </Text>
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.discountedPrice}>${ticket.price}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <TouchableOpacity
-                        style={[
-                          styles.selectButton,
-                          selectedLounge === ticket.id && styles.selectButtonSelected
-                        ]}
-                        onPress={() => handleLoungeSelect(ticket.id)}
-                      >
-                        <Text style={[
-                          styles.selectButtonText,
-                          selectedLounge === ticket.id && styles.selectButtonTextSelected
-                        ]}>
-                          {selectedLounge === ticket.id ? 'Selected' : 'Select'}
-                        </Text>
-                      </TouchableOpacity>
-
-                    </View>
-
-                  </View>
-                </TouchableOpacity>
-              ))}
-
-            </ScrollView>
-          </View>
-
-          {/* Organizations */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Organizations</Text>
-            <View style={styles.organizationCard}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face' }}
-                style={styles.organizerAvatar}
-              />
-              <View style={styles.organizerInfo}>
-                <Text style={styles.organizerName}>{(clubDetails as any)?.userId?.fullName}</Text>
-                <Text style={styles.organizerRole}>Organize Team</Text>
               </View>
-              <View style={styles.contactIcons}>
-                <TouchableOpacity style={styles.contactButton} onPress={() => (navigation as any).navigate("ChatScreen", {
-                  otherUserId: (clubDetails as any)?.userId?._id,
-                  otherUserName: (clubDetails as any)?.userId?.fullName,
-                  otherUserProfilePicture: (clubDetails as any)?.userId?.profilePicture,
-                  conversationId: (clubDetails as any)?.userId?.conversationId,
-                })}>
-                  <MessageIcon width={20} height={20} color={colors.violate} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.contactButton}>
-                  <PhoneIcon width={20} height={20} color={colors.violate} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
+            )}
 
-          {/* Address */}
-          <View style={styles.section}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: verticalScale(16) }}>
-              <Text style={styles.sectionTitle}>Address</Text>
-              <TouchableOpacity style={styles.mapButton} onPress={openInMapApp}>
-                <Text style={styles.mapButtonText}>View on Map</Text>
-              </TouchableOpacity></View>
-
-            <View style={styles.addressRow}>
-              <LocationFavourite size={16} color={colors.violate} />
-              <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
-            </View>
-
-
-            <View style={styles.mapContainer}>
-              <MapView
-                style={styles.map}
-                initialRegion={location}
-                customMapStyle={mapStyle} // Apply custom styling
-                scrollEnabled={false} // Disable scrolling if you want it to be static
-                zoomEnabled={false} // Disable zoom if you want it to be static
-                userInterfaceStyle="dark"
-                tintColor={colors.violate}
-                mapType="standard"
-                showsUserLocation={false}
-                showsMyLocationButton={false}
-                showsCompass={false}
-                showsScale={false}
-                showsBuildings={true}
-                showsTraffic={false}
-                showsIndoors={false}
+            {/* Booking Options */}
+            <View style={styles.section}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.loungesContainer}
               >
-                <Marker
-                  coordinate={location}
-                  pinColor={colors.violate}
-                >
-                  <View style={styles.mapPin}>
-                    <LocationFavourite size={24} color={colors.white} />
-                  </View>
-                </Marker>
-              </MapView>
+                {lounges.map((lounge: any) => (
+                  <TouchableOpacity
+                    key={lounge.id}
+                    style={[
+                      styles.loungeCard,
+                      selectedLounge === lounge.id && styles.loungeCardSelected
+                    ]}
+                    onPress={() => handleLoungeSelect(lounge.id)}
+                  >
+                    <Image source={{ uri: lounge.image }} style={styles.loungeImage} />
+                    <View style={styles.loungeContent}>
+                      <Text style={styles.loungeName}>{lounge.name}</Text>
+                      <Text style={styles.loungeDetails}>
+                        <Text style={styles.loungeTitle}>Booth Type: </Text>
+                        <Text style={styles.loungeDetails}>{lounge.type}</Text>
+                        {'\n'}
+                        <Text style={styles.loungeTitle}>Capacity: </Text>
+                        <Text style={styles.loungeDetails}>{lounge.capacity}</Text>
+                      </Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TouchableOpacity
+                          style={[
+                            styles.selectButton,
+                            selectedLounge === lounge.id && styles.selectButtonSelected
+                          ]}
+                          onPress={() => handleLoungeSelect(lounge.id)}
+                        >
+                          <Text style={[
+                            styles.selectButtonText,
+                            selectedLounge === lounge.id && styles.selectButtonTextSelected
+                          ]}>
+                            {selectedLounge === lounge.id ? 'Selected' : 'Select'}
+                          </Text>
+                        </TouchableOpacity>
+                        <View style={styles.priceContainer}>
+                          <Text style={styles.originalPrice}>${lounge.originalPrice}</Text>
+                          <Text style={styles.discountedPrice}>${lounge.discountedPrice}</Text>
+                        </View>
+                      </View>
+
+                    </View>
+                  </TouchableOpacity>
+                ))}
+
+                {transformedTickets.map((ticket: any) => (
+                  <TouchableOpacity
+                    key={ticket.id}
+                    style={[
+                      styles.ticketCard,
+                      selectedLounge === ticket.id && styles.loungeCardSelected
+                    ]}
+                    onPress={() => handleLoungeSelect(ticket.id)}
+                  >
+
+                    <View style={styles.loungeContent}>
+
+                      <Text style={styles.loungeDetails}>
+                        <Text style={styles.loungeTitle}>Ticket Type: </Text>
+                        <Text style={styles.loungeDetails}>{ticket.type}</Text>
+                        {'\n'}
+                        <Text style={styles.loungeTitle}>Capacity: </Text>
+                        <Text style={styles.loungeDetails}>{ticket.capacity}</Text>
+                      </Text>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.discountedPrice}>${ticket.price}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TouchableOpacity
+                          style={[
+                            styles.selectButton,
+                            selectedLounge === ticket.id && styles.selectButtonSelected
+                          ]}
+                          onPress={() => handleLoungeSelect(ticket.id)}
+                        >
+                          <Text style={[
+                            styles.selectButtonText,
+                            selectedLounge === ticket.id && styles.selectButtonTextSelected
+                          ]}>
+                            {selectedLounge === ticket.id ? 'Selected' : 'Select'}
+                          </Text>
+                        </TouchableOpacity>
+
+                      </View>
+
+                    </View>
+                  </TouchableOpacity>
+                ))}
+
+              </ScrollView>
             </View>
-          </View>
-          {/* Facilities */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Facilities</Text>
-            <View style={styles.facilitiesContainer}>
-              {facilities.map((facility: any) => (
-                <TouchableOpacity
-                  key={facility.id}
-                  style={[
-                    styles.facilityButton,
-                    selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
-                  ]}
-                  onPress={() => handleFacilityToggle(facility.id)}
-                >
-                  {/* {facility.icon} */}
-                  <Text style={[
-                    styles.facilityText,
-                    selectedFacilities.includes(facility.id) && styles.facilityTextSelected
-                  ]}>
-                    {facility.title}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+
+            {/* Organizations */}
+            <View style={[styles.section, (clubDetails as any)?.type === 'Table' && { marginTop: verticalScale(-30) }]}>
+              <Text style={styles.sectionTitle}>Organizations</Text>
+              <View style={styles.organizationCard}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face' }}
+                  style={styles.organizerAvatar}
+                />
+                <View style={styles.organizerInfo}>
+                  <Text style={styles.organizerName}>{(clubDetails as any)?.userId?.fullName}</Text>
+                  <Text style={styles.organizerRole}>Organize Team</Text>
+                </View>
+                <View style={styles.contactIcons}>
+                  <TouchableOpacity style={styles.contactButton} onPress={() => (navigation as any).navigate("ChatScreen", {
+                    otherUserId: (clubDetails as any)?.userId?._id,
+                    otherUserName: (clubDetails as any)?.userId?.fullName,
+                    otherUserProfilePicture: (clubDetails as any)?.userId?.profilePicture,
+                    conversationId: (clubDetails as any)?.userId?.conversationId,
+                  })}>
+                    <MessageIcon width={20} height={20} color={colors.violate} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.contactButton}>
+                    <PhoneIcon width={20} height={20} color={colors.violate} />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
+
+            {/* Address */}
+            <View style={styles.section}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: verticalScale(16) }}>
+                <Text style={styles.sectionTitle}>Address</Text>
+                <TouchableOpacity style={styles.mapButton} onPress={openInMapApp}>
+                  <Text style={styles.mapButtonText}>View on Map</Text>
+                </TouchableOpacity></View>
+
+              <View style={styles.addressRow}>
+                <LocationFavourite size={16} color={colors.violate} />
+                <Text style={styles.addressText}>{(clubDetails as any)?.address || 'Loading address...'}</Text>
+              </View>
+
+
+              <View style={styles.mapContainer}>
+                <MapView
+                  style={styles.map}
+                  initialRegion={location}
+                  customMapStyle={mapStyle} // Apply custom styling
+                  scrollEnabled={false} // Disable scrolling if you want it to be static
+                  zoomEnabled={false} // Disable zoom if you want it to be static
+                  userInterfaceStyle="dark"
+                  tintColor={colors.violate}
+                  mapType="standard"
+                  showsUserLocation={false}
+                  showsMyLocationButton={false}
+                  showsCompass={false}
+                  showsScale={false}
+                  showsBuildings={true}
+                  showsTraffic={false}
+                  showsIndoors={false}
+                >
+                  <Marker
+                    coordinate={location}
+                    pinColor={colors.violate}
+                  >
+                    <View style={styles.mapPin}>
+                      <LocationFavourite size={24} color={colors.white} />
+                    </View>
+                  </Marker>
+                </MapView>
+              </View>
+            </View>
+            {/* Facilities - Only show if facilities exist */}
+            {facilities && facilities.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Facilities</Text>
+                <View style={styles.facilitiesContainer}>
+                  {facilities.map((facility: any) => (
+                    <TouchableOpacity
+                      key={facility.id}
+                      style={[
+                        styles.facilityButton,
+                        selectedFacilities.includes(facility.id) && styles.facilityButtonSelected
+                      ]}
+                      onPress={() => handleFacilityToggle(facility.id)}
+                    >
+                      {/* {facility.icon} */}
+                      <Text style={[
+                        styles.facilityText,
+                        selectedFacilities.includes(facility.id) && styles.facilityTextSelected
+                      ]}>
+                        {facility.title}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
-        </View>
-        <View style={{ marginTop: verticalScale(100) }}></View>
-      </ScrollView>
+          <View style={{ marginTop: verticalScale(100) }}></View>
+        </ScrollView>
       </View>
 
 
@@ -1215,11 +1316,11 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
             {isDataLoading ? 'Loading...' : `$${getTotalPrice()}`}
           </Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
-            styles.bookNowButton, 
+            styles.bookNowButton,
             (isDataLoading || !isDataLoaded) && styles.bookNowButtonDisabled
-          ]} 
+          ]}
           onPress={handleNextPress}
           disabled={isDataLoading || !isDataLoaded}
         >
@@ -1264,7 +1365,7 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
           </View>
         </View>
       </Modal>
-      
+
       <CustomAlert
         visible={showCustomAlert}
         title={alertConfig.title}
@@ -1275,6 +1376,43 @@ Download VibesReserve app to discover more amazing venues! 🚀`;
         onSecondaryPress={alertConfig.onSecondaryPress}
         onClose={() => setShowCustomAlert(false)}
       />
+
+      {/* Floor Plan Modal */}
+      <Modal
+        visible={showFloorPlanModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFloorPlanModal(false)}
+      >
+        <View style={styles.floorPlanModalOverlay}>
+          <View style={styles.floorPlanModalContainer}>
+            <View style={styles.floorPlanModalHeader}>
+              <Text style={styles.floorPlanModalTitle}>Floor Plan</Text>
+              <TouchableOpacity
+                style={styles.floorPlanCloseButton}
+                onPress={() => setShowFloorPlanModal(false)}
+              >
+                <Text style={styles.floorPlanCloseButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.floorPlanScrollView}
+              contentContainerStyle={styles.floorPlanScrollContent}
+              showsVerticalScrollIndicator={true}
+              showsHorizontalScrollIndicator={true}
+              maximumZoomScale={3}
+              minimumZoomScale={1}
+              bouncesZoom={true}
+            >
+              <Image
+                source={{ uri: (clubDetails as any)?.floorLayout }}
+                style={styles.floorPlanFullImage}
+                resizeMode="contain"
+              />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

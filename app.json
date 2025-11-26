@@ -1,4 +1,10 @@
 {
   "name": "VibesReserveMobile",
-  "displayName": "VibesReserveMobile"
+  "displayName": "VibesReserveMobile",
+  "android": {
+    "package": "com.app.VibesReserveMobile"
+  },
+  "ios": {
+    "bundleIdentifier": "com.app.VibesReserveMobile"
+  }
 }

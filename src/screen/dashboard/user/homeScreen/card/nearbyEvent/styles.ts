@@ -13,7 +13,7 @@ export default StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.cardBackground,
     width: horizontalScale(334),
-    height: Platform.OS === "ios" ? verticalScale(130) : verticalScale(140),
+    height: Platform.OS === "ios" ? verticalScale(140) : verticalScale(140),
     borderRadius: horizontalScale(16),
     alignSelf: "center",
     marginBottom: verticalScale(12),

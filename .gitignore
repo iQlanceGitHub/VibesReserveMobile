@@ -165,4 +165,6 @@ DerivedData/
 .env.production
 .env.test
 
+# App Constants - Never push to GitHub
+src/utilis/appConstant.ts
 

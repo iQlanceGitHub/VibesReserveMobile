@@ -31,6 +31,13 @@ import {
   profileError,
   logoutData,
   logoutError,
+  deleteAccountData,
+  deleteAccountError,
+  getCmsContentData,
+  getCmsContentError,
+  resendEmailData,
+  resendEmailError,
+
   getDynamicContentData,
   getDynamicContentError,
   updateLocationData,
@@ -128,6 +135,9 @@ import {
   // Delete Promo Code imports
   deletePromoCodeData,
   deletePromoCodeError,
+  // Nearby Host View All imports
+  nearbyHostViewAllData,
+  nearbyHostViewAllError,
 } from "./actions";
 
 export const initialState = {
@@ -160,6 +170,15 @@ export const initialState = {
   profileErr: "",
   logout: "",
   logoutErr: "",
+
+  deleteAccount: "",
+  deleteAccountErr: "",
+
+  cmsContent: "",
+  cmsContentErr: "",
+
+  resendEmail: "",
+  resendEmailErr: "",
   getDynamicContent: "",
   getDynamicContentErr: "",
   updateLocation: "",
@@ -293,6 +312,10 @@ export const initialState = {
   // Delete Promo Code state
   deletePromoCode: "",
   deletePromoCodeErr: "",
+
+  // Nearby Host View All state
+  nearbyHostViewAll: null,
+  nearbyHostViewAllErr: "",
 };
 
 const authReducer = handleActions(
@@ -380,6 +403,7 @@ const authReducer = handleActions(
     }),
 
     [socialLoginData().type]: produce((draft, action) => {
+      console.log("🔄 REDUCER: socialLoginData action received with payload:", action.payload);
       draft.socialLogin = action.payload;
     }),
     [socialLoginError().type]: produce((draft, action) => {
@@ -404,6 +428,27 @@ const authReducer = handleActions(
     }),
     [logoutError().type]: produce((draft, action) => {
       draft.logoutErr = action.payload;
+    }),
+
+    [deleteAccountData().type]: produce((draft, action) => {
+      draft.deleteAccount = action.payload;
+    }),
+    [deleteAccountError().type]: produce((draft, action) => {
+      draft.deleteAccountErr = action.payload;
+    }),
+
+    [getCmsContentData().type]: produce((draft, action) => {
+      draft.cmsContent = action.payload;
+    }),
+    [getCmsContentError().type]: produce((draft, action) => {
+      draft.cmsContentErr = action.payload;
+    }),
+
+    [resendEmailData().type]: produce((draft, action) => {
+      draft.resendEmail = action.payload;
+    }),
+    [resendEmailError().type]: produce((draft, action) => {
+      draft.resendEmailErr = action.payload;
     }),
 
     [getDynamicContentData().type]: produce((draft, action) => {
@@ -775,6 +820,14 @@ const authReducer = handleActions(
     }),
     [deletePromoCodeError().type]: produce((draft: any, action: any) => {
       draft.deletePromoCodeErr = action.payload;
+    }),
+
+    // Nearby Host View All reducers
+    [nearbyHostViewAllData().type]: produce((draft: any, action: any) => {
+      draft.nearbyHostViewAll = action.payload;
+    }),
+    [nearbyHostViewAllError().type]: produce((draft: any, action: any) => {
+      draft.nearbyHostViewAllErr = action.payload;
     }),
   },
   initialState

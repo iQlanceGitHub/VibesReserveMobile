@@ -25,6 +25,7 @@ import ResetPasswordScreen from "../screen/auth/ResetPasswordScreen/ResetPasswor
 import LeaveReviewScreen from "../screen/leaveReviewScreen/leaveReviewScreen";
 import ProfileScreen from "../screen/profileScreen/profileScreen";
 import EditProfileScreen from "../screen/editProfileScreen/editProfileScren";
+import BlockedHostsScreen from "../screen/blockedHostsScreen/blockedHostsScreen";
 import HomeBottomTabNavigator from "./bottomTabNavigator/homeBottomTabNavigator";
 import HostBottomTabNavigator from "./bottomTabNavigator/hostBottomTabNavigator";
 import favouriteScreen from "../screen/favouriteScreen/favouriteScreen";
@@ -42,6 +43,7 @@ import PromotionalCode from "../screen/dashboard/host/profileScreen/promotionalC
 import AddPromotionalCode from "../screen/dashboard/host/profileScreen/addPromotionalCode";
 import EditPromotionalCode from "../screen/dashboard/host/profileScreen/editPromotionalCode";
 import HelpSupport from "../screen/dashboard/host/profileScreen/helpSupport";
+import UserHelpSupport from "../screen/dashboard/user/profileScreen/userHelpSupport";
 // import EnhancedDemoScreen from "../screen/dashboard/user/homeScreen/Demo/enhancedDemo";
 
 import PaymentScreen from "../screen/dashboard/user/payments/payments";
@@ -69,6 +71,7 @@ import profileScreen from "../screen/profileScreen/profileScreen";
 import logoutScreen from "../screen/dashboard/user/homeScreen/logoutScreen/logoutScreen";
 import DetailScreen from "../screen/dashboard/host/detailScreen/detailScreen";
 import EditDetailScreen from "../screen/dashboard/host/detailScreen/editDetailScreen";
+import CmsContentScreen from "../screen/cmsContentScreen/cmsContentScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -150,6 +153,9 @@ export type RootStackParamList = {
   DetailScreen: undefined;
   EditDetailScreen: { clubId: string };
   NotificationScreen: undefined;
+  CmsContentScreen: { identifier: string; title: string; content?: string };
+  BlockedHostsScreen: undefined;
+  UserHelpSupportScreen: undefined;
 };
 
 function MyTabs() {
@@ -224,7 +230,7 @@ const NavigationStack: React.FC = () => {
       >
         <Stack.Navigator
           screenOptions={{
-            gestureEnabled: true, // Enable gesture navigation globally
+            gestureEnabled: false, // Disable swipe navigation globally
           }}
         >
           <Stack.Screen
@@ -392,7 +398,7 @@ const NavigationStack: React.FC = () => {
             component={BookingDetailScreen}
             options={{
               headerShown: false,
-              gestureEnabled: true, // Enable gesture navigation for this screen
+              gestureEnabled: false, // Disable swipe navigation
               presentation: "card", // Ensure proper card presentation
             }}
           />
@@ -439,6 +445,21 @@ const NavigationStack: React.FC = () => {
           <Stack.Screen
             name="EditDetailScreen"
             component={EditDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CmsContentScreen"
+            component={CmsContentScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BlockedHostsScreen"
+            component={BlockedHostsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="UserHelpSupportScreen"
+            component={UserHelpSupport}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
